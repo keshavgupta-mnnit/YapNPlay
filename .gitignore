@@ -12,6 +12,7 @@ Thumbs.db
 # Build outputs
 /build
 /captures
+**/build/
 .externalNativeBuild
 .cxx
 

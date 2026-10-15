@@ -24,13 +24,12 @@ dependencyResolutionManagement {
 
 rootProject.name = "YapNPlay"
 
-// Android app module (existing)
-include(":app")
-
-// Shared contract modules (Phase 1)
+// Shared contract modules (Phase 1) — KMP libraries with Android + JVM targets.
 include(":shared:protocol")
 include(":shared:game-api")
 
 // Later phases add (one line each):
 // include(":games:ludo")
 // include(":server")
+// include(":composeApp")
+// include(":androidApp")

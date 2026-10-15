@@ -1,1 +1,0 @@
-{"matchId":"match-1","version":3,"serverTime":1700000000000,"viewer":{"role":"PLAYER","seat":1},"seats":[{"seat":1,"colour":"RED","controllerUserId":"user-1","status":"ACTIVE","connected":true,"autoPlay":false,"consecutiveMisses":0}],"publicState":{"board":"ludo-board-json"},"legalMoves":[{"type":"RollDice"}],"turn":{"seat":1,"phase":"ROLL","deadline":1700000030000}}

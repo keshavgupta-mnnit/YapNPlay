@@ -24,12 +24,9 @@ dependencyResolutionManagement {
 
 rootProject.name = "YapNPlay"
 
-// Shared contract modules (Phase 1) — KMP libraries with Android + JVM targets.
-include(":shared:protocol")
-include(":shared:game-api")
-
+// Single appengine library. core/, games/base/, protocol and games/*
+// are plain source folders inside it — not Gradle modules.
 // Later phases add (one line each):
-// include(":games:ludo")
-// include(":server")
 // include(":composeApp")
 // include(":androidApp")
+include(":appengine")

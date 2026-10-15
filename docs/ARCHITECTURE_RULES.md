@@ -1,50 +1,84 @@
 # YapNPlay Architecture Rules
 
-**Version:** 2.0.0
+**Version:** 2.1.0
 **Last updated:** 2026-10-15
 
 This document is the single source of truth for code organisation, naming, testing and engineering discipline. **Every AI agent and every developer must read this file before writing code.**
 
 ---
 
-## 1. Module dependency rules
+## 1. Library and folder rules
 
-The dependency graph is strictly one-directional. A module may only depend on modules **below** it.
+There is **exactly one library**: `:appengine`. Everything below is a plain
+source folder inside it — never a Gradle module, never a separate library.
 
 ```
-:app  →  :server (NOT allowed — see note)
-:app  →  :shared:protocol
-:app  →  :shared:game-api
-:app  →  :games:ludo
-
-:server  →  :shared:protocol
-:server  →  :shared:game-api
-:server  →  :games:ludo
-
-:games:ludo  →  :shared:game-api
-:games:ludo  →  :shared:protocol (for serialization of game-specific types)
-
-:shared:game-api  →  (nothing — pure Kotlin)
-:shared:protocol  →  (nothing — pure Kotlin)
+appengine/
+  core/             # Shared resources, util classes, UI components (used in 2+ places)
+  games/base/        # Base contracts EVERY game must implement (no domain/ folder — nothing game-specific here)
+  protocol/         # Wire message formats, grouped by feature: transport/, room/, match/, http/, errors/
+  games/common/     # Shared game mechanics, grouped by kind: gameplay/moves/{dice,pieces,cards,…}
+  games/
+    royalludo/     # Everything specific to Royal Ludo lives here and ONLY here
+  di/               # Dependency injection modules (created with the app layer)
+  ui/               # App-level UI (created with the app layer)
+    components/     # Shared Compose components
+    screens/        # Simple feature screens (screen composable + ViewModel only)
 ```
 
 **Hard rules:**
-- `:shared:game-api` and `:shared:protocol` must **never** depend on any other module in this project. They are pure Kotlin libraries using only Kotlin and kotlinx libraries.
-- `:server` must **never** depend on `:app`.
-- `:app` must **never** depend on `:server`.
-- Game engines (`:games:ludo`) must **never** depend on `:server` or `:app`.
+- One `build.gradle.kts` for the whole library. No per-folder build files, ever.
+- Folders are packages, not modules. Nothing inside `app-engine` may declare its own Gradle module.
+- Game-specific code lives inside that game's folder under `games/` and nowhere else.
+- Shared code (used in 2+ places) lives in `core/` or `appengine/ui/components/`, never duplicated per game.
+- Each folder contains only the architecture layers it needs — nothing more (see §2).
+- **Dependencies point one way only — never bidirectional:**
+  ```
+  games/{game}  →  games/common  →  games/api
+  protocol/     →  games/common  →  games/api
+  ```
+  `games/base` knows nothing about mechanics or games. `games/common`
+  (dice, pieces, …) knows nothing about any specific game. Games know
+  their mechanics and the base contracts, never the reverse. Verified
+  by grepping imports: no upward reference may exist.
 
 ---
 
-## 2. Layer responsibilities
+## 2. Folder responsibilities and layers
 
-| Module | Layer | Responsibility | Must NOT do |
-|---|---|---|---|
-| `:shared:game-api` | Contract | Game interface, identifiers, types, events, randomness | Serialization, network, Android, clock |
-| `:shared:protocol` | Contract | Wire message formats, envelope, error codes, HTTP bodies | Game logic, business rules |
-| `:games:ludo` | Engine | Pure Ludo rules, state transitions, autoplay, views | Network, clock, Android, serialization of protocol types |
-| `:server` | Backend | Authority for identity, rooms, matches, timers, event log | UI, drawing, microphone |
-| `:app` | Client | Drawing, local screen state, microphone/speaker, sending requests | Computing game outcomes, deciding dice |
+| Folder | Responsibility | Must NOT contain |
+|---|---|---|
+| `core/` | Shared resources, util classes, UI components | Game-specific code |
+| `games/base/` | Base contracts: `Game`, `GameDescriptor`, `TurnPolicy`, `MandatoryRules`/`HouseRules`, `PlayMode`, `GameState`, events, randomness | Any game implementation |
+| `protocol/` | Wire message formats: transport framing, room/match channels, HTTP bodies | Game logic, business rules |
+| `games/common/gameplay/moves/` | Turn mechanics shared by game families: dice, pieces (later cards, striker) | Anything specific to one game |
+| `games/{game}/engine/` | Pure game rules, state, events, geometry calls | Network, clock, Android, UI |
+| `games/{game}/domain/` | Use cases and repository interfaces for that game | Implementations |
+| `games/{game}/data/` | Repository implementations, network and local managers for that game | UI |
+| `games/{game}/ui/` | That game's screens, components and ViewModels | Other games' code |
+| `games/{game}/utils/` | That game's constants and util classes (e.g. `RoyalLudoBoardUtils`) | Global top-level functions — logic lives in util **classes** |
+| `games/{game}/` (root) | Only what is specific to that game and fits no layer | Shared code |
+
+### Game folder rule
+
+Each game folder (`games/{game}/`) contains `engine/`, `domain/`, `data/`,
+`ui/` and `utils/` — but **only the layers it actually needs**. If a game has
+no repository yet, it has no `data/` folder. `games/base/` has no `domain/`
+folder because it holds nothing game-specific. Never create empty ceremonial
+folders.
+
+### Base contracts every game follows (`games/base/`)
+
+- `GameDescriptor`: id, display name, min/max players, max spectators,
+  turn policy, timing, default rules, rules summary.
+- `TurnPolicy`: `Sequential` (one seat acts; engine reports the actor) or
+  `Simultaneous` (all act together; future games).
+- `MandatoryRules` / `HouseRules`: fixed identity vs room-toggleable rules.
+- `PlayMode`: `PRIVATE_ROOM` (house rules may change) vs `PUBLIC_MATCH`
+  (mandatory AND house both locked to traditional).
+- `Game : GameDescriptor`: `start`, `apply`, `currentActor`, `autoplay`,
+  `removeSeat`, `viewFor`, `isFinished`, `outcome`. Engines are pure:
+  no clock, no network, no hidden randomness.
 
 ---
 
@@ -95,6 +129,19 @@ The dependency graph is strictly one-directional. A module may only depend on mo
 
 These rules apply to **every line of code** in this project. No exceptions, no shortcuts.
 
+### 5.0 No god files — small, single-purpose, reusable
+
+- **One file per concept, file name matching the concept.** Never merge
+  unrelated types into one file to "save files" (e.g. a `GameContracts.kt`
+  holding everything is forbidden).
+- **SOLID, single responsibility first:** each class/function does one thing.
+  If a file grows past one screen of logic, split it.
+- **Write for reuse:** prefer small pure functions and narrow interfaces over
+  one-off logic. If two places need it, it belongs in a shared folder.
+- **Contract-first:** behaviour shared across games/features is declared as an
+  interface in `games/base/` (or `core/`) first, implemented per feature second.
+  Future changes extend the contract; they never fork it.
+
 ### 5.1 No hardcoded values
 
 - **Text** → Android: `strings.xml`. Shared/server: constants file. Never inline user-visible strings.
@@ -105,7 +152,7 @@ These rules apply to **every line of code** in this project. No exceptions, no s
 ### 5.2 KMP-first (Kotlin Multiplatform)
 
 - This is a **Kotlin Multiplatform** project. Code must be written with multiplatform in mind from day one.
-- Shared modules (`:shared:game-api`, `:shared:protocol`) are pure Kotlin — no `java.*`, no `android.*` imports.
+- The single `:appengine` library is pure Kotlin — no `java.*`, no `android.*` imports in `commonMain`.
 - Platform-specific code goes behind interfaces with `expect`/`actual` or behind injected abstractions.
 - The goal: share business logic, contracts, and game engines across Android, iOS, web, and desktop.
 
@@ -156,10 +203,11 @@ These rules apply to **every line of code** in this project. No exceptions, no s
   - `State` — immutable data class holding everything the UI needs.
   - `Intent` — sealed class of user actions (button clicks, text input, etc.).
   - `ViewModel` — receives intents, calls use cases, emits new state.
-- **Clean architecture layers** (inside `:app` and `:server`):
+- **Clean architecture layers** (inside each game/feature folder):
   ```
   ui/ (View) → domain/ (Use Cases) → data/ (Repositories) → sources/ (Data Sources)
   ```
+  Each folder gets only the layers it needs — no empty ceremonial folders.
   - `ui/` — Composables, ViewModels, state, intents.
   - `domain/` — Use cases (one per user action), repository interfaces, domain models.
   - `data/` — Repository implementations, data source implementations, DTOs.

@@ -1,0 +1,35 @@
+package com.kglabs28.yapnplay.appengine.games.base
+
+import com.kglabs28.yapnplay.appengine.games.base.identity.GameId
+import com.kglabs28.yapnplay.appengine.games.base.identity.SeatNumber
+import com.kglabs28.yapnplay.appengine.games.base.match.GameState
+import com.kglabs28.yapnplay.appengine.games.base.match.MatchOutcome
+import com.kglabs28.yapnplay.appengine.games.base.match.Viewer
+import com.kglabs28.yapnplay.appengine.games.base.play.Action
+import com.kglabs28.yapnplay.appengine.games.base.play.ApplyResult
+import com.kglabs28.yapnplay.appengine.games.base.play.GameRandom
+import com.kglabs28.yapnplay.appengine.games.base.play.GameView
+import com.kglabs28.yapnplay.appengine.games.base.rules.GameDescriptor
+import com.kglabs28.yapnplay.appengine.games.base.rules.GameRules
+import com.kglabs28.yapnplay.appengine.games.base.rules.TimingConfig
+
+/**
+ * The game engine contract. One implementation per game module.
+ *
+ * Extends [GameDescriptor] so every game follows the same base guideline
+ * (player limits, spectators, turn policy, rules) while the actual
+ * implementation stays game-specific.
+ *
+ * Engines are PURE: no clock, no network, no hidden randomness.
+ * Time and randomness are injected so tests are deterministic.
+ */
+interface Game : GameDescriptor {
+    fun start(rules: GameRules, seatCount: Int, random: GameRandom): GameState
+    fun apply(state: GameState, seat: SeatNumber, action: Action, random: GameRandom): ApplyResult
+    fun currentActor(state: GameState): SeatNumber
+    fun autoplay(state: GameState, seat: SeatNumber): ApplyResult
+    fun removeSeat(state: GameState, seat: SeatNumber): GameState
+    fun viewFor(state: GameState, viewer: Viewer): GameView
+    fun isFinished(state: GameState): Boolean
+    fun outcome(state: GameState): MatchOutcome
+}

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- User-visible text must live in resources, never inline. -->
+    <issue id="HardcodedText" severity="error" />
+</lint>

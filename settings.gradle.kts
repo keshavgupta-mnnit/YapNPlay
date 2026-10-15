@@ -24,9 +24,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "YapNPlay"
 
-// Single appengine library. core/, games/base/, protocol and games/*
-// are plain source folders inside it — not Gradle modules.
-// Later phases add (one line each):
-// include(":composeApp")
-// include(":androidApp")
+// Single appengine library. core/, games/base/, protocol and games/*,
+// ui/, di/ are plain source folders inside it — not Gradle modules.
+// :androidApp is a thin launch shell (manifest + activity only).
 include(":appengine")
+include(":androidApp")

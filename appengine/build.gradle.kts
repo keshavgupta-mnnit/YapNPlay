@@ -2,20 +2,26 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.multiplatform.library)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.compose.multiplatform)
 }
 
-// Single app-engine library. Everything below is a plain source folder,
-// not a Gradle module: core/, games-api/, protocol/, games/*.
-// Each folder contains only the architecture layers it needs
-// (engine/domain/data/ui/utils) — nothing more.
+// Single appengine library. Everything below is a plain source folder,
+// not a Gradle module: core/, games/base/, games/common/, games/*,
+// protocol/, ui/, di/, navigation/.
 kotlin {
     android {
         namespace = "com.kglabs28.yapnplay.appengine"
         compileSdk = 37
-        minSdk = 24
+        minSdk = 26
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
+        // Android resources (res/font) are opt-in with the KMP library plugin.
+        androidResources {
+            enable = true
+        }
+        withHostTest {}
     }
 
     jvm {
@@ -28,9 +34,28 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.datetime)
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.ui)
+            implementation(compose.materialIconsExtended)
+            implementation(libs.navigation.compose)
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
+            implementation(libs.turbine)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.koin.test)
+        }
+        named("androidHostTest") {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.robolectric)
+                implementation(libs.compose.uitest.junit4)
+            }
         }
     }
 }

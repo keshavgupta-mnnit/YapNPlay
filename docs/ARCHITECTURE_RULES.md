@@ -159,9 +159,10 @@ These rules apply to **every line of code** in this project. No exceptions, no s
 ### 5.3 Compose component structure (Android/KMP)
 
 - **All Compose components** live in `ui/components/`. Never define a composable inside a screen file.
-- **Screen files** (`ui/screens/{ScreenName}/{ScreenName}Screen.kt`) contain **only**:
-  - The screen `@Composable` function (assembly of components)
-  - The screen ViewModel (if the screen owns one)
+- **Every screen directory keeps exactly 3 files**:
+  1. `{Screen}Screen.kt` — the `@Composable` function (assembly of components)
+  2. `{Screen}ViewModel.kt` — the MVI view model, containing nothing but intent handling
+  3. `{Screen}Contract.kt` — all state, intent and effect types, so the ViewModel stays clean
 - **Never** put business logic, state derivation, or data loading in a `@Composable` body. That goes in the ViewModel.
 - **Component categorisation**: if a screen has many components, group them in a subfolder:
   ```
@@ -222,12 +223,17 @@ These rules apply to **every line of code** in this project. No exceptions, no s
 - ViewModels are obtained via `viewModel { }` or `getViewModel()`. Never create a ViewModel manually.
 - Repositories and data sources are `single { }` or `factory { }` as appropriate.
 
-### 5.8 Resource files
+### 5.8 Text, colours, dimensions
 
-- **All user-visible text** in `strings.xml`. Never hardcode a string in Kotlin code.
-- **Colours** in `colors.xml` or as design token constants.
-- **Dimensions** in `dimens.kt` as design tokens.
-- **No string concatenation** for user-visible text. Use `stringResource()` with format args.
+- **All user-visible text** in `core/ui/Strings.kt` (interface `Strings`,
+  `EnStrings` default, `LocalStrings` composition local). Never hardcode a
+  word where the user can see it. Hindi later = `HiStrings`, zero call-site
+  changes. `@Composable` previews and tests are exempt from the no-global
+  rule, as are test helpers.
+- **Colours** in `core/designsystem/Color.kt` as named tokens.
+- **Dimensions** in `core/designsystem/Dimens.kt` as named tokens.
+- **No string concatenation** for user-visible text. Formatting lives in
+  `Strings.kt` functions (e.g. `aboutInfo(...)`).
 
 ---
 

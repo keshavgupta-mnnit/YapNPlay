@@ -1,0 +1,1 @@
+{"version":5,"serverTime":1700000000000,"room":{"id":"room-1","code":"ABC123","name":"Family Room","leaderId":"user-1","members":[{"userId":"user-1","displayName":"Alice","presence":"ONLINE","ready":true},{"userId":"user-2","displayName":"Bob","presence":"OFFLINE","ready":false}],"selectedGame":"ludo","countdownDeadline":1700000010000,"matchInProgress":null}}

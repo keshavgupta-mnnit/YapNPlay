@@ -23,5 +23,14 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "YapNPlay"
+
+// Android app module (existing)
 include(":app")
- 
+
+// Shared contract modules (Phase 1)
+include(":shared:protocol")
+include(":shared:game-api")
+
+// Later phases add (one line each):
+// include(":games:ludo")
+// include(":server")

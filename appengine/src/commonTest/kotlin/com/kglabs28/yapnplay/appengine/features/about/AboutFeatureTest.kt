@@ -67,9 +67,8 @@ class AboutFeatureTest {
             dispatchers,
         )
         vm.state.test {
-            awaitItem()
+            assertEquals(true, awaitItem().loading)
             vm.onIntent(AboutScreenIntent.Load)
-            awaitItem() // loading
             val failed = awaitItem()
             assertEquals(false, failed.loading)
             assertEquals(true, failed.error?.isNotEmpty())

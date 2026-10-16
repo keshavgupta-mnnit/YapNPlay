@@ -1,6 +1,6 @@
 package com.kglabs28.yapnplay
 
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import com.kglabs28.yapnplay.appengine.YapNPlayRoot
 import com.kglabs28.yapnplay.appengine.di.appModules
@@ -9,6 +9,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.robolectric.RobolectricTestRunner
@@ -23,15 +24,17 @@ import org.robolectric.annotation.GraphicsMode
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34])
+@Config(sdk = [34], packageName = "com.kglabs28.yapnplay")
 class GalleryRenderTest {
 
     @get:Rule
-    val composeRule = createAndroidComposeRule<MainActivity>()
+    val composeRule = createComposeRule()
 
     @Before
     fun setUp() {
-        startKoin { modules(appModules) }
+        if (GlobalContext.getOrNull() == null) {
+            startKoin { modules(appModules) }
+        }
     }
 
     @After

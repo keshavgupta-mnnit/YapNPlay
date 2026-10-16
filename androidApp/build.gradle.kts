@@ -1,5 +1,3 @@
-import org.gradle.api.tasks.WriteProperties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -22,6 +20,12 @@ android {
             isMinifyEnabled = false
         }
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
@@ -37,43 +41,9 @@ dependencies {
     testImplementation(libs.androidx.uitest.junit4)
 }
 
-// AGP 9 no longer generates test_config.properties (verified: Robolectric
-// falls back to package org.robolectric.default and resolves nothing), so
-// generate the file Robolectric 4.15 actually reads, with the built-in
-// WriteProperties task (config-cache safe, no script code in actions).
-// Same applicationId as defaultConfig.
-val generateTestConfigProperties = tasks.register("generateTestConfigProperties", WriteProperties::class) {
-    group = "verification"
-    description = "Generates the test_config.properties Robolectric reads from the test classpath."
-    dependsOn("processDebugManifest", "mergeDebugResources")
-    val intermediates = layout.buildDirectory.dir("intermediates")
-    destinationFile = layout.buildDirectory.file("generated/robolectric-resources/com/android/tools/test_config.properties")
-    property(
-        "android_merged_manifest",
-        intermediates.map { it.file("merged_manifests/debug/processDebugManifest/AndroidManifest.xml").asFile.invariantSeparatorsPath },
-    )
-    property(
-        "android_merged_resources",
-        intermediates.map { it.dir("merged_res/debug").asFile.invariantSeparatorsPath },
-    )
-    property("android_merged_assets", "")
-    property("android_custom_package", "com.kglabs28.yapnplay")
-}
-
-android {
-    // Wires the generated file above onto the unit-test runtime classpath.
-    // Plain File (not a Provider): AGP 9 rejects providers in source sets.
-    sourceSets {
-        getByName("test").resources.srcDir(
-            layout.buildDirectory.dir("generated/robolectric-resources").get().asFile,
-        )
-    }
-}
-
+// Robolectric resolves the manifest through the debug manifest merge
+// (androidApp/src/debug declares ComponentActivity for tests) plus
+// @Config(packageName) on each test class — no generated files needed.
 tasks.withType<Test>().configureEach {
     useJUnit()
-}
-
-tasks.matching { it.name.endsWith("UnitTestJavaRes") }.configureEach {
-    dependsOn(generateTestConfigProperties)
 }

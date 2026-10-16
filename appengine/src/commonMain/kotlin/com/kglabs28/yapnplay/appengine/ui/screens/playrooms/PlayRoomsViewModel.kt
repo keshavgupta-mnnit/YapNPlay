@@ -4,6 +4,8 @@ import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.common.TextUtils
+import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
+import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.GetPlayRoomsScreenDataUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.JoinPlayRoomByCodeUseCase
@@ -24,7 +26,7 @@ class PlayRoomsViewModel(
             is PlayRoomsIntent.RoomCodeChanged -> setState {
                 copy(
                     roomCode = TextUtils.roomCode(intent.code, AppConstants.ROOM_CODE_LENGTH),
-                    joinError = false,
+                    joinError = null,
                 )
             }
             PlayRoomsIntent.JoinRoom -> join()
@@ -43,8 +45,8 @@ class PlayRoomsViewModel(
 
     private suspend fun join() {
         if (state.value.isJoining) return
-        setState { copy(isJoining = true, joinError = false) }
-        when (val result = joinPlayRoomByCode(state.value.roomCode)) {
+        setState { copy(isJoining = true, joinError = null) }
+        when (val result = joinPlayRoomByCode(state.value.roomCode, state.value.rooms)) {
             is AppResult.Success -> {
                 val room = result.data
                 setState {
@@ -56,7 +58,14 @@ class PlayRoomsViewModel(
                 }
                 emitEffect(PlayRoomsEffect.OpenRoom(room.id))
             }
-            is AppResult.Failure -> setState { copy(isJoining = false, joinError = true) }
+            is AppResult.Failure -> {
+                val message = when (val error = result.error) {
+                    is YapNPlayError.Validation -> Strings.roomsJoinInvalidCode(AppConstants.ROOM_CODE_LENGTH)
+                    is YapNPlayError.LimitReached -> Strings.roomsJoinLimit(error.limit)
+                    else -> Strings.roomsJoinFailed
+                }
+                setState { copy(isJoining = false, joinError = message) }
+            }
         }
     }
 }

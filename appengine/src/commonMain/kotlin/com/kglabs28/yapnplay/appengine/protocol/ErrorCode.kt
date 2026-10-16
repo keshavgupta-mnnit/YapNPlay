@@ -19,4 +19,7 @@ enum class ErrorCode {
     MATCH_ENDED,
     RATE_LIMITED,
     BAD_REQUEST,
+    ROOM_LIMIT_REACHED,
+    ALREADY_IN_QUEUE,
+    GAME_UNAVAILABLE,
 }

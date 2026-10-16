@@ -1,87 +1,230 @@
-# Backend API contract (for the BE AI)
+# YapNPlay — Backend API contract (v0.3.0)
 
-This is what the Android client expects from the server. Implement exactly
-these shapes; the client code links each endpoint to its `TODO(BE)` marker.
+What the Android app expects from the Ktor server. The Kotlin types are
+the source of truth: `appengine/.../protocol/` (wire messages, bodies)
+and `appengine/.../games/base/` (game contract). The server depends on
+the same code, so field names can never drift. Read with
+`docs/project-report.md` (original plan) and `docs/decisions.md` (later
+decisions that win).
 
 ## Conventions
 
-- Base URL is configurable; dev default `http://10.0.2.2:8080` (see
-  `AppConstants`, emulator loopback). Versioned under `/v1`.
-- Auth: `Authorization: Bearer <userId>:<secret>` on every call except
-  guest creation. Guest secret is issued once and never logged.
-- Errors: HTTP status + JSON `{"code": "<ERROR_CODE>", "message": "..."}`.
-  Codes match `protocol/errors/ErrorCode` (NOT_FOUND, NOT_MEMBER,
-  RATE_LIMITED, BAD_REQUEST, …).
-- All timestamps are epoch millis. Deadlines the server sends are absolute
-  server times; clients also read `serverTime` to correct skew.
+- Base URL from configuration; dev default `http://10.0.2.2:8080`
+  (`AppConstants.SERVER_BASE_URL`, emulator loopback). Server settings
+  come from environment variables, never code.
+- Auth: `Authorization: Bearer <userId>.<secret>` on every HTTP call and
+  on the WebSocket upgrade, except guest creation. The secret is issued
+  once; the server stores only its SHA-256 hash and compares in constant
+  time. Logs never contain secrets.
+- JSON field names are **camelCase**, exactly the Kotlin property names.
+  Unknown fields are ignored (adding an optional field is safe).
+- Errors: HTTP status + `{"code": "<ErrorCode>", "message": "…"}`; over
+  the WebSocket a `Rejected(requestId, code, message)`.
+- Time: epoch millis. Deadlines are **absolute server time**, always sent
+  together with `serverTime` so clients correct their clock skew.
+- The server is the authority for everything that matters: identity,
+  rooms, membership, leader, readiness, countdown, matchmaking, seats,
+  dice, legal moves, timers, CPU/autoplay, removals and results. The app
+  draws, sends requests, and never computes an outcome.
 
-## Profile (implemented client-side, mocked — build these first)
+## Versioning
 
-### `GET /v1/profile`
-Returns the signed-in user.
+`CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
+**0.3.0**. Patch: optional field / new message. Minor: new required
+field, channel or game-interface member. Major: breaking change.
+Every bump is announced in `docs/decisions.md`.
 
+0.3.0 added: MATCHMAKING channel (`JoinQueue`, `LeaveQueue`,
+`QueueStatus`, `MatchFound`, `QueueCancelled`), `SelectGame`,
+`SetBotFill` + `RoomInfo.botFill`, `SeatInfo.cpu`,
+`GameDescriptor.matchmaking` (with `seats`) + `showcase`, optional `Me`
+progression fields, `RoomSummary.isLeader` + `icon`, `Friends`,
+`OnlineStats`, error codes `ROOM_LIMIT_REACHED`, `ALREADY_IN_QUEUE`,
+`GAME_UNAVAILABLE`.
+
+## HTTP endpoints
+
+| Method + path | Body in | Body out | Notes |
+|---|---|---|---|
+| `POST /auth/guest` | — | `GuestCreated(userId, secret)` | No auth. Rate-limited per address. Server picks a name like `Player-4821`. |
+| `GET /me` | — | `Me` | See below. |
+| `PATCH /me` | `UpdateName(displayName)` | `Me` | Trim, 1–24 chars, no control chars, duplicates allowed. |
+| `GET /rooms/mine` | — | `MyRooms(rooms: [RoomSummary])` | Rooms the user belongs to. |
+| `POST /rooms/{roomId}/voice-token` | — | `VoiceToken(url, token, expiresAt)` | Members only (`NOT_MEMBER`); LiveKit, 10-minute TTL. |
+| `GET /stats/online` | — | `OnlineStats(online)` | Connected users right now (Game Zone pill). |
+| `GET /friends` | — | `Friends(friends: [FriendSummary])` | **Provisional**, post-POC friends; online first. |
+| `GET /health` | — | `{status, contractVersion}` | No auth. |
+
+### `Me`
 ```json
-{
-  "user_id": "user-keshav",
-  "display_name": "Keshav",
-  "level": 12,
-  "xp": 2450,
-  "xp_max": 3000,
-  "online": true,
-  "coins": 4250,
-  "gems": 120
-}
+{ "userId": "user-keshav", "displayName": "Keshav", "xp": 2450, "level": 12, "coins": 4250, "gems": 120 }
 ```
+- `xp`: computed by the server from the user's match results — Quick Play
+  and room matches alike (formula to be designed; e.g. points by finishing
+  place). `level` derives from `xp`.
+- `coins`, `gems`: **provisional** — the economy is not designed yet.
+  Return 0 until it is; the client already tolerates that.
 
-### `GET /v1/friends`
-Returns the friend list, online first (server sorts; client keeps order).
-
+### `RoomSummary` (inside `MyRooms`)
 ```json
-[
-  { "user_id": "user-neo-kid", "display_name": "NEO_KID", "online": true },
-  { "user_id": "user-neo-min", "display_name": "NEO_MIN", "online": false }
-]
+{ "roomId": "room-college-crew", "code": "482193", "name": "College Crew",
+  "memberCount": 10, "onlineCount": 6, "isLeader": true, "icon": "group" }
 ```
+- `onlineCount` = members present right now; the app shows it as "6 live".
+- `isLeader` is relative to the requesting user. `icon` ∈ `group | dice |
+  family | gamepad` (unknown → `group`).
 
-## Rooms (client implemented, mocked — `features/rooms/`)
+## Rooms
 
-### `GET /v1/rooms/mine`
-The rooms the user joined or created. `live_count` = members in the room
-right now (the client shows this, not chat activity). `icon` is one of
-`group`, `dice`, `family`, `gamepad` (unknown → `group`).
+- Up to **10 members** per room. A user may belong to **5 rooms**
+  (`MAX_ROOMS_PER_USER`, env var on the server; the app reads the same
+  limit from the `max_rooms_per_user` remote flag and pre-checks it).
+  Beyond it: `ROOM_LIMIT_REACHED`.
+- Room codes are **6 digits** (`0–9`), generated randomly, retried on
+  collision. Letters may be added later (would be a contract bump).
+- A user is *present* in at most one room at a time, and is in at most
+  one of: a room countdown, a Quick Play queue, a match.
 
-```json
-[
-  {
-    "room_id": "room-college-crew",
-    "name": "College Crew",
-    "code": "CC4821",
-    "member_count": 10,
-    "live_count": 6,
-    "is_owner": true,
-    "icon": "group"
-  }
-]
+## WebSocket `/ws`
+
+One connection per user (a new connection replaces the old one, which
+receives `SessionReplaced` and is closed). Heartbeat ping every 15 s,
+dead after 45 s. Messages are `Envelope(requestId, channel, type,
+payload)`; max 8 KB; 20 messages/s per connection. A repeated
+`requestId` gets the original answer. Every request is answered with
+`Ack` or `Rejected`, and state changes are pushed as **full snapshots
+with a version number**.
+
+Channels: `ROOM`, `MATCH`, `MATCHMAKING`.
+
+### ROOM channel
+Client → server: `CreateRoom(name?)`, `JoinRoom(code)` (also re-enters a
+room you belong to), `LeaveRoom`, `ExitLobby`, **`SelectGame(gameId)`**
+(leader only, `NOT_LEADER` otherwise; `GAME_UNAVAILABLE` for an unknown
+or disabled game), **`SetBotFill(enabled)`** (leader only), `SetReady(ready)`,
+`StartCountdown`, `CancelCountdown`, `RequestSnapshot(lastVersion)`.
+
+No message ever carries a list of user ids: the server already knows the
+room's members and who is ready, and it is the only one that seats them.
+
+Server → client: `Ack`, `Rejected`, `RoomSnapshot(version, serverTime,
+room)` where `room.selectedGame` is the picked game id, `MatchStarting(matchId)`.
+
+Match start in a room: the leader picks a game, ready members press
+ready, the leader starts a 10 s countdown (any ready player may cancel).
+`StartCountdown` is accepted only when `ready humans ≥ minPlayers`, or
+when `botFill` is on (then bots will make up the difference). At zero the
+server re-validates and seats:
+1. humans: the first `maxPlayers` ready members by ready time (the rest
+   spectate);
+2. bots: if `botFill` is on and humans < `minPlayers`, add
+   `minPlayers − humans` CPU seats — **never more than the minimum**;
+3. sends `MatchStarting(matchId)` to everyone; seated players open the
+   game window, everyone else can watch.
+Examples: Royal Ludo (4–4) with 2 ready + botFill → 2 humans + 2 bots;
+without botFill it can't start. UNO-style
+(4–8) with 2 ready + botFill → 2 humans + 2 bots; with 5 ready → 5
+humans.
+
+### MATCHMAKING channel — Quick Play
+
+The player is identified by the connection (bearer `userId.secret`);
+`JoinQueue` carries only the game id. The server replies with the
+`matchId` of the match session to open.
 ```
+client                         server
+  │ JoinQueue(gameId) ───────────▶│ Ack; user state = IN_QUEUE(gameId)
+  │◀──────── QueueStatus(found, needed, searchDeadline, serverTime)
+  │          …QueueStatus each time a player joins/leaves…
+  │◀──────── MatchFound(matchId, gameId, humanPlayers, cpuPlayers)
+  │          (continues on MATCH channel: MatchSnapshot…)
+  │ LeaveQueue ─────────────────▶│ any time before MatchFound
+```
+Server algorithm, one queue (an actor with one inbox) per game:
+1. On `JoinQueue`: reject `GAME_UNAVAILABLE` (unknown / disabled game) or
+   `ALREADY_IN_QUEUE` (already queued, in a countdown or in a match).
+2. Group waiting users into a forming match of exactly
+   `game.matchmaking.seats` seats (Royal Ludo: 4 — not minPlayers). Its
+   search window opens with the first player: `searchDeadline = now +
+   game.matchmaking.searchSeconds` (30 s for Royal Ludo).
+3. **Early start**: the moment `seats` humans are in, send `MatchFound`
+   and start — don't wait for the deadline.
+4. **Deadline**: start with the humans present; if
+   `matchmaking.fillWithCpu`, fill every empty seat (up to `seats`) with a CPU
+   (`SeatInfo.cpu = true`, `controllerUserId = "cpu-<n>"`) driven by the
+   engine's `autoplay` with a human-like delay. If CPU fill is off and
+   fewer than `minPlayers` humans are present, send
+   `QueueCancelled(NOT_ENOUGH_PLAYERS)`.
+5. A disconnect while queued removes the user from the queue.
+6. `LeaveQueue` after `MatchFound` is ignored (the match already exists).
 
-### `POST /v1/rooms/join`
-Body `{ "code": "CC4821" }` → one room object, same shape as above.
+Seats and colours are assigned randomly by the server, as in rooms.
+Public matches always use the game's traditional rules
+(`PlayMode.PUBLIC_MATCH`).
 
-### Later
-- `POST /v1/rooms` `{ "name": "…" }` → room object
-- WebSocket `/ws` (bearer `userId:secret`; dev-only query param for
-  browser-console testing): room channel and match channel envelopes,
-  snapshots with versions, `MatchStarting`, `MatchEvent`, `MatchEnded`.
-  Full shapes: `protocol/room/`, `protocol/match/`.
+### Spectators (rooms only)
 
-## Voice (later)
+Room members present but not seated are spectators: not ready, beyond
+`maxPlayers`, removed for being away, or arrived mid-match. They:
+- receive `MatchSnapshot` with `viewer.role = SPECTATOR`, `seat = null`
+  and an empty `legalMoves`, plus `MatchEvent` / `MatchEnded`;
+- may send `MatchRequestSnapshot` to start watching; any game action from
+  them is rejected (`NOT_YOUR_TURN`);
+- stay in the room's voice (listen and talk);
+- never count toward seats, `minPlayers`, `maxPlayers` or bot fill;
+  `maxSpectators` caps them when a game sets it.
 
-- `GET /v1/rooms/{id}/voice-token` → `VoiceToken { url, token, expiresAt }`.
-  LiveKit first, behind the client's voice interface.
+**Hidden information:** `publicState` is built per viewer by the game's
+`viewFor`. The server must never put data in it that the viewer may not
+see (a spectator gets the public table; a player gets that plus their
+own hand). The app never filters secrets out itself.
 
-## Rules for BE changes
+Quick Play (random) matches have no spectators.
 
-- Never rename a `snake_case` field without bumping `ContractVersion`
-  and announcing it — Android DTOs use `@SerialName` explicitly.
-- Adding an optional field is a patch; a new required field is minor;
-  changing/removing anything is major.
+### MATCH channel
+Client → server: game actions (`RollDice(matchId)`, `MovePiece(matchId,
+pieceId)` for Royal Ludo), `MatchRequestSnapshot(matchId, lastVersion)`.
+Server → client: `MatchSnapshot` (per-viewer; spectators get no legal
+moves; `seats[].cpu` marks CPU seats), `MatchEvent(version, event)`,
+`MatchEnded(ranking)`. Timers, autoplay, away detection and removal are
+exactly as in the report (Phase 10): 30 s turns, 5 s wait when the actor
+is disconnected, away after 3 missed turns or 60 s disconnected.
+
+## Games — how the server knows a game
+
+Games are code, not database rows. Each game implements `Game :
+GameDescriptor` in `appengine/.../games/<game>/` and is registered once
+in `GameRegistry` (Koin `gamesModule` on the app; the same list on the
+server). The descriptor gives everything matchmaking and rooms need:
+
+| Field | Royal Ludo |
+|---|---|
+| `id` | `royal-ludo` |
+| `displayName` | Royal Ludo |
+| `minPlayers` / `maxPlayers` | 4 / 4 (every table has 4; the engine itself supports 2–4) |
+| `maxSpectators` | unlimited |
+| `turnPolicy` | Sequential |
+| `timing` | 30 s turn, 5 s disconnected wait, away after 3 misses / 60 s |
+| `matchmaking` | Quick Play always 4 seats, 30 s search, CPU fill on |
+| `showcase` | taglines Roll • Race • Rule, art key `royal-ludo` |
+
+A game can be switched off without a release through a remote flag
+(`royal_ludo_enabled`, or `game_enabled_<id>` for others); the server
+must honour the same switch (`GAME_UNAVAILABLE`).
+
+## Error codes
+
+`NOT_AUTHENTICATED, NOT_FOUND, NOT_MEMBER, NOT_LEADER, ROOM_FULL,
+INVALID_CODE, ALREADY_IN_ROOM, NOT_ENOUGH_READY, STALE_VERSION,
+NOT_YOUR_TURN, ILLEGAL_MOVE, MATCH_ENDED, RATE_LIMITED, BAD_REQUEST,
+ROOM_LIMIT_REACHED, ALREADY_IN_QUEUE, GAME_UNAVAILABLE`. The app maps
+each to a friendly sentence; raw codes are never shown.
+
+## Client status (what is mocked today)
+
+Every client call goes through an `*ApiClient` / `*ClientImpl` whose
+production code is written but commented out, and which returns
+`FakeDataProvider` data after a 600 ms delay. Switching to the real
+server = uncomment the production path, delete the fake lines. The
+WebSocket paths additionally need the app-wide connection manager
+(report Phase 12).

@@ -15,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
@@ -48,7 +48,7 @@ fun RoomCodeField(
         textStyle = textStyle.copy(color = colors.TextPrimary),
         cursorBrush = SolidColor(colors.GameZoneAccent),
         keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Characters,
+            keyboardType = KeyboardType.NumberPassword,
             imeAction = ImeAction.Done,
         ),
         keyboardActions = KeyboardActions(onDone = { onDone() }),

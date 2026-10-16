@@ -29,6 +29,7 @@ interface Game : GameDescriptor {
     fun currentActor(state: GameState): SeatNumber
     fun autoplay(state: GameState, seat: SeatNumber): ApplyResult
     fun removeSeat(state: GameState, seat: SeatNumber): GameState
+    /** What [viewer] may see — spectators get the public table only (see [GameView]). */
     fun viewFor(state: GameState, viewer: Viewer): GameView
     fun isFinished(state: GameState): Boolean
     fun outcome(state: GameState): MatchOutcome

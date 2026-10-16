@@ -7,11 +7,18 @@ package com.kglabs28.yapnplay.appengine.appmanager
  */
 object AppManagerConstants {
 
+    /** Registered id of the game behind the legacy royal_ludo_enabled flag. */
+    const val ROYAL_LUDO_GAME_ID = "royal-ludo"
+
     object Key {
         const val VOICE_ENABLED = "voice_enabled"
         const val ROYAL_LUDO_ENABLED = "royal_ludo_enabled"
         const val PARTY_CHAT_ENABLED = "party_chat_enabled"
         const val UPDATE_CONFIG = "update_config"
+        const val MAX_ROOMS_PER_USER = "max_rooms_per_user"
+
+        /** Per-game kill switch key, e.g. game_enabled_card_clash. */
+        fun gameEnabled(gameId: String) = "game_enabled_" + gameId.replace('-', '_')
     }
 
     object Default {
@@ -19,5 +26,6 @@ object AppManagerConstants {
         const val ROYAL_LUDO_ENABLED = true
         const val PARTY_CHAT_ENABLED = true
         const val UPDATE_CONFIG = ""
+        const val MAX_ROOMS_PER_USER = 5
     }
 }

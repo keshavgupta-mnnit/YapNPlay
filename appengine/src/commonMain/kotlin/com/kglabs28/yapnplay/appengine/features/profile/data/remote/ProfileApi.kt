@@ -1,12 +1,16 @@
 package com.kglabs28.yapnplay.appengine.features.profile.data.remote
 
-import com.kglabs28.yapnplay.appengine.features.profile.data.remote.dto.FriendDto
-import com.kglabs28.yapnplay.appengine.features.profile.data.remote.dto.ProfileDto
+import com.kglabs28.yapnplay.appengine.protocol.Friends
+import com.kglabs28.yapnplay.appengine.protocol.Me
 
 /**
- * Profile endpoints. Shapes match docs/backend-api-contract.md.
+ * Profile endpoints. Bodies are the shared contract types in `protocol/`
+ * (see docs/backend-api-contract.md).
  */
 interface ProfileApi {
-    suspend fun getProfile(): ProfileDto
-    suspend fun getFriends(): List<FriendDto>
+    /** `GET /me` */
+    suspend fun getMe(): Me
+
+    /** `GET /friends` — provisional, post-POC friends feature. */
+    suspend fun getFriends(): Friends
 }

@@ -19,6 +19,33 @@ data class GuestCreated(
 data class Me(
     val userId: String,
     val displayName: String,
+    /** Server-computed from all match results (random and room matches). */
+    val xp: Int = 0,
+    /** Derived from [xp] by the server. */
+    val level: Int = 1,
+    /** Provisional: economy not designed yet. */
+    val coins: Int = 0,
+    /** Provisional: economy not designed yet. */
+    val gems: Int = 0,
+)
+
+/** Provisional (post-POC friends): the user's friends, online first. */
+@Serializable
+data class Friends(
+    val friends: List<FriendSummary>,
+)
+
+@Serializable
+data class FriendSummary(
+    val userId: String,
+    val displayName: String,
+    val online: Boolean,
+)
+
+/** How many users are connected right now (Game Zone "1248 Online"). */
+@Serializable
+data class OnlineStats(
+    val online: Int,
 )
 
 /** Request to update the display name. */
@@ -39,7 +66,12 @@ data class RoomSummary(
     val code: String,
     val name: String,
     val memberCount: Int,
+    /** Members present right now — shown as "N live". */
     val onlineCount: Int,
+    /** Whether the requesting user currently leads this room. */
+    val isLeader: Boolean = false,
+    /** Room badge: group, dice, family or gamepad (unknown → group). */
+    val icon: String? = null,
 )
 
 /** Response with a voice provider connection token. */

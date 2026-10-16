@@ -16,14 +16,14 @@ import com.kglabs28.yapnplay.appengine.features.profile.domain.UserProfile
 class ProfileRemoteManager(private val api: ProfileApi) {
 
     suspend fun fetchProfileData(): AppResult<UserProfile> = try {
-        AppResult.Success(api.getProfile().toDomain())
+        AppResult.Success(api.getMe().toDomain())
     } catch (e: Exception) {
         CrashReporter.record(e, "ProfileRemoteManager.fetchProfileData")
         AppResult.Failure(YapNPlayError.Network("profile fetch failed"))
     }
 
     suspend fun fetchFriendList(): AppResult<List<Friend>> = try {
-        AppResult.Success(api.getFriends().map { it.toDomain() })
+        AppResult.Success(api.getFriends().friends.map { it.toDomain() })
     } catch (e: Exception) {
         CrashReporter.record(e, "ProfileRemoteManager.fetchFriendList")
         AppResult.Failure(YapNPlayError.Network("friends fetch failed"))

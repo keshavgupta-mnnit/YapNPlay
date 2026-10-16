@@ -29,6 +29,12 @@ interface GameDescriptor {
     /** Timing values this game declares. */
     val timing: TimingConfig
 
+    /** How Quick Play fills a public match (search time, CPU fill). */
+    val matchmaking: MatchmakingConfig
+
+    /** Taglines and art key shown in game pickers. */
+    val showcase: GameShowcase
+
     /** The default rules for this game. */
     fun defaultRules(): GameRules
 

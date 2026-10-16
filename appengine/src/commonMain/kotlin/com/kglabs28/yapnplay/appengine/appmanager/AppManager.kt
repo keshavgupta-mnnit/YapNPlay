@@ -50,6 +50,19 @@ class AppManager(private val store: AppConfigStore) {
     fun updateConfig(): String =
         getString(AppManagerConstants.Key.UPDATE_CONFIG, AppManagerConstants.Default.UPDATE_CONFIG)
 
+    /**
+     * Whether a registered game may be shown and queued. Royal Ludo keeps
+     * its original key; any other game reads `game_enabled_<id>`.
+     */
+    fun isGameEnabled(gameId: String): Boolean = when (gameId) {
+        AppManagerConstants.ROYAL_LUDO_GAME_ID -> isRoyalLudoEnabled()
+        else -> getBoolean(AppManagerConstants.Key.gameEnabled(gameId), true)
+    }
+
+    /** How many rooms one user may belong to (server enforces the same). */
+    fun maxRoomsPerUser(): Int =
+        getInt(AppManagerConstants.Key.MAX_ROOMS_PER_USER, AppManagerConstants.Default.MAX_ROOMS_PER_USER)
+
     // ── Typed getters ────────────────────────────────────────────────────
 
     fun getString(key: String, default: String = ""): String = try {

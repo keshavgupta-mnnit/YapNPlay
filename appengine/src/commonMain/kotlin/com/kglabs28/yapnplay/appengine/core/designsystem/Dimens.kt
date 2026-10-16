@@ -106,6 +106,8 @@ class YapNPlayDimens {
     // Home + Rooms cards (from the designs, raised to comfortable touch
     // sizes: anything tappable is at least 32dp tall).
     val ctaHeight: Dp get() = 36.dp.scaled()
+    /** Main screen call-to-action (Game Zone QUICK PLAY). */
+    val ctaLargeHeight: Dp get() = 44.dp.scaled()
     val ctaSmallHeight: Dp get() = 32.dp.scaled()
     val ctaIconBadge: Dp get() = 18.dp.scaled()
     val iconTiny: Dp get() = 10.dp.scaled()
@@ -117,6 +119,16 @@ class YapNPlayDimens {
     val codeFieldHeight: Dp get() = 36.dp.scaled()
     val joinButtonWidth: Dp get() = 88.dp.scaled()
     val roomsHeroArt: Dp get() = 110.dp.scaled()
+
+    // Game pickers (Game Zone carousel/grid, room lobby)
+    val carouselArrowWidth: Dp get() = 36.dp.scaled()
+    val carouselArrowHeight: Dp get() = 72.dp.scaled()
+    val carouselDot: Dp get() = 6.dp.scaled()
+    val gameArtGlyph: Dp get() = 56.dp.scaled()
+    /** Blur on carousel neighbours: visible but out of focus. */
+    val carouselSideBlur: Dp get() = 1.5.dp.scaled()
+    /** Background blur when a tab asks for a frosted backdrop. */
+    val backdropBlur: Dp get() = 14.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

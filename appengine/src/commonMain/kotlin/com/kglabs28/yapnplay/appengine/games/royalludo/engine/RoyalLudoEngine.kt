@@ -12,18 +12,23 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.utils.*
 import kotlinx.serialization.Serializable
 
 class RoyalLudoEngine : Game {
-    override val id = GameId("royal-ludo")
-    override val displayName = "Royal Ludo"
+    override val id = GameId(ROYAL_LUDO_ID)
+    override val displayName = ROYAL_LUDO_DISPLAY_NAME
     override val timing = TimingConfig()
-    override val minPlayers = 2
-    override val maxPlayers = 4
+    override val matchmaking = MatchmakingConfig(
+        seats = ROYAL_LUDO_QUICK_PLAY_SEATS,
+        searchSeconds = ROYAL_LUDO_SEARCH_SECONDS,
+    )
+    override val showcase = GameShowcase(taglines = ROYAL_LUDO_TAGLINES, artKey = ROYAL_LUDO_ID)
+    override val minPlayers = ROYAL_LUDO_PLAYERS
+    override val maxPlayers = ROYAL_LUDO_PLAYERS
     override val maxSpectators: Int? = null
     override val turnPolicy: TurnPolicy = TurnPolicy.Sequential
 
     override fun defaultRules(): GameRules = RoyalLudoRules.TRADITIONAL
 
     override fun rulesSummary(): String =
-        "Traditional Royal Ludo for 2-4 players: leave base on a 6, extra turn " +
+        "Traditional Royal Ludo for 4 players: leave base on a 6, extra turn " +
             "on a 6, a capture or a finished piece, three sixes forfeit, exact " +
             "roll to finish, lone pieces are captured except on safe squares, " +
             "pairs of two or more same-colour pieces are protected."

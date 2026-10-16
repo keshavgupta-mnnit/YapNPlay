@@ -12,6 +12,12 @@ Replace the glyph with an Icon/Avatar composable; delete the row here.
 | 4 | `SocialNetworkOrbitGraphic.kt` | Social Friend Avatars | Real friend avatar images & +Invite Friends node |
 | 5 | `HomeHeaderBar.kt` | Notification & Settings | Vector Bell & Gear icons |
 
+## GameZoneScreen (`ui/screens/gamezone/`)
+| # | File / Component | Meaning | Real art needed |
+|---|---|---|---|
+| 1 | `GameArt.kt` (`royal-ludo`) | Royal Ludo carousel art | Dedicated Royal Ludo art (uses the home game-zone art today) |
+| 2 | `GameArt.kt` (other keys) | Card Clash, Island Quest, Block Merge, Carrom Strike, Doodle Dash, Quiz Quest, Word Wars | Art per game when each game is built |
+
 ## RoomsScreen (`ui/screens/rooms/`)
 | # | File / Component | Meaning | Real art needed |
 |---|---|---|---|

@@ -59,7 +59,7 @@ fun PlayRoomsScreen(
             JoinRoomCard(
                 code = state.roomCode,
                 isJoining = state.isJoining,
-                isError = state.joinError,
+                errorMessage = state.joinError,
                 onCodeChange = { viewModel?.onIntent(PlayRoomsIntent.RoomCodeChanged(it)) },
                 onJoin = { viewModel?.onIntent(PlayRoomsIntent.JoinRoom) },
                 modifier = Modifier

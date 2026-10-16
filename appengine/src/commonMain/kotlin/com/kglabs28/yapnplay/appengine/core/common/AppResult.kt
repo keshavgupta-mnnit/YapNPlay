@@ -15,5 +15,7 @@ sealed interface YapNPlayError {
     data class Validation(val field: String) : YapNPlayError
     data class NotFound(val what: String) : YapNPlayError
     data class Unauthorized(val reason: String) : YapNPlayError
+    /** A count limit was hit (e.g. max rooms per user); [limit] is the cap. */
+    data class LimitReached(val limit: Int) : YapNPlayError
     data class Unknown(val cause: String) : YapNPlayError
 }

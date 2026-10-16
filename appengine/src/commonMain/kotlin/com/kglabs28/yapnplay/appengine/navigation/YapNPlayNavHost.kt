@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreen
-import com.kglabs28.yapnplay.appengine.ui.screens.games.GamesViewModel
+import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsViewModel
@@ -31,13 +31,13 @@ fun YapNPlayNavHost(
             // Scoped to the back-stack entry: the selected tab and tab
             // data survive a trip to another screen and back.
             val mainViewModel: MainViewModel = entry.rememberScreenViewModel()
-            val gamesViewModel: GamesViewModel = entry.rememberScreenViewModel()
+            val gameZoneViewModel: GameZoneViewModel = entry.rememberScreenViewModel()
             val playRoomsViewModel: PlayRoomsViewModel = entry.rememberScreenViewModel()
             MainScreen(
                 onOpenMatch = { navController.navigate(MatchPlaceholder) },
                 onOpenRoom = { navController.navigate(RoomPlaceholder) },
                 viewModel = mainViewModel,
-                gamesViewModel = gamesViewModel,
+                gameZoneViewModel = gameZoneViewModel,
                 playRoomsViewModel = playRoomsViewModel,
             )
         }

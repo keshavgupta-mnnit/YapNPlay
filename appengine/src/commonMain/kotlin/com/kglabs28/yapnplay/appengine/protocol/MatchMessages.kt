@@ -59,6 +59,8 @@ data class SeatInfo(
     val connected: Boolean,
     val autoPlay: Boolean,
     val consecutiveMisses: Int,
+    /** True when a CPU fills this seat (Quick Play fill); controllerUserId is then a cpu id. */
+    val cpu: Boolean = false,
 )
 
 enum class Colour {

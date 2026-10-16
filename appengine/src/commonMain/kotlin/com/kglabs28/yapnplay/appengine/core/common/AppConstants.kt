@@ -65,6 +65,35 @@ object AppConstants {
     const val ROOMS_LIST_PANEL_WEIGHT = 0.57f
     const val ROOMS_FRIENDS_PANEL_WEIGHT = 0.43f
 
+    /**
+     * Game carousel: the focused game takes this share of the width; the
+     * neighbours peek in at either side, smaller and dimmed.
+     */
+    const val CAROUSEL_PAGE_WIDTH_FRACTION = 0.34f
+    const val CAROUSEL_SIDE_SCALE = 0.85f
+    const val CAROUSEL_SIDE_ALPHA = 0.85f
+
+    /**
+     * The carousel loops: it is a very long strip of pages that repeat
+     * the games, started in the middle, so it never reaches an end.
+     */
+    const val CAROUSEL_LOOP_PAGES = 10_000
+
+    /** Neighbour pages composed on each side (so they are always drawn). */
+    const val CAROUSEL_PAGES_BEYOND_VIEW = 2
+
+    /** Game grid columns (Grid View). */
+    const val GAME_GRID_COLUMNS = 6
+
+    /** Game Zone QUICK PLAY button width as a share of the screen. */
+    const val GAME_ZONE_CTA_WIDTH_FRACTION = 0.36f
+
+    /** How long "Match found!" shows before the match screen opens. */
+    const val MATCH_FOUND_HOLD_MS = 1_200L
+
+    /** Countdown refresh while searching for players. */
+    const val SEARCH_TICK_MS = 1_000L
+
     /** Friends the online-friends arrows scroll by per tap. */
     const val FRIENDS_SCROLL_STEP = 3
 }

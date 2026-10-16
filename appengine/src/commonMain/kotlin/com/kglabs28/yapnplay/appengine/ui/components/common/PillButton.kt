@@ -13,11 +13,11 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
@@ -52,13 +52,17 @@ fun PillButton(
 
     Row(
         modifier = modifier
+            // One layer for the whole button: disabled dimming is applied
+            // here (read at draw time, so enabled ↔ disabled always
+            // redraws) and the glow can't be re-stacked under a frosted
+            // background drawn by an ancestor.
+            .graphicsLayer { alpha = if (enabled) 1f else DISABLED_ALPHA }
             .height(height)
             .shadow(dimens.glowBlur, shape, ambientColor = glow, spotColor = glow)
             .clip(shape)
             .background(Brush.horizontalGradient(gradient))
             .border(dimens.hairline, rimColor, shape)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .alpha(if (enabled) 1f else 0.5f)
             .padding(horizontal = Spacing.Md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterHorizontally),
@@ -76,3 +80,5 @@ fun PillButton(
         }
     }
 }
+
+private const val DISABLED_ALPHA = 0.5f

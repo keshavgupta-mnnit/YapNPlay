@@ -1,16 +1,16 @@
 package com.kglabs28.yapnplay.appengine.features.playrooms.data
 
-import com.kglabs28.yapnplay.appengine.features.playrooms.data.remote.dto.PlayRoomDto
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
+import com.kglabs28.yapnplay.appengine.protocol.RoomSummary
 
-/** Wire DTO to domain. Single place: backend shape changes land here. */
-fun PlayRoomDto.toDomain(): PlayRoom = PlayRoom(
+/** Contract type to domain. Single place: contract changes land here. */
+fun RoomSummary.toDomain(): PlayRoom = PlayRoom(
     id = roomId,
     name = name,
     code = code,
     memberCount = memberCount,
-    liveCount = liveCount,
-    isOwner = isOwner,
+    liveCount = onlineCount,
+    isLeader = isLeader,
     icon = PlayRoomIcon.entries.firstOrNull { it.name.equals(icon, ignoreCase = true) } ?: PlayRoomIcon.GROUP,
 )

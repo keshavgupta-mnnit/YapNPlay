@@ -27,6 +27,22 @@ data object LeaveRoom
 @Serializable
 data object ExitLobby
 
+/** Leader picks the game for the next match (same picker as Game Zone). */
+@Serializable
+data class SelectGame(
+    val gameId: String,
+)
+
+/**
+ * Leader's room option, shown first in the house-rules section: when on,
+ * bots fill empty seats only up to the selected game's minPlayers (never
+ * beyond). When off, the match needs minPlayers ready humans.
+ */
+@Serializable
+data class SetBotFill(
+    val enabled: Boolean,
+)
+
 /** Set your ready status. */
 @Serializable
 data class SetReady(
@@ -84,6 +100,8 @@ data class RoomInfo(
     val members: List<RoomMember>,
     /** Selected game ID, or null if none selected. */
     val selectedGame: String? = null,
+    /** Leader's "fill with bots up to the minimum" option (see SetBotFill). */
+    val botFill: Boolean = false,
     /** Countdown deadline in epoch millis, or null if no countdown running. */
     val countdownDeadline: Long? = null,
     /** Match ID if a match is in progress, or null. */

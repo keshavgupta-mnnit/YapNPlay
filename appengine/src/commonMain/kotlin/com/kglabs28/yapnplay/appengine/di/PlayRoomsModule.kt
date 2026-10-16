@@ -20,5 +20,5 @@ val playRoomsModule = module {
     single { PlayRoomsLocalManager() }
     single<PlayRoomsRepository> { PlayRoomsRepositoryImpl(get(), get(), get()) }
     factory { GetPlayRoomsScreenDataUseCase(get(), get()) }
-    factory { JoinPlayRoomByCodeUseCase(get()) }
+    factory { JoinPlayRoomByCodeUseCase(get(), get()) }
 }

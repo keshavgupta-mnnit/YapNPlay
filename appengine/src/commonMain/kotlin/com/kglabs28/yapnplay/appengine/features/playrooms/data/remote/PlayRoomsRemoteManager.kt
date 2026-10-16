@@ -13,7 +13,7 @@ import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
 class PlayRoomsRemoteManager(private val api: PlayRoomsApi) {
 
     suspend fun fetchMyRooms(): AppResult<List<PlayRoom>> = try {
-        AppResult.Success(api.getMyRooms().map { it.toDomain() })
+        AppResult.Success(api.getMyRooms().rooms.map { it.toDomain() })
     } catch (e: Exception) {
         CrashReporter.record(e, "PlayRoomsRemoteManager.fetchMyRooms")
         AppResult.Failure(YapNPlayError.Network("rooms fetch failed"))

@@ -10,6 +10,7 @@ data class PlayRoom(
     val code: String,
     val memberCount: Int,
     val liveCount: Int,
-    val isOwner: Boolean,
+    /** Whether the signed-in user leads this room right now (crown). */
+    val isLeader: Boolean,
     val icon: PlayRoomIcon,
 )

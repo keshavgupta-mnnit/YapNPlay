@@ -9,4 +9,7 @@ enum class Channel {
 
     /** Game-specific match events. */
     MATCH,
+
+    /** Public Quick Play search (JoinQueue, QueueStatus, MatchFound). */
+    MATCHMAKING,
 }

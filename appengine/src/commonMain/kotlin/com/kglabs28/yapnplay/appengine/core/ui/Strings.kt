@@ -35,8 +35,6 @@ object Strings {
     const val homeNavHome = "Home"
     const val homeNavGames = "Games"
     const val homeNavRooms = "Rooms"
-    const val gamesTabTitle = "Games"
-    const val gamesTabSubtitle = "Pick a game and jump in. More titles landing soon."
 
     // Rooms tab
     const val roomsCreateTitle = "CREATE NEW"
@@ -56,7 +54,29 @@ object Strings {
     const val roomsPreviousFriends = "Previous friends"
     const val roomsNextFriends = "Next friends"
 
-    fun roomsJoinSubtitle(codeLength: Int) = "Enter the $codeLength-character code to join your friends."
+    const val roomsJoinFailed = "Couldn't join that room. Check the code and try again."
+
+    // Game Zone
+    const val gameZoneGridView = "Grid View"
+    const val gameZoneCarouselView = "Carousel"
+    const val gameZoneSearching = "Finding players…"
+    const val gameZoneCpuFillHint = "Empty seats fill with CPU players when time runs out"
+    const val gameZoneCancel = "Cancel"
+    const val gameZoneNoMatch = "No match found. Try again."
+    const val gameZoneNoGames = "No games available right now"
+    const val gameZonePreviousGame = "Previous game"
+    const val gameZoneNextGame = "Next game"
+
+    fun gameZoneOnline(count: String) = "$count Online"
+    fun gameZonePlayersFound(found: Int, needed: Int) = "$found / $needed players"
+    fun gameZoneTimeLeft(seconds: Long) = "${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}"
+    fun gameZoneMatchFound(cpuPlayers: Int) =
+        if (cpuPlayers > 0) "Match found! $cpuPlayers CPU joined" else "Match found!"
+    fun gameTaglines(taglines: List<String>) = taglines.joinToString("  •  ")
+
+    fun roomsJoinSubtitle(codeLength: Int) = "Enter the $codeLength-digit code to join your friends."
+    fun roomsJoinInvalidCode(codeLength: Int) = "Room codes are $codeLength digits."
+    fun roomsJoinLimit(limit: Int) = "You can be in up to $limit rooms. Leave one to join another."
     fun roomMembers(count: Int) = if (count == 1) "1 member" else "$count members"
     fun roomLive(count: Int) = "$count live"
     const val topBarNotifications = "Notifications"

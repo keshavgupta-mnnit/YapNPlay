@@ -14,6 +14,8 @@ object MessageType {
     const val START_COUNTDOWN = "StartCountdown"
     const val CANCEL_COUNTDOWN = "CancelCountdown"
     const val REQUEST_SNAPSHOT = "RequestSnapshot"
+    const val SELECT_GAME = "SelectGame"
+    const val SET_BOT_FILL = "SetBotFill"
 
     // ── Room channel: server to client ────────────────────────────────────
     const val ACK = "Ack"
@@ -29,4 +31,13 @@ object MessageType {
     const val MATCH_SNAPSHOT = "MatchSnapshot"
     const val MATCH_EVENT = "MatchEvent"
     const val MATCH_ENDED = "MatchEnded"
+
+    // ── Matchmaking channel: client to server ─────────────────────────────
+    const val JOIN_QUEUE = "JoinQueue"
+    const val LEAVE_QUEUE = "LeaveQueue"
+
+    // ── Matchmaking channel: server to client ─────────────────────────────
+    const val QUEUE_STATUS = "QueueStatus"
+    const val MATCH_FOUND = "MatchFound"
+    const val QUEUE_CANCELLED = "QueueCancelled"
 }

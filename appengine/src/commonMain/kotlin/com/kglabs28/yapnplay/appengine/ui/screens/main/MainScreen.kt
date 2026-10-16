@@ -22,8 +22,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppTopBar
 import com.kglabs28.yapnplay.appengine.ui.components.home.EnterGameZoneCard
 import com.kglabs28.yapnplay.appengine.ui.components.home.PlayWithFriendsCard
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
-import com.kglabs28.yapnplay.appengine.ui.screens.games.GamesScreen
-import com.kglabs28.yapnplay.appengine.ui.screens.games.GamesViewModel
+import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneScreen
+import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsViewModel
 
@@ -38,7 +38,7 @@ fun MainScreen(
     onOpenRoom: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MainViewModel? = null,
-    gamesViewModel: GamesViewModel? = null,
+    gameZoneViewModel: GameZoneViewModel? = null,
     playRoomsViewModel: PlayRoomsViewModel? = null,
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: MainState()
@@ -46,7 +46,10 @@ fun MainScreen(
         viewModel?.onIntent(MainIntent.LoadProfile)
     }
 
-    CozyHomeBackground(modifier = modifier) {
+    CozyHomeBackground(
+        modifier = modifier,
+        frosted = state.selectedTab.frostedBackground,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -99,9 +102,9 @@ fun MainScreen(
                             modifier = Modifier.weight(1f),
                         )
                     }
-                    AppNavTab.GAMES -> GamesScreen(
-                        onPlayNow = onOpenMatch,
-                        viewModel = gamesViewModel,
+                    AppNavTab.GAMES -> GameZoneScreen(
+                        onOpenMatch = onOpenMatch,
+                        viewModel = gameZoneViewModel,
                     )
                     AppNavTab.ROOMS -> PlayRoomsScreen(
                         onOpenRoom = onOpenRoom,

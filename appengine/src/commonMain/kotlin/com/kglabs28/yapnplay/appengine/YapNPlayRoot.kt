@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.layoutTierFor
 import com.kglabs28.yapnplay.appengine.navigation.YapNPlayNavHost
+import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlayHost
 
 /**
  * App entry composable. Theme + navigation, drawn fullscreen: screens
@@ -28,9 +29,13 @@ fun YapNPlayRoot(
                 .fillMaxSize()
                 .background(YapNPlayTheme.colors.Background),
         ) {
-            YapNPlayNavHost(
-                modifier = Modifier.fillMaxSize(),
-            )
+            // One host for blocking modals (e.g. the matching snackbar):
+            // it frosts the whole app behind them and swallows input.
+            BlockingOverlayHost {
+                YapNPlayNavHost(
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
     }
 }

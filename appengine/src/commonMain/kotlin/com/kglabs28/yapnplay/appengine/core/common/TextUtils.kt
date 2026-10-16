@@ -18,11 +18,11 @@ object TextUtils {
      * read from here so every screen formats numbers the same way.
      */
     /**
-     * Normalizes room-code typing: upper-case, letters and digits only,
-     * capped at [maxLength]. Paste and fast typing behave the same.
+     * Normalizes room-code typing: digits only (codes are numeric for
+     * now), capped at [maxLength]. Paste and fast typing behave the same.
      */
     fun roomCode(input: String, maxLength: Int): String =
-        capLength(input.uppercase().filter { it.isLetterOrDigit() }, maxLength)
+        capLength(input.filter { it.isDigit() }, maxLength)
 
     fun groupedThousands(value: Int): String {
         val digits = value.toString()

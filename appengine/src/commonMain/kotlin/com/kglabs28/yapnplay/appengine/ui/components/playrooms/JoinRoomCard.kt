@@ -22,13 +22,14 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
 
 /**
  * "Already have a room code?" card: ticket badge, title, hint line,
- * then the code field and the purple JOIN button side by side.
+ * then the code field and the purple JOIN button side by side. An
+ * [errorMessage] replaces the hint line in the error color.
  */
 @Composable
 fun JoinRoomCard(
     code: String,
     isJoining: Boolean,
-    isError: Boolean,
+    errorMessage: String?,
     onCodeChange: (String) -> Unit,
     onJoin: () -> Unit,
     modifier: Modifier = Modifier,
@@ -61,8 +62,10 @@ fun JoinRoomCard(
                     style = typography.sectionTitle.copy(color = colors.TextPrimary),
                 )
                 BasicText(
-                    text = Strings.roomsJoinSubtitle(AppConstants.ROOM_CODE_LENGTH),
-                    style = typography.micro.copy(color = colors.RoomsSubtitle),
+                    text = errorMessage ?: Strings.roomsJoinSubtitle(AppConstants.ROOM_CODE_LENGTH),
+                    style = typography.micro.copy(
+                        color = if (errorMessage != null) colors.Error else colors.RoomsSubtitle,
+                    ),
                 )
             }
         }
@@ -73,7 +76,7 @@ fun JoinRoomCard(
         ) {
             RoomCodeField(
                 code = code,
-                isError = isError,
+                isError = errorMessage != null,
                 onCodeChange = onCodeChange,
                 onDone = onJoin,
                 modifier = Modifier.weight(1f),

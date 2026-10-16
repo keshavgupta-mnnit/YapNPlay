@@ -32,7 +32,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.IconCircle
 
 /**
- * One row in "Your Rooms": room badge, name (crown when you own it),
+ * One row in "Your Rooms": room badge, name (crown when you lead it),
  * member count, how many are live right now, and a chevron.
  */
 @Composable
@@ -82,7 +82,7 @@ fun PlayRoomListItem(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
                 )
-                if (room.isOwner) {
+                if (room.isLeader) {
                     AppIcon(
                         imageVector = Icons.Rounded.EmojiEvents,
                         tint = colors.Gold,

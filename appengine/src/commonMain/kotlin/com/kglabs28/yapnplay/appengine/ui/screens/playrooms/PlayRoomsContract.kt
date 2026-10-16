@@ -18,7 +18,8 @@ data class PlayRoomsState(
     val loaded: Boolean = false,
     val roomCode: String = "",
     val isJoining: Boolean = false,
-    val joinError: Boolean = false,
+    /** Why the last join failed, ready to show; null when there is no error. */
+    val joinError: String? = null,
 ) : UiState
 
 sealed interface PlayRoomsIntent : UiIntent {

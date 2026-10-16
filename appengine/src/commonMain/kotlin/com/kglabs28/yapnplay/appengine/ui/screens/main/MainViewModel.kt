@@ -31,7 +31,9 @@ class MainViewModel(
             copy(
                 userName = data.profile.name,
                 level = data.profile.level.toString(),
-                online = data.profile.online,
+                // Reaching the server means online; the WebSocket connection
+                // manager (Phase 12) will drive this live later.
+                online = true,
                 profileLoaded = true,
                 coinBalance = TextUtils.groupedThousands(data.profile.coins),
                 diamondBalance = TextUtils.groupedThousands(data.profile.gems),

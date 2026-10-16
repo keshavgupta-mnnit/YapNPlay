@@ -65,6 +65,8 @@ kotlin {
             // Explicit versions (from BOM 34.0.0): Kotlin's deprecated
             // platform() cannot be used inside KMP source-set blocks.
             implementation(libs.koin.android)
+            // BackHandler for the blocking overlay (BlockBackPress actual).
+            implementation(libs.activity.compose)
             implementation(libs.firebase.config)
             implementation(libs.firebase.crashlytics)
             implementation(libs.kotlinx.coroutines.play.services)

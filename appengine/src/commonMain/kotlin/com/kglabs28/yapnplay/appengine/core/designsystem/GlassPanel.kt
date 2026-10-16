@@ -10,13 +10,15 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.Dp
 
 /**
  * The glass look used on every bordered box in the app: glass surface,
  * illuminating gradient border, and a soft glow in the caller's color.
  * Pass the zone color — nothing else to configure. [shape] and
- * [surface] let small controls (pills, round buttons) reuse the look.
+ * [surface] let small controls (pills, round buttons) reuse the look;
+ * [surfaceBrush] gives a card a gradient fill instead of a flat one.
  */
 @Composable
 fun Modifier.glassPanel(
@@ -24,20 +26,23 @@ fun Modifier.glassPanel(
     cornerRadius: Dp = YapNPlayTheme.dimens.cardRadius,
     shape: Shape = RoundedCornerShape(cornerRadius),
     surface: Color = YapNPlayTheme.colors.GlassSurface,
+    surfaceBrush: Brush = SolidColor(surface),
 ): Modifier {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     return this
         .shadow(dimens.glowBlur, shape, spotColor = glowColor.copy(alpha = 0.35f))
         .clip(shape)
-        .background(surface)
+        .background(surfaceBrush)
         .border(
             dimens.hairline,
-            Brush.linearGradient(
+            // Lit from above like the designs: pale rim on top that
+            // turns into the glow color toward the bottom edge.
+            Brush.verticalGradient(
                 colors = listOf(
+                    colors.GlassShine.copy(alpha = 0.35f),
+                    glowColor.copy(alpha = 0.45f),
                     glowColor.copy(alpha = 0.9f),
-                    glowColor.copy(alpha = 0.25f),
-                    colors.TextDisabled.copy(alpha = 0.3f),
                 ),
             ),
             shape,

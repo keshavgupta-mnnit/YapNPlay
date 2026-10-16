@@ -4,16 +4,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppTopBar
@@ -22,8 +24,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.home.PlayWithFriendsCard
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 import com.kglabs28.yapnplay.appengine.ui.screens.games.GamesScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.games.GamesViewModel
-import com.kglabs28.yapnplay.appengine.ui.screens.rooms.RoomsScreen
-import com.kglabs28.yapnplay.appengine.ui.screens.rooms.RoomsViewModel
+import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsScreen
+import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsViewModel
 
 /**
  * Dashboard scaffold: shared top bar plus Home, Games and Rooms tabs.
@@ -37,7 +39,7 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     viewModel: MainViewModel? = null,
     gamesViewModel: GamesViewModel? = null,
-    roomsViewModel: RoomsViewModel? = null,
+    playRoomsViewModel: PlayRoomsViewModel? = null,
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: MainState()
     LaunchedEffect(viewModel) {
@@ -48,7 +50,7 @@ fun MainScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = Spacing.Xs),
+                .padding(bottom = Spacing.Sm),
             verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
             // Edge to edge: the bar owns its own horizontal padding.
@@ -69,20 +71,17 @@ fun MainScreen(
                 },
             )
 
-            // Constant tab frame: 80% width with 10% left/right/bottom
-            // margins over the home background, same for every tab.
+            // Shared tab frame: every tab gets the full width under the bar,
+            // clear of the camera cutout, with one slim margin on the sides
+            // and bottom over the home background.
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxSize(),
-                contentAlignment = Alignment.TopCenter,
+                    .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
+                    .padding(horizontal = Spacing.Md),
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(AppConstants.TAB_CONTENT_WIDTH_FRACTION)
-                        .fillMaxHeight(AppConstants.TAB_CONTENT_HEIGHT_FRACTION),
-                ) {
-                    when (state.selectedTab) {
+                when (state.selectedTab) {
                     AppNavTab.HOME -> Row(
                         modifier = Modifier.fillMaxSize(),
                         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
@@ -104,14 +103,13 @@ fun MainScreen(
                         onPlayNow = onOpenMatch,
                         viewModel = gamesViewModel,
                     )
-                    AppNavTab.ROOMS -> RoomsScreen(
-                        onHostRoom = onOpenRoom,
-                        viewModel = roomsViewModel,
+                    AppNavTab.ROOMS -> PlayRoomsScreen(
+                        onOpenRoom = onOpenRoom,
+                        onCreateRoom = onOpenRoom,
+                        viewModel = playRoomsViewModel,
                     )
                 }
             }
         }
     }
-}
-
 }

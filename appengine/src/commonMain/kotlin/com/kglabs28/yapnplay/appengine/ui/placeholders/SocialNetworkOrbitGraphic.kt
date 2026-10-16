@@ -2,11 +2,11 @@ package com.kglabs28.yapnplay.appengine.ui.placeholders
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import androidx.compose.ui.graphics.graphicsLayer
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 
 /**
  * "PLAY WITH FRIENDS" card graphic. Temporary static art until final
@@ -16,12 +16,15 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 fun SocialNetworkOrbitGraphic(
     modifier: Modifier = Modifier,
 ) {
-    val dimens = YapNPlayTheme.dimens
-
     Box(
         modifier = modifier
             .fillMaxSize()
-            .heightIn(max = dimens.graphicMaxHeight),
+            // The PNG carries ~10% transparent margin; zoom so the art
+            // itself fills the slot without spilling past it.
+            .graphicsLayer {
+                scaleX = AppConstants.CARD_ART_ZOOM
+                scaleY = AppConstants.CARD_ART_ZOOM
+            },
         contentAlignment = Alignment.Center,
     ) {
         FriendZoneArtwork(modifier = Modifier.fillMaxSize())

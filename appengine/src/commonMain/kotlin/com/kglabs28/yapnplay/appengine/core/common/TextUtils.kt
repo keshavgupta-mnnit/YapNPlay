@@ -17,6 +17,13 @@ object TextUtils {
      * Groups thousands with commas: 4250 -> "4,250". Balances and scores
      * read from here so every screen formats numbers the same way.
      */
+    /**
+     * Normalizes room-code typing: upper-case, letters and digits only,
+     * capped at [maxLength]. Paste and fast typing behave the same.
+     */
+    fun roomCode(input: String, maxLength: Int): String =
+        capLength(input.uppercase().filter { it.isLetterOrDigit() }, maxLength)
+
     fun groupedThousands(value: Int): String {
         val digits = value.toString()
         if (digits.length <= 3) return digits

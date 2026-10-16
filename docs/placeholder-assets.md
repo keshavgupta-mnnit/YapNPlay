@@ -12,6 +12,13 @@ Replace the glyph with an Icon/Avatar composable; delete the row here.
 | 4 | `SocialNetworkOrbitGraphic.kt` | Social Friend Avatars | Real friend avatar images & +Invite Friends node |
 | 5 | `HomeHeaderBar.kt` | Notification & Settings | Vector Bell & Gear icons |
 
+## RoomsScreen (`ui/screens/rooms/`)
+| # | File / Component | Meaning | Real art needed |
+|---|---|---|---|
+| 1 | `CreateRoomGraphic.kt` | Create-room hero art | Arcade machine with crown, dice and stars |
+| 2 | `FriendAvatarItem.kt` | Friend avatars | Real friend avatar images |
+| 3 | `RoomListItem.kt` | Room badges | Per-room icon art (group, dice, family, gamepad) |
+
 ## GalleryScreen (`ui/screens/gallery/`)
 | # | Glyph | Meaning | Real art needed |
 |---|---|---|---|

@@ -80,12 +80,12 @@ fun AppTopBar(
                 balancesVisible = profileLoaded,
                 modifier = Modifier.padding(end = Spacing.Xxs),
             )
-            TopBarIconButton(
+            GlassIconButton(
                 imageVector = Icons.Rounded.Notifications,
                 contentDescription = Strings.topBarNotifications,
                 onClick = onOpenNotifications,
             )
-            TopBarIconButton(
+            GlassIconButton(
                 imageVector = Icons.Rounded.Settings,
                 contentDescription = Strings.topBarSettings,
                 onClick = onOpenSettings,

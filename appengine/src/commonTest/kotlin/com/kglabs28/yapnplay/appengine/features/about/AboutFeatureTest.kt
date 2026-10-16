@@ -8,7 +8,7 @@ import com.kglabs28.yapnplay.appengine.features.about.data.AboutRepositoryImpl
 import com.kglabs28.yapnplay.appengine.features.about.data.StaticAppInfoSource
 import com.kglabs28.yapnplay.appengine.features.about.domain.AboutRepository
 import com.kglabs28.yapnplay.appengine.features.about.domain.AppInfo
-import com.kglabs28.yapnplay.appengine.features.about.domain.GetAppInfo
+import com.kglabs28.yapnplay.appengine.features.about.domain.GetAppInfoUseCase
 import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreenEffect
 import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreenIntent
 import com.kglabs28.yapnplay.appengine.features.about.ui.AboutViewModel
@@ -41,13 +41,13 @@ class AboutFeatureTest {
 
     @Test
     fun `use case returns repository result`() = runTest {
-        val useCase = GetAppInfo(FakeAboutRepository(AppResult.Success(info)))
+        val useCase = GetAppInfoUseCase(FakeAboutRepository(AppResult.Success(info)))
         assertEquals(AppResult.Success(info), useCase())
     }
 
     @Test
     fun `load shows info`() = runTest {
-        val vm = AboutViewModel(GetAppInfo(FakeAboutRepository(AppResult.Success(info))), dispatchers)
+        val vm = AboutViewModel(GetAppInfoUseCase(FakeAboutRepository(AppResult.Success(info))), dispatchers)
         vm.state.test {
             assertEquals(true, awaitItem().loading)
             vm.onIntent(AboutScreenIntent.Load)
@@ -63,7 +63,7 @@ class AboutFeatureTest {
     @Test
     fun `failure shows error`() = runTest {
         val vm = AboutViewModel(
-            GetAppInfo(FakeAboutRepository(AppResult.Failure(YapNPlayError.Unknown("boom")))),
+            GetAppInfoUseCase(FakeAboutRepository(AppResult.Failure(YapNPlayError.Unknown("boom")))),
             dispatchers,
         )
         vm.state.test {
@@ -79,7 +79,7 @@ class AboutFeatureTest {
 
     @Test
     fun `back emits effect once`() = runTest {
-        val vm = AboutViewModel(GetAppInfo(FakeAboutRepository(AppResult.Success(info))), dispatchers)
+        val vm = AboutViewModel(GetAppInfoUseCase(FakeAboutRepository(AppResult.Success(info))), dispatchers)
         vm.effects.test {
             vm.onIntent(AboutScreenIntent.GoBack)
             assertEquals(AboutScreenEffect.Back, awaitItem())

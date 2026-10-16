@@ -11,7 +11,7 @@ import com.kglabs28.yapnplay.appengine.features.profile.repository.ProfileReposi
  * essential (its failure fails the load); friends are best-effort
  * (their failure yields an empty list, never a broken screen).
  */
-class GetHomeScreenData(private val repository: ProfileRepository) {
+class GetHomeScreenDataUseCase(private val repository: ProfileRepository) {
 
     suspend operator fun invoke(): AppResult<HomeData> {
         val profile = when (val result = repository.fetchProfileData()) {

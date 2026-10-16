@@ -1,45 +1,62 @@
 package com.kglabs28.yapnplay.appengine.ui.placeholders
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Groups
+import androidx.compose.material.icons.rounded.People
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import com.kglabs28.yapnplay.appengine.core.designsystem.HeadlineFontFamily
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /**
- * 3 feature pillars row in the "ENTER GAME ZONE" card.
+ * Three feature pillars in the "ENTER GAME ZONE" card, split by thin
+ * vertical dividers.
  */
 @Composable
 fun GameZoneFeaturePillarsRow(
     modifier: Modifier = Modifier,
 ) {
+    val colors = YapNPlayTheme.colors
+
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
         FeaturePillarItem(
-            iconGlyph = "👥",
+            icon = Icons.Rounded.Groups,
+            iconTint = colors.FeatureIconPurple,
             title = Strings.homeFeaturePopularGames,
             subtitle = Strings.homeFeaturePopularGamesSub,
             modifier = Modifier.weight(1f),
         )
+        PillarDivider()
         FeaturePillarItem(
-            iconGlyph = "⚙️",
+            icon = Icons.Rounded.Settings,
+            iconTint = colors.FeatureIconGreen,
             title = Strings.homeFeatureHouseRules,
             subtitle = Strings.homeFeatureHouseRulesSub,
             modifier = Modifier.weight(1f),
         )
+        PillarDivider()
         FeaturePillarItem(
-            iconGlyph = "🗣️",
+            icon = Icons.Rounded.People,
+            iconTint = colors.FeatureIconGreen,
             title = Strings.homeFeatureRealPeople,
             subtitle = Strings.homeFeatureRealPeopleSub,
             modifier = Modifier.weight(1f),
@@ -48,37 +65,46 @@ fun GameZoneFeaturePillarsRow(
 }
 
 @Composable
+private fun PillarDivider(modifier: Modifier = Modifier) {
+    val dimens = YapNPlayTheme.dimens
+    Box(
+        modifier = modifier
+            .width(dimens.hairline)
+            .height(dimens.iconMedium)
+            .background(YapNPlayTheme.colors.TextDisabled.copy(alpha = 0.4f)),
+    )
+}
+
+@Composable
 private fun FeaturePillarItem(
-    iconGlyph: String,
+    icon: ImageVector,
+    iconTint: Color,
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
+    val typography = YapNPlayTheme.typography
 
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
-        BasicText(
-            text = iconGlyph,
-            style = YapNPlayTheme.typography.micro,
-        )
+        AppIcon(imageVector = icon, tint = iconTint, size = YapNPlayTheme.dimens.iconSmall)
         Column {
             BasicText(
                 text = title,
-                style = YapNPlayTheme.typography.micro.copy(
-                    fontFamily = HeadlineFontFamily,
-                    fontWeight = FontWeight.Bold,
+                style = typography.micro.copy(
+                    fontWeight = typography.sectionTitle.fontWeight,
                     color = colors.TextPrimary,
                 ),
+                maxLines = 1,
             )
             BasicText(
                 text = subtitle,
-                style = YapNPlayTheme.typography.micro.copy(
-                    color = colors.TextSecondary,
-                ),
+                style = typography.micro.copy(color = colors.TextSecondary),
+                maxLines = 1,
             )
         }
     }

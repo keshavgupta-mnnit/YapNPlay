@@ -43,11 +43,32 @@ Returns the friend list, online first (server sorts; client keeps order).
 ]
 ```
 
-## Rooms (client types exist in `protocol/`, server later)
+## Rooms (client implemented, mocked — `features/rooms/`)
 
-- `POST /v1/rooms` `{ "name": "…" }` → `RoomSummary`
-- `POST /v1/rooms/join` `{ "code": "ABC123" }` → `RoomSnapshot`
-- `GET /v1/rooms/mine` → `MyRooms`
+### `GET /v1/rooms/mine`
+The rooms the user joined or created. `live_count` = members in the room
+right now (the client shows this, not chat activity). `icon` is one of
+`group`, `dice`, `family`, `gamepad` (unknown → `group`).
+
+```json
+[
+  {
+    "room_id": "room-college-crew",
+    "name": "College Crew",
+    "code": "CC4821",
+    "member_count": 10,
+    "live_count": 6,
+    "is_owner": true,
+    "icon": "group"
+  }
+]
+```
+
+### `POST /v1/rooms/join`
+Body `{ "code": "CC4821" }` → one room object, same shape as above.
+
+### Later
+- `POST /v1/rooms` `{ "name": "…" }` → room object
 - WebSocket `/ws` (bearer `userId:secret`; dev-only query param for
   browser-console testing): room channel and match channel envelopes,
   snapshots with versions, `MatchStarting`, `MatchEvent`, `MatchEnded`.

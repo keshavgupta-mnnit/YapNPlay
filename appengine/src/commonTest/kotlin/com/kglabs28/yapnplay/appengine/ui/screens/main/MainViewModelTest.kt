@@ -6,7 +6,7 @@ import com.kglabs28.yapnplay.appengine.core.testing.TestDispatcherProvider
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.features.profile.domain.UserProfile
 import com.kglabs28.yapnplay.appengine.features.profile.repository.ProfileRepository
-import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetHomeScreenData
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetHomeScreenDataUseCase
 import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -37,7 +37,7 @@ private class StubProfileRepository : ProfileRepository {
 class MainViewModelTest {
 
     private fun viewModel() = MainViewModel(
-        getHomeScreenData = GetHomeScreenData(StubProfileRepository()),
+        getHomeScreenData = GetHomeScreenDataUseCase(StubProfileRepository()),
         dispatchers = TestDispatcherProvider(),
     )
 

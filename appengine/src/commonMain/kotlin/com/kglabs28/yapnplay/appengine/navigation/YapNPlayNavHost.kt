@@ -10,8 +10,7 @@ import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.games.GamesViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainViewModel
-import com.kglabs28.yapnplay.appengine.ui.screens.rooms.RoomsViewModel
-import org.koin.compose.koinInject
+import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsViewModel
 
 /**
  * App navigation. Routes are serializable destinations, so the compiler
@@ -28,20 +27,25 @@ fun YapNPlayNavHost(
         startDestination = Main,
         modifier = modifier,
     ) {
-        composable<Main> {
-            val mainViewModel: MainViewModel = koinInject()
-            val gamesViewModel: GamesViewModel = koinInject()
-            val roomsViewModel: RoomsViewModel = koinInject()
+        composable<Main> { entry ->
+            // Scoped to the back-stack entry: the selected tab and tab
+            // data survive a trip to another screen and back.
+            val mainViewModel: MainViewModel = entry.rememberScreenViewModel()
+            val gamesViewModel: GamesViewModel = entry.rememberScreenViewModel()
+            val playRoomsViewModel: PlayRoomsViewModel = entry.rememberScreenViewModel()
             MainScreen(
                 onOpenMatch = { navController.navigate(MatchPlaceholder) },
                 onOpenRoom = { navController.navigate(RoomPlaceholder) },
                 viewModel = mainViewModel,
                 gamesViewModel = gamesViewModel,
-                roomsViewModel = roomsViewModel,
+                playRoomsViewModel = playRoomsViewModel,
             )
         }
-        composable<About> {
-            AboutScreen(onBack = { navController.popBackStack() })
+        composable<About> { entry ->
+            AboutScreen(
+                onBack = { navController.popBackStack() },
+                viewModel = entry.rememberScreenViewModel(),
+            )
         }
         composable<RoomPlaceholder> {
             PlaceholderScreen()

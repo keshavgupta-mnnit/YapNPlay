@@ -77,14 +77,14 @@ class YapNPlayDimens {
     val voiceToggle: Dp get() = 64.dp.scaled()
     val contentMaxWidth: Dp get() = AppConstants.CONTENT_MAX_WIDTH_DP.scaledDp()
     val glowBlur: Dp get() = 12.dp.scaled()
-    val cardRadius: Dp get() = 24.dp.scaled()
+    val cardRadius: Dp get() = 14.dp.scaled()
     val badgeSize: Dp get() = 28.dp.scaled()
     val badgeMedium: Dp get() = 34.dp.scaled()
     val badgeLarge: Dp get() = 44.dp.scaled()
     val badgeXLarge: Dp get() = 52.dp.scaled()
     val graphicSize: Dp get() = 200.dp.scaled()
     val graphicMaxHeight: Dp get() = 220.dp.scaled()
-    val cardHeaderIconSize: Dp get() = 38.dp.scaled()
+    val cardHeaderIconSize: Dp get() = 28.dp.scaled()
     val compactButtonHeight: Dp get() = 40.dp.scaled()
     val progressWidth: Dp get() = 112.dp.scaled()
     val progressHeight: Dp get() = 4.dp.scaled()
@@ -102,6 +102,21 @@ class YapNPlayDimens {
     /** Space reserved for a balance before it loads (fits "99,999"). */
     val balanceMinWidth: Dp get() = 44.dp.scaled()
     val iconMedium: Dp get() = 20.dp.scaled()
+
+    // Home + Rooms cards (from the designs, raised to comfortable touch
+    // sizes: anything tappable is at least 32dp tall).
+    val ctaHeight: Dp get() = 36.dp.scaled()
+    val ctaSmallHeight: Dp get() = 32.dp.scaled()
+    val ctaIconBadge: Dp get() = 18.dp.scaled()
+    val iconTiny: Dp get() = 10.dp.scaled()
+    val rowRadius: Dp get() = 8.dp.scaled()
+    val roomRowHeight: Dp get() = 42.dp.scaled()
+    val roomIcon: Dp get() = 28.dp.scaled()
+    val friendAvatar: Dp get() = 36.dp.scaled()
+    val smallButtonHeight: Dp get() = 32.dp.scaled()
+    val codeFieldHeight: Dp get() = 36.dp.scaled()
+    val joinButtonWidth: Dp get() = 88.dp.scaled()
+    val roomsHeroArt: Dp get() = 110.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

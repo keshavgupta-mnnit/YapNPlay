@@ -26,7 +26,7 @@ class ProfileApiClient(
         // return client.get(AppConstants.SERVER_BASE_URL + "/v1/profile").body()
 
         // --- fake path (delete when switching to production) ---
-        delay(600)
+        delay(FakeDataProvider.NETWORK_DELAY_MS)
         return FakeDataProvider.Profile.dto
     }
 
@@ -35,7 +35,7 @@ class ProfileApiClient(
         // return client.get(AppConstants.SERVER_BASE_URL + "/v1/friends").body()
 
         // --- fake path (delete when switching to production) ---
-        delay(600)
+        delay(FakeDataProvider.NETWORK_DELAY_MS)
         return FakeDataProvider.Profile.friendDtos
     }
 }

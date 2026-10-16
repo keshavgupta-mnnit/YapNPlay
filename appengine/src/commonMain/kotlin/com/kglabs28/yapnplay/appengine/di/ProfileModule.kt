@@ -6,7 +6,7 @@ import com.kglabs28.yapnplay.appengine.features.profile.data.remote.ProfileApi
 import com.kglabs28.yapnplay.appengine.features.profile.data.remote.ProfileApiClient
 import com.kglabs28.yapnplay.appengine.features.profile.data.remote.ProfileRemoteManager
 import com.kglabs28.yapnplay.appengine.features.profile.repository.ProfileRepository
-import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetHomeScreenData
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetHomeScreenDataUseCase
 import org.koin.dsl.module
 
 /**
@@ -18,5 +18,5 @@ val profileModule = module {
     single { ProfileRemoteManager(get()) }
     single { ProfileLocalManager() }
     single<ProfileRepository> { ProfileRepositoryImpl(get(), get()) }
-    factory { GetHomeScreenData(get()) }
+    factory { GetHomeScreenDataUseCase(get()) }
 }

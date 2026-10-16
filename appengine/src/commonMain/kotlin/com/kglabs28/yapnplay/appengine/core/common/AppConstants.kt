@@ -36,13 +36,6 @@ object AppConstants {
     const val TIER_M_MIN_WIDTH_DP = 740
     const val TIER_L_MIN_WIDTH_DP = 960
 
-    /**
-     * Dashboard tab frame: every tab renders inside 80% of the width
-     * with 10% margins on the left, right and bottom, over the home
-     * background. One constant frame for Home, Games and Rooms.
-     */
-    const val TAB_CONTENT_WIDTH_FRACTION = 0.8f
-    const val TAB_CONTENT_HEIGHT_FRACTION = 0.9f
 
     /**
      * Top bar free-space split: the gap before the tab strip is twice
@@ -51,4 +44,27 @@ object AppConstants {
      */
     const val TOP_BAR_LEADING_GAP_WEIGHT = 2f
     const val TOP_BAR_TRAILING_GAP_WEIGHT = 1f
+
+    /**
+     * Home card art is drawn with ~10% transparent margin on every side;
+     * zooming by this much makes the art itself fill its slot.
+     */
+    const val CARD_ART_ZOOM = 1.2f
+
+    /** Home QUICK PLAY button width as a share of its card. */
+    const val HOME_CTA_WIDTH_FRACTION = 0.65f
+
+    /**
+     * Rooms tab split. Columns are 60:40 (create/join left, lists right);
+     * inside each column the cards keep the design's height ratio.
+     */
+    const val ROOMS_LEFT_COLUMN_WEIGHT = 0.6f
+    const val ROOMS_RIGHT_COLUMN_WEIGHT = 0.4f
+    const val ROOMS_CREATE_CARD_WEIGHT = 0.64f
+    const val ROOMS_JOIN_CARD_WEIGHT = 0.36f
+    const val ROOMS_LIST_PANEL_WEIGHT = 0.57f
+    const val ROOMS_FRIENDS_PANEL_WEIGHT = 0.43f
+
+    /** Friends the online-friends arrows scroll by per tap. */
+    const val FRIENDS_SCROLL_STEP = 3
 }

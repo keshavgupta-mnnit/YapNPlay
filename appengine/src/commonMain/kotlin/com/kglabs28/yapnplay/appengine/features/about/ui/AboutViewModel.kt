@@ -3,13 +3,13 @@ package com.kglabs28.yapnplay.appengine.features.about.ui
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
-import com.kglabs28.yapnplay.appengine.features.about.domain.GetAppInfo
+import com.kglabs28.yapnplay.appengine.features.about.domain.GetAppInfoUseCase
 
 /**
  * Sample MVI view model: intent → use case → state, back as an effect.
  */
 class AboutViewModel(
-    private val getAppInfo: GetAppInfo,
+    private val getAppInfo: GetAppInfoUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<AboutScreenState, AboutScreenIntent, AboutScreenEffect>(AboutScreenState(), dispatchers) {
 

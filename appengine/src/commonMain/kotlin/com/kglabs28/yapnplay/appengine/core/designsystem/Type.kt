@@ -53,11 +53,56 @@ class YapNPlayTypography {
             fontSize = 12.scaledSp,
             lineHeight = 16.scaledSp,
         )
+    /** Card headline: ENTER GAME ZONE, CREATE NEW. */
+    val cardTitle: TextStyle
+        get() = TextStyle(
+            fontFamily = HeadlineFontFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.scaledSp,
+            lineHeight = 18.scaledSp,
+        )
+
+    /** Oversized hero word: ROOM. */
+    val heroWord: TextStyle
+        get() = TextStyle(
+            fontFamily = HeadlineFontFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.scaledSp,
+            lineHeight = 26.scaledSp,
+        )
+
+    /** Panel headings: Your Rooms, Online Friends. */
+    val sectionTitle: TextStyle
+        get() = TextStyle(
+            fontFamily = BodyFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 11.scaledSp,
+            lineHeight = 14.scaledSp,
+        )
+
+    /** List item names (rooms, friends). */
+    val itemTitle: TextStyle
+        get() = TextStyle(
+            fontFamily = BodyFontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 10.scaledSp,
+            lineHeight = 13.scaledSp,
+        )
+
+    /** Pill button labels: QUICK PLAY, JOIN, Create Room. */
+    val button: TextStyle
+        get() = TextStyle(
+            fontFamily = HeadlineFontFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 11.scaledSp,
+            lineHeight = 14.scaledSp,
+        )
+
     val micro: TextStyle
         get() = TextStyle(
             fontFamily = BodyFontFamily,
             fontWeight = FontWeight.Normal,
-            fontSize = 9.scaledSp,
-            lineHeight = 12.scaledSp,
+            fontSize = 10.scaledSp,
+            lineHeight = 13.scaledSp,
         )
 }

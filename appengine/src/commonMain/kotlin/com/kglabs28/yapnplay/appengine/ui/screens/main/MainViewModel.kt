@@ -4,7 +4,7 @@ import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.common.TextUtils
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
-import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetHomeScreenData
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetHomeScreenDataUseCase
 
 /**
  * Dashboard scaffold: owns the shared top bar data and the selected
@@ -12,7 +12,7 @@ import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetHomeScreenDat
  * tabs; settings and notifications emit one-off effects.
  */
 class MainViewModel(
-    private val getHomeScreenData: GetHomeScreenData,
+    private val getHomeScreenData: GetHomeScreenDataUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MainState, MainIntent, MainEffect>(MainState(), dispatchers) {
 

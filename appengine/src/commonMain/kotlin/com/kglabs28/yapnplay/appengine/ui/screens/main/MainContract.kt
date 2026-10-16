@@ -13,6 +13,10 @@ import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
 data class MainState(
     val userName: String = "",
     val level: String = "",
+    val online: Boolean = false,
+    /** False until the first profile load lands; the top bar keeps its
+     *  layout and only fades the values in, so nothing jumps. */
+    val profileLoaded: Boolean = false,
     val coinBalance: String = "",
     val diamondBalance: String = "",
     val selectedTab: AppNavTab = AppNavTab.HOME,

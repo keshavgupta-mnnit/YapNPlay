@@ -13,7 +13,9 @@ actual fun HomeLogoArtwork(modifier: Modifier, contentDescription: String?) {
         painter = painterResource(id = R.drawable.ic_app_logo),
         contentDescription = contentDescription,
         modifier = modifier,
-        contentScale = ContentScale.Fit,
+        // Square art with transparent margins: crop to the caller's
+        // wide box so the wordmark fills it.
+        contentScale = ContentScale.Crop,
     )
 }
 

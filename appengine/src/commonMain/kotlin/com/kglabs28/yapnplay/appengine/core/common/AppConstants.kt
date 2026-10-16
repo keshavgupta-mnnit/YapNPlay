@@ -43,4 +43,12 @@ object AppConstants {
      */
     const val TAB_CONTENT_WIDTH_FRACTION = 0.8f
     const val TAB_CONTENT_HEIGHT_FRACTION = 0.9f
+
+    /**
+     * Top bar free-space split: the gap before the tab strip is twice
+     * the gap after it, so tabs sit near the centre and the balances
+     * and buttons hug the right edge.
+     */
+    const val TOP_BAR_LEADING_GAP_WEIGHT = 2f
+    const val TOP_BAR_TRAILING_GAP_WEIGHT = 1f
 }

@@ -12,7 +12,7 @@ import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.placeholders.HomeLogoArtwork
 
 /**
- * Center app logo and tagline for the top bar.
+ * App logo with the tagline underneath, for the top bar's left edge.
  */
 @Composable
 fun HomeCenterLogo(
@@ -31,7 +31,7 @@ fun HomeCenterLogo(
         )
         BasicText(
             text = Strings.homeLogoTagline,
-            style = YapNPlayTheme.typography.caption.copy(
+            style = YapNPlayTheme.typography.micro.copy(
                 color = colors.TextPrimary,
                 fontWeight = FontWeight.Medium,
             ),

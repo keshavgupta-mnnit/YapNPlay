@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,13 +48,13 @@ fun MainScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .padding(start = Spacing.Xs, end = Spacing.Xs, bottom = Spacing.Xs),
+                .padding(bottom = Spacing.Xs),
             verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
+            // Edge to edge: the bar owns its own horizontal padding.
             AppTopBar(
-                userName = state.userName,
-                level = state.level,
+                online = state.online,
+                profileLoaded = state.profileLoaded,
                 coinBalance = state.coinBalance,
                 diamondBalance = state.diamondBalance,
                 selectedTab = state.selectedTab,

@@ -33,6 +33,20 @@ object YapNPlayColors {
     val SocialZoneGlow = Color(0x66A855F7)
     val SocialZoneBorder = Color(0x80A855F7)
 
+    // Top Bar (sampled from the top bar design). Surfaces are glass
+    // tints: glassPill() applies the transparency and sheen.
+    val TopBarBackground = Color(0xFF14122A)
+    val TopBarPill = Color(0xFF22213F)
+    val TopBarCurrencyPill = Color(0xFF242844)
+    val TopBarButton = Color(0xFF2D3151)
+    val TopBarTabSelected = Color(0xFF46866F)
+    val TopBarTabSelectedBorder = Color(0xFF5BB592)
+    val TopBarIcon = Color(0xFF9EAEDE)
+    val TopBarText = Color(0xFF96A3C9)
+
+    // Glass highlight (sheen and rim on glass surfaces)
+    val GlassShine = Color(0xFFFFFFFF)
+
     // States & Status
     val Success = Color(0xFF72F597)
     val Warning = Color(0xFFF0A030)

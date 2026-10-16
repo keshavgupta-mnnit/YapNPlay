@@ -1,29 +1,32 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Groups
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.SportsEsports
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import com.kglabs28.yapnplay.appengine.core.designsystem.HeadlineFontFamily
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
 
 /**
- * Top bar navigation tabs container (Home, Games, Rooms) matching topbar.png.
+ * Top bar tab strip: one glass pill holding Home, Games and Rooms.
+ * The selected tab gets a green fill and border.
  */
 @Composable
 fun AppNavTabs(
@@ -34,87 +37,74 @@ fun AppNavTabs(
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
 
-    Box(
+    Row(
         modifier = modifier
-            .clip(RoundedCornerShape(dimens.cardRadius))
-            .background(colors.GlassSurface)
-            .border(dimens.hairline, colors.TextDisabled.copy(alpha = 0.3f), RoundedCornerShape(dimens.cardRadius))
-            .padding(Spacing.Xxs),
+            .height(dimens.topBarControlHeight)
+            .glassPill(glowColor = colors.TopBarIcon, surface = colors.TopBarPill)
+            .padding(Spacing.Xxxs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
-        ) {
-            NavTabItem(
-                label = Strings.homeNavHome,
-                iconGlyph = Strings.iconHomeTab,
-                selected = selectedTab == AppNavTab.HOME,
-                onClick = { onSelectTab(AppNavTab.HOME) },
-            )
-            NavTabItem(
-                label = Strings.homeNavGames,
-                iconGlyph = Strings.iconGamesTab,
-                selected = selectedTab == AppNavTab.GAMES,
-                onClick = { onSelectTab(AppNavTab.GAMES) },
-            )
-            NavTabItem(
-                label = Strings.homeNavRooms,
-                iconGlyph = Strings.iconRoomsTab,
-                selected = selectedTab == AppNavTab.ROOMS,
-                onClick = { onSelectTab(AppNavTab.ROOMS) },
-            )
-        }
+        NavTabItem(
+            label = Strings.homeNavHome,
+            icon = Icons.Rounded.Home,
+            selected = selectedTab == AppNavTab.HOME,
+            onClick = { onSelectTab(AppNavTab.HOME) },
+        )
+        NavTabItem(
+            label = Strings.homeNavGames,
+            icon = Icons.Rounded.SportsEsports,
+            selected = selectedTab == AppNavTab.GAMES,
+            onClick = { onSelectTab(AppNavTab.GAMES) },
+        )
+        NavTabItem(
+            label = Strings.homeNavRooms,
+            icon = Icons.Rounded.Groups,
+            selected = selectedTab == AppNavTab.ROOMS,
+            onClick = { onSelectTab(AppNavTab.ROOMS) },
+        )
     }
 }
 
 @Composable
 private fun NavTabItem(
     label: String,
-    iconGlyph: String,
+    icon: ImageVector,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
+    val shape = YapNPlayTheme.shapes.pill
+    val textColor = if (selected) colors.TextPrimary else colors.TopBarText
+    val iconColor = if (selected) colors.TextPrimary else colors.TopBarIcon
 
-    val backgroundModifier = if (selected) {
-        Modifier
-            .clip(CircleShape)
-            .background(
-                Brush.horizontalGradient(
-                    colors = listOf(colors.GameZoneAccent, colors.ButtonFace),
-                ),
-            )
+    val selectionModifier = if (selected) {
+        Modifier.glassPill(glowColor = colors.TopBarTabSelectedBorder, surface = colors.TopBarTabSelected)
     } else {
         Modifier
-            .clip(CircleShape)
     }
 
-    val contentColor = if (selected) colors.Background else colors.TextSecondary
-
-    Box(
+    Row(
         modifier = modifier
-            .then(backgroundModifier)
-            .clickable(onClick = onClick)
-            .padding(horizontal = Spacing.Lg, vertical = Spacing.Xs),
-        contentAlignment = Alignment.Center,
+            .fillMaxHeight()
+            .clip(shape)
+            .then(selectionModifier)
+            .clickable(role = Role.Tab, onClick = onClick)
+            .padding(horizontal = Spacing.Md),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
-        ) {
-            BasicText(
-                text = iconGlyph,
-                style = YapNPlayTheme.typography.caption,
-            )
-            BasicText(
-                text = label,
-                style = YapNPlayTheme.typography.caption.copy(
-                    fontFamily = HeadlineFontFamily,
-                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                    color = contentColor,
-                ),
-            )
-        }
+        AppIcon(
+            imageVector = icon,
+            tint = iconColor,
+        )
+        BasicText(
+            text = label,
+            style = YapNPlayTheme.typography.label.copy(
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                color = textColor,
+            ),
+        )
     }
 }

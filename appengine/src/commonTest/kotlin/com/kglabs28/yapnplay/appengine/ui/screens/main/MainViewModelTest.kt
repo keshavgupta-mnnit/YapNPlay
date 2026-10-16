@@ -50,8 +50,9 @@ class MainViewModelTest {
             val loaded = awaitItem()
             assertEquals("Keshav", loaded.userName)
             assertEquals("12", loaded.level)
-            assertEquals("4,250 +", loaded.coinBalance)
-            assertEquals("120 +", loaded.diamondBalance)
+            assertEquals("4,250", loaded.coinBalance)
+            assertEquals("120", loaded.diamondBalance)
+            assertEquals(true, loaded.online)
             cancelAndIgnoreRemainingEvents()
         }
         vm.clear()

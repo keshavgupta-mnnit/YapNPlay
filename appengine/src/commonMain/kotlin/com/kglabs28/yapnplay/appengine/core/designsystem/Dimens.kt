@@ -25,6 +25,7 @@ fun layoutTierFor(windowWidthDp: Int): LayoutTier = when {
  * add a value here and it scales automatically, nothing else to wire.
  */
 class YapNPlaySpacing {
+    val Xxxs: Dp get() = 2.dp.scaled()
     val Xxs: Dp get() = 4.dp.scaled()
     val Xs: Dp get() = 8.dp.scaled()
     val Sm: Dp get() = 12.dp.scaled()
@@ -39,6 +40,7 @@ class YapNPlaySpacing {
  */
 object Spacing {
     private val live = YapNPlaySpacing()
+    val Xxxs: Dp get() = live.Xxxs
     val Xxs: Dp get() = live.Xxs
     val Xs: Dp get() = live.Xs
     val Sm: Dp get() = live.Sm
@@ -86,8 +88,20 @@ class YapNPlayDimens {
     val compactButtonHeight: Dp get() = 40.dp.scaled()
     val progressWidth: Dp get() = 112.dp.scaled()
     val progressHeight: Dp get() = 4.dp.scaled()
-    val logoWidth: Dp get() = 160.dp.scaled()
-    val logoHeight: Dp get() = 60.dp.scaled()
+    // Logo art is square with transparent margins and is cropped to this
+    // box; keep width/height <= 1.45 or the top of the art gets cut.
+    val logoWidth: Dp get() = 66.dp.scaled()
+    val logoHeight: Dp get() = 46.dp.scaled()
+
+    // Top bar: one fixed bar height; every pill and button shares
+    // topBarControlHeight so their tops and bottoms line up.
+    val topBarHeight: Dp get() = 68.dp.scaled()
+    val topBarControlHeight: Dp get() = 38.dp.scaled()
+    val topBarAvatar: Dp get() = 42.dp.scaled()
+    val iconSmall: Dp get() = 14.dp.scaled()
+    /** Space reserved for a balance before it loads (fits "99,999"). */
+    val balanceMinWidth: Dp get() = 44.dp.scaled()
+    val iconMedium: Dp get() = 20.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

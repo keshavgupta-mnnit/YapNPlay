@@ -31,8 +31,10 @@ class MainViewModel(
             copy(
                 userName = data.profile.name,
                 level = data.profile.level.toString(),
-                coinBalance = "${TextUtils.groupedThousands(data.profile.coins)} +",
-                diamondBalance = "${TextUtils.groupedThousands(data.profile.gems)} +",
+                online = data.profile.online,
+                profileLoaded = true,
+                coinBalance = TextUtils.groupedThousands(data.profile.coins),
+                diamondBalance = TextUtils.groupedThousands(data.profile.gems),
             )
         }
     }

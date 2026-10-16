@@ -1,4 +1,4 @@
-package com.kglabs28.yapnplay.appengine.ui.components.home
+package com.kglabs28.yapnplay.appengine.ui.placeholders
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,7 +15,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 
 /**
- * 3 feature pillars row in the "ENTER GAME ZONE" card matching mockup.
+ * 3 feature pillars row in the "ENTER GAME ZONE" card.
  */
 @Composable
 fun GameZoneFeaturePillarsRow(
@@ -59,16 +59,16 @@ private fun FeaturePillarItem(
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
         BasicText(
             text = iconGlyph,
-            style = YapNPlayTheme.typography.body,
+            style = YapNPlayTheme.typography.micro,
         )
         Column {
             BasicText(
                 text = title,
-                style = YapNPlayTheme.typography.caption.copy(
+                style = YapNPlayTheme.typography.micro.copy(
                     fontFamily = HeadlineFontFamily,
                     fontWeight = FontWeight.Bold,
                     color = colors.TextPrimary,
@@ -76,7 +76,7 @@ private fun FeaturePillarItem(
             )
             BasicText(
                 text = subtitle,
-                style = YapNPlayTheme.typography.caption.copy(
+                style = YapNPlayTheme.typography.micro.copy(
                     color = colors.TextSecondary,
                 ),
             )

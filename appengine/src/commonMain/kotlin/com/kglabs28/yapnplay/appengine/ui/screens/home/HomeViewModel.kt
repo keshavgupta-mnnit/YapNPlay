@@ -2,6 +2,7 @@ package com.kglabs28.yapnplay.appengine.ui.screens.home
 
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
+import com.kglabs28.yapnplay.appengine.core.common.TextUtils
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetHomeScreenData
 
@@ -26,9 +27,9 @@ class HomeViewModel(
             copy(
                 userName = data.profile.name,
                 level = data.profile.level.toString(),
-                levelProgressText = "${data.profile.xp} / ${data.profile.xpMax}",
-                coinBalance = "$ ${data.profile.coins}",
-                diamondBalance = "${data.profile.gems}",
+                levelProgressText = "${TextUtils.groupedThousands(data.profile.xp)} / ${TextUtils.groupedThousands(data.profile.xpMax)}",
+                coinBalance = "$ ${TextUtils.groupedThousands(data.profile.coins)} +",
+                diamondBalance = "${TextUtils.groupedThousands(data.profile.gems)} +",
                 friends = data.friends,
             )
         }

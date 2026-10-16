@@ -61,8 +61,14 @@ data class YapNPlayDimens(
     val badgeLarge: Dp = 44.dp,
     val badgeXLarge: Dp = 52.dp,
     val graphicSize: Dp = 200.dp,
-    val progressWidth: Dp = 80.dp,
+    val graphicMaxHeight: Dp = 140.dp,
+    val cardHeaderIconSize: Dp = 38.dp,
+    val compactButtonHeight: Dp = 40.dp,
+    val progressWidth: Dp = 112.dp,
     val progressHeight: Dp = 4.dp,
+    val headerPillHeight: Dp = 56.dp,
+    val logoWidth: Dp = 120.dp,
+    val logoHeight: Dp = 44.dp,
 )
 
 /** One preset per tier; values converge today, structure diverges by tier. */

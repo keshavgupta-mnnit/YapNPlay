@@ -1,4 +1,4 @@
-package com.kglabs28.yapnplay.appengine.ui.components.home
+package com.kglabs28.yapnplay.appengine.ui.placeholders
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,10 +20,11 @@ import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.HeadlineFontFamily
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 
 /**
- * Bottom sub-banner inside "PLAY WITH FRIENDS" card matching mockup.
+ * Bottom sub-banner inside "PLAY WITH FRIENDS" card.
  */
 @Composable
 fun CreateRoomBanner(
@@ -35,10 +36,8 @@ fun CreateRoomBanner(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(dimens.panelRadius))
-            .background(colors.Panel.copy(alpha = 0.9f))
-            .border(dimens.hairline, colors.SocialZoneAccent.copy(alpha = 0.4f), RoundedCornerShape(dimens.panelRadius))
-            .padding(Spacing.Md),
+            .glassPanel(colors.SocialZoneAccent, dimens.panelRadius)
+            .padding(Spacing.Sm),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -48,9 +47,8 @@ fun CreateRoomBanner(
             Row(
                 modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
-                // Room Icon
                 Box(
                     modifier = Modifier
                         .size(dimens.chipHeight)
@@ -60,20 +58,19 @@ fun CreateRoomBanner(
                 ) {
                     BasicText(
                         text = "👥",
-                        style = YapNPlayTheme.typography.body,
+                        style = YapNPlayTheme.typography.caption,
                     )
                 }
 
                 BasicText(
                     text = Strings.homeCreateRoomBannerText,
-                    style = YapNPlayTheme.typography.caption.copy(
+                    style = YapNPlayTheme.typography.micro.copy(
                         color = colors.TextSecondary,
                     ),
-                    modifier = Modifier.padding(end = Spacing.Sm),
+                    modifier = Modifier.padding(end = Spacing.Xs),
                 )
             }
 
-            // Purple Create Room Button
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
@@ -82,12 +79,12 @@ fun CreateRoomBanner(
                             colors = listOf(colors.SocialZoneAccent, colors.Purple),
                         ),
                     )
-                    .padding(horizontal = Spacing.Lg, vertical = Spacing.Sm),
+                    .padding(horizontal = Spacing.Md, vertical = Spacing.Xs),
                 contentAlignment = Alignment.Center,
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
                 ) {
                     BasicText(
                         text = "➕",

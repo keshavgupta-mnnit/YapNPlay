@@ -5,19 +5,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
-import com.kglabs28.yapnplay.appengine.ui.components.common.CozyHomeBackground
 import com.kglabs28.yapnplay.appengine.ui.components.home.EnterGameZoneCard
 import com.kglabs28.yapnplay.appengine.ui.components.home.HomeHeaderBar
 import com.kglabs28.yapnplay.appengine.ui.components.home.PlayWithFriendsCard
+import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 
 /**
- * Home screen matching the mockup.
- * Top header bar + two main direction cards (Enter Game Zone & Play With Friends).
+ * Home screen assembling floating top header bar and two main direction cards.
  * Clicking anywhere on either card takes the user to that section.
  */
 @Composable
@@ -36,8 +36,9 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(Spacing.Lg),
-            verticalArrangement = Arrangement.spacedBy(Spacing.Md),
+                .statusBarsPadding()
+                .padding(start = Spacing.Md, end = Spacing.Md, bottom = Spacing.Md),
+            verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
             // Top Header Bar
             HomeHeaderBar(
@@ -59,7 +60,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Lg),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Md),
             ) {
                 // Enter Game Zone Card (Entire card clickable)
                 EnterGameZoneCard(

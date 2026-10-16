@@ -43,6 +43,7 @@ android {
 dependencies {
     implementation(project(":appengine"))
     implementation(libs.activity.compose)
+    implementation(libs.androidx.core.ktx)
     implementation(libs.koin.android)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

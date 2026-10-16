@@ -22,10 +22,13 @@ import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.HeadlineFontFamily
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.ui.placeholders.CreateRoomBanner
+import com.kglabs28.yapnplay.appengine.ui.placeholders.SocialNetworkOrbitGraphic
 
 /**
- * Right Card ("PLAY WITH FRIENDS") matching the mockup.
+ * Right Card ("PLAY WITH FRIENDS").
  * Clicking anywhere on the entire card triggers [onPlayWithFriends].
  */
 @Composable
@@ -39,11 +42,9 @@ fun PlayWithFriendsCard(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(dimens.cardRadius))
-            .background(colors.GlassSurface)
-            .border(dimens.borderThin, colors.SocialZoneBorder, RoundedCornerShape(dimens.cardRadius))
+            .glassPanel(colors.SocialZoneAccent)
             .clickable(onClick = onPlayWithFriends)
-            .padding(Spacing.Lg),
+            .padding(Spacing.Md),
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -57,7 +58,7 @@ fun PlayWithFriendsCard(
                 // People Icon Badge
                 Box(
                     modifier = Modifier
-                        .size(dimens.badgeLarge)
+                        .size(dimens.cardHeaderIconSize)
                         .clip(CircleShape)
                         .background(colors.Panel)
                         .border(dimens.borderThin, colors.SocialZoneAccent, CircleShape),
@@ -65,7 +66,7 @@ fun PlayWithFriendsCard(
                 ) {
                     BasicText(
                         text = "👥",
-                        style = YapNPlayTheme.typography.title,
+                        style = YapNPlayTheme.typography.body,
                     )
                 }
 
@@ -73,7 +74,7 @@ fun PlayWithFriendsCard(
                     Row {
                         BasicText(
                             text = Strings.homePlayWithFriendsTitlePart1,
-                            style = YapNPlayTheme.typography.title.copy(
+                            style = YapNPlayTheme.typography.body.copy(
                                 fontFamily = HeadlineFontFamily,
                                 fontWeight = FontWeight.Bold,
                                 color = colors.TextPrimary,
@@ -81,7 +82,7 @@ fun PlayWithFriendsCard(
                         )
                         BasicText(
                             text = Strings.homePlayWithFriendsTitlePart2,
-                            style = YapNPlayTheme.typography.title.copy(
+                            style = YapNPlayTheme.typography.body.copy(
                                 fontFamily = HeadlineFontFamily,
                                 fontWeight = FontWeight.Bold,
                                 color = colors.SocialZoneAccent,
@@ -97,12 +98,14 @@ fun PlayWithFriendsCard(
                 }
             }
 
-            // Central Social Orbit Graphic
+            // Central Social Orbit Graphic — clipped so it stays between
+            // the header and the bottom banner, never painting over them.
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(vertical = Spacing.Xs),
+                    .clip(RoundedCornerShape(dimens.panelRadius))
+                    .padding(vertical = Spacing.Xxs),
                 contentAlignment = Alignment.Center,
             ) {
                 SocialNetworkOrbitGraphic()

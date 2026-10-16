@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,11 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.HeadlineFontFamily
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.PresenceDot
 
 /**
- * Left profile + level pill in the top header matching the home mockup.
+ * Left profile + level pill in top header bar.
  */
 @Composable
 fun HomeUserProfilePill(
@@ -40,10 +40,10 @@ fun HomeUserProfilePill(
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(dimens.cardRadius))
-            .background(colors.GlassSurface)
-            .border(dimens.hairline, colors.TextDisabled.copy(alpha = 0.3f), RoundedCornerShape(dimens.cardRadius))
+            .height(dimens.headerPillHeight)
+            .glassPanel(colors.GameZoneAccent)
             .padding(horizontal = Spacing.Sm, vertical = Spacing.Xs),
+        contentAlignment = Alignment.Center,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -68,7 +68,7 @@ fun HomeUserProfilePill(
             Column {
                 BasicText(
                     text = userName,
-                    style = YapNPlayTheme.typography.body.copy(
+                    style = YapNPlayTheme.typography.caption.copy(
                         fontFamily = HeadlineFontFamily,
                         fontWeight = FontWeight.Bold,
                         color = colors.TextPrimary,
@@ -81,7 +81,7 @@ fun HomeUserProfilePill(
                     PresenceDot(online = true, onlineColor = colors.Success)
                     BasicText(
                         text = Strings.homeOnlineStatus,
-                        style = YapNPlayTheme.typography.caption.copy(
+                        style = YapNPlayTheme.typography.micro.copy(
                             color = colors.Success,
                             fontWeight = FontWeight.Medium,
                         ),
@@ -89,18 +89,18 @@ fun HomeUserProfilePill(
                 }
             }
 
-            // Level Badge Hexagon
+            // Hexagon Level Badge
             Box(
                 modifier = Modifier
                     .size(dimens.chipHeight)
-                    .clip(CircleShape)
+                    .clip(YapNPlayTheme.shapes.hexagon)
                     .background(colors.Panel)
-                    .border(dimens.borderThin, colors.GameZoneAccent, CircleShape),
+                    .border(dimens.borderThin, colors.GameZoneAccent, YapNPlayTheme.shapes.hexagon),
                 contentAlignment = Alignment.Center,
             ) {
                 BasicText(
                     text = level,
-                    style = YapNPlayTheme.typography.title.copy(
+                    style = YapNPlayTheme.typography.body.copy(
                         fontFamily = HeadlineFontFamily,
                         fontWeight = FontWeight.Bold,
                         color = colors.GameZoneAccent,
@@ -108,19 +108,33 @@ fun HomeUserProfilePill(
                 )
             }
 
-            // Level Text + Progress Bar
+            // Level Text + Score above Progress Bar
             Column(
                 modifier = Modifier.padding(end = Spacing.Xs),
             ) {
-                BasicText(
-                    text = Strings.homeLevelText,
-                    style = YapNPlayTheme.typography.caption.copy(
-                        color = colors.TextSecondary,
-                    ),
-                )
+                Row(
+                    modifier = Modifier.width(dimens.progressWidth),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    BasicText(
+                        text = Strings.homeLevelText,
+                        style = YapNPlayTheme.typography.caption.copy(
+                            color = colors.TextSecondary,
+                        ),
+                    )
+                    BasicText(
+                        text = levelProgressText,
+                        style = YapNPlayTheme.typography.micro.copy(
+                            color = colors.TextDisabled,
+                            fontWeight = FontWeight.Normal,
+                        ),
+                    )
+                }
+
                 Box(
                     modifier = Modifier
-                        .padding(vertical = Spacing.Xxs)
+                        .padding(top = Spacing.Xxs)
                         .width(dimens.progressWidth)
                         .height(dimens.progressHeight)
                         .clip(CircleShape)
@@ -134,13 +148,6 @@ fun HomeUserProfilePill(
                             .background(colors.GameZoneAccent),
                     )
                 }
-                BasicText(
-                    text = levelProgressText,
-                    style = YapNPlayTheme.typography.caption.copy(
-                        color = colors.TextDisabled,
-                        fontWeight = FontWeight.Normal,
-                    ),
-                )
             }
         }
     }

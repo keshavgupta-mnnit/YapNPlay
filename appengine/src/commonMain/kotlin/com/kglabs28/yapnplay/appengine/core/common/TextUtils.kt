@@ -12,4 +12,16 @@ object TextUtils {
      */
     fun capLength(text: String, maxLength: Int): String =
         if (maxLength < 0) text else text.take(maxLength)
+
+    /**
+     * Groups thousands with commas: 4250 -> "4,250". Balances and scores
+     * read from here so every screen formats numbers the same way.
+     */
+    fun groupedThousands(value: Int): String {
+        val digits = value.toString()
+        if (digits.length <= 3) return digits
+        val remainder = digits.length % 3
+        val head = if (remainder == 0) "" else digits.take(remainder) + ","
+        return head + digits.drop(remainder).chunked(3).joinToString(",")
+    }
 }

@@ -1,35 +1,33 @@
 package com.kglabs28.yapnplay.appengine.ui.components.home
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import com.kglabs28.yapnplay.appengine.core.designsystem.HeadlineFontFamily
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.ui.placeholders.HomeLogoArtwork
 
 /**
- * Center logo and tagline for the top bar matching the mockup ("YapNPlay - Talk More. Play Your Way.").
+ * Center app logo and tagline for the top bar.
  */
 @Composable
 fun HomeCenterLogo(
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
+    val dimens = YapNPlayTheme.dimens
 
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        BasicText(
-            text = Strings.homeTitle,
-            style = YapNPlayTheme.typography.title.copy(
-                fontFamily = HeadlineFontFamily,
-                fontWeight = FontWeight.Bold,
-                color = colors.TextPrimary,
-            ),
+        HomeLogoArtwork(
+            modifier = Modifier.size(width = dimens.logoWidth, height = dimens.logoHeight),
+            contentDescription = Strings.homeLogoTitle,
         )
         BasicText(
             text = Strings.homeLogoTagline,

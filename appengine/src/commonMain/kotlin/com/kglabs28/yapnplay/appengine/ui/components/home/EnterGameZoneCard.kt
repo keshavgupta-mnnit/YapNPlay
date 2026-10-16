@@ -23,10 +23,13 @@ import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.HeadlineFontFamily
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.ui.placeholders.GameZoneFeaturePillarsRow
+import com.kglabs28.yapnplay.appengine.ui.placeholders.GameZoneGraphic
 
 /**
- * Left Card ("ENTER GAME ZONE") matching the mockup.
+ * Left Card ("ENTER GAME ZONE").
  * Clicking anywhere on the card triggers [onEnterGameZone].
  */
 @Composable
@@ -40,11 +43,9 @@ fun EnterGameZoneCard(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(dimens.cardRadius))
-            .background(colors.GlassSurface)
-            .border(dimens.borderThin, colors.GameZoneBorder, RoundedCornerShape(dimens.cardRadius))
+            .glassPanel(colors.GameZoneAccent)
             .clickable(onClick = onEnterGameZone)
-            .padding(Spacing.Lg),
+            .padding(Spacing.Md),
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -58,7 +59,7 @@ fun EnterGameZoneCard(
                 // Gamepad Icon Badge
                 Box(
                     modifier = Modifier
-                        .size(dimens.badgeLarge)
+                        .size(dimens.cardHeaderIconSize)
                         .clip(CircleShape)
                         .background(colors.Panel)
                         .border(dimens.borderThin, colors.GameZoneAccent, CircleShape),
@@ -66,7 +67,7 @@ fun EnterGameZoneCard(
                 ) {
                     BasicText(
                         text = "🎮",
-                        style = YapNPlayTheme.typography.title,
+                        style = YapNPlayTheme.typography.body,
                     )
                 }
 
@@ -74,7 +75,7 @@ fun EnterGameZoneCard(
                     Row {
                         BasicText(
                             text = Strings.homeEnterGameZoneTitlePart1,
-                            style = YapNPlayTheme.typography.title.copy(
+                            style = YapNPlayTheme.typography.body.copy(
                                 fontFamily = HeadlineFontFamily,
                                 fontWeight = FontWeight.Bold,
                                 color = colors.TextPrimary,
@@ -82,7 +83,7 @@ fun EnterGameZoneCard(
                         )
                         BasicText(
                             text = Strings.homeEnterGameZoneTitlePart2,
-                            style = YapNPlayTheme.typography.title.copy(
+                            style = YapNPlayTheme.typography.body.copy(
                                 fontFamily = HeadlineFontFamily,
                                 fontWeight = FontWeight.Bold,
                                 color = colors.GameZoneAccent,
@@ -98,12 +99,14 @@ fun EnterGameZoneCard(
                 }
             }
 
-            // Central 3D Game Orbit Graphic
+            // Central Graphic — clipped so it stays between the header
+            // and the bottom UI, never painting over its neighbors.
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(vertical = Spacing.Xs),
+                    .clip(RoundedCornerShape(dimens.panelRadius))
+                    .padding(vertical = Spacing.Xxs),
                 contentAlignment = Alignment.Center,
             ) {
                 GameZoneGraphic()
@@ -111,7 +114,7 @@ fun EnterGameZoneCard(
 
             // 3 Feature Pillars Row
             GameZoneFeaturePillarsRow(
-                modifier = Modifier.padding(vertical = Spacing.Xs),
+                modifier = Modifier.padding(vertical = Spacing.Xxs),
             )
 
             // Bottom Glowing Quick Play Button
@@ -124,21 +127,20 @@ fun EnterGameZoneCard(
                             colors = listOf(colors.GameZoneAccent, colors.ButtonFace),
                         ),
                     )
-                    .clickable(onClick = onEnterGameZone)
-                    .padding(vertical = Spacing.Md),
+                    .padding(vertical = Spacing.Sm),
                 contentAlignment = Alignment.Center,
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
                 ) {
                     BasicText(
                         text = "⚡",
-                        style = YapNPlayTheme.typography.title,
+                        style = YapNPlayTheme.typography.body,
                     )
                     BasicText(
                         text = Strings.homeQuickPlay,
-                        style = YapNPlayTheme.typography.title.copy(
+                        style = YapNPlayTheme.typography.label.copy(
                             fontFamily = HeadlineFontFamily,
                             fontWeight = FontWeight.Bold,
                             color = colors.Background,
@@ -146,7 +148,7 @@ fun EnterGameZoneCard(
                     )
                     BasicText(
                         text = "❯",
-                        style = YapNPlayTheme.typography.title.copy(
+                        style = YapNPlayTheme.typography.label.copy(
                             fontWeight = FontWeight.Bold,
                             color = colors.Background,
                         ),

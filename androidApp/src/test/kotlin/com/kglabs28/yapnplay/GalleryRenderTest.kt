@@ -3,6 +3,7 @@ package com.kglabs28.yapnplay
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import com.kglabs28.yapnplay.appengine.YapNPlayRoot
+import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.di.appModules
 import org.junit.After
 import org.junit.Before
@@ -45,20 +46,20 @@ class GalleryRenderTest {
     @Config(qualifiers = "+w640dp-h360dp")
     fun `renders at 640x360`() {
         composeRule.setContent { YapNPlayRoot() }
-        composeRule.onNodeWithText("YapNPlay").assertExists()
+        composeRule.onNodeWithText(Strings.homeLogoTagline).assertExists()
     }
 
     @Test
     @Config(qualifiers = "+w800dp-h360dp")
     fun `renders at 800x360`() {
         composeRule.setContent { YapNPlayRoot() }
-        composeRule.onNodeWithText("YapNPlay").assertExists()
+        composeRule.onNodeWithText(Strings.homeLogoTagline).assertExists()
     }
 
     @Test
     @Config(qualifiers = "+w1280dp-h800dp")
     fun `renders at 1280x800`() {
         composeRule.setContent { YapNPlayRoot() }
-        composeRule.onNodeWithText("YapNPlay").assertExists()
+        composeRule.onNodeWithText(Strings.homeLogoTagline).assertExists()
     }
 }

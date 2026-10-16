@@ -49,7 +49,7 @@ class HomeViewModelTest {
             val loaded = awaitItem()
             assertEquals("Keshav", loaded.userName)
             assertEquals("12", loaded.level)
-            assertEquals("2450 / 3000", loaded.levelProgressText)
+            assertEquals("2,450 / 3,000", loaded.levelProgressText)
             assertTrue(loaded.friends.isNotEmpty())
             cancelAndIgnoreRemainingEvents()
         }

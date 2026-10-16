@@ -55,28 +55,31 @@ class DesignTokensTest {
     @Test
     fun `type scale matches design values`() {
         val type = YapNPlayTypography()
-        assertEquals(40.sp, type.display.fontSize)
-        assertEquals(48.sp, type.display.lineHeight)
-        assertEquals(28.sp, type.headline.fontSize)
-        assertEquals(34.sp, type.headline.lineHeight)
-        assertEquals(20.sp, type.title.fontSize)
-        assertEquals(26.sp, type.title.lineHeight)
-        assertEquals(16.sp, type.body.fontSize)
-        assertEquals(22.sp, type.body.lineHeight)
-        assertEquals(14.sp, type.label.fontSize)
-        assertEquals(18.sp, type.label.lineHeight)
+        assertEquals(32.sp, type.display.fontSize)
+        assertEquals(38.sp, type.display.lineHeight)
+        assertEquals(22.sp, type.headline.fontSize)
+        assertEquals(28.sp, type.headline.lineHeight)
+        assertEquals(16.sp, type.title.fontSize)
+        assertEquals(22.sp, type.title.lineHeight)
+        assertEquals(13.sp, type.body.fontSize)
+        assertEquals(18.sp, type.body.lineHeight)
+        assertEquals(12.sp, type.label.fontSize)
+        assertEquals(16.sp, type.label.lineHeight)
         assertEquals(12.sp, type.caption.fontSize)
         assertEquals(16.sp, type.caption.lineHeight)
+        assertEquals(10.sp, type.micro.fontSize)
+        assertEquals(13.sp, type.micro.lineHeight)
     }
 
     @Test
-    fun `no text style is smaller than 12sp`() {
+    fun `no text style is smaller than 10sp`() {
         val type = YapNPlayTypography()
         val sizes = listOf(
             type.display.fontSize, type.headline.fontSize, type.title.fontSize,
             type.body.fontSize, type.label.fontSize, type.caption.fontSize,
+            type.micro.fontSize,
         )
-        assertTrue(sizes.all { it >= 12.sp })
+        assertTrue(sizes.all { it >= 10.sp })
     }
 
     @Test

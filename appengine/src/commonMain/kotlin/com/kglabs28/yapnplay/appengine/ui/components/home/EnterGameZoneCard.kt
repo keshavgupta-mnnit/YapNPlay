@@ -120,14 +120,15 @@ fun EnterGameZoneCard(
             // Bottom Glowing Quick Play Button
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth(0.65f)
                     .clip(CircleShape)
                     .background(
                         Brush.horizontalGradient(
                             colors = listOf(colors.GameZoneAccent, colors.ButtonFace),
                         ),
                     )
-                    .padding(vertical = Spacing.Sm),
+                    .padding(top = Spacing.Md, bottom = Spacing.Sm),
                 contentAlignment = Alignment.Center,
             ) {
                 Row(
@@ -136,11 +137,11 @@ fun EnterGameZoneCard(
                 ) {
                     BasicText(
                         text = "⚡",
-                        style = YapNPlayTheme.typography.body,
+                        style = YapNPlayTheme.typography.title,
                     )
                     BasicText(
                         text = Strings.homeQuickPlay,
-                        style = YapNPlayTheme.typography.label.copy(
+                        style = YapNPlayTheme.typography.title.copy(
                             fontFamily = HeadlineFontFamily,
                             fontWeight = FontWeight.Bold,
                             color = colors.Background,
@@ -148,7 +149,7 @@ fun EnterGameZoneCard(
                     )
                     BasicText(
                         text = "❯",
-                        style = YapNPlayTheme.typography.label.copy(
+                        style = YapNPlayTheme.typography.title.copy(
                             fontWeight = FontWeight.Bold,
                             color = colors.Background,
                         ),

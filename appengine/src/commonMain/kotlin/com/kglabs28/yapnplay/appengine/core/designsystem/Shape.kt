@@ -5,19 +5,20 @@ import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.unit.dp
 import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * YapNPlay shapes. Panels: 16dp radius. Buttons: 12dp cut corners.
- * Hexagon for level badge. Chips and avatars: pill and circle.
+ * YapNPlay shapes. Corner radii read the scaled dimens, so they grow
+ * with the window like everything else. Hexagon, pill and circle are
+ * proportional and need no scaling.
  */
-data class YapNPlayShapes(
-    val panel: Shape = RoundedCornerShape(16.dp),
-    val button: Shape = CutCornerShape(12.dp),
-    val pill: Shape = CircleShape,
-    val avatar: Shape = CircleShape,
+class YapNPlayShapes {
+    private val dimens = YapNPlayDimens()
+    val panel: Shape get() = RoundedCornerShape(dimens.panelRadius)
+    val button: Shape get() = CutCornerShape(dimens.buttonCut)
+    val pill: Shape = CircleShape
+    val avatar: Shape = CircleShape
     val hexagon: Shape = GenericShape { size, _ ->
         val centerX = size.width / 2f
         val centerY = size.height / 2f
@@ -30,5 +31,5 @@ data class YapNPlayShapes(
             if (i == 0) moveTo(x, y) else lineTo(x, y)
         }
         close()
-    },
-)
+    }
+}

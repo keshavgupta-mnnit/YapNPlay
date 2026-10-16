@@ -45,7 +45,7 @@ fun HomeActionsPill(
         modifier = modifier
             .height(dimens.headerPillHeight)
             .glassPanel(colors.SocialZoneAccent)
-            .padding(horizontal = Spacing.Sm, vertical = Spacing.Xs),
+            .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxs),
         contentAlignment = Alignment.Center,
     ) {
         Row(
@@ -59,7 +59,7 @@ fun HomeActionsPill(
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(colors.Panel)
-                    .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxs),
+                    .padding(horizontal = Spacing.Xs, vertical = Spacing.Xxs),
             ) {
                 BasicText(
                     text = coinIcon,
@@ -82,7 +82,7 @@ fun HomeActionsPill(
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(colors.Panel)
-                    .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxs),
+                    .padding(horizontal = Spacing.Xs, vertical = Spacing.Xxs),
             ) {
                 BasicText(
                     text = diamondIcon,
@@ -103,7 +103,7 @@ fun HomeActionsPill(
                 modifier = Modifier
                     .size(dimens.badgeMedium)
                     .clip(CircleShape)
-                    .background(colors.Panel)
+                    .background(colors.Raised)
                     .border(dimens.hairline, colors.TextDisabled.copy(alpha = 0.3f), CircleShape)
                     .clickable(onClick = onOpenNotifications),
                 contentAlignment = Alignment.Center,
@@ -119,7 +119,7 @@ fun HomeActionsPill(
                 modifier = Modifier
                     .size(dimens.badgeMedium)
                     .clip(CircleShape)
-                    .background(colors.Panel)
+                    .background(colors.Raised)
                     .border(dimens.hairline, colors.TextDisabled.copy(alpha = 0.3f), CircleShape)
                     .clickable(onClick = onOpenSettings),
                 contentAlignment = Alignment.Center,

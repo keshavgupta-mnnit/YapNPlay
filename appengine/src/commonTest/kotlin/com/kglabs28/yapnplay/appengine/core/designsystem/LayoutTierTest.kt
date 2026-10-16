@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.core.designsystem
 
+import androidx.compose.ui.unit.sp
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -34,10 +35,24 @@ class LayoutTierTest {
     }
 
     @Test
-    fun `every tier resolves dimens`() {
-        for (tier in LayoutTier.entries) {
-            val dimens = dimensForTier(tier)
-            assertEquals(dimens, dimensForTier(tier))
+    fun `multiplier follows smallest width`() {
+        assertEquals(0.9f, AdaptiveScale.resolveMultiplier(320))
+        assertEquals(1.0f, AdaptiveScale.resolveMultiplier(360))
+        assertEquals(1.05f, AdaptiveScale.resolveMultiplier(400))
+        assertEquals(1.15f, AdaptiveScale.resolveMultiplier(480))
+        assertEquals(1.25f, AdaptiveScale.resolveMultiplier(600))
+        assertEquals(1.35f, AdaptiveScale.resolveMultiplier(800))
+    }
+
+    @Test
+    fun `tokens follow the multiplier`() {
+        AdaptiveScale.overrideForTests(1f)
+        val base = YapNPlayDimens().avatarList
+        AdaptiveScale.overrideForTests(1.35f)
+        try {
+            assertEquals(base * 1.35f, YapNPlayDimens().avatarList)
+        } finally {
+            AdaptiveScale.overrideForTests(1f)
         }
     }
 }

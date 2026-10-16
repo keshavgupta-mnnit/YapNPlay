@@ -7,8 +7,10 @@ import androidx.compose.runtime.compositionLocalOf
 
 /**
  * YapNPlay theme: colour scheme, typography, shapes, spacing and motion,
- * plus the current [LayoutTier] and [YapNPlayDimens]. Every screen sits
- * inside this theme; components read tokens from it, never literals.
+ * plus the current [LayoutTier]. Every screen sits inside this theme;
+ * components read tokens from it, never literals. Sizes scale with the
+ * window automatically via [AdaptiveScale]; tiers only drive layout
+ * structure.
  */
 data class YapNPlayThemeData(
     val colors: YapNPlayColors = YapNPlayColors,
@@ -44,7 +46,6 @@ fun YapNPlayTheme(
     CompositionLocalProvider(
         LocalThemeData provides YapNPlayThemeData(),
         LocalLayoutTier provides tier,
-        LocalDimens provides dimensForTier(tier),
         content = content,
     )
 }

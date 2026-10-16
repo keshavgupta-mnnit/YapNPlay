@@ -13,7 +13,7 @@ object YapNPlayColors {
     val Panel = Color(0xFF152235)
     val Glass = Color(0xB3233246)
     val Raised = Color(0xFF323B4D)
-    val GlassSurface = Color(0xB3152235)
+    val GlassSurface = Color(0xD9152235)
 
     // Base Accents
     val Cyan = Color(0xFF3ADBED)

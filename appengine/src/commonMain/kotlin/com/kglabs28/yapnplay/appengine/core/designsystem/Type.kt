@@ -2,55 +2,62 @@ package com.kglabs28.yapnplay.appengine.core.designsystem
 
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 
 /**
- * YapNPlay type scale. Sizes match the approved design list.
- * Body text never goes below 12sp; tiny metadata (online dots,
- * scores, pillar captions) may use micro. Buttons render in
- * capitals (see buttons).
+ * YapNPlay type scale. Sizes match the approved design list at 1.0.
+ * Every size multiplies with the screen at read time — add a style
+ * with `.scaledSp` and it follows automatically, nothing else to wire.
+ * Body text never goes below 12sp at baseline; tiny metadata (online
+ * dots, scores, pillar captions) uses micro.
  */
-data class YapNPlayTypography(
-    val display: TextStyle = TextStyle(
-        fontFamily = HeadlineFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 32.sp,
-        lineHeight = 38.sp,
-    ),
-    val headline: TextStyle = TextStyle(
-        fontFamily = HeadlineFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-    ),
-    val title: TextStyle = TextStyle(
-        fontFamily = HeadlineFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 16.sp,
-        lineHeight = 22.sp,
-    ),
-    val body: TextStyle = TextStyle(
-        fontFamily = BodyFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 13.sp,
-        lineHeight = 18.sp,
-    ),
-    val label: TextStyle = TextStyle(
-        fontFamily = BodyFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
-    ),
-    val caption: TextStyle = TextStyle(
-        fontFamily = BodyFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
-    ),
-    val micro: TextStyle = TextStyle(
-        fontFamily = BodyFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 10.sp,
-        lineHeight = 13.sp,
-    ),
-)
+class YapNPlayTypography {
+    val display: TextStyle
+        get() = TextStyle(
+            fontFamily = HeadlineFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 32.scaledSp,
+            lineHeight = 38.scaledSp,
+        )
+    val headline: TextStyle
+        get() = TextStyle(
+            fontFamily = HeadlineFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 22.scaledSp,
+            lineHeight = 28.scaledSp,
+        )
+    val title: TextStyle
+        get() = TextStyle(
+            fontFamily = HeadlineFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 16.scaledSp,
+            lineHeight = 22.scaledSp,
+        )
+    val body: TextStyle
+        get() = TextStyle(
+            fontFamily = BodyFontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 13.scaledSp,
+            lineHeight = 18.scaledSp,
+        )
+    val label: TextStyle
+        get() = TextStyle(
+            fontFamily = BodyFontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 12.scaledSp,
+            lineHeight = 16.scaledSp,
+        )
+    val caption: TextStyle
+        get() = TextStyle(
+            fontFamily = BodyFontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 12.scaledSp,
+            lineHeight = 16.scaledSp,
+        )
+    val micro: TextStyle
+        get() = TextStyle(
+            fontFamily = BodyFontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 9.scaledSp,
+            lineHeight = 12.scaledSp,
+        )
+}

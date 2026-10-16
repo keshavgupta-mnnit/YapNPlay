@@ -73,7 +73,7 @@ class ScreenFlowTest {
             }
         }
         composeRule.onNodeWithText("QUICK PLAY").performClick()
-        composeRule.onNodeWithText("HOST LOBBY").performClick()
+        composeRule.onNodeWithText("Create Room").performClick()
         assert(quick == 1 && host == 1) {
             "quick=$quick host=$host"
         }

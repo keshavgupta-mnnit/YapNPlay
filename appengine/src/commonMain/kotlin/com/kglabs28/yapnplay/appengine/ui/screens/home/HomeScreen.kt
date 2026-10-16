@@ -37,7 +37,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(start = Spacing.Md, end = Spacing.Md, bottom = Spacing.Md),
+                .padding(start = Spacing.Xs, end = Spacing.Xs, bottom = Spacing.Xs),
             verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
             // Top Header Bar
@@ -60,7 +60,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Md),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
             ) {
                 // Enter Game Zone Card (Entire card clickable)
                 EnterGameZoneCard(

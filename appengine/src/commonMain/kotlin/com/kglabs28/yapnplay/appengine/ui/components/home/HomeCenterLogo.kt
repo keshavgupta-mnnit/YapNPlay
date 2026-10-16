@@ -32,7 +32,7 @@ fun HomeCenterLogo(
         BasicText(
             text = Strings.homeLogoTagline,
             style = YapNPlayTheme.typography.caption.copy(
-                color = colors.TextSecondary,
+                color = colors.TextPrimary,
                 fontWeight = FontWeight.Medium,
             ),
         )

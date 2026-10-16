@@ -79,7 +79,7 @@ fun CreateRoomBanner(
                             colors = listOf(colors.SocialZoneAccent, colors.Purple),
                         ),
                     )
-                    .padding(horizontal = Spacing.Md, vertical = Spacing.Xs),
+                    .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxs),
                 contentAlignment = Alignment.Center,
             ) {
                 Row(
@@ -88,11 +88,11 @@ fun CreateRoomBanner(
                 ) {
                     BasicText(
                         text = "➕",
-                        style = YapNPlayTheme.typography.caption,
+                        style = YapNPlayTheme.typography.micro,
                     )
                     BasicText(
-                        text = Strings.homeHostLobby,
-                        style = YapNPlayTheme.typography.label.copy(
+                        text = Strings.homeCreateRoom,
+                        style = YapNPlayTheme.typography.caption.copy(
                             fontFamily = HeadlineFontFamily,
                             fontWeight = FontWeight.Bold,
                             color = colors.TextPrimary,

@@ -42,7 +42,7 @@ fun HomeUserProfilePill(
         modifier = modifier
             .height(dimens.headerPillHeight)
             .glassPanel(colors.GameZoneAccent)
-            .padding(horizontal = Spacing.Sm, vertical = Spacing.Xs),
+            .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxs),
         contentAlignment = Alignment.Center,
     ) {
         Row(
@@ -52,7 +52,7 @@ fun HomeUserProfilePill(
             // User Avatar
             Box(
                 modifier = Modifier
-                    .size(dimens.avatarList)
+                    .size(dimens.chipHeight)
                     .clip(CircleShape)
                     .background(colors.Panel)
                     .border(dimens.borderThin, colors.GameZoneAccent, CircleShape),
@@ -88,6 +88,14 @@ fun HomeUserProfilePill(
                     )
                 }
             }
+
+            // Divider before the level badge
+            Box(
+                modifier = Modifier
+                    .width(dimens.hairline)
+                    .height(dimens.badgeSize)
+                    .background(colors.TextDisabled.copy(alpha = 0.4f)),
+            )
 
             // Hexagon Level Badge
             Box(

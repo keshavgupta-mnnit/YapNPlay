@@ -28,7 +28,7 @@ class HomeViewModel(
                 userName = data.profile.name,
                 level = data.profile.level.toString(),
                 levelProgressText = "${TextUtils.groupedThousands(data.profile.xp)} / ${TextUtils.groupedThousands(data.profile.xpMax)}",
-                coinBalance = "$ ${TextUtils.groupedThousands(data.profile.coins)} +",
+                coinBalance = "${TextUtils.groupedThousands(data.profile.coins)} +",
                 diamondBalance = "${TextUtils.groupedThousands(data.profile.gems)} +",
                 friends = data.friends,
             )

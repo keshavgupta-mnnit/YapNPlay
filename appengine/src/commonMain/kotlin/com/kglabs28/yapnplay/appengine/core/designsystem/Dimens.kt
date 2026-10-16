@@ -8,7 +8,8 @@ import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 /**
  * Layout tiers from window width. S = phones, M = large phones and
  * landscape handsets, L = tablets. Recomputed whenever the window changes
- * (rotation lock does not stop split screen or folding).
+ * (rotation lock does not stop split screen or folding). Tiers drive
+ * layout *structure*; sizes scale continuously via [AdaptiveScale].
  */
 enum class LayoutTier { S, M, L }
 
@@ -19,68 +20,76 @@ fun layoutTierFor(windowWidthDp: Int): LayoutTier = when {
     else -> LayoutTier.S
 }
 
-/** Spacing scale. */
+/**
+ * Spacing scale. Every gap multiplies with the screen at read time —
+ * add a value here and it scales automatically, nothing else to wire.
+ */
+class YapNPlaySpacing {
+    val Xxs: Dp get() = 4.dp.scaled()
+    val Xs: Dp get() = 8.dp.scaled()
+    val Sm: Dp get() = 12.dp.scaled()
+    val Md: Dp get() = 16.dp.scaled()
+    val Lg: Dp get() = 24.dp.scaled()
+    val Xl: Dp get() = 32.dp.scaled()
+}
+
+/**
+ * Gap/padding accessor. Same `Spacing.Md` call sites as always —
+ * values now follow the screen automatically.
+ */
 object Spacing {
-    val Xxs: Dp = 4.dp
-    val Xs: Dp = 8.dp
-    val Sm: Dp = 12.dp
-    val Md: Dp = 16.dp
-    val Lg: Dp = 24.dp
-    val Xl: Dp = 32.dp
+    private val live = YapNPlaySpacing()
+    val Xxs: Dp get() = live.Xxs
+    val Xs: Dp get() = live.Xs
+    val Sm: Dp get() = live.Sm
+    val Md: Dp get() = live.Md
+    val Lg: Dp get() = live.Lg
+    val Xl: Dp get() = live.Xl
 }
 
 /**
  * All sizes any component or screen may use. Nobody writes a raw dp
  * number outside the design-system package — read from here instead.
+ * Every value scales with the screen at read time: add a field with
+ * `.scaled()` and it follows automatically, nothing else to wire.
  */
-data class YapNPlayDimens(
-    val touchMin: Dp = 48.dp,
-    val buttonHeight: Dp = 52.dp,
-    val chipHeight: Dp = 32.dp,
-    val memberRowHeight: Dp = 64.dp,
-    val seatCardSize: Dp = 64.dp,
-    val diceSize: Dp = 72.dp,
-    val avatarList: Dp = 40.dp,
-    val avatarCard: Dp = 56.dp,
-    val avatarRing: Dp = 2.dp,
-    val panelRadius: Dp = 16.dp,
-    val buttonCut: Dp = 12.dp,
-    val timerStroke: Dp = 3.dp,
-    val borderThin: Dp = 1.5.dp,
-    val hairline: Dp = 1.dp,
-    val zero: Dp = 0.dp,
-    val timerRing: Dp = 48.dp,
-    val statusDot: Dp = 12.dp,
-    val statusDotSmall: Dp = 6.dp,
-    val voiceToggle: Dp = 64.dp,
-    val contentMaxWidth: Dp = AppConstants.CONTENT_MAX_WIDTH_DP.dp,
-    val glowBlur: Dp = 12.dp,
-    val cardRadius: Dp = 24.dp,
-    val badgeSize: Dp = 28.dp,
-    val badgeMedium: Dp = 34.dp,
-    val badgeLarge: Dp = 44.dp,
-    val badgeXLarge: Dp = 52.dp,
-    val graphicSize: Dp = 200.dp,
-    val graphicMaxHeight: Dp = 140.dp,
-    val cardHeaderIconSize: Dp = 38.dp,
-    val compactButtonHeight: Dp = 40.dp,
-    val progressWidth: Dp = 112.dp,
-    val progressHeight: Dp = 4.dp,
-    val headerPillHeight: Dp = 56.dp,
-    val logoWidth: Dp = 120.dp,
-    val logoHeight: Dp = 44.dp,
-)
-
-/** One preset per tier; values converge today, structure diverges by tier. */
-val DimensS = YapNPlayDimens()
-val DimensM = YapNPlayDimens()
-val DimensL = YapNPlayDimens()
-
-fun dimensForTier(tier: LayoutTier): YapNPlayDimens = when (tier) {
-    LayoutTier.S -> DimensS
-    LayoutTier.M -> DimensM
-    LayoutTier.L -> DimensL
+class YapNPlayDimens {
+    val touchMin: Dp get() = 48.dp.scaled()
+    val buttonHeight: Dp get() = 52.dp.scaled()
+    val chipHeight: Dp get() = 32.dp.scaled()
+    val memberRowHeight: Dp get() = 64.dp.scaled()
+    val seatCardSize: Dp get() = 64.dp.scaled()
+    val diceSize: Dp get() = 72.dp.scaled()
+    val avatarList: Dp get() = 40.dp.scaled()
+    val avatarCard: Dp get() = 56.dp.scaled()
+    val avatarRing: Dp get() = 2.dp.scaled()
+    val panelRadius: Dp get() = 16.dp.scaled()
+    val buttonCut: Dp get() = 12.dp.scaled()
+    val timerStroke: Dp get() = 3.dp.scaled()
+    val borderThin: Dp get() = 1.5.dp.scaled()
+    val hairline: Dp get() = 1.dp.scaled()
+    val zero: Dp get() = 0.dp.scaled()
+    val timerRing: Dp get() = 48.dp.scaled()
+    val statusDot: Dp get() = 12.dp.scaled()
+    val statusDotSmall: Dp get() = 6.dp.scaled()
+    val voiceToggle: Dp get() = 64.dp.scaled()
+    val contentMaxWidth: Dp get() = AppConstants.CONTENT_MAX_WIDTH_DP.scaledDp()
+    val glowBlur: Dp get() = 12.dp.scaled()
+    val cardRadius: Dp get() = 24.dp.scaled()
+    val badgeSize: Dp get() = 28.dp.scaled()
+    val badgeMedium: Dp get() = 34.dp.scaled()
+    val badgeLarge: Dp get() = 44.dp.scaled()
+    val badgeXLarge: Dp get() = 52.dp.scaled()
+    val graphicSize: Dp get() = 200.dp.scaled()
+    val graphicMaxHeight: Dp get() = 220.dp.scaled()
+    val cardHeaderIconSize: Dp get() = 38.dp.scaled()
+    val compactButtonHeight: Dp get() = 40.dp.scaled()
+    val progressWidth: Dp get() = 112.dp.scaled()
+    val progressHeight: Dp get() = 4.dp.scaled()
+    val headerPillHeight: Dp get() = 48.dp.scaled()
+    val logoWidth: Dp get() = 160.dp.scaled()
+    val logoHeight: Dp get() = 60.dp.scaled()
 }
 
-val LocalDimens = compositionLocalOf { DimensM }
+val LocalDimens = compositionLocalOf { YapNPlayDimens() }
 val LocalLayoutTier = compositionLocalOf { LayoutTier.M }

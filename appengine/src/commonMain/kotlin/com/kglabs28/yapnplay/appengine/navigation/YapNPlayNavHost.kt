@@ -8,6 +8,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.home.HomeScreen
+import com.kglabs28.yapnplay.appengine.ui.screens.home.HomeViewModel
+import org.koin.compose.koinInject
 
 /**
  * App navigation. Routes are serializable destinations, so the compiler
@@ -24,9 +26,11 @@ fun YapNPlayNavHost(
         modifier = modifier,
     ) {
         composable<Home> {
+            val homeViewModel: HomeViewModel = koinInject()
             HomeScreen(
                 onQuickPlay = { navController.navigate(MatchPlaceholder) },
                 onHostLobby = { navController.navigate(RoomPlaceholder) },
+                viewModel = homeViewModel,
             )
         }
         composable<About> {

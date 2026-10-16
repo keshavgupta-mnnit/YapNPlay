@@ -64,6 +64,64 @@
 - NOTE: `google-services.json` contains an API key — decide before pushing
   whether it stays committed.
 
+## Studio AI review + profile data layer (2026-10-16, tree currently RED)
+Studio AI is mid-fix; the tree does not compile right now. Verified read-only.
+
+### Studio AI: must fix (blocking build)
+1. `ui/screens/home/HomeScreen.kt` references 5 things that do not exist:
+   `arcBalance` (:44), `QuickPlay` (:60), `HostLobby` (:69, :76),
+   `InviteFriends` (:73). Nothing compiles until these resolve.
+2. `Color.kt`: `Success` changed `#72F597` -> `#2DD462` (now identical to
+   `PlayerGreen`), breaking the approved list AND `DesignTokensTest`.
+   Revert to `#72F597`. New hexes (`GlassSurface`, `Gold`,
+   `GameZone*`, `SocialZone*`) were never approved — confirm or drop.
+   The requested hue->purpose rename (Cyan/Pink/…) was NOT done.
+3. New raw dp in `CreateRoomBanner.kt`, `PlayWithFriendsCard.kt`,
+   `SocialNetworkOrbitGraphic.kt` (20/24/36/44/48/52/64dp, 1/1.5/2dp
+   borders) + one `Color(` literal — all fail the guard tests.
+   `cardRadius` token exists but the code uses raw `24.dp` instead.
+4. Content values hardcoded in VM defaults AND `Strings.kt`
+   (`"Keshav"`, `"12"`, balances) — must come from the repository below.
+
+### Done on my side (new files only, zero overlap with their edits)
+- `features/profile/`: `UserProfile`, `Friend`, `ProfileRepository`
+  (interface), `FakeProfileRepository` (mock data at the lowest level),
+  `ProfileRepositoryTest`, `HomeViewModelTest`.
+- Wiring (exact-match edits, 4 files — Studio AI stay out of these until
+  green): `HomeContract` (empty defaults + `friends` + `LoadProfile`),
+  `HomeViewModel` (loads profile+friends from repo),
+  `HomeModule` (passes repo), `AppModules` (+profileModule).
+- Backend swap = one line (`FakeProfileRepository` -> real impl).
+- My files compile; remaining compile errors are all Studio AI's (above).
+
+### Still open with Studio AI (their files, not touching)
+- Finish the color rename; delete content strings from `Strings.kt`
+  (`homeUserName`, `homeLevelValue`, balances…) once VM wiring lands;
+  replace `??` glyphs with the placeholder-assets process.
+
+## Profile data layer (done, awaiting Studio AI fixes to go green)
+- `features/profile/`: `UserProfile`, `Friend`, `ProfileRepository`
+  (`fetchProfileData`, `getFriendList`), `GetHomeScreenData` use case
+  (profile required, friends best-effort — the only place both are joined),
+  `ProfileApi` + `ProfileApiClient` (TODO(BE) markers + 600ms mock delay),
+  DTOs with backend `snake_case` names, `ProfileRemoteManager`
+  (typed errors) + `ProfileLocalManager` (cache, TODO(BE): Room),
+  `ProfileRepositoryImpl` (network-first, cache fallback), `Mappers`.
+- Mock data lives in ONE place: `core/common/FakeDataProvider`
+  (used by the API client; tests use their own fixtures).
+- IO switching lives in repository impls (`withContext(dispatchers.io)`);
+  VMs call safely from Main. Same applied to `AboutRepositoryImpl`.
+- `HomeViewModel` now loads via the use case; `HomeScreen` collects it
+  (wired in `YapNPlayNavHost`).
+- `docs/backend-api-contract.md`: endpoints, shapes, auth, versioning rules
+  for the BE AI. Dev base URL lives in `AppConstants.SERVER_BASE_URL`.
+- Touched Studio AI files (exact-match, tell them to pull): `HomeContract`
+  (empty defaults + `friends` + `LoadProfile`), `HomeViewModel`,
+  `HomeModule`, `AppModules`.
+- Tree is RED on Studio AI's `HomeScreen.kt` only (`arcBalance`,
+  `QuickPlay`, `HostLobby`, `InviteFriends` unresolved) — my scope has
+  no errors; full green needs their fix first.
+
 ## Queued next
 1. Deferred discussion: proper KMP `composeApp` structure.
-2. Data layer (repositories, Retrofit, Room, mock data) when requested.
+2. Retrofit annotations + Room persistence (replace TODO(BE) marks).

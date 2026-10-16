@@ -25,6 +25,13 @@ object AppConstants {
     /** Content width cap in dp — wider windows centre content instead of stretching. */
     const val CONTENT_MAX_WIDTH_DP = 1100
 
+    /**
+     * Dev backend base URL (emulator loopback). The Retrofit client takes
+     * this as its default; flavors override it later. No screen or
+     * repository hardcodes a URL — they all read this.
+     */
+    const val SERVER_BASE_URL = "http://10.0.2.2:8080"
+
     /** Window-width thresholds (dp) for [LayoutTier]. */
     const val TIER_M_MIN_WIDTH_DP = 740
     const val TIER_L_MIN_WIDTH_DP = 960

@@ -51,9 +51,18 @@ data class YapNPlayDimens(
     val zero: Dp = 0.dp,
     val timerRing: Dp = 48.dp,
     val statusDot: Dp = 12.dp,
+    val statusDotSmall: Dp = 6.dp,
     val voiceToggle: Dp = 64.dp,
     val contentMaxWidth: Dp = AppConstants.CONTENT_MAX_WIDTH_DP.dp,
     val glowBlur: Dp = 12.dp,
+    val cardRadius: Dp = 24.dp,
+    val badgeSize: Dp = 28.dp,
+    val badgeMedium: Dp = 34.dp,
+    val badgeLarge: Dp = 44.dp,
+    val badgeXLarge: Dp = 52.dp,
+    val graphicSize: Dp = 200.dp,
+    val progressWidth: Dp = 80.dp,
+    val progressHeight: Dp = 4.dp,
 )
 
 /** One preset per tier; values converge today, structure diverges by tier. */

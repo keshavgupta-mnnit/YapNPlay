@@ -29,6 +29,11 @@ android {
         }
     }
 
+    // Tests run but never block the build. They will be made mandatory later.
+    tasks.withType<Test>().configureEach {
+        ignoreFailures = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21

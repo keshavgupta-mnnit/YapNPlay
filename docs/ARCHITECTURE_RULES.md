@@ -164,6 +164,11 @@ These rules apply to **every line of code** in this project. No exceptions, no s
   2. `{Screen}ViewModel.kt` — the MVI view model, containing nothing but intent handling
   3. `{Screen}Contract.kt` — all state, intent and effect types, so the ViewModel stays clean
 - **Never** put business logic, state derivation, or data loading in a `@Composable` body. That goes in the ViewModel.
+- **Compose files contain UI only — zero logic.** No helper functions, no
+  validation, no formatting inside a `@Composable` file. Pure logic goes to
+  a util class (e.g. `TextUtils`), an extension in its own file, or a use
+  case. A `@Composable` file that contains a non-composable function fails
+  review.
 - **Component categorisation**: if a screen has many components, group them in a subfolder:
   ```
   ui/components/

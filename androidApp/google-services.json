@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "532749629825",
+    "project_id": "kglabs28-yapnplay",
+    "storage_bucket": "kglabs28-yapnplay.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:532749629825:android:7101472ff9f96a91069080",
+        "android_client_info": {
+          "package_name": "com.kglabs28.yapnplay"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAylpyxC9lN2ifQwl3eX_JklNkddSAxu_U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

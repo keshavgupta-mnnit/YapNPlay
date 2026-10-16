@@ -54,4 +54,42 @@ object Strings {
     // Hints
     const val hintDisplayName = "Display name"
     const val hintRoomCode = "XXXXXX"
+
+    // Party Play
+    const val partyLobbyHub = "Lobby Hub"
+    const val partyPlay = "PARTY PLAY"
+    const val partyCreateNewRoom = "CREATE NEW ROOM"
+    const val partyEnterCode = "ENTER 6-DIGIT CODE"
+    const val partyJoin = "JOIN"
+    const val partyOnlineFriends = "ONLINE FRIENDS"
+    const val partySeeAll = "SEE ALL"
+    const val partyOnline = "ONLINE"
+    const val partyParty = "PARTY"
+    const val partyOn = "ON"
+
+    // Lobby
+    const val lobbyRoomPin = "ROOM PIN"
+    const val lobbyCopy = "COPY"
+    const val lobbyPlayersInRoom = "Player(s) in room"
+    const val lobbyReady = "READY"
+    const val lobbyInvite = "INVITE"
+    const val lobbyRoomSettings = "ROOM SETTINGS"
+    const val lobbyGameMode = "Game Mode"
+    const val lobbyLudoClassic = "Ludo Classic"
+    const val lobbyChange = "Change"
+    const val lobbyPublicPrivate = "Public / Private"
+    const val lobbyVoiceChat = "Voice Chat"
+    const val lobbyMaxPlayers = "Max Player"
+    const val lobbyGameStartsIn = "Game starts in"
+    const val lobbyStartMatch = "START MATCH"
+    const val lobbyWaiting = "WAITING"
+    const val lobbyYou = "YOU"
+    const val lobbyEditName = "EDIT NAME"
+    const val lobbyLevel = "Level"
+    fun lobbyPlayers(have: Int, total: Int): String = "Players $have/$total"
+
+    // Royal Ludo board
+    const val boardTitle = "ROYAL LUDO"
+    const val boardTurnTimer = "Turn-timer"
+    const val boardMatchHistory = "Match History"
 }

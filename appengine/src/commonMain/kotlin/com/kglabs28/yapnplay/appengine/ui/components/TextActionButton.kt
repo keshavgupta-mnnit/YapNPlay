@@ -38,7 +38,7 @@ fun TextActionButton(
         contentAlignment = Alignment.Center,
     ) {
         BasicText(
-            text = text,
+            text = text.uppercase(),
             style = YapNPlayTheme.typography.label.copy(
                 color = if (enabled) colors.TextSecondary else colors.TextDisabled,
             ),

@@ -25,6 +25,9 @@ mockk = "1.13.12"
 turbine = "1.2.0"
 robolectric = "4.15.1"
 activityCompose = "1.9.0"
+googleservices = "4.4.2"
+crashlyticsPlugin = "3.0.3"
+firebaseBom = "34.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -58,6 +61,7 @@ datastore-preferences-core = { module = "androidx.datastore:datastore-preference
 tink-android = { module = "com.google.crypto.tink:tink-android", version.ref = "tink" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 compose-uitest-junit4 = { module = "org.jetbrains.compose.ui:ui-test-junit4", version.ref = "composeMultiplatform" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-uitest-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version = "1.7.3" }
@@ -66,6 +70,10 @@ androidx-uitest-junit4 = { module = "androidx.compose.ui:ui-test-junit4", versio
 # Re-add when either ships AGP 9 support; until then the gallery is verified
 # manually on the three reference emulators plus render tests below.
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-config = { module = "com.google.firebase:firebase-config", version = "23.0.0" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics", version = "20.0.0" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutines" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -73,5 +81,7 @@ android-multiplatform-library = { id = "com.android.kotlin.multiplatform.library
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+googleservices = { id = "com.google.gms.google-services", version.ref = "googleservices" }
+crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlyticsPlugin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 

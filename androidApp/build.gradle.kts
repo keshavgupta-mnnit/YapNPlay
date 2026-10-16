@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.googleservices)
+    alias(libs.plugins.crashlytics)
 }
 
 android {
@@ -13,6 +15,7 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0.0-phase7"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -39,6 +42,12 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.uitest.junit4)
+    testImplementation(libs.compose.foundation)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.uitest.junit4)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.config)
+    implementation(libs.firebase.crashlytics)
 }
 
 // Robolectric resolves the manifest through the debug manifest merge

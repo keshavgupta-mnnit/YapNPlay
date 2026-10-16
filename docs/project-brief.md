@@ -26,13 +26,16 @@ The POC may look rough, but it must be correct where changes are expensive later
 
 ## Modules
 
-| Module | Purpose | Phase |
+| Module / folder | Purpose | Phase |
 |---|---|---|
-| `:shared:game-api` | Game engine contract (pure Kotlin) | Phase 1 |
-| `:shared:protocol` | Wire message formats (pure Kotlin) | Phase 1 |
-| `:games:ludo` | Ludo rules engine | Phase 2 |
-| `:app` | Android client | Phase 2+ |
-| `:server` | Ktor backend | Phase 3+ |
+| `:appengine` (single library) | Everything below is a plain source folder, never a module | Phase 7 |
+| `games/base/` | Base contracts every game implements | Done |
+| `games/common/gameplay/moves/` | Shared mechanics: dice, pieces (+cards/striker later) | Done |
+| `games/royalludo/` | Royal Ludo engine, rules, rules tests | Done |
+| `protocol/` | Wire message formats + transport framing | Done |
+| `core/`, `ui/`, `di/`, `navigation/`, `features/` | Design system, MVI, components, screens, sample feature | Phase 7 |
+| `:androidApp` | Thin launch shell (manifest + activity only) | Phase 7 |
+| `:server` | Ktor backend | Later |
 
 ## Architecture principles
 

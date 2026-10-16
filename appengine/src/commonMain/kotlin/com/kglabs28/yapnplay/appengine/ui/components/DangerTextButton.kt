@@ -38,7 +38,7 @@ fun DangerTextButton(
         contentAlignment = Alignment.Center,
     ) {
         BasicText(
-            text = text,
+            text = text.uppercase(),
             style = YapNPlayTheme.typography.label.copy(
                 color = if (enabled) colors.Error else colors.TextDisabled,
             ),

@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,11 +31,13 @@ fun PrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    containerColor: Color? = null,
+    contentColor: Color? = null,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
-    val background = if (enabled) colors.ButtonFace else colors.Raised
-    val content = if (enabled) colors.Background else colors.TextDisabled
+    val background = containerColor ?: if (enabled) colors.ButtonFace else colors.Raised
+    val content = contentColor ?: if (enabled) colors.Background else colors.TextDisabled
     Box(
         modifier = modifier
             .shadow(

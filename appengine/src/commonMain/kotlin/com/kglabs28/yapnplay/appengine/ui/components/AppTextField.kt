@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.VisualTransformation
+import com.kglabs28.yapnplay.appengine.core.common.TextUtils
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
@@ -42,7 +43,7 @@ fun AppTextField(
     }
     BasicTextField(
         value = value,
-        onValueChange = { if (it.length <= maxLength) onValueChange(it) },
+        onValueChange = { onValueChange(TextUtils.capLength(it, maxLength)) },
         enabled = enabled,
         textStyle = YapNPlayTheme.typography.body.copy(
             color = if (enabled) colors.TextPrimary else colors.TextDisabled,

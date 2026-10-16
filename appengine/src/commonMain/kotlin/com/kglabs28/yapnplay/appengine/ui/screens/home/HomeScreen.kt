@@ -27,8 +27,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.SecondaryButton
  */
 @Composable
 fun HomeScreen(
-    onOpenGallery: () -> Unit,
-    onOpenAbout: () -> Unit,
+    onQuickPlay: () -> Unit,
+    onHostLobby: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
@@ -55,19 +55,15 @@ fun HomeScreen(
             ZoneCard(
                 title = Strings.homeEnterGameZone,
                 primaryLabel = Strings.homeQuickPlay,
-                onPrimary = {},
+                onPrimary = onQuickPlay,
                 modifier = Modifier.weight(1f),
             )
             ZoneCard(
                 title = Strings.homePlayWithFriends,
                 primaryLabel = Strings.homeHostLobby,
-                onPrimary = {},
+                onPrimary = onHostLobby,
                 modifier = Modifier.weight(1f),
             )
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Md)) {
-            SecondaryButton(text = Strings.homeOpenGallery, onClick = onOpenGallery)
-            SecondaryButton(text = Strings.homeOpenAbout, onClick = onOpenAbout)
         }
     }
 }

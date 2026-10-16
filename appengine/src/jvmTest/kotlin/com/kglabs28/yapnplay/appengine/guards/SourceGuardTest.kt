@@ -38,6 +38,38 @@ class SourceGuardTest {
     }
 
     @Test
+    fun `no logic inside composable files`() {
+        // A @Composable file owns UI only. Every top-level fun must be a
+        // @Composable; helpers, validation and formatting live in util
+        // classes, extensions in their own files, or use cases.
+        val uiPath = Regex("^(ui/|features/[^/]+/ui/|navigation/).*")
+        val violations = mainSources()
+            .filter { file -> relative(file).matches(uiPath) }
+            .flatMap { file ->
+                val lines = file.readLines()
+                lines.mapIndexedNotNull { index, line ->
+                    // Column zero only: local helpers inside a @Composable body
+                    // are rendering code, not business logic.
+                    if (!line.matches(Regex("^(private |internal )?fun \\w+.*"))) {
+                        return@mapIndexedNotNull null
+                    }
+                    val annotated = lines.subList(0, index).asReversed()
+                        .takeWhile { it.isBlank() || it.trimStart().startsWith("@") }
+                        .any { it.contains("@Composable") }
+                    if (!annotated) {
+                        "${file.name}:${index + 1}: ${line.trim()} (non-composable top-level fun)"
+                    } else {
+                        null
+                    }
+                }
+            }
+        assertTrue(
+            violations.isEmpty(),
+            "Logic inside @Composable files:\n" + violations.joinToString("\n"),
+        )
+    }
+
+    @Test
     fun `no inline user-visible strings in UI code`() {
         // BasicText/Text with a string literal is banned in ui/, features/
         // and navigation/ — text comes from Strings.kt via the caller.

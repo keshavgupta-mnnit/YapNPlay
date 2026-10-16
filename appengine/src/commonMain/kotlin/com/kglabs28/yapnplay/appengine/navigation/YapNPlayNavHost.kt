@@ -7,7 +7,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreen
-import com.kglabs28.yapnplay.appengine.ui.screens.gallery.GalleryScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.home.HomeScreen
 
 /**
@@ -26,12 +25,9 @@ fun YapNPlayNavHost(
     ) {
         composable<Home> {
             HomeScreen(
-                onOpenGallery = { navController.navigate(Gallery) },
-                onOpenAbout = { navController.navigate(About) },
+                onQuickPlay = { navController.navigate(MatchPlaceholder) },
+                onHostLobby = { navController.navigate(RoomPlaceholder) },
             )
-        }
-        composable<Gallery> {
-            GalleryScreen(onBack = { navController.popBackStack() })
         }
         composable<About> {
             AboutScreen(onBack = { navController.popBackStack() })

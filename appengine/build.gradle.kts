@@ -57,5 +57,13 @@ kotlin {
                 implementation(libs.compose.uitest.junit4)
             }
         }
+        androidMain.dependencies {
+            // Explicit versions (from BOM 34.0.0): Kotlin's deprecated
+            // platform() cannot be used inside KMP source-set blocks.
+            implementation(libs.koin.android)
+            implementation(libs.firebase.config)
+            implementation(libs.firebase.crashlytics)
+            implementation(libs.kotlinx.coroutines.play.services)
+        }
     }
 }

@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <activity
-            android:name="androidx.activity.ComponentActivity"
+            android:name="com.kglabs28.yapnplay.TestActivity"
             android:exported="true" />
     </application>
 </manifest>

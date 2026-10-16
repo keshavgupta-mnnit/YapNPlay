@@ -59,7 +59,7 @@ class ScaleCoverageTest {
                 { d.badgeLarge }, { d.badgeXLarge }, { d.graphicSize },
                 { d.graphicMaxHeight }, { d.cardHeaderIconSize },
                 { d.compactButtonHeight }, { d.progressWidth },
-                { d.progressHeight }, { d.headerPillHeight },
+                { d.progressHeight },
                 { d.logoWidth }, { d.logoHeight },
             ),
         )

@@ -1,4 +1,4 @@
-package com.kglabs28.yapnplay.appengine.ui.screens.home
+package com.kglabs28.yapnplay.appengine.ui.screens.main
 
 import app.cash.turbine.test
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
@@ -7,10 +7,10 @@ import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.features.profile.domain.UserProfile
 import com.kglabs28.yapnplay.appengine.features.profile.repository.ProfileRepository
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetHomeScreenData
+import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 private class StubProfileRepository : ProfileRepository {
     override suspend fun fetchProfileData(): AppResult<UserProfile> = AppResult.Success(
@@ -31,37 +31,54 @@ private class StubProfileRepository : ProfileRepository {
 }
 
 /**
- * Home loads its content from the use case — never from inline values.
+ * Dashboard loads its top bar from the use case — never from inline
+ * values — and switches tabs in state.
  */
-class HomeViewModelTest {
+class MainViewModelTest {
 
-    private fun viewModel() = HomeViewModel(
+    private fun viewModel() = MainViewModel(
         getHomeScreenData = GetHomeScreenData(StubProfileRepository()),
         dispatchers = TestDispatcherProvider(),
     )
 
     @Test
-    fun `load fills profile and friends from use case`() = runTest {
+    fun `load fills top bar from use case`() = runTest {
         val vm = viewModel()
         vm.state.test {
             assertEquals("", awaitItem().userName)
-            vm.onIntent(HomeIntent.LoadProfile)
+            vm.onIntent(MainIntent.LoadProfile)
             val loaded = awaitItem()
             assertEquals("Keshav", loaded.userName)
             assertEquals("12", loaded.level)
-            assertEquals("2,450 / 3,000", loaded.levelProgressText)
-            assertTrue(loaded.friends.isNotEmpty())
+            assertEquals("4,250 +", loaded.coinBalance)
+            assertEquals("120 +", loaded.diamondBalance)
             cancelAndIgnoreRemainingEvents()
         }
         vm.clear()
     }
 
     @Test
-    fun `navigation intents emit effects once`() = runTest {
+    fun `select tab updates state`() = runTest {
+        val vm = viewModel()
+        vm.state.test {
+            assertEquals(AppNavTab.HOME, awaitItem().selectedTab)
+            vm.onIntent(MainIntent.SelectTab(AppNavTab.GAMES))
+            assertEquals(AppNavTab.GAMES, awaitItem().selectedTab)
+            vm.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
+            assertEquals(AppNavTab.ROOMS, awaitItem().selectedTab)
+            cancelAndIgnoreRemainingEvents()
+        }
+        vm.clear()
+    }
+
+    @Test
+    fun `settings and notifications emit effects once`() = runTest {
         val vm = viewModel()
         vm.effects.test {
-            vm.onIntent(HomeIntent.EnterGameZone)
-            assertEquals(HomeEffect.NavigateToGameZone, awaitItem())
+            vm.onIntent(MainIntent.OpenSettings)
+            assertEquals(MainEffect.OpenSettingsDialog, awaitItem())
+            vm.onIntent(MainIntent.OpenNotifications)
+            assertEquals(MainEffect.OpenNotificationsDialog, awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
         vm.clear()

@@ -35,4 +35,12 @@ object AppConstants {
     /** Window-width thresholds (dp) for [LayoutTier]. */
     const val TIER_M_MIN_WIDTH_DP = 740
     const val TIER_L_MIN_WIDTH_DP = 960
+
+    /**
+     * Dashboard tab frame: every tab renders inside 80% of the width
+     * with 10% margins on the left, right and bottom, over the home
+     * background. One constant frame for Home, Games and Rooms.
+     */
+    const val TAB_CONTENT_WIDTH_FRACTION = 0.8f
+    const val TAB_CONTENT_HEIGHT_FRACTION = 0.9f
 }

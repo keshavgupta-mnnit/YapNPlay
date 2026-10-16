@@ -86,7 +86,6 @@ class YapNPlayDimens {
     val compactButtonHeight: Dp get() = 40.dp.scaled()
     val progressWidth: Dp get() = 112.dp.scaled()
     val progressHeight: Dp get() = 4.dp.scaled()
-    val headerPillHeight: Dp get() = 48.dp.scaled()
     val logoWidth: Dp get() = 160.dp.scaled()
     val logoHeight: Dp get() = 60.dp.scaled()
 }

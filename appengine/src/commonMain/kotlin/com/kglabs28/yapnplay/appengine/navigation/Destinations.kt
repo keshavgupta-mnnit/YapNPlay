@@ -3,11 +3,11 @@ package com.kglabs28.yapnplay.appengine.navigation
 import kotlinx.serialization.Serializable
 
 /**
- * Type-safe destinations. Home and About exist now;
+ * Type-safe destinations. Main hosts the Home, Games and Rooms tabs;
  * Room and Match are placeholders for later phases.
  */
 @Serializable
-data object Home
+data object Main
 
 @Serializable
 data object About

@@ -1,15 +1,14 @@
-package com.kglabs28.yapnplay.appengine.ui.components.home
+package com.kglabs28.yapnplay.appengine.ui.components.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,34 +18,29 @@ import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.HeadlineFontFamily
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 
 /**
- * Right actions pill in top header bar encapsulating currency balances, notifications, and settings
- * in one glass pill matching the left user profile pill.
+ * Top bar glass pill combining Gold Coins, Diamonds, and Level badge in one layout matching topbar.png.
  */
 @Composable
-fun HomeActionsPill(
+fun AppCurrenciesPill(
     coinBalance: String,
     diamondBalance: String,
-    onOpenNotifications: () -> Unit,
-    onOpenSettings: () -> Unit,
+    level: String,
     modifier: Modifier = Modifier,
     coinIcon: String = Strings.iconCoin,
     diamondIcon: String = Strings.iconDiamond,
-    bellIcon: String = Strings.iconBell,
-    settingsIcon: String = Strings.iconSettings,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
 
     Box(
         modifier = modifier
-            .height(dimens.headerPillHeight)
-            .glassPanel(colors.SocialZoneAccent)
-            .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxs),
-        contentAlignment = Alignment.Center,
+            .clip(RoundedCornerShape(dimens.cardRadius))
+            .background(colors.GlassSurface)
+            .border(dimens.hairline, colors.TextDisabled.copy(alpha = 0.3f), RoundedCornerShape(dimens.cardRadius))
+            .padding(horizontal = Spacing.Sm, vertical = Spacing.Xs),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -59,7 +53,7 @@ fun HomeActionsPill(
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(colors.Panel)
-                    .padding(horizontal = Spacing.Xs, vertical = Spacing.Xxs),
+                    .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxs),
             ) {
                 BasicText(
                     text = coinIcon,
@@ -82,7 +76,7 @@ fun HomeActionsPill(
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(colors.Panel)
-                    .padding(horizontal = Spacing.Xs, vertical = Spacing.Xxs),
+                    .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxs),
             ) {
                 BasicText(
                     text = diamondIcon,
@@ -98,35 +92,22 @@ fun HomeActionsPill(
                 )
             }
 
-            // Bell Button
+            // Hexagon Level Badge inside Currency Pill
             Box(
                 modifier = Modifier
-                    .size(dimens.badgeMedium)
-                    .clip(CircleShape)
-                    .background(colors.Raised)
-                    .border(dimens.hairline, colors.TextDisabled.copy(alpha = 0.3f), CircleShape)
-                    .clickable(onClick = onOpenNotifications),
+                    .size(dimens.chipHeight)
+                    .clip(YapNPlayTheme.shapes.hexagon)
+                    .background(colors.Panel)
+                    .border(dimens.hairline, colors.GameZoneAccent, YapNPlayTheme.shapes.hexagon),
                 contentAlignment = Alignment.Center,
             ) {
                 BasicText(
-                    text = bellIcon,
-                    style = YapNPlayTheme.typography.caption,
-                )
-            }
-
-            // Settings Button
-            Box(
-                modifier = Modifier
-                    .size(dimens.badgeMedium)
-                    .clip(CircleShape)
-                    .background(colors.Raised)
-                    .border(dimens.hairline, colors.TextDisabled.copy(alpha = 0.3f), CircleShape)
-                    .clickable(onClick = onOpenSettings),
-                contentAlignment = Alignment.Center,
-            ) {
-                BasicText(
-                    text = settingsIcon,
-                    style = YapNPlayTheme.typography.caption,
+                    text = level,
+                    style = YapNPlayTheme.typography.caption.copy(
+                        fontFamily = HeadlineFontFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.GameZoneAccent,
+                    ),
                 )
             }
         }

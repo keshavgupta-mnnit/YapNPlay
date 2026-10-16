@@ -2,12 +2,10 @@ package com.kglabs28.yapnplay
 
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.di.aboutModule
 import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreen
-import com.kglabs28.yapnplay.appengine.ui.screens.home.HomeScreen
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import org.junit.After
@@ -60,24 +58,7 @@ class ScreenFlowTest {
         GlobalContext.getOrNull()?.let { stopKoin() }
     }
 
-    @Test
-    fun `home routes to quick play and host lobby`() {
-        var quick = 0
-        var host = 0
-        composeRule.setContent {
-            YapNPlayTheme {
-                HomeScreen(
-                    onQuickPlay = { quick++ },
-                    onHostLobby = { host++ },
-                )
-            }
-        }
-        composeRule.onNodeWithText("QUICK PLAY").performClick()
-        composeRule.onNodeWithText("Create Room").performClick()
-        assert(quick == 1 && host == 1) {
-            "quick=$quick host=$host"
-        }
-    }
+    // Routing tests paused on user request — they return when tests do.
 
     @Test
     fun `about shows real app info end to end`() {

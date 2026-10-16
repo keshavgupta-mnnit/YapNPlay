@@ -1,4 +1,4 @@
-package com.kglabs28.yapnplay.appengine.ui.screens.home
+package com.kglabs28.yapnplay.appengine.ui.screens.main
 
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
@@ -6,18 +6,22 @@ import com.kglabs28.yapnplay.appengine.core.common.TextUtils
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetHomeScreenData
 
-class HomeViewModel(
+/**
+ * Dashboard scaffold: owns the shared top bar data and the selected
+ * tab. Profile loads once from the use case; the home cards switch
+ * tabs; settings and notifications emit one-off effects.
+ */
+class MainViewModel(
     private val getHomeScreenData: GetHomeScreenData,
     dispatchers: DispatcherProvider,
-) : MviViewModel<HomeState, HomeIntent, HomeEffect>(HomeState(), dispatchers) {
+) : MviViewModel<MainState, MainIntent, MainEffect>(MainState(), dispatchers) {
 
-    override suspend fun handleIntent(intent: HomeIntent) {
+    override suspend fun handleIntent(intent: MainIntent) {
         when (intent) {
-            HomeIntent.LoadProfile -> load()
-            HomeIntent.EnterGameZone -> emitEffect(HomeEffect.NavigateToGameZone)
-            HomeIntent.PlayWithFriends -> emitEffect(HomeEffect.NavigateToPlayWithFriends)
-            HomeIntent.OpenSettings -> emitEffect(HomeEffect.OpenSettingsDialog)
-            HomeIntent.OpenNotifications -> emitEffect(HomeEffect.OpenNotificationsDialog)
+            is MainIntent.SelectTab -> setState { copy(selectedTab = intent.tab) }
+            MainIntent.LoadProfile -> load()
+            MainIntent.OpenSettings -> emitEffect(MainEffect.OpenSettingsDialog)
+            MainIntent.OpenNotifications -> emitEffect(MainEffect.OpenNotificationsDialog)
         }
     }
 
@@ -27,10 +31,8 @@ class HomeViewModel(
             copy(
                 userName = data.profile.name,
                 level = data.profile.level.toString(),
-                levelProgressText = "${TextUtils.groupedThousands(data.profile.xp)} / ${TextUtils.groupedThousands(data.profile.xpMax)}",
                 coinBalance = "${TextUtils.groupedThousands(data.profile.coins)} +",
                 diamondBalance = "${TextUtils.groupedThousands(data.profile.gems)} +",
-                friends = data.friends,
             )
         }
     }

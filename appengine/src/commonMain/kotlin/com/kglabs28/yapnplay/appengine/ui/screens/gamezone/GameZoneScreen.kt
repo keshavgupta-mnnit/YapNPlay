@@ -41,7 +41,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.gamezone.ViewModeToggle
  */
 @Composable
 fun GameZoneScreen(
-    onOpenMatch: () -> Unit,
+    onOpenMatch: (matchId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GameZoneViewModel? = null,
 ) {
@@ -51,7 +51,7 @@ fun GameZoneScreen(
         viewModel?.onIntent(GameZoneIntent.Load)
         viewModel?.effects?.collect { effect ->
             when (effect) {
-                is GameZoneEffect.OpenMatch -> onOpenMatch()
+                is GameZoneEffect.OpenMatch -> onOpenMatch(effect.matchId)
             }
         }
     }

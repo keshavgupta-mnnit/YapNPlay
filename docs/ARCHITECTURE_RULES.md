@@ -17,7 +17,8 @@ appengine/
   core/             # Shared resources, util classes, UI components (used in 2+ places)
   games/base/        # Base contracts EVERY game must implement (no domain/ folder — nothing game-specific here)
   protocol/         # Wire message formats, grouped by feature: transport/, room/, match/, http/, errors/
-  games/common/     # Shared game mechanics, grouped by kind: gameplay/moves/{dice,pieces,cards,…}
+  games/elements/   # Reusable game elements, one folder each: dice/, pieces/, board/ (later cards/, striker/)
+                    #   each element keeps only the layers it needs: mechanics/, ui/, utils/, protocol/
   games/
     royalludo/     # Everything specific to Royal Ludo lives here and ONLY here
   di/               # Dependency injection modules (created with the app layer)
@@ -34,10 +35,10 @@ appengine/
 - Each folder contains only the architecture layers it needs — nothing more (see §2).
 - **Dependencies point one way only — never bidirectional:**
   ```
-  games/{game}  →  games/common  →  games/api
-  protocol/     →  games/common  →  games/api
+  games/{game}  →  games/elements  →  games/base
+  protocol/     →  games/elements  →  games/base
   ```
-  `games/base` knows nothing about mechanics or games. `games/common`
+  `games/base` knows nothing about mechanics or games. `games/elements`
   (dice, pieces, …) knows nothing about any specific game. Games know
   their mechanics and the base contracts, never the reverse. Verified
   by grepping imports: no upward reference may exist.
@@ -51,7 +52,7 @@ appengine/
 | `core/` | Shared resources, util classes, UI components | Game-specific code |
 | `games/base/` | Base contracts: `Game`, `GameDescriptor`, `TurnPolicy`, `MandatoryRules`/`HouseRules`, `PlayMode`, `GameState`, events, randomness | Any game implementation |
 | `protocol/` | Wire message formats: transport framing, room/match channels, HTTP bodies | Game logic, business rules |
-| `games/common/gameplay/moves/` | Turn mechanics shared by game families: dice, pieces (later cards, striker) | Anything specific to one game |
+| `games/elements/{element}/` | A reusable game element (dice, pieces, board) with its mechanics, UI (e.g. the glass dice), utils (geometry) and wire messages | Anything specific to one game |
 | `games/{game}/engine/` | Pure game rules, state, events, geometry calls | Network, clock, Android, UI |
 | `games/{game}/domain/` | Use cases and repository interfaces for that game | Implementations |
 | `games/{game}/data/` | Repository implementations, network and local managers for that game | UI |

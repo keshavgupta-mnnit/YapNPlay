@@ -1,13 +1,13 @@
 package com.kglabs28.yapnplay.appengine.protocol
 
-import com.kglabs28.yapnplay.appengine.games.common.gameplay.moves.LegalMove
+import com.kglabs28.yapnplay.appengine.games.elements.board.protocol.LegalMove
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 
 // ══════════════════════════════════════════════════════════════════════════
 // Match channel — client to server requests
 // (Mechanic-specific requests like RollDice/MovePiece live in
-// games/common/protocol — this file holds only generic messages.)
+// games/elements/board/protocol — this file holds only generic messages.)
 // ══════════════════════════════════════════════════════════════════════════
 
 /** Request a match snapshot (used on reconnect). */

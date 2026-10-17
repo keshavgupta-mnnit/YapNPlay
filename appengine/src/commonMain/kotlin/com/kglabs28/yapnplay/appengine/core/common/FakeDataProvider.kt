@@ -276,13 +276,50 @@ object FakeDataProvider {
     object Matchmaking {
         val onlineStats = OnlineStats(online = 1248)
 
-        /** Fake search window (shorter than real games' 30 s so demos are quick). */
-        const val SEARCH_SECONDS = 10L
+        /**
+         * Fake search window. TEMPORARY 0 while the Ludo table is being
+         * tested: Quick Play opens the match at once (bots fill the seats).
+         * Put back to 10 when testing is done.
+         */
+        const val SEARCH_SECONDS = 0L
 
         /** Other humans "arrive" this long after the search starts. */
         val otherPlayersJoinAfterMs = listOf(2_000L, 5_000L)
 
         /** How often the fake server re-sends QueueStatus. */
         const val STATUS_INTERVAL_MS = 1_000L
+    }
+
+    /** Fake Royal Ludo table (see FakeLudoMatchServer). */
+    object LudoMatch {
+        /** Opponents the fake server plays: user id, name, level, mic on. */
+        val opponents = listOf(
+            Opponent("user-neha", "Neha", 18, micOn = true),
+            Opponent("user-arjun", "Arjun", 23, micOn = true),
+            Opponent("user-riya", "Riya", 7, micOn = false),
+        )
+
+        /** Room spectators shown in the top bar, plus the full count. */
+        val spectators = listOf(
+            Opponent("user-karan", "Karan", 9, micOn = true),
+            Opponent("user-sneha", "Sneha", 11, micOn = false),
+            Opponent("user-vikram", "Vikram", 4, micOn = true),
+        )
+        /** Fake round-trip time: usual range, an occasional spike, how often it is measured. */
+        const val PING_MIN_MS = 18
+        const val PING_MAX_MS = 70
+        const val PING_SPIKE_MS = 190
+        const val PING_SPIKE_CHANCE = 0.08
+        const val PING_TICK_MS = 2_000L
+        const val QUICK_PLAY_TITLE = "Quick Play"
+
+        /** Pacing so the table feels human and animations finish first. */
+        const val THINK_MS = 900L
+        const val AFTER_ROLL_MS = 1_700L
+        const val PER_STEP_MS = 230L
+        const val AFTER_MOVE_MS = 500L
+        const val AFTER_CAPTURE_MS = 800L
+
+        data class Opponent(val userId: String, val name: String, val level: Int, val micOn: Boolean)
     }
 }

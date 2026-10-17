@@ -134,11 +134,48 @@ object YapNPlayColors {
     val TextSecondary = Color(0xFF9FB0C8)
     val TextDisabled = Color(0xFF5B6880)
 
-    // Ludo Player Colors
-    val PlayerRed = Color(0xFFD9344A)
-    val PlayerGreen = Color(0xFF2DD462)
-    val PlayerYellow = Color(0xFFEDD942)
-    val PlayerBlue = Color(0xFF338ED0)
+    // Ludo Player Colors (neon, as in the Royal Ludo design)
+    val PlayerRed = Color(0xFFFF3D57)
+    val PlayerGreen = Color(0xFF2EE86F)
+    val PlayerYellow = Color(0xFFFFD43B)
+    val PlayerBlue = Color(0xFF3D9BFF)
+
+    // Royal Ludo board
+    val LudoBoardTop = Color(0xFF353C4A)
+    val LudoBoardBottom = Color(0xFF262C37)
+    val LudoBoardSide = Color(0xFF0E1117)
+    val LudoBoardRim = Color(0xFFC9D4EC)
+    val LudoCell = Color(0xFF424A5A)
+    val LudoCellSide = Color(0xFF1E232C)
+    val LudoCellEdge = Color(0xFF5A6476)
+    val LudoBasePad = Color(0xFF2E3542)
+    val LudoCentrePlate = Color(0xFF232833)
+    val LudoSafeTile = Color(0xFFD5DCEA)
+
+    // Royal Ludo 3D glass UI (cards, buttons, title)
+    val LudoFrostTop = Color(0x5CC9D2E2)
+    val LudoFrostMid = Color(0x33909AB0)
+    val LudoFrostBottom = Color(0x52262C3A)
+    val LudoFrostRim = Color(0xA6FFFFFF)
+    val LudoSilverTop = Color(0xFFF4F7FC)
+    val LudoSilverMid = Color(0xFFCBD3E0)
+    val LudoSilverBottom = Color(0xFF8F9AAE)
+    val LudoSilverText = Color(0xFF17202F)
+    val LudoSmokeTop = Color(0x995A6273)
+    val LudoSmokeBottom = Color(0x99262B36)
+    val LudoMetalLight = Color(0xFFF7FAFF)
+    val LudoMetalMid = Color(0xFF9FAECA)
+    val LudoMetalDark = Color(0xFF5D6B86)
+    val LudoMetalOutline = Color(0xFF1B2740)
+    val LudoMetalGlow = Color(0xFF4FA3FF)
+    val LudoTeal = Color(0xFF3FE3C2)
+
+    // Glass dice (frosted gold, Royal Ludo design)
+    val DiceGold = Color(0xFFFFEFCF)
+    val DiceIvory = Color(0xFFFFFFFF)
+    val DiceAmber = Color(0xFFF1D9A8)
+    val DiceDeep = Color(0xFFC4A877)
+    val DicePip = Color(0xFF4A3316)
 
     // Helpers
     val Transparent = Color.Transparent

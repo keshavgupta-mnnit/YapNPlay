@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * Type-safe destinations. Main hosts the Home, Games and Rooms tabs;
- * Room and Match are placeholders for later phases.
+ * Room creation is still a placeholder.
  */
 @Serializable
 data object Main
@@ -19,5 +19,6 @@ data class RoomLobby(val roomId: String)
 @Serializable
 data object RoomPlaceholder
 
+/** A Royal Ludo table. */
 @Serializable
-data object MatchPlaceholder
+data class RoyalLudoMatch(val matchId: String)

@@ -1,0 +1,76 @@
+package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players
+
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
+
+/**
+ * The player-card avatar from the design: a rounded square framed in the
+ * player's [tint] with a glow.
+ * While [talking] a glow of [tint] blinks on and off behind it.
+ */
+@Composable
+fun LudoCardAvatar(
+    tint: Color,
+    talking: Boolean,
+    modifier: Modifier = Modifier,
+    size: Dp = YapNPlayTheme.dimens.ludoCardAvatar,
+) {
+    val colors = YapNPlayTheme.colors
+    val dimens = YapNPlayTheme.dimens
+    val shape = RoundedCornerShape(dimens.ludoAvatarRadius)
+    val blink by rememberInfiniteTransition().animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(AppConstants.LUDO_TALK_BLINK_MS), RepeatMode.Reverse),
+    )
+    Box(modifier = modifier, contentAlignment = Alignment.BottomCenter) {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .drawBehind {
+                    val spread = dimens.ludoTalkGlow.toPx()
+                    val glow = if (talking) blink else IDLE_GLOW
+                    drawRoundRect(
+                        brush = Brush.radialGradient(listOf(tint.copy(alpha = glow), Color.Transparent), center, this.size.maxDimension / 2 + spread),
+                        topLeft = Offset(-spread, -spread),
+                        size = Size(this.size.width + spread * 2, this.size.height + spread * 2),
+                        cornerRadius = CornerRadius(dimens.ludoAvatarRadius.toPx() + spread),
+                    )
+                }
+                .clip(shape)
+                .background(Brush.verticalGradient(listOf(colors.RoomsSmallButton, colors.Background)))
+                .border(dimens.ludoAvatarRing, tint, shape),
+            contentAlignment = Alignment.Center,
+        ) {
+            AppIcon(imageVector = Icons.Rounded.Person, tint = colors.IconMuted, size = size * ICON_SHARE)
+        }
+    }
+}
+
+private const val ICON_SHARE = 0.55f
+private const val IDLE_GLOW = 0.25f

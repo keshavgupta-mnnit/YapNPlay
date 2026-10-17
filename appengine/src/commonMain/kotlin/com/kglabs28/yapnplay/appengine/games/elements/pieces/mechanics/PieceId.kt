@@ -1,4 +1,4 @@
-package com.kglabs28.yapnplay.appengine.games.common.gameplay.moves.pieces
+package com.kglabs28.yapnplay.appengine.games.elements.pieces.mechanics
 
 import kotlinx.serialization.Serializable
 

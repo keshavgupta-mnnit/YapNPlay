@@ -1,4 +1,4 @@
-package com.kglabs28.yapnplay.appengine.games.common.gameplay.moves.dice
+package com.kglabs28.yapnplay.appengine.games.elements.dice.mechanics
 
 import com.kglabs28.yapnplay.appengine.games.base.play.GameRandom
 

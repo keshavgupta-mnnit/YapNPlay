@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.base
 
+import com.kglabs28.yapnplay.appengine.games.base.play.GameBot
+
 import com.kglabs28.yapnplay.appengine.games.base.identity.GameId
 import com.kglabs28.yapnplay.appengine.games.base.identity.SeatNumber
 import com.kglabs28.yapnplay.appengine.games.base.match.GameState
@@ -27,6 +29,10 @@ interface Game : GameDescriptor {
     fun start(rules: GameRules, seatCount: Int, random: GameRandom): GameState
     fun apply(state: GameState, seat: SeatNumber, action: Action, random: GameRandom): ApplyResult
     fun currentActor(state: GameState): SeatNumber
+    /** The game's computer player (CPU seats, timeouts, autoplay). */
+    val bot: GameBot
+
+    /** Plays [seat]'s turn with [bot]'s choice. */
     fun autoplay(state: GameState, seat: SeatNumber): ApplyResult
     fun removeSeat(state: GameState, seat: SeatNumber): GameState
     /** What [viewer] may see — spectators get the public table only (see [GameView]). */

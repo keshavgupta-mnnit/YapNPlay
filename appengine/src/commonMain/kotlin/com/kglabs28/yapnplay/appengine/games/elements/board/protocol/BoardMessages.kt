@@ -1,4 +1,4 @@
-package com.kglabs28.yapnplay.appengine.games.common.gameplay.moves
+package com.kglabs28.yapnplay.appengine.games.elements.board.protocol
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

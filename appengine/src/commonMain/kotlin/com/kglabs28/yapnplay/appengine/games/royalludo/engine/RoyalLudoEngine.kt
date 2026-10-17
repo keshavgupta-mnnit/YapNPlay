@@ -2,9 +2,9 @@ package com.kglabs28.yapnplay.appengine.games.royalludo.engine
 
 import com.kglabs28.yapnplay.appengine.games.base.Game
 import com.kglabs28.yapnplay.appengine.games.base.identity.*
-import com.kglabs28.yapnplay.appengine.games.common.gameplay.moves.dice.RollDice
-import com.kglabs28.yapnplay.appengine.games.common.gameplay.moves.pieces.MovePiece
-import com.kglabs28.yapnplay.appengine.games.common.gameplay.moves.pieces.PieceId
+import com.kglabs28.yapnplay.appengine.games.elements.dice.mechanics.RollDice
+import com.kglabs28.yapnplay.appengine.games.elements.pieces.mechanics.MovePiece
+import com.kglabs28.yapnplay.appengine.games.elements.pieces.mechanics.PieceId
 import com.kglabs28.yapnplay.appengine.games.base.match.*
 import com.kglabs28.yapnplay.appengine.games.base.play.*
 import com.kglabs28.yapnplay.appengine.games.base.rules.*
@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
 class RoyalLudoEngine : Game {
     override val id = GameId(ROYAL_LUDO_ID)
     override val displayName = ROYAL_LUDO_DISPLAY_NAME
-    override val timing = TimingConfig()
+    override val timing = TimingConfig(turnSeconds = ROYAL_LUDO_TURN_SECONDS)
     override val matchmaking = MatchmakingConfig(
         seats = ROYAL_LUDO_QUICK_PLAY_SEATS,
         searchSeconds = ROYAL_LUDO_SEARCH_SECONDS,
@@ -26,6 +26,7 @@ class RoyalLudoEngine : Game {
     override val maxPlayers = ROYAL_LUDO_PLAYERS
     override val maxSpectators: Int? = null
     override val turnPolicy: TurnPolicy = TurnPolicy.Sequential
+    override val bot = RoyalLudoBot()
 
     override fun defaultRules(): GameRules = RoyalLudoRules.TRADITIONAL
 
@@ -38,8 +39,11 @@ class RoyalLudoEngine : Game {
     override fun start(rules: GameRules, seatCount: Int, random: GameRandom): GameState {
         require(seatCount in 2..4) { "Royal Ludo requires 2-4 players" }
         val ludoRules = rules as? RoyalLudoRules ?: RoyalLudoRules.TRADITIONAL
-        val colours = (0..3).shuffled(random.asKotlinRandom())
-        val seatColours = (1..seatCount).associateWith { colours[it - 1] }
+        // Seats take colours in board order (clockwise from a random
+        // colour), so turns go round the board; two players sit opposite.
+        val first = random.nextInt(COLOUR_COUNT)
+        val step = if (seatCount == 2) COLOUR_COUNT / 2 else 1
+        val seatColours = (1..seatCount).associateWith { (first + (it - 1) * step) % COLOUR_COUNT }
         val pieces = (1..seatCount).associateWith { List(ludoRules.mandatory.piecesPerColour) { PROGRESS_IN_BASE } }
         val seats = (1..seatCount).map { SeatNumber(it) }
         return RoyalLudoState(
@@ -73,7 +77,8 @@ class RoyalLudoEngine : Game {
                 val roll = kotlin.random.Random(state.turnCounter).nextInt(1, 7)
                 handleRoll(s, FixedRandom(roll))
             }
-            Phase.AWAITING_MOVE -> chooseBestMove(s)
+            Phase.AWAITING_MOVE -> bot.bestPiece(s)?.let { handleMove(s, it) }
+                ?: ApplyResult.Rejected(TypedRejection("NO_LEGAL_MOVE", "No legal move"))
             Phase.FINISHED -> ApplyResult.Rejected(TypedRejection("MATCH_ENDED", "Match ended"))
         }
     }
@@ -291,43 +296,6 @@ class RoyalLudoEngine : Game {
         val currentIndex = activeSeats.indexOf(state.currentSeat)
         return if (currentIndex >= 0) activeSeats[(currentIndex + 1) % activeSeats.size] else activeSeats.first()
     }
-
-    private fun chooseBestMove(state: RoyalLudoState): ApplyResult {
-        val bestPiece = state.legalPieces.maxByOrNull { scoreMove(state, it) }
-            ?: return ApplyResult.Rejected(TypedRejection("NO_LEGAL_MOVE", "No legal move"))
-        return handleMove(state, bestPiece)
-    }
-
-    private fun scoreMove(state: RoyalLudoState, piece: Int): Int {
-        val progress = state.pieceProgress(state.currentSeat, piece)
-        val roll = state.lastRoll ?: return 0
-        val colour = state.colourForSeat(state.currentSeat)
-        val startSquare = RoyalLudoBoardUtils.startSquareFor(colour)
-        var score = 0
-        if (progress + roll == PROGRESS_FINISH) score += SCORE_FINISH
-        if (progress == PROGRESS_IN_BASE) score += SCORE_LEAVE_BASE
-        val newProgress = when {
-            progress == PROGRESS_IN_BASE -> 0
-            progress + roll <= PROGRESS_FINISH -> progress + roll
-            else -> progress
-        }
-        if (newProgress in 0..PROGRESS_ENTER_HOME) {
-            val absSquare = RoyalLudoBoardUtils.absoluteSquare(startSquare, newProgress)
-            if (!RoyalLudoBoardUtils.isSafeSquare(absSquare)) {
-                val opposingSeat = findOpposingPiece(state, absSquare, colour)
-                if (opposingSeat != null) {
-                    val opposingColour = state.colourForSeat(opposingSeat)
-                    if (countPiecesOnSquare(state, absSquare, opposingColour) == 1) {
-                        val victimProgress = state.piecesForSeat(opposingSeat).maxOrNull() ?: 0
-                        score += SCORE_CAPTURE + victimProgress
-                    }
-                }
-            }
-            if (RoyalLudoBoardUtils.isSafeSquare(absSquare) || countPiecesOnSquare(state, absSquare, colour) >= 1) score += SCORE_SAFE
-        }
-        score += newProgress - piece
-        return score
-    }
 }
 
 @Serializable
@@ -338,14 +306,4 @@ data class RoyalLudoView(val seats: List<RoyalLudoSeatView>, val currentSeat: In
 /** Test-only fixed dice face (1-6). */
 private class FixedRandom(private val roll: Int) : GameRandom {
     override fun nextInt(bound: Int): Int = (roll - 1) % bound
-}
-
-private fun GameRandom.asKotlinRandom(): kotlin.random.Random = object : kotlin.random.Random() {
-    override fun nextBits(bitCount: Int) = this@asKotlinRandom.nextInt(1 shl bitCount)
-    override fun nextInt() = this@asKotlinRandom.nextInt(Int.MAX_VALUE)
-    override fun nextInt(until: Int) = this@asKotlinRandom.nextInt(until)
-    override fun nextInt(from: Int, until: Int) = this@asKotlinRandom.nextInt(until - from) + from
-    override fun nextBoolean() = this@asKotlinRandom.nextInt(2) == 0
-    override fun nextDouble() = this@asKotlinRandom.nextInt(Int.MAX_VALUE).toDouble() / Int.MAX_VALUE
-    override fun nextLong() = this@asKotlinRandom.nextInt(Int.MAX_VALUE).toLong()
 }

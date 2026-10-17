@@ -9,9 +9,9 @@ import com.kglabs28.yapnplay.appengine.protocol.RoomSummary
 import com.kglabs28.yapnplay.appengine.protocol.UpdateName
 import com.kglabs28.yapnplay.appengine.protocol.VoiceToken
 import com.kglabs28.yapnplay.appengine.protocol.Colour
-import com.kglabs28.yapnplay.appengine.games.common.gameplay.moves.LegalMove
-import com.kglabs28.yapnplay.appengine.games.common.gameplay.moves.MovePiece as WireMovePiece
-import com.kglabs28.yapnplay.appengine.games.common.gameplay.moves.RollDice as WireRollDice
+import com.kglabs28.yapnplay.appengine.games.elements.board.protocol.LegalMove
+import com.kglabs28.yapnplay.appengine.games.elements.board.protocol.MovePiece as WireMovePiece
+import com.kglabs28.yapnplay.appengine.games.elements.board.protocol.RollDice as WireRollDice
 import com.kglabs28.yapnplay.appengine.protocol.MatchEnded
 import com.kglabs28.yapnplay.appengine.protocol.MatchEvent
 import com.kglabs28.yapnplay.appengine.protocol.MatchRequestSnapshot

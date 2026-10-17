@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.RoyalLudoMatchScreen
 import com.kglabs28.yapnplay.appengine.core.common.DeepLink
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.PlayRoomLobbyScreen
 import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreen
@@ -63,7 +64,7 @@ fun YapNPlayNavHost(
             val gameZoneViewModel: GameZoneViewModel = entry.rememberScreenViewModel()
             val playRoomsViewModel: PlayRoomsViewModel = entry.rememberScreenViewModel()
             MainScreen(
-                onOpenMatch = { navController.navigate(MatchPlaceholder) },
+                onOpenMatch = { matchId -> navController.navigate(RoyalLudoMatch(matchId)) },
                 onOpenRoom = { roomId -> navController.navigate(RoomLobby(roomId)) },
                 onCreateRoom = { navController.navigate(RoomPlaceholder) },
                 pendingInviteCode = pendingInviteCode,
@@ -83,15 +84,19 @@ fun YapNPlayNavHost(
             PlayRoomLobbyScreen(
                 roomId = entry.toRoute<RoomLobby>().roomId,
                 onClose = { navController.popBackStack() },
-                onOpenMatch = { navController.navigate(MatchPlaceholder) },
+                onOpenMatch = { matchId -> navController.navigate(RoyalLudoMatch(matchId)) },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<RoomPlaceholder> {
             PlaceholderScreen()
         }
-        composable<MatchPlaceholder> {
-            PlaceholderScreen()
+        composable<RoyalLudoMatch> { entry ->
+            RoyalLudoMatchScreen(
+                matchId = entry.toRoute<RoyalLudoMatch>().matchId,
+                onClose = { navController.popBackStack() },
+                viewModel = entry.rememberScreenViewModel(),
+            )
         }
     }
 }

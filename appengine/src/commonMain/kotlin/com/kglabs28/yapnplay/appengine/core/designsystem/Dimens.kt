@@ -145,6 +145,23 @@ class YapNPlayDimens {
     val stageBob: Dp get() = 6.dp.scaled()
     /** Coloured outline around the stage's game title. */
     val titleOutline: Dp get() = 4.dp.scaled()
+
+    // Royal Ludo table
+    val ludoAvatar: Dp get() = 46.dp.scaled()
+    val ludoAvatarRing: Dp get() = 2.5.dp.scaled()
+    val ludoTalkGlow: Dp get() = 14.dp.scaled()
+    val ludoAudienceAvatar: Dp get() = 30.dp.scaled()
+    val ludoAudienceNameWidth: Dp get() = 52.dp.scaled()
+    val ludoTopBarHeight: Dp get() = 54.dp.scaled()
+    val ludoAudienceRing: Dp get() = 2.dp.scaled()
+    val ludoCardRadius: Dp get() = 18.dp.scaled()
+    val ludoCardAvatar: Dp get() = 44.dp.scaled()
+    val ludoAvatarRadius: Dp get() = 12.dp.scaled()
+    val ludoGlossHeight: Dp get() = 40.dp.scaled()
+    val ludoGlossRadius: Dp get() = 11.dp.scaled()
+    val ludoTimerStroke: Dp get() = 5.dp.scaled()
+    val ludoCardGlow: Dp get() = 18.dp.scaled()
+    val ludoSquareButton: Dp get() = 44.dp.scaled()
     val lobbyMemberRow: Dp get() = 56.dp.scaled()
     val lobbyAvatar: Dp get() = 38.dp.scaled()
     val crownSize: Dp get() = 18.dp.scaled()

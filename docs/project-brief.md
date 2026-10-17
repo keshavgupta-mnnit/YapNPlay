@@ -30,7 +30,7 @@ The POC may look rough, but it must be correct where changes are expensive later
 |---|---|---|
 | `:appengine` (single library) | Everything below is a plain source folder, never a module | Phase 7 |
 | `games/base/` | Base contracts every game implements | Done |
-| `games/common/gameplay/moves/` | Shared mechanics: dice, pieces (+cards/striker later) | Done |
+| `games/elements/` | Reusable elements: dice (mechanics + glass dice UI), pieces, board messages | Done |
 | `games/royalludo/` | Royal Ludo engine, rules, rules tests | Done |
 | `protocol/` | Wire message formats + transport framing | Done |
 | `core/`, `ui/`, `di/`, `navigation/`, `features/` | Design system, MVI, components, screens, sample feature | Phase 7 |

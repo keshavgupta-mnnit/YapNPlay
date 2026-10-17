@@ -49,7 +49,7 @@ Each piece has a progress value:
 - **3 players:** Use any three colours.
 - **4 players:** Use all four colours.
 
-The server assigns seat numbers and colours randomly. The engine receives them as input.
+Seats take colours in board order, clockwise from a random colour, so turns go round the board (2 players sit opposite).
 
 ---
 
@@ -171,20 +171,25 @@ The server assigns seat numbers and colours randomly. The engine receives them a
 
 ---
 
-## 15. Automatic play
+## 15. Automatic play (the bot)
 
-**Rule:** When a player's time runs out, the engine plays the best move automatically.
+**Rule:** Every game ships a bot (`GameBot` in `games/base`). Royal Ludo's
+is `RoyalLudoBot`; it plays CPU seats, a seat whose time runs out, and a
+player who turned Autoplay on. It only ever picks a legal piece.
 
-**Priority (highest first):**
-1. Finish a piece (score 1000).
-2. Capture an opponent (score 800 + victim's progress).
-3. Leave base (score 600).
-4. Land on a safe square or form a protected pair (score 400).
-5. Move the piece furthest along.
+**Scoring (each legal piece; highest wins):**
+1. Finish a piece: +1000.
+2. Capture a lone opponent: +800 + the victim's progress.
+3. Leave base: +600.
+4. Enter the home lane: +350.
+5. Land on a safe square or form a protected pair: +400.
+6. Land where an opponent can hit with one roll (unsafe, alone): -300.
+7. Move a piece that is currently under threat to safety: +250.
+8. Plus the new progress (prefer the piece that gets furthest).
 
 **Tie-break:** Lowest piece number.
 
-**Example:** Red can either finish a piece (1000) or capture (800 + 30 = 830). Autoplay chooses finishing.
+**Example:** Red can finish a piece (1000+) or capture (800 + 30). The bot finishes.
 
 ---
 

@@ -58,7 +58,7 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 fun PlayRoomLobbyScreen(
     roomId: String,
     onClose: () -> Unit,
-    onOpenMatch: () -> Unit,
+    onOpenMatch: (matchId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayRoomLobbyViewModel? = null,
 ) {
@@ -73,7 +73,7 @@ fun PlayRoomLobbyScreen(
         viewModel?.effects?.collect { effect ->
             when (effect) {
                 PlayRoomLobbyEffect.Close -> onClose()
-                is PlayRoomLobbyEffect.OpenMatch -> onOpenMatch()
+                is PlayRoomLobbyEffect.OpenMatch -> onOpenMatch(effect.matchId)
                 PlayRoomLobbyEffect.RequestMicPermission ->
                     micPermission.request { send(PlayRoomLobbyIntent.MicPermissionResult(it)) }
                 PlayRoomLobbyEffect.OpenAppSettings -> micPermission.openSettings()

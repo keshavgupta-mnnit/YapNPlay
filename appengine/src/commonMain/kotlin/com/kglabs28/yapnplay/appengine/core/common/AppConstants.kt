@@ -14,6 +14,27 @@ object AppConstants {
     const val STAGE_PARTICLE_CYCLE_MS = 6_000
     const val STAGE_BOB_CYCLE_MS = 2_400
 
+    /** Dice: roll length, glow breathing, slow tint drift. */
+    const val DICE_ROLL_MS = 1_500
+    const val DICE_PULSE_MS = 1_800
+    const val DICE_TINT_CYCLE_MS = 9_000
+
+    /** Ludo: one square hop, a captured piece sliding home, legal-piece pulse, timer refresh. */
+    const val LUDO_HOP_MS = 220
+    const val LUDO_SLIDE_MS = 650
+    const val LUDO_LEGAL_PULSE_MS = 700
+    /** Board neon (lanes, bases) breathing in and out. */
+    const val LUDO_NEON_BREATH_MS = 1_600
+    const val LUDO_TIMER_TICK_MS = 100L
+
+    /** Ludo table: width share of each player-card column, talking glow blink. */
+    const val LUDO_CARD_COLUMN_WEIGHT = 0.18f
+    const val LUDO_TALK_BLINK_MS = 520
+
+    /** Ping colour bands (ms): below GOOD is green, below FAIR is yellow, above is red. */
+    const val PING_GOOD_MS = 80
+    const val PING_FAIR_MS = 150
+
     /** Room-code caret blink (half period). */
     const val CARET_BLINK_MS = 500
 

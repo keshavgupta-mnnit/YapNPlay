@@ -6,8 +6,8 @@ import com.kglabs28.yapnplay.appengine.games.base.identity.*
 import com.kglabs28.yapnplay.appengine.games.base.match.*
 import com.kglabs28.yapnplay.appengine.games.base.play.*
 import com.kglabs28.yapnplay.appengine.games.base.rules.*
-import com.kglabs28.yapnplay.appengine.games.common.gameplay.moves.dice.*
-import com.kglabs28.yapnplay.appengine.games.common.gameplay.moves.pieces.*
+import com.kglabs28.yapnplay.appengine.games.elements.dice.mechanics.*
+import com.kglabs28.yapnplay.appengine.games.elements.pieces.mechanics.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

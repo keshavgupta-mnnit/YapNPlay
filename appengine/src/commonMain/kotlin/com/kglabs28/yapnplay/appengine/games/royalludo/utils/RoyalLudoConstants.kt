@@ -20,6 +20,9 @@ const val ROYAL_LUDO_QUICK_PLAY_SEATS = ROYAL_LUDO_PLAYERS
 /** Quick Play search window before empty seats fill with CPU players. */
 const val ROYAL_LUDO_SEARCH_SECONDS = 30L
 
+/** Seconds per turn before the bot plays it. */
+const val ROYAL_LUDO_TURN_SECONDS = 10L
+
 const val TRACK_SIZE = 52
 const val PROGRESS_IN_BASE = -1
 const val PROGRESS_FINISHED = 56
@@ -32,11 +35,17 @@ const val YELLOW_START = 26
 const val BLUE_START = 39
 val STAR_SQUARES = setOf(8, 21, 34, 47)
 const val PIECES_PER_COLOUR = 4
+const val COLOUR_COUNT = 4
 const val MAX_CONSECUTIVE_SIXES = 3
 const val SCORE_FINISH = 1000
 const val SCORE_CAPTURE = 800
 const val SCORE_LEAVE_BASE = 600
 const val SCORE_SAFE = 400
+/** Bot: reaching the home lane, getting a threatened piece away, landing where one roll can hit it. */
+const val SCORE_HOME_LANE = 350
+const val SCORE_ESCAPE = 250
+const val SCORE_DANGER = 300
+const val DICE_FACES = 6
 
 // Lobby: house-rule toggles (keys match RoyalLudoHouseRules fields) and
 // the fixed rule sheet. Defaults are the traditional rules.
@@ -55,6 +64,6 @@ val ROYAL_LUDO_FIXED_RULES = listOf(
     "Exact roll needed to reach home",
     "Landing on a lone opponent sends it back to base",
     "Start squares and star squares are safe",
-    "30 seconds per turn; auto-play when time runs out",
+    "10 seconds per turn; the bot plays when time runs out",
     "Away after 3 missed turns or 60 s offline: the seat is removed",
 )

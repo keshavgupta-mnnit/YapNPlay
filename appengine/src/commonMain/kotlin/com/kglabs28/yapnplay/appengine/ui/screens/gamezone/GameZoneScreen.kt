@@ -119,6 +119,8 @@ fun GameZoneScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
             if (state.viewMode == GamePickerViewMode.CAROUSEL) {
+                // Fades in together with the games (never ahead of them).
+                val ready = state.loaded && state.games.isNotEmpty()
                 PillButton(
                     text = Strings.homeQuickPlay,
                     onClick = { viewModel?.onIntent(GameZoneIntent.PlayGame(state.focusedIndex)) },
@@ -127,7 +129,10 @@ fun GameZoneScreen(
                     leadingIcon = Icons.Rounded.Bolt,
                     height = YapNPlayTheme.dimens.ctaLargeHeight,
                     textStyle = YapNPlayTheme.typography.title,
-                    modifier = Modifier.fillMaxWidth(AppConstants.GAME_ZONE_CTA_WIDTH_FRACTION),
+                    enabled = ready,
+                    modifier = Modifier
+                        .fillMaxWidth(AppConstants.GAME_ZONE_CTA_WIDTH_FRACTION)
+                        .revealWhen(ready),
                 )
             }
             // Matching snackbar: centred, blocking modal over the frosted app.

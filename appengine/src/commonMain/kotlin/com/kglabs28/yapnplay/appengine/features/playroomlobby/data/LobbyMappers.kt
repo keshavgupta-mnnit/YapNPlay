@@ -36,4 +36,5 @@ fun RoomSnapshot.toLobbyRoom(now: Instant): LobbyRoom = LobbyRoom(
     houseRules = room.houseRules,
     botFill = room.botFill,
     countdownEndsAt = room.countdownDeadline?.let { now + (it - serverTime).milliseconds },
+    matchInProgress = room.matchInProgress,
 )

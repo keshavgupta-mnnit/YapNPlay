@@ -10,11 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.LifecycleStartEffect
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
@@ -26,20 +26,23 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.board.LudoB
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.board.ludoDicePalette
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.LudoMyCard
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.LudoOpponentsColumn
+import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.LudoSpectatorMicButton
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.topbar.LudoMatchTopBar
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
+import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatOfferBanner
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 
 /**
  * Royal Ludo table: top bar (game, spectators, match clock, settings,
  * exit); the
  * board, as large as fits, with the glass dice (in the roller's colour)
- * on the centre plate; the user's card bottom-right with Mic, Autoplay and
+ * on the centre plate; the user's card on the right with Mic, Autoplay and
  * Roll Dice; the other players on the left in turn order, each with a
- * round button to mute them for the user only. Music plays while the
- * table is on screen.
+ * round button to mute them for the user only. A banner shows a seat
+ * someone left while it is offered. Music plays while the table is on
+ * screen; in the background the server plays for the user.
  */
 @Composable
 fun RoyalLudoMatchScreen(
@@ -63,9 +66,10 @@ fun RoyalLudoMatchScreen(
             }
         }
     }
-    DisposableEffect(viewModel) {
+    // Started/stopped covers both leaving the screen and the app going to the background.
+    LifecycleStartEffect(viewModel) {
         send(RoyalLudoMatchIntent.ScreenVisible(true))
-        onDispose { send(RoyalLudoMatchIntent.ScreenVisible(false)) }
+        onStopOrDispose { send(RoyalLudoMatchIntent.ScreenVisible(false)) }
     }
     LaunchedEffect(state.dice.rollId) {
         if (state.dice.rollId > 0) dice.roll(state.dice.value)
@@ -83,6 +87,7 @@ fun RoyalLudoMatchScreen(
                 title = state.title,
                 subtitle = state.subtitle,
                 audience = state.audience,
+                showAudience = state.roomMatch,
                 spectatorCount = state.spectatorCount,
                 spectatorLabel = state.spectatorLabel,
                 elapsed = state.elapsed,
@@ -104,15 +109,25 @@ fun RoyalLudoMatchScreen(
                         .align(Alignment.CenterStart)
                         .padding(start = maxWidth * AppConstants.LUDO_CARD_COLUMN_WEIGHT)
                         .fillMaxHeight()
-                        .width(maxWidth * AppConstants.LUDO_BOARD_WIDTH_WEIGHT),
+                        .width(maxWidth * if (state.spectating) AppConstants.LUDO_SPECTATOR_BOARD_WIDTH_WEIGHT else AppConstants.LUDO_BOARD_WIDTH_WEIGHT),
                 ) { slot ->
+                    // Hidden while a piece is chosen and moved (so taps reach the
+                    // pieces); takes taps only when the user can roll, with no
+                    // press highlight.
                     if (state.dice.visible) {
                         GlassDice(
                             state = dice,
                             palette = ludoDicePalette(state.dice.colour),
-                            modifier = slot.clickable(enabled = state.canRoll) { send(RoyalLudoMatchIntent.Roll) },
+                            modifier = if (state.canRoll) {
+                                slot.clickable(interactionSource = null, indication = null) { send(RoyalLudoMatchIntent.Roll) }
+                            } else {
+                                slot
+                            },
                         )
                     }
+                }
+                state.seatBanner?.let { text ->
+                    SeatOfferBanner(text = text, modifier = Modifier.align(Alignment.TopCenter))
                 }
                 state.myCard?.let { card ->
                     LudoMyCard(
@@ -125,26 +140,48 @@ fun RoyalLudoMatchScreen(
                         onToggleAutoplay = { send(RoyalLudoMatchIntent.ToggleAutoplay) },
                         onToggleMic = { send(RoyalLudoMatchIntent.ToggleMic(micPermission.isGranted())) },
                         modifier = Modifier
-                            .align(Alignment.BottomEnd)
+                            .align(Alignment.CenterEnd)
                             .fillMaxWidth(AppConstants.LUDO_CARD_COLUMN_WEIGHT),
                     )
                 }
+                // Playing: the others on the left. Watching: two on each side, by house.
                 LudoOpponentsColumn(
-                    cards = state.opponents,
+                    cards = if (state.spectating) state.leftCards else state.opponents,
                     onToggleHear = { send(RoyalLudoMatchIntent.ToggleHear(it)) },
                     modifier = Modifier
                         .align(Alignment.CenterStart)
                         .fillMaxWidth(AppConstants.LUDO_CARD_COLUMN_WEIGHT),
                 )
+                if (state.spectating) {
+                    // Below the board's bottom corner, in the middle.
+                    LudoSpectatorMicButton(
+                        micOn = state.micOn,
+                        onToggle = { send(RoyalLudoMatchIntent.ToggleMic(micPermission.isGranted())) },
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
+                    LudoOpponentsColumn(
+                        cards = state.rightCards,
+                        onToggleHear = { send(RoyalLudoMatchIntent.ToggleHear(it)) },
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .fillMaxWidth(AppConstants.LUDO_CARD_COLUMN_WEIGHT),
+                    )
+                }
             }
         }
 
         val modal = state.modal
         BlockingOverlay(
             visible = modal != null,
-            // The final ranking and a vote prompt need an answer (the vote
-            // closes itself when its time runs out).
-            onDismiss = if (modal is LudoMatchModal.Result || modal is LudoMatchModal.Vote) null else ({ send(RoyalLudoMatchIntent.DismissModal) }),
+            // The final ranking, a vote and seat decisions need an answer (the
+            // timed ones close themselves when their time runs out).
+            onDismiss = if (modal is LudoMatchModal.Result || modal is LudoMatchModal.Vote || modal is LudoMatchModal.SeatInvite ||
+                modal is LudoMatchModal.SeatOfferPrompt || modal is LudoMatchModal.LeaderSeatChoice || modal is LudoMatchModal.AbsenceCheck
+            ) {
+                null
+            } else {
+                { send(RoyalLudoMatchIntent.DismissModal) }
+            },
         ) {
             if (modal != null) {
                 LudoMatchModalContent(
@@ -161,6 +198,14 @@ fun RoyalLudoMatchScreen(
                         onSubmitReport = { send(RoyalLudoMatchIntent.SubmitReport) },
                         onVote = { send(RoyalLudoMatchIntent.Vote(it)) },
                         onWatchAd = { send(RoyalLudoMatchIntent.WatchAd) },
+                        onTakeSeat = { send(RoyalLudoMatchIntent.TakeSeat(it)) },
+                        onDeclineSeat = { send(RoyalLudoMatchIntent.DeclineSeat(it)) },
+                        onPickSeatTaker = { send(RoyalLudoMatchIntent.PickSeatTaker(it)) },
+                        onAnswerSeatOffer = { send(RoyalLudoMatchIntent.AnswerSeatOffer(it)) },
+                        onInviteToSeat = { send(RoyalLudoMatchIntent.InviteToSeat) },
+                        onOfferSeatToBot = { send(RoyalLudoMatchIntent.OfferSeatToBot) },
+                        onSpectate = { send(RoyalLudoMatchIntent.Spectate) },
+                        onStillHere = { send(RoyalLudoMatchIntent.StillHere) },
                     ),
                 )
             }

@@ -12,4 +12,6 @@ data class LudoPlayer(
     /** The server plays this seat (CPU, away, or the owner turned autoplay on). */
     val autoplay: Boolean,
     val removed: Boolean,
+    /** At the table, away (the server plays for them) or handed to the bot. */
+    val presence: LudoPresence = LudoPresence.PLAYING,
 )

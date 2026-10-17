@@ -18,7 +18,6 @@ data class LudoBoardColours(
     val cellEdge: Color,
     val basePad: Color,
     val centre: Color,
-    val safeTile: Color,
     val players: List<Color>,
 )
 
@@ -35,7 +34,6 @@ fun ludoBoardColours(): LudoBoardColours {
         cellEdge = c.LudoCellEdge,
         basePad = c.LudoBasePad,
         centre = c.LudoCentrePlate,
-        safeTile = c.LudoSafeTile,
         players = listOf(c.PlayerRed, c.PlayerGreen, c.PlayerYellow, c.PlayerBlue),
     )
 }

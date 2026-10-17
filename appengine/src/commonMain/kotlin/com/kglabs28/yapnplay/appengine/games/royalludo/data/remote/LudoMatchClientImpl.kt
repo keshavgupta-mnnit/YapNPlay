@@ -43,7 +43,12 @@ class LudoMatchClientImpl(
         //     is LudoCommand.Move -> realtime.request(Channel.MATCH, MessageType.MOVE_PIECE, MovePieceRequest(matchId, command.piece.toString()))
         //     is LudoCommand.SetAutoplay -> realtime.request(Channel.MATCH, MessageType.SET_AUTOPLAY, SetAutoplay(matchId, command.enabled))
         //     is LudoCommand.SetMic -> voiceClient.setMicEnabled(command.on)
-        //     LudoCommand.Leave -> realtime.request(Channel.MATCH, MessageType.LEAVE_MATCH, LeaveMatch(matchId))
+        //     is LudoCommand.Leave -> realtime.request(Channel.MATCH, MessageType.LEAVE_SEAT, LeaveSeat(matchId, command.giveToUserId))
+        //     LudoCommand.StillHere -> realtime.request(Channel.MATCH, MessageType.CONFIRM_PRESENCE, ConfirmPresence(matchId))
+        //     is LudoCommand.AnswerSeatOffer -> realtime.request(Channel.MATCH, MessageType.ANSWER_SEAT_OFFER, AnswerSeatOffer(matchId, command.accept))
+        //     is LudoCommand.ChooseSeatTaker -> realtime.request(Channel.MATCH, MessageType.CHOOSE_SEAT_TAKER, ChooseSeatTaker(matchId, command.giveToUserId))
+        //     is LudoCommand.SetAway -> realtime.request(Channel.MATCH, MessageType.SET_PRESENCE, SetPresence(matchId, command.away))
+        //     is LudoCommand.TakeSeat -> realtime.request(Channel.MATCH, MessageType.TAKE_SEAT, TakeSeat(matchId, command.seat))
         // }
 
         // --- fake path ---

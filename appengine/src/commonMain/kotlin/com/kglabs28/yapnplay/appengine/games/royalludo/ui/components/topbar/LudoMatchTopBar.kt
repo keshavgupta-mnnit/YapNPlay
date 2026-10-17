@@ -6,6 +6,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,7 +35,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
  * Match top bar (design): the game name in brushed metal on a teal-rimmed
  * card with the room below it, a frosted tray of everyone at the table
  * and watching (ring green while talking, red with the mic off) with the
- * spectator count, the match clock (time since it began), then
+ * spectator count (room matches only; Quick Play has no spectators), the
+ * match clock (time since it began), then
  * settings and exit.
  */
 @Composable
@@ -42,6 +44,7 @@ fun LudoMatchTopBar(
     title: String,
     subtitle: String,
     audience: List<LudoAvatarUi>,
+    showAudience: Boolean,
     spectatorCount: String,
     spectatorLabel: String,
     elapsed: String,
@@ -80,31 +83,35 @@ fun LudoMatchTopBar(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .ludoFrostedGlass(tint = colors.IconMuted, shape = shape, radius = radius, glow = dimens.zero)
-                .padding(horizontal = Spacing.Sm),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
-        ) {
+        if (showAudience) {
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                    .fillMaxHeight()
+                    .ludoFrostedGlass(tint = colors.IconMuted, shape = shape, radius = radius, glow = dimens.zero)
+                    .padding(horizontal = Spacing.Sm),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
             ) {
-                audience.forEach { person -> LudoAudienceMember(person) }
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
-                    AppIcon(imageVector = Icons.Rounded.Groups, tint = colors.TextPrimary, size = dimens.iconSmall)
-                    BasicText(text = spectatorCount, style = typography.title.copy(color = colors.TextPrimary))
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    audience.forEach { person -> LudoAudienceMember(person) }
                 }
-                BasicText(text = spectatorLabel, style = typography.micro.copy(color = colors.TextSecondary))
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
+                        AppIcon(imageVector = Icons.Rounded.Groups, tint = colors.TextPrimary, size = dimens.iconSmall)
+                        BasicText(text = spectatorCount, style = typography.title.copy(color = colors.TextPrimary))
+                    }
+                    BasicText(text = spectatorLabel, style = typography.micro.copy(color = colors.TextSecondary))
+                }
             }
+        } else {
+            Spacer(Modifier.weight(1f))
         }
         LudoMatchClock(elapsed = elapsed, modifier = Modifier.fillMaxHeight())
         LudoSquareIconButton(icon = Icons.Rounded.Settings, description = Strings.ludoSettings, tint = colors.LudoTeal, onClick = onSettings)

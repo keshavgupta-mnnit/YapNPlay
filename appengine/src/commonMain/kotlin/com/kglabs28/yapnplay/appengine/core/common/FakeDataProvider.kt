@@ -220,6 +220,13 @@ object FakeDataProvider {
      */
     object Lobby {
         const val SPEAKER_ROTATION_MS = 1_500L
+        /** This room already has a match running without the user (they can watch, and get offered a seat). */
+        const val LIVE_MATCH_ROOM = "room-family-fun"
+        const val LIVE_MATCH_ID = "match-room-family-fun-live"
+        /** After the game changes (which clears ready), the usual players press ready again, one per step. */
+        const val READY_AGAIN_STEP_MS = 1_500L
+        /** In a room someone else leads, they start the match this long after the user is ready. */
+        const val LEADER_START_AFTER_MS = 2_000L
         const val DESCRIPTION = "Good vibes • Great games • Better together"
         private const val OTHER_LEADER = "user-neha"
         private const val OTHER_ADMIN = "user-arjun"
@@ -242,6 +249,7 @@ object FakeDataProvider {
                     icon = summary?.icon,
                     selectedGame = if (iLead) null else PRESET_GAME,
                     members = members(myId, now),
+                    matchInProgress = if (roomId == LIVE_MATCH_ROOM) LIVE_MATCH_ID else null,
                 ),
             )
         }
@@ -294,18 +302,21 @@ object FakeDataProvider {
     object LudoMatch {
         /** Opponents the fake server plays: user id, name, level, mic on. */
         val opponents = listOf(
-            Opponent("user-neha", "Neha", 18, micOn = true),
-            Opponent("user-arjun", "Arjun", 23, micOn = true),
-            Opponent("user-riya", "Riya", 7, micOn = false),
+            Opponent("user-neha", "Neha", 18, micOn = true, onlineMinutes = 42),
+            Opponent("user-arjun", "Arjun", 23, micOn = true, onlineMinutes = 25),
+            Opponent("user-riya", "Riya", 7, micOn = false, onlineMinutes = 18),
         )
 
-        /** Room spectators shown in the top bar, plus the full count. */
+        /** Room spectators (room matches only; Quick Play has none). */
         val spectators = listOf(
-            Opponent("user-karan", "Karan", 9, micOn = true),
-            Opponent("user-sneha", "Sneha", 11, micOn = false),
-            Opponent("user-vikram", "Vikram", 4, micOn = true),
+            Opponent("user-karan", "Karan", 9, micOn = true, onlineMinutes = 12),
+            Opponent("user-sneha", "Sneha", 11, micOn = false, onlineMinutes = 9),
+            Opponent("user-vikram", "Vikram", 4, micOn = true, onlineMinutes = 5),
         )
         const val QUICK_PLAY_TITLE = "Quick Play"
+        /** Room leader when the user does not lead the room, and how long the user has been online. */
+        const val OTHER_LEADER_ID = "user-neha"
+        const val MY_ONLINE_MINUTES = 30L
 
         /** Pacing so the table feels human and animations finish first. */
         const val THINK_MS = 900L
@@ -314,15 +325,42 @@ object FakeDataProvider {
         const val AFTER_MOVE_MS = 500L
         const val AFTER_CAPTURE_MS = 800L
 
-        data class Opponent(val userId: String, val name: String, val level: Int, val micOn: Boolean)
+        /** Away handling (the real values live in the server's game config). */
+        const val PRESENCE_TICK_MS = 1_000L
+        /** Away this long, or this many turns missed, and the seat is offered. */
+        const val OPEN_SEAT_AFTER_MS = 30_000L
+        const val OPEN_SEAT_AFTER_MISSED_TURNS = 2
+        /** How long an open seat waits for someone to take it. */
+        const val SEAT_CLAIM_MS = 30_000L
+        /**
+         * Demo, this far into a match: in a room the last opponent leaves and
+         * offers their seat to a spectator (who declines after
+         * [NOMINEE_ANSWER_MS], so the leader picks; a fake leader picks after
+         * [LEADER_ANSWER_MS], and that pick accepts). In Quick Play they go
+         * away and the bot takes over.
+         */
+        const val DEMO_AFTER_MS = 45_000L
+        const val NOMINEE_ANSWER_MS = 6_000L
+        /** Watching the live room match: a player leaves and offers their seat to the user this far in. */
+        const val WATCH_DEMO_AFTER_MS = 15_000L
+        /** Joining the live room match lands at a random stage: these many plays in (start, middle, near the end). */
+        val WATCH_STAGE_PLAYS = listOf(0, 120, 260)
+        /** Rough real time per play, so the match clock fits the stage. */
+        const val WATCH_SECONDS_PER_PLAY = 2L
+        const val LEADER_ANSWER_MS = 4_000L
+        /** A spectator takes a seat open to all this long after it opens. */
+        const val STAND_IN_AFTER_MS = 10_000L
+
+        data class Opponent(val userId: String, val name: String, val level: Int, val micOn: Boolean, val onlineMinutes: Long = 0)
     }
 
     /** Fake moderation service (see FakeModerationServer). */
     object Moderation {
         /** How long the others take to vote on the user's report. */
         const val VOTING_MS = 6_000L
-        /** Chance each fake voter agrees. */
+        /** Chance each fake voter agrees; of the rest, this share never answers. */
         const val AGREE_CHANCE = 0.6
+        const val NO_RESPONSE_SHARE = 0.4
         /** Time the user has to answer a prompt. */
         const val VOTE_WINDOW_MS = 15_000L
         /** A sample prompt arrives this long into a match. */

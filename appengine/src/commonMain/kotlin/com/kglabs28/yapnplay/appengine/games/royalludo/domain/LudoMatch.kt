@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.domain
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.domain.SeatOffer
 import kotlinx.datetime.Instant
 
 /**
@@ -27,6 +28,15 @@ data class LudoMatch(
     val finishedSeats: List<Int>,
     /** Seats in finishing order once the match is over. */
     val ranking: List<Int>,
+    /** A seat changing hands (room matches only); null when none. */
+    val seatOffer: SeatOffer? = null,
+    /** The room this match belongs to; null for Quick Play (no spectators, no handover). */
+    val roomId: String? = null,
+    /** Who is watching this table on this device (player or spectator). */
+    val viewerUserId: String = "",
 ) {
     val me: LudoPlayer? get() = players.firstOrNull { it.isMe }
+    val isRoomMatch: Boolean get() = roomId != null
+    /** Play waits while a seat is offered to someone by name or the leader is choosing. */
+    val onHold: Boolean get() = seatOffer?.stage?.holdsMatch == true
 }

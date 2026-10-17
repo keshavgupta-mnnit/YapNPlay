@@ -3,6 +3,97 @@
 `docs/project-report.md` is the original plan. These later decisions win
 where they disagree. Newest first. Every AI agent reads this file too.
 
+## 2026-10-17 — seat handover (every game, room matches only)
+
+- **Pausing:** play pauses only while someone decides on a seat for
+  someone else: the leader choosing, or a named spectator answering an
+  offer. Exiting and the "still here?" check never pause anyone.
+- **For every game:** seat handover lives in shared code, not in Royal
+  Ludo: `features/seathandover` (rules, offer and stages, texts) and
+  `ui/components/seat` (banner, exit dialog with picker, spectator prompt,
+  leader picker, "still here?" check). A game only wires it into its table.
+- **Rooms only:** spectators, the spectator strip in the top bar and every
+  handover step exist only in room matches. In Quick Play (random players)
+  there are no spectators, so a seat that is left, idle or away goes to the
+  bot.
+- **Exit:** the leave dialog asks "Give your seat to": the bot (first, and
+  the default) or any spectator.
+  - **Bot:** the bot takes the seat at once.
+  - **A spectator:** they get a 30 s accept/decline prompt while the match
+    waits, and everyone sees "Paused · Riya's seat offered to Karan · 24s".
+- **Leader fallback:** if that spectator declines or doesn't answer, the
+  room leader gets 10 s to pick someone else from the same list (the match
+  waits for that too). Their pick gets the same 30 s prompt. A decline, no answer,
+  or no pick from the leader hands the seat to the bot.
+- **No leader present:** if the leader has left (or is the one leaving), the
+  person online longest in the session decides. This is the lobby's own
+  leader rule.
+- **Idle player:** if the bot played someone's last 3 whole turns on
+  timeout (Autoplay off; extra rolls from a six count as one turn), they
+  get a 15 s "Looks like you left" dialog with an "I'm still here" button.
+  The match keeps going, and playing a turn counts as still here.
+  - **If they don't answer in a room:** the leader picks (then spectator,
+    then bot, as above).
+  - **If they don't answer in Quick Play:** the bot takes the seat.
+  - **Taking the seat back from the bot:** turn Autoplay off; the switch
+    shows on while the bot holds the seat.
+- **One dialog for all three cases** (`SeatPickerDialog`, from the user's
+  "Seat Inactive" design): an amber warning title, a timer chip, the
+  message, and a sideways row of spectator avatars; the picked one gets a
+  tick and a cyan border.
+  - **Leader:** spectator tiles, with **Offer to Bot** and **Invite to
+    Seat**.
+  - **Idle player** (3 turns): a Bot tile first (picked by default), then
+    spectators, with **I'm Here** and **Spectate**. Spectate hands the seat
+    to the pick, and the player keeps watching as a spectator.
+  - **Exit:** a Bot tile first (picked by default), then spectators, with
+    **Cancel** and **Exit**. Exit passes the seat to the pick.
+- **Away** (app in the background) works as before: the seat is open to all
+  spectators in a room, and goes to the bot in Quick Play.
+- **Fake server:** 45 s into a room match, Riya leaves and offers her seat to
+  Karan, who declines after 6 s. The leader then picks: you, if you lead the
+  room (otherwise Neha picks after 4 s). The chosen spectator accepts after
+  6 s. In Quick Play, Riya goes away and the bot takes over. Let three of
+  your own turns time out to see the "still here?" check.
+
+## 2026-10-17 — leaving the app mid-match (away, open seat, stand-in)
+
+The server can't tell whether someone minimised the app, lost signal or took
+a call, so every case is handled the same way, as "away". The server drives
+it; the app only reports that it went to the background or came back.
+
+- **On the phone:** in the background, sound and music stop at once and the
+  mic turns off. After a 5 s grace (so pulling down the notification shade
+  doesn't count), the app tells the server the user is away. Nothing
+  animates in the background; on return the app jumps to the latest board
+  and tells the server the user is back.
+- **Away:** the server plays their turns at once (no waiting out the turn
+  timer). Their card shows "Away".
+- **Open seat:** after 30 s away, or 2 missed turns, the seat is offered to
+  everyone watching for 30 s ("Riya left · seat open 24s"). The bot keeps
+  playing it meanwhile.
+- **Stand-in:** a spectator who takes it plays on from that position with
+  the same colour and pieces, under their own name and voice. Rewards are
+  reduced because they joined late. Only a real person's seat is offered,
+  never a bot's.
+- **Nobody takes it:** the bot plays it to the end, and the card shows
+  "Bot".
+- **Coming back:** before anyone takes the seat (including after it went to
+  the bot), the seat is theirs again at once. After a stand-in took it, they
+  rejoin as a spectator and the match counts as a loss.
+- **Fairness:** a match left like this counts against the leaver the same
+  way an upheld report does. Several in a short time trigger the existing
+  penalty (points deducted, Quick Play blocked, an ad lifts it).
+- **Push:** if it becomes their turn while they're away, one "Your turn —
+  come back" notification is sent, never repeated.
+- **Tuning:** all the timings live in the server's game config, so they can
+  change without an app update.
+- **Fake server:** 45 s into a match, the last opponent goes away. Their seat
+  opens, and 10 s later a spectator takes it, so the whole flow can be seen.
+  The user's own seat is never taken in the fake, so they can always come
+  back. The spectator's invite dialog is built but only shows to a
+  spectator, which the app can't be yet.
+
 ## 2026-10-17 — Royal Ludo table, sound, voice reports
 
 - **Table layout:** the user's card bottom-left (Mic, Autoplay, Roll
@@ -100,8 +191,14 @@ where they disagree. Newest first. Every AI agent reads this file too.
   no cap; the room's 10-member limit applies anyway).
 - **Random (Quick Play) matches have no spectators** for now — watching
   is a room feature. Watching a friend's random match can come later.
-- A spectator can't take a seat in a running match; the report's
-  replacement-invitation hook is where that will plug in later.
+- **Joining mid-match:** any room member can join the room at any time and
+  watch the running match from wherever it is (start, middle or end). The
+  lobby's main button becomes **WATCH MATCH** while a match is in progress
+  (`RoomInfo.matchInProgress`). A spectator gets a seat only through the
+  seat handover (see the seat handover entry).
+- **Fake server:** Family Fun always has a match running without you. It
+  lands at a random stage each time, and about 15 s in, the leaving player
+  offers their seat to you.
 
 ## 2026-10-17 — who plays, and when bots fill seats
 

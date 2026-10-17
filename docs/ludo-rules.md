@@ -193,6 +193,29 @@ player who turned Autoplay on. It only ever picks a legal piece.
 
 ---
 
+## 15a. Leaving, idle and away players (room matches)
+
+**Rule:** Royal Ludo uses the shared seat handover, which works the same way
+in every game.
+
+- **Exit:** a leaving player gives their seat to the bot (the default) or a
+  spectator. The spectator has 30 s to accept while the match waits.
+- **Leader fallback:** if the spectator declines or doesn't answer, the
+  leader has 10 s to pick someone else. If that pick also passes, or the
+  leader picks nobody, the bot takes the seat.
+- **Idle:** after 3 whole turns played by the bot on timeout, the player gets
+  15 s to say they're still here. If they don't, the leader picks.
+- **Away:** the seat is open to every spectator for 30 s, with the bot
+  playing meanwhile.
+- **Quick Play:** there are no spectators, so the bot takes the seat in
+  every case.
+
+**Example:** Riya leaves and offers her seat to Karan. The match pauses
+("Riya's seat offered to Karan · 24s"). Karan declines, and the leader picks
+Vikram, who accepts and plays red from Riya's position.
+
+---
+
 ## 16. Match end
 
 **Rule:** The match ends when one active seat remains. The sole remaining player ranks above removed players. If everyone is removed, the match is cancelled.

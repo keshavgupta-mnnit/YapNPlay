@@ -93,15 +93,13 @@ private fun DrawScope.raised(top: Path, height: Float, side: Color, face: Brush)
     )
 }
 
-/** Frosted glass block with a glowing star in [tint] (start and star squares). */
+/** A track block washed in [tint] with a glowing star (start and star squares). */
 private fun DrawScope.safeTile(p: LudoBoardProjection, top: Path, col: Int, row: Int, tint: Color, colours: LudoBoardColours, cell: Float) {
     val bounds = top.getBounds()
-    raised(
-        top,
-        cell * TILE_HEIGHT,
-        lerp(colours.safeTile, Color.Black, SAFE_SIDE_DARKEN),
-        Brush.verticalGradient(listOf(colours.safeTile.copy(alpha = SAFE_TOP_ALPHA), colours.safeTile.copy(alpha = SAFE_BOTTOM_ALPHA)), bounds.top, bounds.bottom),
-    )
+    // The same block as every other tile (a lighter side read as a second
+    // tile under it), with a soft wash of the owner's colour on its face.
+    raised(top, cell * TILE_HEIGHT, colours.cellSide, Brush.verticalGradient(listOf(colours.cellEdge, colours.cell), bounds.top, bounds.bottom))
+    drawPath(top, Brush.verticalGradient(listOf(tint.copy(alpha = SAFE_TINT_TOP_ALPHA), tint.copy(alpha = SAFE_TINT_BOTTOM_ALPHA)), bounds.top, bounds.bottom))
     val star = star(p, Offset(col + HALF, row + HALF))
     drawPath(star, tint.copy(alpha = STAR_GLOW_ALPHA), style = Stroke(cell * STAR_GLOW_WIDTH, join = StrokeJoin.Round))
     drawPath(star, lerp(tint, Color.White, STAR_LIGHTEN))
@@ -231,9 +229,8 @@ private const val SHADOW_DROP = 1.9f
 private const val BLOCK_SHADOW_ALPHA = 0.45f
 private const val EDGE_LIGHT_ALPHA = 0.35f
 private const val EDGE_LIGHT_WIDTH = 0.35f
-private const val SAFE_SIDE_DARKEN = 0.45f
-private const val SAFE_TOP_ALPHA = 0.7f
-private const val SAFE_BOTTOM_ALPHA = 0.35f
+private const val SAFE_TINT_TOP_ALPHA = 0.28f
+private const val SAFE_TINT_BOTTOM_ALPHA = 0.12f
 private const val STAR_POINTS = 5
 private const val STAR_OUTER = 0.34f
 private const val STAR_INNER = 0.15f

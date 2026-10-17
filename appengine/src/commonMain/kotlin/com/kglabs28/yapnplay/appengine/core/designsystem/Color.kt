@@ -150,7 +150,6 @@ object YapNPlayColors {
     val LudoCellEdge = Color(0xFF5A6476)
     val LudoBasePad = Color(0xFF2E3542)
     val LudoCentrePlate = Color(0xFF232833)
-    val LudoSafeTile = Color(0xFFD5DCEA)
 
     // Royal Ludo 3D glass UI (cards, buttons, title)
     val LudoFrostTop = Color(0x5CC9D2E2)

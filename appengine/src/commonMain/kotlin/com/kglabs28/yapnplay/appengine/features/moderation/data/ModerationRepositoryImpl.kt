@@ -38,7 +38,7 @@ class ModerationRepositoryImpl(
     override suspend fun vote(reportId: String, agree: Boolean): AppResult<Unit> = call("vote") { client.vote(reportId, agree) }
 
     override val outcomes: Flow<ReportOutcome> = client.resolutions().map {
-        ReportOutcome(it.upheld, it.reportedName, it.agreed, it.required)
+        ReportOutcome(it.upheld, it.reportedName, it.agreed, it.disagreed, it.noResponse, it.required)
     }
 
     override val penalty: StateFlow<Penalty?> = client.penalties()

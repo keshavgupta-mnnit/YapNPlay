@@ -18,6 +18,8 @@ object AppConstants {
     const val DICE_ROLL_MS = 1_500
     /** The die rests on its result this long before any piece moves. */
     const val LUDO_DICE_REST_MS = 500L
+    /** In the background this long (not a quick glance) and the server is told the user is away. */
+    const val LUDO_AWAY_GRACE_MS = 5_000L
     const val DICE_PULSE_MS = 1_800
     const val DICE_TINT_CYCLE_MS = 9_000
 
@@ -34,6 +36,10 @@ object AppConstants {
     const val LUDO_CARD_COLUMN_WEIGHT = 0.2f
     /** Board width share: it sits right of the user's card, before the opponents. */
     const val LUDO_BOARD_WIDTH_WEIGHT = 0.68f
+    /** Spectating: a column of cards on each side, the board centred between them. */
+    const val LUDO_SPECTATOR_BOARD_WIDTH_WEIGHT = 0.6f
+    /** The exit dialog closes by itself after this long without a choice. */
+    const val EXIT_DIALOG_SECONDS = 30L
     const val LUDO_TALK_BLINK_MS = 520
 
     /** Room-code caret blink (half period). */

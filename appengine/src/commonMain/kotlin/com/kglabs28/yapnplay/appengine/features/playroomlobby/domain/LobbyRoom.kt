@@ -19,4 +19,6 @@ data class LobbyRoom(
     val houseRules: Map<String, Boolean>,
     val botFill: Boolean,
     val countdownEndsAt: Instant?,
+    /** A match already running in this room (members can watch it), or null. */
+    val matchInProgress: String? = null,
 )

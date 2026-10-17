@@ -28,7 +28,10 @@ import kotlinx.coroutines.launch
  * In-memory stand-in for the server's room actor, so the lobby behaves
  * like production before the backend exists. Starts from
  * [FakeDataProvider.Lobby] and applies the documented room rules to
- * every command (docs/backend-api-contract.md). Deleted with the fakes.
+ * every command (docs/backend-api-contract.md). The other members act
+ * like people: the usual players press ready again after the game
+ * changes, and a leader who isn't the user starts the match once the
+ * user is ready. Deleted with the fakes.
  */
 class FakeLobbyServer(
     private val catalog: GameCatalogRepository,
@@ -38,6 +41,8 @@ class FakeLobbyServer(
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
     private val rooms = mutableMapOf<String, MutableStateFlow<RoomSnapshot>>()
     private var countdownJob: Job? = null
+    private var readyJob: Job? = null
+    private var leaderStartJob: Job? = null
     private val me = FakeDataProvider.Profile.me.userId
 
     private val _matchStarting = MutableSharedFlow<MatchStarting>(extraBufferCapacity = 1)
@@ -76,13 +81,15 @@ class FakeLobbyServer(
                         members = members.map { it.copy(ready = false, watching = false) },
                     )
                 }
+                if (command.gameId != null) readyAgain(roomId)
             }
             is LobbyCommand.SetHouseRule -> update(roomId) {
                 copy(houseRules = houseRules + (command.key to command.enabled))
             }
             is LobbyCommand.SetBotFill -> update(roomId) { copy(botFill = command.enabled) }
-            is LobbyCommand.SetReady -> updateMe(roomId) {
-                copy(ready = command.ready, watching = if (command.ready) false else watching)
+            is LobbyCommand.SetReady -> {
+                updateMe(roomId) { copy(ready = command.ready, watching = if (command.ready) false else watching) }
+                if (command.ready) leaderStartsSoon(roomId) else leaderStartJob?.cancel()
             }
             is LobbyCommand.SetWatching -> updateMe(roomId) { copy(watching = command.watching) }
             is LobbyCommand.SetVoiceState -> updateMe(roomId) {
@@ -111,6 +118,30 @@ class FakeLobbyServer(
             delay(AppConstants.COUNTDOWN_SECONDS * MILLIS_PER_SECOND)
             update(roomId) { copy(countdownDeadline = null) }
             _matchStarting.emit(MatchStarting(matchId = "match-$roomId-$endsAt"))
+        }
+    }
+
+    /** The members who were ready at the start press ready again, one at a time. */
+    private fun readyAgain(roomId: String) {
+        readyJob?.cancel()
+        val usualPlayers = FakeDataProvider.Lobby.snapshot(roomId, clock.now().toEpochMilliseconds())
+            .room.members.filter { it.ready && it.userId != me }.map { it.userId }
+        readyJob = scope.launch {
+            usualPlayers.forEach { id ->
+                delay(FakeDataProvider.Lobby.READY_AGAIN_STEP_MS)
+                update(roomId) { copy(members = members.map { if (it.userId == id) it.copy(ready = true) else it }) }
+            }
+        }
+    }
+
+    /** In a room someone else leads, that leader starts the match shortly after the user is ready. */
+    private fun leaderStartsSoon(roomId: String) {
+        val room = stateOf(roomId).value.room
+        if (room.leaderId == me || room.selectedGame == null) return
+        leaderStartJob?.cancel()
+        leaderStartJob = scope.launch {
+            delay(FakeDataProvider.Lobby.LEADER_START_AFTER_MS)
+            startCountdown(roomId)
         }
     }
 

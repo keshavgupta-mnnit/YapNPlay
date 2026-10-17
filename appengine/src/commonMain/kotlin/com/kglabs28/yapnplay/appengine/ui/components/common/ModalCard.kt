@@ -63,8 +63,8 @@ fun ModalCard(
                         imageVector = Icons.Rounded.Close,
                         contentDescription = Strings.lobbyClose,
                         onClick = it,
-                        size = dimens.smallButtonHeight,
-                        iconSize = dimens.iconSmall,
+                        size = dimens.modalCloseButton,
+                        iconSize = dimens.modalCloseIcon,
                         tint = colors.TextPrimary,
                     )
                 }

@@ -41,6 +41,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.materialIconsExtended)
             implementation(libs.navigation.compose)
+            implementation(libs.lifecycle.runtime.compose)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.ktor.client.core)

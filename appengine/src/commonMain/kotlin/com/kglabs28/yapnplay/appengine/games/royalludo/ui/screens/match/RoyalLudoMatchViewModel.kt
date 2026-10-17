@@ -14,10 +14,12 @@ import com.kglabs28.yapnplay.appengine.features.moderation.domain.ReportVoteRequ
 import com.kglabs28.yapnplay.appengine.features.moderation.usecase.ModerationUseCases
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveLocallyMutedUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetLocallyMutedUseCase
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverUiMapper
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoCommand
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoEvent
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoMatch
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoPhase
+import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoPresence
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoUpdate
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.usecase.ObserveLudoMatchUseCase
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.usecase.ObserveMatchSpeakingUseCase
@@ -31,6 +33,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.datetime.Instant
 
 /**
  * Royal Ludo table. Server updates are queued and played one event at a
@@ -39,7 +43,12 @@ import kotlinx.coroutines.launch
  * and only then does the new turn show. The dice hides while a piece is
  * being chosen. A ticker keeps timers moving. Mic changes ask for
  * permission first. Other players can be muted for the user only. Voice
- * reports go to everyone present for confirmation.
+ * reports go to everyone present for confirmation. In the background
+ * the table goes quiet, the mic goes off and (after a short grace) the
+ * server is told the user is away, so it plays for them; nothing
+ * animates until they are back. In a room match a leaving player hands
+ * their seat to a spectator or the bot; the named spectator, or the
+ * leader after them, answers here while the match waits.
  */
 class RoyalLudoMatchViewModel(
     private val observeMatch: ObserveLudoMatchUseCase,
@@ -61,13 +70,20 @@ class RoyalLudoMatchViewModel(
     private val shown = mutableMapOf<Int, MutableList<Int>>()
     private val motions = mutableMapOf<String, PieceMotion>()
     private var playing = false
+    private var diceVisible = true
     private var rollId = 0
     private var diceValue = 1
     private var diceSeat: Int? = null
-    private var diceVisible = true
     private var userModal: LudoMatchModal? = null
     private var vote: ReportVoteRequest? = null
     private var penalty: Penalty? = null
+    private var foreground = true
+    private var awayJob: Job? = null
+    private var markedAway = false
+    private var declinedSeat: Int? = null
+    /** The spectator picked in the leader's or idle player's dialog (null: none yet). */
+    private var seatPick: Int? = null
+    private var leaveDeadline: Instant? = null
     private val queue = Channel<LudoUpdate>(Channel.UNLIMITED)
     private var jobs: List<Job> = emptyList()
 
@@ -94,11 +110,34 @@ class RoyalLudoMatchViewModel(
             is RoyalLudoMatchIntent.ToggleHear -> match?.players?.firstOrNull { it.seat == intent.seat }?.let {
                 setMuted(it.userId, it.userId !in mutedForMe)
             }
-            RoyalLudoMatchIntent.ExitClicked -> showModal(LudoMatchModal.LeaveConfirm)
+            RoyalLudoMatchIntent.ExitClicked -> match?.let { m ->
+                // Closes by itself if no choice is made in time.
+                leaveDeadline = clock.now() + AppConstants.EXIT_DIALOG_SECONDS.seconds
+                showModal(LudoMatchModal.LeaveConfirm(LudoMatchUiMapper.leaveBody(m), LudoMatchUiMapper.leaveOptions(m), selectedIndex = 0))
+            }
             RoyalLudoMatchIntent.ConfirmLeave -> {
+                val pick = (userModal as? LudoMatchModal.LeaveConfirm)?.selectedIndex ?: 0
                 showModal(null)
-                send(LudoCommand.Leave)
+                // Only a player has a seat to hand on; a spectator just goes.
+                if (match?.me != null) send(LudoCommand.Leave(SeatHandoverUiMapper.giveTo(pick, spectatorIds(), withBot = true)))
                 emitEffect(RoyalLudoMatchEffect.Close)
+            }
+            is RoyalLudoMatchIntent.PickSeatTaker -> when (val modal = userModal) {
+                is LudoMatchModal.LeaveConfirm -> showModal(modal.copy(selectedIndex = intent.index))
+                else -> {
+                    seatPick = intent.index
+                    render()
+                }
+            }
+            is RoyalLudoMatchIntent.AnswerSeatOffer -> send(LudoCommand.AnswerSeatOffer(intent.accept))
+            RoyalLudoMatchIntent.StillHere -> send(LudoCommand.StillHere)
+            RoyalLudoMatchIntent.InviteToSeat -> leaderGives(SeatHandoverUiMapper.giveTo(seatPick, spectatorIds(), withBot = false) ?: return)
+            RoyalLudoMatchIntent.OfferSeatToBot -> leaderGives(null)
+            RoyalLudoMatchIntent.Spectate -> {
+                // The seat goes to the pick (the bot by default); the user stays and watches.
+                val giveTo = SeatHandoverUiMapper.giveTo(seatPick ?: 0, spectatorIds(), withBot = true)
+                seatPick = null
+                send(LudoCommand.Leave(giveTo))
             }
             RoyalLudoMatchIntent.DismissModal -> showModal(null)
             RoyalLudoMatchIntent.OpenSettings -> showSettings()
@@ -119,7 +158,15 @@ class RoyalLudoMatchViewModel(
                 moderation.castVote(it.reportId, intent.agree)
             }
             RoyalLudoMatchIntent.WatchAd -> watchAd()
-            is RoyalLudoMatchIntent.ScreenVisible -> if (intent.visible) audio.startMusic() else audio.stopMusic()
+            is RoyalLudoMatchIntent.ScreenVisible -> onScreenVisible(intent.visible)
+            is RoyalLudoMatchIntent.TakeSeat -> {
+                declinedSeat = intent.seat
+                send(LudoCommand.TakeSeat(intent.seat))
+            }
+            is RoyalLudoMatchIntent.DeclineSeat -> {
+                declinedSeat = intent.seat
+                render()
+            }
             RoyalLudoMatchIntent.Done -> emitEffect(RoyalLudoMatchEffect.Close)
         }
     }
@@ -150,6 +197,7 @@ class RoyalLudoMatchViewModel(
                 while (true) {
                     val request = vote
                     if (request != null && clock.now() >= request.expiresAt) vote = null
+                    if (userModal is LudoMatchModal.LeaveConfirm && leaveDeadline?.let { clock.now() >= it } == true) userModal = null
                     render()
                     delay(AppConstants.LUDO_TIMER_TICK_MS)
                 }
@@ -159,7 +207,8 @@ class RoyalLudoMatchViewModel(
 
     /** Animates [update]'s events in order with sound, then shows the new turn. */
     private suspend fun play(update: LudoUpdate) {
-        if (match == null) {
+        // First snapshot, or in the background: no animation, straight to the latest board.
+        if (match == null || !foreground) {
             reset(update.match)
             return
         }
@@ -171,7 +220,7 @@ class RoyalLudoMatchViewModel(
                     diceSeat = event.seat
                     diceVisible = true
                     rollId++
-                    audio.play(GameSound.DICE_ROLL)
+                    sound(GameSound.DICE_ROLL)
                     render()
                     // Every roll is shown in full, and rests on its face, before anything moves.
                     delay(AppConstants.DICE_ROLL_MS + AppConstants.LUDO_DICE_REST_MS)
@@ -181,13 +230,13 @@ class RoyalLudoMatchViewModel(
                     val steps = if (event.from == PROGRESS_IN_BASE) listOf(0) else (event.from + 1)..event.to
                     for (progress in steps) {
                         place(event.seat, event.piece, progress, PieceMotion.HOP)
-                        audio.play(GameSound.HOP)
+                        sound(GameSound.HOP)
                         delay(AppConstants.LUDO_HOP_MS.toLong())
                     }
                 }
                 is LudoEvent.Captured -> {
                     place(event.victimSeat, event.victimPiece, PROGRESS_IN_BASE, PieceMotion.SLIDE)
-                    audio.play(GameSound.CAPTURE)
+                    sound(GameSound.CAPTURE)
                     delay(AppConstants.LUDO_SLIDE_MS.toLong())
                 }
                 is LudoEvent.Reverted -> {
@@ -201,7 +250,7 @@ class RoyalLudoMatchViewModel(
                             }
                         }
                     }
-                    audio.play(GameSound.CAPTURE)
+                    sound(GameSound.CAPTURE)
                     render()
                     delay(AppConstants.LUDO_SLIDE_MS.toLong())
                 }
@@ -212,6 +261,50 @@ class RoyalLudoMatchViewModel(
         reset(update.match)
     }
 
+    /**
+     * Background: sound stops at once, the mic goes off, and after a short
+     * grace (a glance at a notification is ignored) the server is told the
+     * user is away. Front again: they are back and the board is current.
+     */
+    private suspend fun onScreenVisible(visible: Boolean) {
+        foreground = visible
+        awayJob?.cancel()
+        if (visible) {
+            audio.startMusic()
+            if (markedAway) {
+                markedAway = false
+                send(LudoCommand.SetAway(false))
+            }
+        } else {
+            audio.stopMusic()
+            if (state.value.micOn) send(LudoCommand.SetMic(false))
+            awayJob = scope.launch {
+                delay(AppConstants.LUDO_AWAY_GRACE_MS)
+                markedAway = true
+                send(LudoCommand.SetAway(true))
+            }
+        }
+    }
+
+    /** The leader's choice: the picked spectator, or the bot (null). */
+    private suspend fun leaderGives(giveTo: String?) {
+        seatPick = null
+        send(LudoCommand.ChooseSeatTaker(giveTo))
+    }
+
+    /** The exit dialog shows how long it stays open. */
+    private fun LudoMatchModal.withCountdown(): LudoMatchModal {
+        if (this !is LudoMatchModal.LeaveConfirm) return this
+        val left = leaveDeadline?.let { (it - clock.now()).inWholeSeconds.coerceAtLeast(0) } ?: 0L
+        return copy(countdown = Strings.seatCountdown(left))
+    }
+
+    private fun spectatorIds() = match?.spectators?.map { it.userId }.orEmpty()
+
+    private fun sound(sound: GameSound) {
+        if (foreground) audio.play(sound)
+    }
+
     /** Shows the server's pieces as they are (after any animation). */
     private fun reset(newMatch: LudoMatch) {
         val newlyFinished = newMatch.finishedSeats.size > (match?.finishedSeats?.size ?: newMatch.finishedSeats.size)
@@ -220,9 +313,10 @@ class RoyalLudoMatchViewModel(
         newMatch.pieces.forEach { (seat, list) -> shown[seat] = list.toMutableList() }
         motions.clear()
         diceSeat = newMatch.currentSeat
-        // The dice stays up (also while the roller picks a piece); it hides only while a piece moves.
-        diceVisible = newMatch.phase != LudoPhase.FINISHED
-        if (newlyFinished) audio.play(GameSound.WIN)
+        // Hidden from the roll until the move is made (a choice, a single
+        // automatic move, or a six's move); back for the next roll.
+        diceVisible = newMatch.phase == LudoPhase.ROLL
+        if (newlyFinished) sound(GameSound.WIN)
         if (newMatch.phase == LudoPhase.FINISHED && userModal == null) {
             userModal = LudoMatchModal.Result(LudoMatchUiMapper.resultRows(newMatch))
         }
@@ -285,11 +379,11 @@ class RoyalLudoMatchViewModel(
         val m = match ?: return
         val me = m.me
         val rotation = me?.let { LudoBoardGeometry.rotationFor(it.colour.ordinal) } ?: 0
-        val myTurn = me != null && !playing && m.currentSeat == me.seat && !me.autoplay
+        val myTurn = me != null && !playing && !m.onHold && m.currentSeat == me.seat && !me.autoplay
         val remainingMs = m.turnEndsAt?.let { (it - clock.now()).inWholeMilliseconds.coerceAtLeast(0) } ?: 0L
         val cards = LudoMatchUiMapper.cards(
             m,
-            LudoMatchUiMapper.CardInputs(rotation, speaking, mutedForMe, if (playing) null else remainingMs, ROYAL_LUDO_TURN_SECONDS),
+            LudoMatchUiMapper.CardInputs(rotation, speaking, mutedForMe, if (playing || m.onHold) null else remainingMs, ROYAL_LUDO_TURN_SECONDS),
         )
         setState {
             copy(
@@ -299,6 +393,9 @@ class RoyalLudoMatchViewModel(
                 rotation = rotation,
                 pieces = LudoMatchUiMapper.pieces(m, shown, motions, selectable = if (myTurn && m.phase == LudoPhase.MOVE) m.legalPieces else emptyList()),
                 myCard = cards.firstOrNull { it.isMe },
+                spectating = me == null,
+                leftCards = if (me == null) LudoMatchUiMapper.side(cards, left = true) else emptyList(),
+                rightCards = if (me == null) LudoMatchUiMapper.side(cards, left = false) else emptyList(),
                 opponents = cards.filterNot { it.isMe },
                 basePlaces = LudoMatchUiMapper.basePlaces(m),
                 audience = LudoMatchUiMapper.audience(m, speaking, mutedForMe),
@@ -308,10 +405,17 @@ class RoyalLudoMatchViewModel(
                 elapsed = if (m.phase == LudoPhase.FINISHED && elapsed.isNotEmpty()) elapsed else LudoMatchUiMapper.elapsed(clock.now() - m.startedAt),
                 dice = LudoDiceUi(diceValue, rollId, m.players.firstOrNull { it.seat == diceSeat }?.colour, diceVisible),
                 canRoll = myTurn && m.phase == LudoPhase.ROLL,
+                seatBanner = LudoMatchUiMapper.seatBanner(m, clock.now()),
+                roomMatch = m.isRoomMatch,
                 moveHint = m.lastRoll?.takeIf { myTurn && m.phase == LudoPhase.MOVE }?.let { Strings.ludoMove(it) },
-                autoplay = me?.autoplay == true,
-                micOn = me?.micOn == true,
-                modal = vote?.let { LudoModerationUiMapper.vote(it, clock.now()) } ?: userModal,
+                // On when the bot holds the seat too; turning it off takes the seat back.
+                autoplay = me?.autoplay == true || me?.presence == LudoPresence.BOT,
+                // A spectator's mic is on their spectator entry.
+                micOn = me?.micOn ?: m.spectators.firstOrNull { it.userId == m.viewerUserId }?.micOn ?: false,
+                // A vote or a seat decision is timed, so it comes before the user's own dialogs.
+                modal = vote?.let { LudoModerationUiMapper.vote(it, clock.now()) }
+                    ?: LudoMatchUiMapper.seatModal(m, clock.now(), declinedSeat, seatPick)
+                    ?: userModal?.withCountdown(),
             )
         }
     }

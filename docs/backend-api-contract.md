@@ -267,17 +267,77 @@ must honour the same switch (`GAME_UNAVAILABLE`).
 - **Spectator count:** the number of people actually watching (not
   players); the top bar lists only spectators.
 
+## Presence and seat handover (every game)
+
+Messages live in `protocol/SeatHandoverMessages.kt`; the rules are in
+`features/seathandover/domain/SeatHandoverRules.kt`. Spectators and every
+handover step are for **room matches only**; in Quick Play a left, idle or
+away seat goes to the bot.
+
+- **`SetPresence(matchId, away)`:** the app sends `away = true` 5 s after
+  going to the background, and `false` when it comes back. A dropped
+  connection counts as away after the same grace. While away, the bot plays
+  that seat's turns at once. The snapshot carries each player's `presence`:
+  `PLAYING`, `AWAY` or `BOT`.
+- **Snapshot:** `roomId` (null for Quick Play) and `seatOffer(seat,
+  leaverName, stage, endsAt)`. Stages:
+  - **`ConfirmingAbsence(userId)`:** the "still here?" check. Play goes on,
+    and a roll or move by them also ends it.
+  - **`ToSpectator(userId, round)`:** a named spectator decides. The match
+    waits.
+  - **`LeaderChoosing(leaderUserId)`:** the leader picks on the owner's
+    behalf. The match waits.
+  - **`OpenToAll`:** the owner is away. The bot plays meanwhile.
+- **Leaving:** `LeaveSeat(matchId, giveToUserId)`, where null means the bot.
+  If a spectator is named, they get `ToSpectator` for 30 s and answer with
+  `AnswerSeatOffer(matchId, accept)`.
+- **Leader fallback:** a decline or timeout in round 1 moves to
+  `LeaderChoosing` for 10 s. The decider is the room leader, or, if the
+  leader is gone or is the one leaving, whoever has been online longest.
+  They answer with `ChooseSeatTaker(matchId, giveToUserId)`, where null means
+  the bot. Their pick gets `ToSpectator` round 2. A decline, timeout or no
+  pick means the bot.
+- **Idle check:** after 3 whole turns in a row the bot played on timeout
+  (the owner didn't act and had Autoplay off; extra rolls count once), the
+  server opens `ConfirmingAbsence` for 15 s. `ConfirmPresence(matchId)`
+  cancels it. Otherwise the leader is asked; in Quick Play the bot takes the
+  seat. Turning Autoplay off reclaims a seat the bot holds, unless someone
+  else took it.
+- **Away seat:** after `openSeatAfterSeconds` (30) away, or
+  `openSeatAfterMissedTurns` (2), an `OpenToAll` offer runs for
+  `seatClaimSeconds` (30). A spectator takes it with `TakeSeat(matchId,
+  seat)`: the first one wins, and the rest get `SEAT_TAKEN`. If nobody takes
+  it, the bot does. `SetPresence(away = false)` gives the seat back unless a
+  stand-in took it.
+- **Hold:** only `LeaderChoosing` and `ToSpectator` pause play, because
+  someone is deciding on a seat for someone else. While either lasts,
+  nobody plays. When it ends, the player whose
+  turn it is gets a fresh turn timer.
+- **Stand-in:** keeps the seat's colour and pieces, and gets reduced rewards.
+  The person replaced watches as a spectator; their match is a loss and an
+  abandonment incident (moderation penalties apply).
+- **Push:** if it becomes someone's turn while they're away, one "Your turn"
+  notification is sent per match.
+- **Timings:** all of them live in `game.presence` / `game.seatHandover`
+  config.
+
 ## Moderation channel (all games and rooms)
 
 - `ReportPlayer(contextId, reportedUserId, reason="voice_chat")` from the
   reporter. Voters = everyone present (players and spectators) except the
   reporter and the reported person; fewer than 2 → rejected.
 - Each voter gets `ReportVoteRequested(reportId, reporterName,
-  reportedName, expiresAt)` and answers `CastReportVote(reportId, agree)`;
-  no answer by `expiresAt` = no vote.
+  reportedName, expiresAt)` and answers `CastReportVote(reportId, agree)`
+  (shown as Agree / Disagree). No answer by `expiresAt` counts as no vote.
+- **Every voter is recorded:** the server stores a `ReportBallot(reportId,
+  voterUserId, response, recordedAt)` for each person asked. The response is
+  `AGREE`, `DISAGREE` or `NO_RESPONSE`; `NO_RESPONSE` is written at
+  `expiresAt` for anyone who didn't answer. Only the first answer counts.
+  Ballots are kept for review and abuse checks, such as someone who always
+  agrees or never answers, and are never sent to other clients.
 - Required agreements: 2 when there are 4 or fewer voters, otherwise 3.
-- `ReportResolved(reportId, upheld, reportedName, agreed, required)` to the
-  reporter. Upheld → incident against the reported person; otherwise
+- `ReportResolved(reportId, upheld, reportedName, agreed, disagreed,
+  noResponse, required)` to the reporter. Upheld → incident against the reported person; otherwise
   against the reporter (false report).
 - An incident sends `PenaltyIssued(pointsDeducted, blockedUntil)` to the
   person it is against: points are deducted and new matches are refused

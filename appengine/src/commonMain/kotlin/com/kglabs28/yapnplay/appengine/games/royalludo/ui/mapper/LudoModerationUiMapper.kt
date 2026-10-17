@@ -16,7 +16,7 @@ object LudoModerationUiMapper {
     /** Everyone the user can report: the other players still seated, then spectators. */
     fun reportablePeople(match: LudoMatch): List<ReportPersonUi> =
         match.players.filter { !it.isMe && !it.removed }.map { ReportPersonUi(it.userId, it.name, Strings.ludoRolePlayer) } +
-            match.spectators.map { ReportPersonUi(it.userId, it.name, Strings.ludoRoleSpectator) }
+            match.spectators.filter { it.userId != match.viewerUserId }.map { ReportPersonUi(it.userId, it.name, Strings.ludoRoleSpectator) }
 
     /** People who would vote: everyone present except the reporter and the reported person. */
     fun voters(match: LudoMatch): Int {
@@ -34,10 +34,13 @@ object LudoModerationUiMapper {
         )
     }
 
-    fun outcome(outcome: ReportOutcome): LudoMatchModal.ReportOutcome = if (outcome.upheld) {
-        LudoMatchModal.ReportOutcome(Strings.ludoReportUpheldTitle, Strings.ludoReportUpheldBody(outcome.reportedName, outcome.agreed))
-    } else {
-        LudoMatchModal.ReportOutcome(Strings.ludoReportRejectedTitle, Strings.ludoReportRejectedBody(outcome.agreed, outcome.required))
+    fun outcome(outcome: ReportOutcome): LudoMatchModal.ReportOutcome {
+        val tally = Strings.ludoReportTally(outcome.agreed, outcome.disagreed, outcome.noResponse)
+        return if (outcome.upheld) {
+            LudoMatchModal.ReportOutcome(Strings.ludoReportUpheldTitle, Strings.ludoReportUpheldBody(outcome.reportedName, tally))
+        } else {
+            LudoMatchModal.ReportOutcome(Strings.ludoReportRejectedTitle, Strings.ludoReportRejectedBody(tally, outcome.required))
+        }
     }
 
     fun penalty(penalty: Penalty, now: Instant, watchingAd: Boolean): LudoMatchModal.Penalty {

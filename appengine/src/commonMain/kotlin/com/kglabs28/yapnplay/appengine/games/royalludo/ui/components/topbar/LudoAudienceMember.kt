@@ -10,10 +10,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.LudoAvatar
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.tint
-import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.AvatarRing
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoAvatarUi
 
-/** One person in the top bar strip: their avatar (ring by voice state) with their name under it. */
+/** One person in the top bar strip: their avatar (ring purple while talking, red with the mic off) with their name under it. */
 @Composable
 fun LudoAudienceMember(
     person: LudoAvatarUi,
@@ -23,7 +22,6 @@ fun LudoAudienceMember(
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         LudoAvatar(
             ring = person.ring.tint(),
-            talking = person.ring == AvatarRing.TALKING,
             size = dimens.ludoAudienceAvatar,
             ringWidth = dimens.ludoAudienceRing,
         )

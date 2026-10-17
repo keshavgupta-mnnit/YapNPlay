@@ -139,6 +139,11 @@ class PlayRoomLobbyViewModel(
     private suspend fun primaryAction() {
         val d = data ?: return
         val me = me() ?: return
+        // A match is already running: join it as a spectator.
+        d.room.matchInProgress?.let {
+            emitEffect(PlayRoomLobbyEffect.OpenMatch(it))
+            return
+        }
         if (me.isLeader) {
             if (LobbyRules.canStart(d.room, d.selectedGame)) send(LobbyCommand.StartCountdown)
             return
@@ -224,6 +229,9 @@ class PlayRoomLobbyViewModel(
             }
 
     private fun primaryFor(room: LobbyRoom, me: LobbyMember, game: GameCatalogItem?): LobbyPrimaryButtonUi {
+        if (room.matchInProgress != null) {
+            return LobbyPrimaryButtonUi(Strings.lobbyWatchMatch, Strings.lobbyMatchInProgress, enabled = true, active = true, isStart = true)
+        }
         if (me.isLeader) {
             val canStart = LobbyRules.canStart(room, game)
             return LobbyPrimaryButtonUi(

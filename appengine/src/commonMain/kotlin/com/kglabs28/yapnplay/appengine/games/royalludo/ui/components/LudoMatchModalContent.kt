@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.material.icons.rounded.EventSeat
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,6 +28,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.moderation.MatchSettingsCar
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.PenaltyCard
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.ReportPlayerCard
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.ReportVoteCard
+import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatPickerDialog
+import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatOfferPromptCard
 
 /**
  * The table's dialogs: leave confirmation, final ranking, mic
@@ -45,23 +48,18 @@ fun LudoMatchModalContent(
     val ctaHeight = YapNPlayTheme.dimens.ctaHeight
 
     when (modal) {
-        LudoMatchModal.LeaveConfirm -> ModalCard(
+        is LudoMatchModal.LeaveConfirm -> SeatPickerDialog(
             title = Strings.ludoLeaveTitle,
-            subtitle = Strings.ludoLeaveBody,
-            onClose = onDismiss,
+            message = modal.body,
+            countdown = modal.countdown,
+            options = modal.seatOptions,
+            selectedIndex = modal.selectedIndex,
+            onSelect = actions.onPickSeatTaker,
+            secondaryLabel = Strings.seatCancel,
+            onSecondary = onDismiss,
+            primaryLabel = Strings.seatExit,
+            onPrimary = actions.onConfirmLeave,
             modifier = modifier,
-            actions = {
-                GlassPillButton(text = Strings.ludoStay, onClick = onDismiss, leadingIcon = Icons.Rounded.Close, height = ctaHeight)
-                PillButton(
-                    text = Strings.ludoLeaveConfirm,
-                    onClick = actions.onConfirmLeave,
-                    gradient = listOf(colors.Error, colors.Error.copy(alpha = LEAVE_GRADIENT_END)),
-                    contentColor = colors.TextPrimary,
-                    leadingIcon = Icons.AutoMirrored.Rounded.Logout,
-                    trailingIcon = null,
-                    textStyle = typography.sectionTitle,
-                )
-            },
         )
         is LudoMatchModal.Result -> ModalCard(
             title = Strings.ludoResultTitle,
@@ -144,7 +142,49 @@ fun LudoMatchModalContent(
             onClose = onDismiss,
             modifier = modifier,
         )
+        is LudoMatchModal.SeatInvite -> SeatOfferPromptCard(
+            title = modal.title,
+            body = modal.body,
+            acceptLabel = modal.takeLabel,
+            onAccept = { actions.onTakeSeat(modal.seat) },
+            onDecline = { actions.onDeclineSeat(modal.seat) },
+            modifier = modifier,
+        )
+        is LudoMatchModal.AbsenceCheck -> SeatPickerDialog(
+            title = modal.title,
+            message = modal.body,
+            options = modal.options,
+            selectedIndex = modal.selectedIndex,
+            onSelect = actions.onPickSeatTaker,
+            countdown = modal.countdown,
+            secondaryLabel = Strings.seatImHere,
+            onSecondary = actions.onStillHere,
+            primaryLabel = Strings.seatSpectate,
+            onPrimary = actions.onSpectate,
+            modifier = modifier,
+        )
+        is LudoMatchModal.SeatOfferPrompt -> SeatOfferPromptCard(
+            title = modal.title,
+            body = modal.body,
+            acceptLabel = modal.acceptLabel,
+            onAccept = { actions.onAnswerSeatOffer(true) },
+            onDecline = { actions.onAnswerSeatOffer(false) },
+            modifier = modifier,
+        )
+        is LudoMatchModal.LeaderSeatChoice -> SeatPickerDialog(
+            title = modal.title,
+            message = modal.body,
+            options = modal.options,
+            selectedIndex = modal.selectedIndex,
+            onSelect = actions.onPickSeatTaker,
+            countdown = modal.countdown,
+            secondaryLabel = Strings.seatOfferToBot,
+            onSecondary = actions.onOfferSeatToBot,
+            primaryLabel = Strings.seatInviteToSeat,
+            onPrimary = actions.onInviteToSeat,
+            primaryEnabled = modal.selectedIndex != null,
+            modifier = modifier,
+        )
     }
 }
 
-private const val LEAVE_GRADIENT_END = 0.8f

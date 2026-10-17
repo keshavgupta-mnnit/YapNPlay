@@ -27,10 +27,11 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoPlay
 
 /**
  * A player's card in neutral frosted glass: avatar framed in their
- * colour, name in that colour, "Level" and the number on one line. During
+ * colour with their level on a badge, and their name in bold in that
+ * colour, all on one centred row. During
  * their turn a solid border of their colour runs round the card and
  * shrinks as time runs out. Once they finish, a "1st"/"2nd" badge sits on
- * the card's top edge. Other players' cards have a round mute button
+ * the card's top edge ("Away" or "Bot" there while the server plays for them). Other players' cards have a round mute button
  * ([onToggleHear]): red while the user has muted them, grey otherwise.
  * The user's own card adds [controls] under it.
  */
@@ -65,33 +66,30 @@ fun LudoPlayerCard(
             verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-                LudoCardAvatar(tint = tint, talking = card.talking)
-                Column(modifier = Modifier.weight(1f)) {
-                    BasicText(
-                        text = card.name,
-                        style = typography.sectionTitle.copy(color = tint),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-                        BasicText(text = Strings.ludoLevelLabel, style = typography.label.copy(color = colors.TextSecondary))
-                        BasicText(text = card.level, style = typography.label.copy(color = colors.TextPrimary))
-                    }
-                }
+                LudoCardAvatar(tint = tint, talking = card.talking, level = card.level)
+                BasicText(
+                    text = card.name,
+                    style = typography.cardTitle.copy(color = tint),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
                 if (!card.isMe) {
                     LudoMuteButton(muted = card.mutedForMe, description = Strings.ludoMuteFor(card.name), onToggle = onToggleHear)
                 }
             }
             controls()
         }
-        card.placeLabel?.let { place ->
+        (card.placeLabel ?: card.statusLabel)?.let { label ->
+            // A finishing place in the player's colour; "Away" / "Bot" in grey.
+            val badgeTint = if (card.placeLabel != null) tint else colors.IconMuted
             BasicText(
-                text = place,
+                text = label,
                 style = typography.label.copy(color = colors.TextPrimary),
                 modifier = Modifier
                     .clip(YapNPlayTheme.shapes.pill)
-                    .background(lerp(tint, colors.Background, BADGE_DARKEN))
-                    .border(dimens.hairline, tint, YapNPlayTheme.shapes.pill)
+                    .background(lerp(badgeTint, colors.Background, BADGE_DARKEN))
+                    .border(dimens.hairline, badgeTint, YapNPlayTheme.shapes.pill)
                     .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxxs),
             )
         }

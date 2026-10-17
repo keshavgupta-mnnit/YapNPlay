@@ -13,4 +13,12 @@ class LudoMatchModalActions(
     val onSubmitReport: () -> Unit,
     val onVote: (agree: Boolean) -> Unit,
     val onWatchAd: () -> Unit,
+    val onTakeSeat: (seat: Int) -> Unit,
+    val onDeclineSeat: (seat: Int) -> Unit,
+    val onPickSeatTaker: (index: Int) -> Unit,
+    val onAnswerSeatOffer: (accept: Boolean) -> Unit,
+    val onInviteToSeat: () -> Unit,
+    val onOfferSeatToBot: () -> Unit,
+    val onSpectate: () -> Unit,
+    val onStillHere: () -> Unit,
 )

@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.playrooms.repository
 
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.JoinOutcome
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomPreview
 
@@ -12,5 +13,5 @@ import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomPreview
 interface PlayRoomsRepository {
     suspend fun getMyRooms(): AppResult<List<PlayRoom>>
     suspend fun previewRoom(code: String): AppResult<PlayRoomPreview>
-    suspend fun joinRoom(code: String): AppResult<PlayRoom>
+    suspend fun joinRoom(code: String): AppResult<JoinOutcome>
 }

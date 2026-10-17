@@ -3,6 +3,33 @@
 `docs/project-report.md` is the original plan. These later decisions win
 where they disagree. Newest first. Every AI agent reads this file too.
 
+## 2026-10-17 — permissions, invites, notifications, member card
+
+- **Permissions:** mic + notifications are asked once, on first launch
+  only. Turning the mic on asks again if it was denied; a permanent
+  denial shows a dialog with "Open settings".
+- **Invite links:** shared as `https://kglabs28-yapnplay.web.app/join/<code>`
+  (tappable in every chat app), with the room code in the message too.
+  Android opens the app directly once the host serves assetlinks.json
+  (server task, see the backend contract). Opening one:
+  already a member → straight to the room lobby; otherwise the "Join this
+  room?" Yes/Cancel dialog (it names the room, never the code). Entering
+  a code + JOIN shows the same dialog. Yes on someone else's room sends
+  a join request: "Request sent — the admin has to approve"; the admin
+  approves from the Waiting List. Room codes are typed on an in-app
+  keypad that replaces Your Rooms + Online Friends while the code field
+  is active.
+- **Home:** Play With Friends card on the left, Game Zone on the right.
+- **Notifications:** "<name> entered <room>" / "N players are in <room>";
+  tapping one opens that room's lobby.
+- **Notification history:** the last 10 room pushes are kept on the
+  device (also when notifications are off). The top bar bell shows an
+  unread badge and a drop-down list; tapping a row opens that room's
+  lobby; closing the list marks everything read.
+- **Member card:** admin = crown on the avatar (no "Admin" text), leader =
+  gold border; mic/speaker off = crossed icons; voice wave fills the card.
+- **Admin can remove a member** from the room (member menu).
+
 ## 2026-10-17 — room lobby: roles, ordering, buttons
 
 - **Two roles, independent:**

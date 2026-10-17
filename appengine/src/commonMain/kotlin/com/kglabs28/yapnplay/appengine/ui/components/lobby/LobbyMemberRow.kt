@@ -7,19 +7,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MicOff
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
@@ -31,9 +38,12 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.VoiceWave
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.LobbyMemberUi
 
 /**
- * One member card: avatar with presence dot, name (+ "You"), admin crown,
- * then the talking wave — or "Mic off"-style text — and the ready status.
- * The leader card has a golden border; offline members are greyed out.
+ * One member as a glass card (from the member-list design): avatar in a
+ * ring — gold with a crown above it for the admin — a divider, then the
+ * name with the ready chip fixed on top, and the bottom line: the
+ * multicolour wave while they talk, plus a small red crossed mic at the
+ * bottom right when their mic is off.
+ * The leader card has a golden border; offline members get a dark card.
  */
 @Composable
 fun LobbyMemberRow(
@@ -43,26 +53,93 @@ fun LobbyMemberRow(
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
-    val typography = YapNPlayTheme.typography
     val shape = RoundedCornerShape(dimens.rowRadius)
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(dimens.lobbyMemberRow)
-            .graphicsLayer { alpha = if (member.online) 1f else OFFLINE_ALPHA }
+            // No drop shadow: it would show through the see-through card.
             .clip(shape)
-            .background(colors.RoomsRow.copy(alpha = 0.85f))
+            .background(
+                if (member.online) {
+                    Brush.verticalGradient(listOf(colors.MemberCardTop, colors.MemberCardBottom))
+                } else {
+                    SolidColor(colors.MemberCardOffline)
+                },
+            )
             .border(
                 width = if (member.isLeader) dimens.leaderBorder else dimens.hairline,
-                color = if (member.isLeader) colors.Gold else colors.GlassShine.copy(alpha = 0.08f),
+                color = when {
+                    member.isLeader -> colors.Gold
+                    member.online -> colors.MemberCardRim
+                    else -> colors.MemberCardRim.copy(alpha = 0.15f)
+                },
                 shape = shape,
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = Spacing.Xs),
+            .padding(horizontal = Spacing.Xs)
+            // Offline: dark card, dimmed content.
+            .graphicsLayer { alpha = if (member.online) 1f else OFFLINE_CONTENT_ALPHA },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
+        MemberAvatar(member = member)
+        Box(
+            modifier = Modifier
+                .width(dimens.hairline)
+                .fillMaxHeight(DIVIDER_HEIGHT_FRACTION)
+                .background(colors.GlassShine.copy(alpha = 0.15f)),
+        )
+        // Name + ready always on top; the voice line always at the bottom.
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .padding(vertical = Spacing.Xxs),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                BasicText(
+                    text = if (member.isMe) "${member.name} (${Strings.lobbyYou})" else member.name,
+                    style = YapNPlayTheme.typography.title.copy(color = colors.TextPrimary),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                LobbyStatusChip(status = member.status)
+            }
+            Row(
+                modifier = Modifier.height(dimens.voiceWaveHeight),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+            ) {
+                // Talking: live colour wave. Silent or muted: the same wave, still and dark grey.
+                if (member.talking) {
+                    VoiceWave(modifier = Modifier.weight(1f))
+                } else {
+                    VoiceWave(
+                        modifier = Modifier.weight(1f),
+                        animated = false,
+                        colors = listOf(colors.VoiceWaveMuted, colors.VoiceWaveMuted),
+                    )
+                }
+                if (member.micOff) MicOffBadge()
+            }
+        }
+    }
+}
+
+/** Avatar with a ring (gold for the admin), crown above it, presence dot. */
+@Composable
+private fun MemberAvatar(
+    member: LobbyMemberUi,
+    modifier: Modifier = Modifier,
+) {
+    val colors = YapNPlayTheme.colors
+    val dimens = YapNPlayTheme.dimens
+
+    Box(modifier = modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
         Box(contentAlignment = Alignment.BottomEnd) {
             IconCircle(
                 imageVector = Icons.Rounded.Person,
@@ -70,44 +147,37 @@ fun LobbyMemberRow(
                 tint = colors.IconMuted,
                 size = dimens.lobbyAvatar,
                 iconSize = dimens.iconMedium,
-                rimColor = colors.SocialZoneAccent,
+                rimColor = if (member.isAdmin) colors.Gold else colors.AvatarRingSilver,
             )
             PresenceDot(online = member.online, size = dimens.statusDotSmall, onlineColor = colors.LiveGreen)
         }
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
-            ) {
-                BasicText(
-                    text = member.name,
-                    style = typography.itemTitle.copy(color = colors.TextPrimary),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                if (member.isMe) {
-                    BasicText(text = Strings.lobbyYou, style = typography.micro.copy(color = colors.TextSecondary))
-                }
-                if (member.isAdmin) {
-                    AppIcon(imageVector = Icons.Rounded.WorkspacePremium, tint = colors.Gold, size = dimens.iconSmall)
-                    BasicText(text = Strings.lobbyAdmin, style = typography.micro.copy(color = colors.Gold))
-                }
-            }
-            if (member.talking) {
-                VoiceWave(modifier = Modifier.fillMaxWidth(WAVE_WIDTH_FRACTION))
-            } else {
-                member.voiceLabel?.let {
-                    BasicText(text = it, style = typography.micro.copy(color = colors.TextSecondary), maxLines = 1)
-                }
-            }
+        if (member.isAdmin) {
+            AppIcon(
+                imageVector = Icons.Rounded.WorkspacePremium,
+                tint = colors.Gold,
+                size = dimens.crownSize,
+                contentDescription = Strings.lobbyAdmin,
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
         }
-        LobbyStatusChip(status = member.status)
     }
 }
 
-private const val OFFLINE_ALPHA = 0.45f
-private const val WAVE_WIDTH_FRACTION = 0.6f
+/** Small red crossed mic at the card's bottom right. */
+@Composable
+private fun MicOffBadge() {
+    val colors = YapNPlayTheme.colors
+    val dimens = YapNPlayTheme.dimens
+    IconCircle(
+        imageVector = Icons.Rounded.MicOff,
+        fill = colors.Error,
+        tint = colors.TextPrimary,
+        size = dimens.memberVoiceIcon,
+        iconSize = dimens.iconTiny,
+        rimColor = colors.Error.copy(alpha = 0.6f),
+        modifier = Modifier.semantics { contentDescription = Strings.lobbyMicOff },
+    )
+}
+
+private const val OFFLINE_CONTENT_ALPHA = 0.5f
+private const val DIVIDER_HEIGHT_FRACTION = 0.6f

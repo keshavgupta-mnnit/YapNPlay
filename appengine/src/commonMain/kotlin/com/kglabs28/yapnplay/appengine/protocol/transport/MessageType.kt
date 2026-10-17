@@ -21,6 +21,7 @@ object MessageType {
     const val SET_VOICE_STATE = "SetVoiceState"
     const val TRANSFER_LEADER = "TransferLeader"
     const val TRANSFER_ADMIN = "TransferAdmin"
+    const val REMOVE_MEMBER = "RemoveMember"
 
     // ── Room channel: server to client ────────────────────────────────────
     const val ACK = "Ack"

@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
+import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
 
 /**
@@ -32,14 +33,11 @@ fun JoinRoomPromptCard(
         subtitle = details,
         modifier = modifier,
         actions = {
-            PillButton(
+            GlassPillButton(
                 text = Strings.roomsJoinCancel,
                 onClick = onCancel,
-                gradient = listOf(colors.RoomsSmallButton, colors.RoomsPanel),
-                contentColor = colors.TextPrimary,
                 leadingIcon = Icons.Rounded.Close,
-                trailingIcon = null,
-                textStyle = typography.sectionTitle,
+                height = YapNPlayTheme.dimens.ctaHeight,
             )
             PillButton(
                 text = Strings.roomsJoinYes,

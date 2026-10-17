@@ -8,4 +8,5 @@ data class PlayRoomPreview(
     val description: String,
     val memberCount: Int,
     val onlineCount: Int,
+    val isMember: Boolean,
 )

@@ -129,15 +129,38 @@ class YapNPlayDimens {
     val carouselSideBlur: Dp get() = 1.5.dp.scaled()
     // Room lobby
     val lobbyBarHeight: Dp get() = 44.dp.scaled()
-    val lobbyMemberRow: Dp get() = 46.dp.scaled()
-    val lobbyAvatar: Dp get() = 32.dp.scaled()
+    val lobbyStartHeight: Dp get() = 52.dp.scaled()
+    val lobbyStartCut: Dp get() = 12.dp.scaled()
+    /** Gap between the START button and its outer outline. */
+    val lobbyStartOutlineGap: Dp get() = 3.dp.scaled()
+    val memberVoiceIcon: Dp get() = 16.dp.scaled()
+    // Mic / Speaker tiles under the member list
+    val voiceToggleWidth: Dp get() = 58.dp.scaled()
+    val voiceToggleHeight: Dp get() = 60.dp.scaled()
+    val voiceToggleSwitch: Dp get() = 24.dp.scaled()
+    val voiceToggleKnob: Dp get() = 18.dp.scaled()
+    /** Glow spread of neon pills and switches. */
+    val neonGlow: Dp get() = 8.dp.scaled()
+    /** How far the game art floats up and down on the stage. */
+    val stageBob: Dp get() = 6.dp.scaled()
+    /** Coloured outline around the stage's game title. */
+    val titleOutline: Dp get() = 4.dp.scaled()
+    val lobbyMemberRow: Dp get() = 56.dp.scaled()
+    val lobbyAvatar: Dp get() = 38.dp.scaled()
+    val crownSize: Dp get() = 18.dp.scaled()
     val leaderBorder: Dp get() = 2.dp.scaled()
     val switchWidth: Dp get() = 44.dp.scaled()
     val switchHeight: Dp get() = 22.dp.scaled()
     val switchKnob: Dp get() = 16.dp.scaled()
-    val voiceWaveHeight: Dp get() = 10.dp.scaled()
+    val voiceWaveHeight: Dp get() = 16.dp.scaled()
     val voiceWaveBar: Dp get() = 2.dp.scaled()
+    val voiceWaveSpacing: Dp get() = 4.dp.scaled()
     val modalWidth: Dp get() = 320.dp.scaled()
+
+    // Top bar notifications
+    val notificationsWidth: Dp get() = 320.dp.scaled()
+    val notificationsMaxHeight: Dp get() = 260.dp.scaled()
+    val notificationBadge: Dp get() = 16.dp.scaled()
 
     /** Background blur when a tab asks for a frosted backdrop. */
     val backdropBlur: Dp get() = 14.dp.scaled()

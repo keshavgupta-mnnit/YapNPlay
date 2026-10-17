@@ -30,7 +30,8 @@ fun JoinRoomCard(
     code: String,
     isJoining: Boolean,
     errorMessage: String?,
-    onCodeChange: (String) -> Unit,
+    keypadOpen: Boolean,
+    onOpenKeypad: () -> Unit,
     onJoin: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -77,8 +78,8 @@ fun JoinRoomCard(
             RoomCodeField(
                 code = code,
                 isError = errorMessage != null,
-                onCodeChange = onCodeChange,
-                onDone = onJoin,
+                active = keypadOpen,
+                onActivate = onOpenKeypad,
                 modifier = Modifier.weight(1f),
             )
             PillButton(

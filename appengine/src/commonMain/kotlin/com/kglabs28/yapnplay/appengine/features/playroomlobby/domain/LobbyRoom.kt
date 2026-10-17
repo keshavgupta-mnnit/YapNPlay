@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.playroomlobby.domain
 
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
 import kotlinx.datetime.Instant
 
 /**
@@ -11,6 +12,7 @@ data class LobbyRoom(
     val id: String,
     val name: String,
     val description: String,
+    val icon: PlayRoomIcon,
     val code: String,
     val members: List<LobbyMember>,
     val selectedGameId: String?,

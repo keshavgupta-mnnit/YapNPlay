@@ -10,6 +10,8 @@ import com.kglabs28.yapnplay.appengine.protocol.OnlineStats
 import com.kglabs28.yapnplay.appengine.protocol.Presence
 import com.kglabs28.yapnplay.appengine.protocol.RoomInfo
 import com.kglabs28.yapnplay.appengine.protocol.RoomMember
+import com.kglabs28.yapnplay.appengine.protocol.JoinRoomResult
+import com.kglabs28.yapnplay.appengine.protocol.JoinStatus
 import com.kglabs28.yapnplay.appengine.protocol.RoomPreview
 import com.kglabs28.yapnplay.appengine.protocol.RoomSnapshot
 import com.kglabs28.yapnplay.appengine.protocol.RoomSummary
@@ -89,20 +91,25 @@ object FakeDataProvider {
             ),
         )
 
+        /** Names for rooms you're not in, picked by code so they stay stable. */
+        private val OTHER_ROOM_NAMES = listOf("Chill Gamers", "Ludo Legends", "Night Owls", "Dice Squad", "Weekend Crew")
+
+        private fun otherRoomName(code: String) = OTHER_ROOM_NAMES[code.sumOf { it.digitToIntOrNull() ?: 0 } % OTHER_ROOM_NAMES.size]
+
         /** Preview for a code: one of your rooms if it matches, else a made-up room. */
         fun preview(code: String) = myRooms.rooms.firstOrNull { it.code == code }
-            ?.let { RoomPreview(it.roomId, it.code, it.name, Lobby.DESCRIPTION, it.memberCount, it.onlineCount) }
-            ?: RoomPreview("room-$code", code, "Room $code", Lobby.DESCRIPTION, memberCount = 3, onlineCount = 2)
+            ?.let { RoomPreview(it.roomId, it.code, it.name, Lobby.DESCRIPTION, it.memberCount, it.onlineCount, isMember = true) }
+            ?: RoomPreview("room-$code", code, otherRoomName(code), Lobby.DESCRIPTION, memberCount = 3, onlineCount = 2)
 
-        /** Pretend the server accepted [code] and returned a fresh room. */
-        fun joinedRoom(code: String) = RoomSummary(
-            roomId = "room-$code",
-            code = code,
-            name = "Room $code",
-            memberCount = 3,
-            onlineCount = 2,
-            icon = "group",
-        )
+        /** Your room: joined; anyone else's: the request waits for its admin. */
+        fun joinResult(code: String): JoinRoomResult {
+            val mine = myRooms.rooms.firstOrNull { it.code == code }
+            return if (mine != null) {
+                JoinRoomResult(JoinStatus.JOINED, mine.name, mine)
+            } else {
+                JoinRoomResult(JoinStatus.PENDING_APPROVAL, otherRoomName(code))
+            }
+        }
     }
 
     /**
@@ -232,6 +239,7 @@ object FakeDataProvider {
                     leaderId = if (iLead) myId else OTHER_LEADER,
                     adminId = if (iLead) myId else OTHER_ADMIN,
                     description = DESCRIPTION,
+                    icon = summary?.icon,
                     selectedGame = if (iLead) null else PRESET_GAME,
                     members = members(myId, now),
                 ),

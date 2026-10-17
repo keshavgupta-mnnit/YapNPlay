@@ -75,6 +75,39 @@ object YapNPlayColors {
     val RoomIconSlate = Color(0xFF5A6A8C)
     val RoomIconViolet = Color(0xFF6F4BE0)
     val LiveGreen = Color(0xFF1AEEA9)
+
+    // Lobby START MATCH (sampled from the start button design)
+    val StartButtonTop = Color(0xFFF6B755)
+    val StartButtonBottom = Color(0xFFB4601B)
+    val StartButtonRim = Color(0xFFFFE2A0)
+    val StartButtonGlow = Color(0xFFF59E2E)
+    val StartButtonSub = Color(0xFFFFE6A6)
+    val StartButtonDisabledTop = Color(0xFF6B7080)
+    /** Neon green of the Ready pill and ON switches. */
+    val ReadyGreen = Color(0xFF5CF08A)
+    /** Mic button while the mic is on. */
+    val MicOnPink = Color(0xFFB0246E)
+    /** Frosted-white member card (design): top / bottom tint and rim. */
+    val MemberCardTop = Color(0x38C9D3EE)
+    val MemberCardBottom = Color(0x24A3AECB)
+    val MemberCardRim = Color(0x66E6ECFF)
+    /** Offline member card: darker than the frosted-white one. */
+    val MemberCardOffline = Color(0xD9080C18)
+    /** Still voice wave of a member who is not talking. */
+    val VoiceWaveMuted = Color(0xFF4A5063)
+    /** Hologram stage under the chosen game (lobby). */
+    val StageLight = Color(0xFF5FE6F5)
+    val StageAccent = Color(0xFFD45BF0)
+    val StagePlatformTop = Color(0xFF26304A)
+    val StagePlatformSideTop = Color(0xFF1C2338)
+    val StagePlatformSideBottom = Color(0xFF0E1322)
+    val StartButtonDisabledBottom = Color(0xFF3E424E)
+    val StartButtonDisabledRim = Color(0xFF9AA0AE)
+
+    // Lobby member card
+    val AvatarRingSilver = Color(0xFF8E97B5)
+    val VoiceWaveStart = Color(0xFF4FE3F0)
+    val VoiceWaveEnd = Color(0xFFC062F0)
     val IconMuted = Color(0xFF9EAEDE)
 
     // Top Bar (sampled from the top bar design). Surfaces are glass

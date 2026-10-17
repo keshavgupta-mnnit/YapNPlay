@@ -1,12 +1,18 @@
 package com.kglabs28.yapnplay.appengine.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.kglabs28.yapnplay.appengine.core.common.DeepLink
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.PlayRoomLobbyScreen
 import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
@@ -22,8 +28,29 @@ import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsViewModel
 @Composable
 fun YapNPlayNavHost(
     modifier: Modifier = Modifier,
+    deepLink: DeepLink? = null,
+    onDeepLinkHandled: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
+    // Invite code from a link, waiting for the Rooms tab to ask "Join?".
+    var pendingInviteCode by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(deepLink) {
+        when (deepLink) {
+            // Notification tap: straight to that room lobby.
+            is DeepLink.OpenRoom -> navController.navigate(RoomLobby(deepLink.roomId)) {
+                popUpTo<Main>()
+                launchSingleTop = true
+            }
+            // Invite link: back to the dashboard; Rooms asks to join.
+            is DeepLink.JoinRoom -> {
+                navController.popBackStack<Main>(inclusive = false)
+                pendingInviteCode = deepLink.code
+            }
+            null -> return@LaunchedEffect
+        }
+        onDeepLinkHandled()
+    }
+
     NavHost(
         navController = navController,
         startDestination = Main,
@@ -39,6 +66,8 @@ fun YapNPlayNavHost(
                 onOpenMatch = { navController.navigate(MatchPlaceholder) },
                 onOpenRoom = { roomId -> navController.navigate(RoomLobby(roomId)) },
                 onCreateRoom = { navController.navigate(RoomPlaceholder) },
+                pendingInviteCode = pendingInviteCode,
+                onInviteConsumed = { pendingInviteCode = null },
                 viewModel = mainViewModel,
                 gameZoneViewModel = gameZoneViewModel,
                 playRoomsViewModel = playRoomsViewModel,

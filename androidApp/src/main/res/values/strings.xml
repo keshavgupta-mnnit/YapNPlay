@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">YapNPlay</string>
+    <string name="notification_channel_rooms">Room activity</string>
+    <string name="notification_channel_rooms_description">When friends enter your rooms</string>
 </resources>

@@ -1,6 +1,8 @@
 package com.kglabs28.yapnplay
 
 import android.app.Application
+import com.google.firebase.messaging.FirebaseMessaging
+import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.appmanager.AppManager
 import com.kglabs28.yapnplay.appengine.appmanager.fetchRemoteFlags
 import com.kglabs28.yapnplay.appengine.di.appModules
@@ -28,8 +30,21 @@ class YapNPlayApp : Application() {
                 modules(appModules + platformAppManagerModule)
             }
         }
+        RoomNotifications.createChannel(this)
+        registerForPush()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             get<AppManager>().syncWithRemote(fetchRemoteFlags())
+        }
+    }
+
+    /** Sends the current FCM token to the server (new tokens arrive in the service). */
+    private fun registerForPush() {
+        try {
+            FirebaseMessaging.getInstance().token
+                .addOnSuccessListener { YapNPlayMessagingService.registerPushToken(it) }
+                .addOnFailureListener { CrashReporter.record(it, "YapNPlayApp.fcmToken") }
+        } catch (e: Exception) {
+            CrashReporter.record(e, "YapNPlayApp.registerForPush")
         }
     }
 }

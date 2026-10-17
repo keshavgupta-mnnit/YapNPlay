@@ -4,4 +4,4 @@ import androidx.compose.runtime.Composable
 
 /** JVM has no system Back. */
 @Composable
-actual fun BlockBackPress(enabled: Boolean) = Unit
+actual fun BlockBackPress(enabled: Boolean, onBack: () -> Unit) = Unit

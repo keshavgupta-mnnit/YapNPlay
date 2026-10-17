@@ -69,7 +69,7 @@ object Strings {
     const val lobbyWatching = "Watching"
     const val lobbyOffline = "Offline"
     const val lobbyMicOff = "Mic off"
-    const val lobbySpeakerOff = "Speaker off"
+
     const val lobbyMicSpeakerOff = "Mic & speaker off"
     const val lobbyMic = "Mic"
     const val lobbySpeaker = "Speaker"
@@ -78,7 +78,6 @@ object Strings {
     const val lobbySelectGame = "SELECT GAME"
     const val lobbyLeaderChoosing = "The leader is choosing a game…"
     const val lobbyHouseRules = "In-House Rules"
-    const val lobbyHouseRulesSubtitle = "Custom rules for this room"
     const val lobbyRuleSheet = "Rules"
     const val lobbyRuleSheetTitle = "Game Rules"
     const val lobbyRuleSheetSubtitle = "These rules never change"
@@ -106,15 +105,28 @@ object Strings {
     const val lobbyMakeAdmin = "Make Admin"
     const val lobbyAddFriend = "Add Friend"
     const val lobbyRemoveFriend = "Remove Friend"
+    const val lobbyRemoveFromRoom = "Remove from Room"
     const val lobbyMatchStarting = "Match starting"
     const val lobbyCancel = "Cancel"
+    const val lobbyConfirm = "Confirm"
+
+    fun lobbyConfirmMakeLeader(name: String) = "Make $name the leader?"
+    fun lobbyConfirmMakeLeaderBody(name: String) = "$name will pick the game and house rules. You will no longer be the leader."
+    fun lobbyConfirmMakeAdmin(name: String) = "Make $name the admin?"
+    fun lobbyConfirmMakeAdminBody(name: String) = "$name will manage who is in this room. You will no longer be the admin."
+    fun lobbyConfirmAddFriend(name: String) = "Add $name as a friend?"
+    const val lobbyConfirmAddFriendBody = "You will see when they are online."
+    fun lobbyConfirmRemoveFriend(name: String) = "Remove $name from friends?"
+    const val lobbyConfirmRemoveFriendBody = "They stay in this room."
+    fun lobbyConfirmRemoveFromRoom(name: String) = "Remove $name from this room?"
+    const val lobbyConfirmRemoveFromRoomBody = "They will need the room code or an invite to join again."
 
     const val micPermissionTitle = "Microphone access needed"
     const val micPermissionBody = "Allow YapNPlay to use your microphone so your friends can hear you. You can turn it on in Settings."
     const val micPermissionOpenSettings = "Open Settings"
 
-    fun roomInviteMessage(roomName: String, link: String) =
-        "Join my room \"$roomName\" on YapNPlay! Tap to join: $link"
+    fun roomInviteMessage(roomName: String, code: String, link: String) =
+        "Join my room \"$roomName\" on YapNPlay! Tap to join: $link\nOr enter room code $code in the app."
 
     fun lobbyPlayersOnline(online: Int, total: Int) = "$online/$total Online"
     fun lobbyPlayersReady(ready: Int, seats: Int) = "$ready/$seats PLAYERS READY"
@@ -140,6 +152,12 @@ object Strings {
 
     const val roomsJoinNotFound = "No room found with that code."
     const val roomsJoinYes = "Yes, join"
+    const val roomsKeypadTitle = "Enter room code"
+    const val roomsKeypadBackspace = "Delete"
+    const val roomsRequestSentTitle = "Request sent"
+    const val roomsRequestSentOk = "OK"
+    fun roomsRequestSentBody(roomName: String) =
+        "The admin of $roomName has to approve your request. You will get a notification once you are in."
     const val roomsJoinCancel = "Cancel"
 
     fun roomsJoinPromptTitle(roomName: String) = "Join $roomName?"
@@ -151,6 +169,15 @@ object Strings {
     fun roomMembers(count: Int) = if (count == 1) "1 member" else "$count members"
     fun roomLive(count: Int) = "$count live"
     const val topBarNotifications = "Notifications"
+    const val notificationsEmpty = "No notifications yet"
+
+    /** "Just now", "5m ago", "3h ago", "2d ago". */
+    fun timeAgo(minutes: Long): String = when {
+        minutes < 1 -> "Just now"
+        minutes < 60 -> "${minutes}m ago"
+        minutes < 60 * 24 -> "${minutes / 60}h ago"
+        else -> "${minutes / (60 * 24)}d ago"
+    }
     const val topBarSettings = "Settings"
     const val topBarProfile = "Profile"
     const val homePlayWithFriendsTitlePart1 = "PLAY WITH "

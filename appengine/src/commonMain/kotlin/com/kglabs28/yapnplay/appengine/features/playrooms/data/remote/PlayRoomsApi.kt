@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.playrooms.data.remote
 
 import com.kglabs28.yapnplay.appengine.protocol.MyRooms
+import com.kglabs28.yapnplay.appengine.protocol.JoinRoomResult
 import com.kglabs28.yapnplay.appengine.protocol.RoomPreview
 import com.kglabs28.yapnplay.appengine.protocol.RoomSummary
 
@@ -17,7 +18,8 @@ interface PlayRoomsApi {
 
     /**
      * Join by code. In production this is the WebSocket room-channel
-     * message `JoinRoom(code)`, answered by a `RoomSnapshot`.
+     * message `JoinRoom(code)`: a non-member gets PENDING_APPROVAL (the
+     * admin approves from the Waiting List), a member gets JOINED.
      */
-    suspend fun joinRoom(code: String): RoomSummary
+    suspend fun joinRoom(code: String): JoinRoomResult
 }

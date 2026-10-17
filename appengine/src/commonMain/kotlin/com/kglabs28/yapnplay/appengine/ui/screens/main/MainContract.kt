@@ -20,16 +20,34 @@ data class MainState(
     val coinBalance: String = "",
     val diamondBalance: String = "",
     val selectedTab: AppNavTab = AppNavTab.HOME,
+    /** Bell history, newest first (at most 10). */
+    val notifications: List<NotificationUi> = emptyList(),
+    val unreadNotifications: Int = 0,
+    val notificationsOpen: Boolean = false,
 ) : UiState
+
+/** One row of the bell's drop-down. */
+data class NotificationUi(
+    val id: String,
+    val roomId: String,
+    val title: String,
+    val body: String,
+    val timeLabel: String,
+    val unread: Boolean,
+)
 
 sealed interface MainIntent : UiIntent {
     data class SelectTab(val tab: AppNavTab) : MainIntent
     data object LoadProfile : MainIntent
     data object OpenSettings : MainIntent
-    data object OpenNotifications : MainIntent
+    /** Bell tapped: opens or closes the drop-down. */
+    data object ToggleNotifications : MainIntent
+    /** Drop-down closed by tapping outside or back. */
+    data object DismissNotifications : MainIntent
+    data class NotificationClicked(val roomId: String) : MainIntent
 }
 
 sealed interface MainEffect : UiEffect {
     data object OpenSettingsDialog : MainEffect
-    data object OpenNotificationsDialog : MainEffect
+    data class OpenRoom(val roomId: String) : MainEffect
 }

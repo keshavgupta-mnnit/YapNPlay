@@ -10,13 +10,15 @@ sealed interface DeepLink {
 }
 
 /**
- * Builds and reads the app links. Invite links are web links so WhatsApp
- * and others make them tappable: `https://<INVITE_HOST>/join/<code>`.
- * Notifications use the app scheme: `yapnplay://room/<roomId>`.
- * The Android manifest declares the same host and scheme.
+ * Builds and reads the app links. Shared invites are web links, which
+ * every chat app makes tappable: `https://<INVITE_HOST>/join/<code>`.
+ * Android opens the app directly once the host serves assetlinks.json
+ * (server side). `yapnplay://join/<code>` is read too.
+ * Notifications: `yapnplay://room/<roomId>`.
  */
 object DeepLinks {
 
+    /** The link put in share messages. */
     fun inviteUrl(code: String): String =
         "https://${AppConstants.INVITE_HOST}/$JOIN_PATH/$code"
 
@@ -26,7 +28,8 @@ object DeepLinks {
     /** null when [uri] is not one of our links. */
     fun parse(uri: String?): DeepLink? {
         if (uri.isNullOrBlank()) return null
-        val withoutScheme = uri.substringAfter("://", missingDelimiterValue = return null)
+        if (!uri.contains("://")) return null
+        val withoutScheme = uri.substringAfter("://")
         val parts = withoutScheme.split('/').filter { it.isNotBlank() }
         // https://host/join/<code>  → [host, join, code]
         // yapnplay://join/<code>    → [join, code]

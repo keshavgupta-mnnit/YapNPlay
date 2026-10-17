@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -30,6 +31,9 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
  */
 class BlockingOverlayState {
     var content: (@Composable () -> Unit)? by mutableStateOf(null)
+
+    /** Set for dismissable modals: tap outside or Back closes them. */
+    var onDismiss: (() -> Unit)? by mutableStateOf(null)
 }
 
 val LocalBlockingOverlay = staticCompositionLocalOf { BlockingOverlayState() }
@@ -40,6 +44,7 @@ val LocalBlockingOverlay = staticCompositionLocalOf { BlockingOverlayState() }
  * tabs, any screen — is blurred and darkened, every touch outside the
  * modal is swallowed, and system Back does nothing; the modal can only be
  * left through its own buttons. No screen has to disable its own controls.
+ * A dismissable modal also closes on a tap outside it or on Back.
  */
 @Composable
 fun BlockingOverlayHost(
@@ -48,6 +53,7 @@ fun BlockingOverlayHost(
 ) {
     val state = remember { BlockingOverlayState() }
     val modal = state.content
+    val onDismiss = state.onDismiss
     val colors = YapNPlayTheme.colors
     val blurRadius by animateDpAsState(
         targetValue = if (modal != null) YapNPlayTheme.dimens.backdropBlur else YapNPlayTheme.dimens.zero,
@@ -68,34 +74,56 @@ fun BlockingOverlayHost(
                                 listOf(colors.Background.copy(alpha = 0.6f), colors.Background.copy(alpha = 0.8f)),
                             ),
                         )
-                        // Swallow every touch so nothing behind can be used.
-                        .pointerInput(Unit) {
-                            awaitEachGesture { awaitFirstDown(requireUnconsumed = false).consume() }
+                        // Swallow every touch so nothing behind can be used; a tap
+                        // that the modal did not take dismisses it (if allowed).
+                        .pointerInput(onDismiss) {
+                            awaitEachGesture {
+                                val down = awaitFirstDown(requireUnconsumed = false)
+                                val outside = !down.isConsumed
+                                down.consume()
+                                val up = waitForUpOrCancellation()
+                                if (outside && up != null) onDismiss?.invoke()
+                            }
                         },
                     contentAlignment = Alignment.Center,
                 ) {
-                    modal()
+                    // Marks touches inside the modal so the scrim ignores them.
+                    Box(
+                        modifier = Modifier.pointerInput(Unit) {
+                            awaitEachGesture { awaitFirstDown(requireUnconsumed = false).consume() }
+                        },
+                    ) {
+                        modal()
+                    }
                 }
             }
         }
-        BlockBackPress(enabled = modal != null)
+        BlockBackPress(enabled = modal != null, onBack = { onDismiss?.invoke() })
     }
 }
 
 /**
  * Shows [content] as the app's blocking modal while [visible]: centred,
- * over a frosted cover of the whole app, not dismissable by tapping
- * outside or by Back. [content] stays live (recomposes with the caller).
+ * over a frosted cover of the whole app. With [onDismiss], a tap outside
+ * or Back calls it; without, the modal only closes through its buttons.
+ * [content] stays live (recomposes with the caller).
  */
 @Composable
 fun BlockingOverlay(
     visible: Boolean,
+    onDismiss: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     val host = LocalBlockingOverlay.current
     val latest by rememberUpdatedState(content)
+    val latestDismiss by rememberUpdatedState(onDismiss)
+    val dismissable = onDismiss != null
     DisposableEffect(visible, host) {
         if (visible) host.content = { latest() }
         onDispose { if (visible) host.content = null }
+    }
+    DisposableEffect(visible, dismissable, host) {
+        if (visible) host.onDismiss = if (dismissable) ({ latestDismiss?.invoke() }) else null
+        onDispose { if (visible) host.onDismiss = null }
     }
 }

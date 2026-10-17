@@ -61,6 +61,7 @@ class LobbyRealtimeClientImpl(
         //     is LobbyCommand.TransferLeader -> realtime.request(Channel.ROOM, MessageType.TRANSFER_LEADER, TransferLeader(command.userId))
         //     is LobbyCommand.TransferAdmin -> realtime.request(Channel.ROOM, MessageType.TRANSFER_ADMIN, TransferAdmin(command.userId))
         //     is LobbyCommand.SetFriend -> if (command.friend) http.post("/friends/${command.userId}") else http.delete("/friends/${command.userId}")
+        //     is LobbyCommand.RemoveMember -> realtime.request(Channel.ROOM, MessageType.REMOVE_MEMBER, RemoveMember(command.userId))
         //     LobbyCommand.ExitLobby -> realtime.request(Channel.ROOM, MessageType.EXIT_LOBBY, ExitLobby)
         //     LobbyCommand.LeaveRoom -> realtime.request(Channel.ROOM, MessageType.LEAVE_ROOM, LeaveRoom)
         // }

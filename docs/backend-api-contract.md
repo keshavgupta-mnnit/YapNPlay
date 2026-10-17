@@ -51,6 +51,8 @@ progression fields, `RoomSummary.isLeader` + `icon`, `Friends`,
 | `PATCH /me` | `UpdateName(displayName)` | `Me` | Trim, 1–24 chars, no control chars, duplicates allowed. |
 | `GET /rooms/mine` | — | `MyRooms(rooms: [RoomSummary])` | Rooms the user belongs to. |
 | `POST /rooms/{roomId}/voice-token` | — | `VoiceToken(url, token, expiresAt)` | Members only (`NOT_MEMBER`); LiveKit, 10-minute TTL. |
+| `GET /rooms/preview/{code}` | — | `RoomPreview(roomId, code, name, description?, memberCount, onlineCount, isMember)` | Before joining: "Join this room?". `isMember` from the connection's user; the app opens the room directly when true. `NOT_FOUND` / `INVALID_CODE`. |
+| `POST /devices` | `RegisterDevice(token, platform)` | — | FCM token for pushes; upsert per user+token, re-sent when the token changes. |
 | `GET /stats/online` | — | `OnlineStats(online)` | Connected users right now (Game Zone pill). |
 | `GET /friends` | — | `Friends(friends: [FriendSummary])` | **Provisional**, post-POC friends; online first. |
 | `GET /health` | — | `{status, contractVersion}` | No auth. |
@@ -106,8 +108,8 @@ or disabled game), **`SetBotFill(enabled)`** (leader only), `SetReady(ready)`,
 
 Lobby messages (all ROOM channel): `SetHouseRule(key, enabled)` and
 `SelectGame(null)` ("Change game") are leader-only (`NOT_LEADER`);
-`TransferLeader(userId)` leader-only, `TransferAdmin(userId)` admin-only
-(`NOT_ADMIN`); `SetWatching(watching)` and `SetVoiceState(micOn,
+`TransferLeader(userId)` leader-only, `TransferAdmin(userId)` and
+`RemoveMember(userId)` admin-only (`NOT_ADMIN`); `SetWatching(watching)` and `SetVoiceState(micOn,
 speakerOn)` for yourself. `RoomInfo` carries `adminId`, `description`,
 `houseRules` (key → on/off, defaults from the game's `houseRuleOptions`,
 reset on every game change together with everyone's ready/watching);
@@ -223,6 +225,29 @@ server). The descriptor gives everything matchmaking and rooms need:
 A game can be switched off without a release through a remote flag
 (`royal_ludo_enabled`, or `game_enabled_<id>` for others); the server
 must honour the same switch (`GAME_UNAVAILABLE`).
+
+## Invite links and pushes
+
+- **Invite link (shared text):** `https://kglabs28-yapnplay.web.app/join/<code>`,
+  The app side is done (manifest filter with autoVerify). Server side
+  (not in this repo): the host must serve `/.well-known/assetlinks.json`
+  for package `com.kglabs28.yapnplay` with the signing SHA-256s (debug
+  `7C:9E:BF:37:FA:FD:C7:2F:91:11:EE:09:DF:B2:10:BE:15:F0:F3:C6:57:BC:6E:A1:C2:14:B0:01:61:D2:F9:00`,
+  plus the release key), and a `/join/<code>` page for people without
+  the app. Until that file is served, Android opens these links in the
+  browser. Changing the host: INVITE_HOST and the manifest placeholder.
+- **Opening an invite:** the app calls `GET /rooms/preview/{code}`;
+  member → room lobby, otherwise "Join <room name>?" → `JoinRoom(code)`.
+- **Join requests:** `JoinRoom(code)` from a non-member answers
+  `JoinRoomResult(PENDING_APPROVAL, roomName)` and puts the request in
+  the admin's Waiting List; a member gets `JoinRoomResult(JOINED, roomName,
+  room)`. On approval the requester is added and gets a push.
+- **Room activity push** (FCM data message): when a member comes online
+  in a room, push to the room's other members who are not present:
+  `type=room_activity, roomId, roomName, title="<name> entered <room>",
+  body="<N> players are in <room>"`. One notification per room
+  (replaced); throttle per user+room (e.g. once per 5 minutes) and
+  aggregate several arrivals. Tap → `yapnplay://room/<roomId>` → lobby.
 
 ## Error codes
 

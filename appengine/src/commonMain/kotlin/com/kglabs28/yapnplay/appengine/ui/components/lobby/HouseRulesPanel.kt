@@ -1,6 +1,9 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,7 +25,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.OnOffSwitch
-import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
+import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.SectionHeader
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.HouseRuleUi
 
@@ -38,6 +41,9 @@ fun HouseRulesPanel(
     onToggle: (String) -> Unit,
     onShowRuleSheet: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Rule whose description is sliding (tapped); null = none. */
+    slidingRuleKey: String? = null,
+    onSlideRule: (String) -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -51,19 +57,12 @@ fun HouseRulesPanel(
         SectionHeader(
             icon = Icons.Rounded.Settings,
             title = Strings.lobbyHouseRules,
-            subtitle = Strings.lobbyHouseRulesSubtitle,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            PillButton(
+            GlassPillButton(
                 text = Strings.lobbyRuleSheet,
                 onClick = onShowRuleSheet,
-                gradient = listOf(colors.RoomsSmallButton, colors.RoomsSmallButton),
-                contentColor = colors.TextPrimary,
-                height = dimens.smallButtonHeight,
                 leadingIcon = Icons.Rounded.Gavel,
-                trailingIcon = null,
-                iconSize = dimens.iconSmall,
-                textStyle = YapNPlayTheme.typography.sectionTitle,
             )
         }
         LazyColumn(
@@ -73,7 +72,13 @@ fun HouseRulesPanel(
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
             items(rules, key = { it.key }) { rule ->
-                HouseRuleRow(rule = rule, editable = editable, onToggle = { onToggle(rule.key) })
+                HouseRuleRow(
+                    rule = rule,
+                    editable = editable,
+                    onToggle = { onToggle(rule.key) },
+                    sliding = rule.key == slidingRuleKey,
+                    onSlide = { onSlideRule(rule.key) },
+                )
             }
         }
     }
@@ -84,6 +89,8 @@ private fun HouseRuleRow(
     rule: HouseRuleUi,
     editable: Boolean,
     onToggle: () -> Unit,
+    sliding: Boolean,
+    onSlide: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
@@ -100,7 +107,16 @@ private fun HouseRuleRow(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             BasicText(text = rule.title, style = typography.itemTitle.copy(color = colors.TextPrimary), maxLines = 1)
-            BasicText(text = rule.description, style = typography.micro.copy(color = colors.TextSecondary), maxLines = 1)
+            // Tap a long description to slide it; the lobby stops it on any
+            // other touch.
+            BasicText(
+                text = rule.description,
+                style = typography.micro.copy(color = colors.TextSecondary),
+                maxLines = 1,
+                modifier = Modifier
+                    .then(if (sliding) Modifier.basicMarquee(iterations = Int.MAX_VALUE, initialDelayMillis = 0) else Modifier)
+                    .pointerInput(onSlide) { detectTapGestures { onSlide() } },
+            )
         }
         OnOffSwitch(on = rule.enabled, onToggle = onToggle, enabled = editable)
     }

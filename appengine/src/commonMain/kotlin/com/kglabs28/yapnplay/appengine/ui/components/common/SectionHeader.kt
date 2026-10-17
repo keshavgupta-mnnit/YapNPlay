@@ -13,14 +13,14 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
 /**
- * Panel heading: plain icon, title and subtitle on the left, optional
+ * Panel heading: plain icon, title and optional subtitle on the left, optional
  * actions (See all, arrows) on the right.
  */
 @Composable
 fun SectionHeader(
     icon: ImageVector,
     title: String,
-    subtitle: String,
+    subtitle: String? = null,
     modifier: Modifier = Modifier,
     actions: @Composable () -> Unit = {},
 ) {
@@ -43,12 +43,14 @@ fun SectionHeader(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            BasicText(
-                text = subtitle,
-                style = typography.micro.copy(color = colors.TextSecondary),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            subtitle?.let {
+                BasicText(
+                    text = it,
+                    style = typography.micro.copy(color = colors.TextSecondary),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
         actions()
     }

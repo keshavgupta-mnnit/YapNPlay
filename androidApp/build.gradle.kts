@@ -16,6 +16,9 @@ android {
         versionCode = 1
         versionName = "1.0.0-phase7"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Must match AppConstants.INVITE_HOST / APP_SCHEME (invite + room links).
+        manifestPlaceholders["inviteHost"] = "kglabs28-yapnplay.web.app"
+        manifestPlaceholders["appScheme"] = "yapnplay"
     }
 
     buildTypes {
@@ -54,6 +57,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.config)
     implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.messaging)
 }
 
 // Robolectric resolves the manifest through the debug manifest merge

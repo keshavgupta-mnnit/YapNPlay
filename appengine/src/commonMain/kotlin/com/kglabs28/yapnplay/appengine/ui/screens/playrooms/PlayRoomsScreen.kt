@@ -7,6 +7,17 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
+import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
+import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import androidx.compose.material.icons.rounded.HourglassTop
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.pointerInput
+import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
+import com.kglabs28.yapnplay.appengine.ui.components.playrooms.RoomCodeKeypad
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -51,8 +62,20 @@ fun PlayRoomsScreen(
         }
     }
 
+    // Keypad open: a tap anywhere outside the code card and keypad (or
+    // Back) hides it and brings rooms + friends back.
+    val keypadOpen = state.keypadOpen
+    BlockBackPress(enabled = keypadOpen, onBack = { viewModel?.onIntent(PlayRoomsIntent.CloseKeypad) })
     Row(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .pointerInput(keypadOpen) {
+                if (!keypadOpen) return@pointerInput
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    if (!down.isConsumed) viewModel?.onIntent(PlayRoomsIntent.CloseKeypad)
+                }
+            },
         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
     ) {
         Column(
@@ -71,14 +94,28 @@ fun PlayRoomsScreen(
                 code = state.roomCode,
                 isJoining = state.isJoining,
                 errorMessage = state.joinError,
-                onCodeChange = { viewModel?.onIntent(PlayRoomsIntent.RoomCodeChanged(it)) },
+                keypadOpen = state.keypadOpen,
+                onOpenKeypad = { viewModel?.onIntent(PlayRoomsIntent.OpenKeypad) },
                 onJoin = { viewModel?.onIntent(PlayRoomsIntent.JoinRoom) },
                 modifier = Modifier
                     .weight(AppConstants.ROOMS_JOIN_CARD_WEIGHT)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .keepsKeypadOpen(),
             )
         }
-        Column(
+        if (state.keypadOpen) {
+            RoomCodeKeypad(
+                onDigit = { viewModel?.onIntent(PlayRoomsIntent.KeypadDigit(it)) },
+                onBackspace = { viewModel?.onIntent(PlayRoomsIntent.KeypadBackspace) },
+                onJoin = { viewModel?.onIntent(PlayRoomsIntent.JoinRoom) },
+                onClose = { viewModel?.onIntent(PlayRoomsIntent.CloseKeypad) },
+                joinEnabled = state.roomCode.length == AppConstants.ROOM_CODE_LENGTH && !state.isJoining,
+                modifier = Modifier
+                    .weight(AppConstants.ROOMS_RIGHT_COLUMN_WEIGHT)
+                    .fillMaxHeight()
+                    .keepsKeypadOpen(),
+            )
+        } else Column(
             modifier = Modifier
                 .weight(AppConstants.ROOMS_RIGHT_COLUMN_WEIGHT)
                 .fillMaxHeight(),
@@ -103,6 +140,28 @@ fun PlayRoomsScreen(
         }
     }
 
+    val requestSent = state.requestSent
+    BlockingOverlay(
+        visible = requestSent != null,
+        onDismiss = { viewModel?.onIntent(PlayRoomsIntent.DismissRequestSent) },
+    ) {
+        if (requestSent != null) {
+            ModalCard(
+                title = requestSent.title,
+                subtitle = requestSent.body,
+                onClose = { viewModel?.onIntent(PlayRoomsIntent.DismissRequestSent) },
+                actions = {
+                    GlassPillButton(
+                        text = Strings.roomsRequestSentOk,
+                        onClick = { viewModel?.onIntent(PlayRoomsIntent.DismissRequestSent) },
+                        leadingIcon = Icons.Rounded.HourglassTop,
+                        height = YapNPlayTheme.dimens.ctaHeight,
+                    )
+                },
+            )
+        }
+    }
+
     val prompt = state.joinPrompt
     BlockingOverlay(visible = prompt != null) {
         if (prompt != null) {
@@ -115,4 +174,9 @@ fun PlayRoomsScreen(
             )
         }
     }
+}
+
+/** Touches here don't count as "outside", so the keypad stays open. */
+private fun Modifier.keepsKeypadOpen(): Modifier = pointerInput(Unit) {
+    awaitEachGesture { awaitFirstDown(requireUnconsumed = false).consume() }
 }

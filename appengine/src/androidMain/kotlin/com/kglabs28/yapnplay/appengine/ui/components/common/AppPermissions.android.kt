@@ -57,14 +57,25 @@ actual fun rememberPermissionRequester(permission: AppPermission): PermissionReq
     }
 }
 
+/**
+ * First launch only: asks for every permission not yet granted, then
+ * remembers (on this device) that it asked, so later launches never show
+ * it again. The mic is asked for again only when the user turns it on.
+ */
 @Composable
 actual fun RequestStartupPermissions() {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { }
     LaunchedEffect(Unit) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        if (prefs.getBoolean(KEY_STARTUP_ASKED, false)) return@LaunchedEffect
+        prefs.edit().putBoolean(KEY_STARTUP_ASKED, true).apply()
         val missing = AppPermission.entries
             .filterNot { context.isGranted(it) }
             .mapNotNull { it.manifestName() }
         if (missing.isNotEmpty()) launcher.launch(missing.toTypedArray())
     }
 }
+
+private const val PREFS_NAME = "yapnplay_permissions"
+private const val KEY_STARTUP_ASKED = "startup_permissions_asked"

@@ -5,6 +5,7 @@ import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.domain.GameCatalogItem
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.MemberMenuOption
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
 import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
 
 /**
@@ -17,6 +18,8 @@ data class PlayRoomLobbyState(
     val loaded: Boolean = false,
     val roomName: String = "",
     val roomDescription: String = "",
+    /** The room's own badge, same as in the rooms list. */
+    val roomIcon: PlayRoomIcon = PlayRoomIcon.GROUP,
     val isLeader: Boolean = false,
     val isAdmin: Boolean = false,
     val members: List<LobbyMemberUi> = emptyList(),
@@ -43,8 +46,8 @@ data class LobbyMemberUi(
     val isLeader: Boolean,
     val isAdmin: Boolean,
     val talking: Boolean,
-    /** "Mic off" etc. when not talking; null shows nothing. */
-    val voiceLabel: String?,
+    /** Small crossed mic on the card when their mic is off. */
+    val micOff: Boolean,
     val status: LobbyMemberStatus,
 )
 
@@ -69,6 +72,8 @@ data class LobbyPrimaryButtonUi(
 
 sealed interface LobbyModal {
     data class MemberMenu(val userId: String, val name: String, val options: List<MemberMenuOption>) : LobbyModal
+    /** "Make Neha the leader?" before any member operation is sent. */
+    data class ConfirmMemberAction(val userId: String, val name: String, val option: MemberMenuOption) : LobbyModal
     data object RuleSheet : LobbyModal
     data object LeaveConfirm : LobbyModal
     data class Countdown(val title: String, val canCancel: Boolean) : LobbyModal
@@ -91,7 +96,10 @@ sealed interface PlayRoomLobbyIntent : UiIntent {
     data object OpenAppSettings : PlayRoomLobbyIntent
     data object ToggleSpeaker : PlayRoomLobbyIntent
     data class MemberClicked(val userId: String) : PlayRoomLobbyIntent
+    /** Opens the confirmation for [option]; nothing is sent yet. */
     data class MenuOptionChosen(val userId: String, val option: MemberMenuOption) : PlayRoomLobbyIntent
+    /** Confirmed: sends the pending member operation. */
+    data object ConfirmMemberAction : PlayRoomLobbyIntent
     data object ShowRuleSheet : PlayRoomLobbyIntent
     data object LeaveClicked : PlayRoomLobbyIntent
     data object ConfirmLeave : PlayRoomLobbyIntent

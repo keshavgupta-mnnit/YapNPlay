@@ -89,6 +89,15 @@ class YapNPlayTypography {
             lineHeight = 13.scaledSp,
         )
 
+    /** The lobby START MATCH label. */
+    val startLabel: TextStyle
+        get() = TextStyle(
+            fontFamily = HeadlineFontFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.scaledSp,
+            lineHeight = 22.scaledSp,
+        )
+
     /** Pill button labels: QUICK PLAY, JOIN, Create Room. */
     val button: TextStyle
         get() = TextStyle(

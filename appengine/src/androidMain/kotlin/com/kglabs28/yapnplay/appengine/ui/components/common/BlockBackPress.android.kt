@@ -4,8 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 
 @Composable
-actual fun BlockBackPress(enabled: Boolean) {
-    BackHandler(enabled = enabled) {
-        // Intentionally empty: Back is blocked while a blocking overlay shows.
-    }
+actual fun BlockBackPress(enabled: Boolean, onBack: () -> Unit) {
+    // Back never reaches the screen behind a blocking overlay.
+    BackHandler(enabled = enabled, onBack = onBack)
 }

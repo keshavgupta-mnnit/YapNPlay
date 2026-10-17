@@ -46,12 +46,7 @@ fun PlayRoomListItem(
     val typography = YapNPlayTheme.typography
     val shape = RoundedCornerShape(dimens.rowRadius)
 
-    val (badgeIcon, badgeColor) = when (room.icon) {
-        PlayRoomIcon.GROUP -> Icons.Rounded.Groups to colors.RoomIconPurple
-        PlayRoomIcon.DICE -> Icons.Rounded.Casino to colors.RoomIconBlue
-        PlayRoomIcon.FAMILY -> Icons.Rounded.FamilyRestroom to colors.RoomIconSlate
-        PlayRoomIcon.GAMEPAD -> Icons.Rounded.SportsEsports to colors.RoomIconViolet
-    }
+    val (badgeIcon, badgeColor) = room.icon.badge()
 
     Row(
         modifier = modifier

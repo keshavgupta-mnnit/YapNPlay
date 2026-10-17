@@ -74,8 +74,12 @@ class PlayRoomLobbyViewModel(
             PlayRoomLobbyIntent.ToggleSpeaker -> me()?.let { send(LobbyCommand.SetVoiceState(it.micOn, !it.speakerOn)) }
             is PlayRoomLobbyIntent.MemberClicked -> openMemberMenu(intent.userId)
             is PlayRoomLobbyIntent.MenuOptionChosen -> {
+                val name = data?.room?.members?.firstOrNull { it.userId == intent.userId }?.name.orEmpty()
+                showModal(LobbyModal.ConfirmMemberAction(intent.userId, name, intent.option))
+            }
+            PlayRoomLobbyIntent.ConfirmMemberAction -> (userModal as? LobbyModal.ConfirmMemberAction)?.let {
                 showModal(null)
-                send(intent.option.toCommand(intent.userId))
+                send(it.option.toCommand(it.userId))
             }
             PlayRoomLobbyIntent.ShowRuleSheet -> showModal(LobbyModal.RuleSheet)
             PlayRoomLobbyIntent.LeaveClicked -> showModal(LobbyModal.LeaveConfirm)
@@ -91,7 +95,7 @@ class PlayRoomLobbyViewModel(
                 emitEffect(PlayRoomLobbyEffect.Close)
             }
             PlayRoomLobbyIntent.ShareLink -> data?.room?.let {
-                emitEffect(PlayRoomLobbyEffect.ShareText(Strings.roomInviteMessage(it.name, DeepLinks.inviteUrl(it.code))))
+                emitEffect(PlayRoomLobbyEffect.ShareText(Strings.roomInviteMessage(it.name, it.code, DeepLinks.inviteUrl(it.code))))
             }
             // Screens for these arrive later.
             PlayRoomLobbyIntent.OpenWaitingList,
@@ -173,6 +177,7 @@ class PlayRoomLobbyViewModel(
                 loaded = true,
                 roomName = room.name,
                 roomDescription = room.description,
+                roomIcon = room.icon,
                 isLeader = me?.isLeader == true,
                 isAdmin = me?.isAdmin == true,
                 members = LobbyRules.sortMembers(room.members, d.myUserId).map { it.toUi(d) },
@@ -200,13 +205,7 @@ class PlayRoomLobbyViewModel(
             isLeader = isLeader,
             isAdmin = isAdmin,
             talking = talking,
-            voiceLabel = when {
-                !online || talking -> null
-                !micOn && !speakerOn -> Strings.lobbyMicSpeakerOff
-                !micOn -> Strings.lobbyMicOff
-                !speakerOn -> Strings.lobbySpeakerOff
-                else -> null
-            },
+            micOff = online && !micOn,
             status = when {
                 !online -> LobbyMemberStatus.OFFLINE
                 d.selectedGame == null -> LobbyMemberStatus.NONE
@@ -275,6 +274,7 @@ class PlayRoomLobbyViewModel(
         MemberMenuOption.MAKE_ADMIN -> LobbyCommand.TransferAdmin(userId)
         MemberMenuOption.ADD_FRIEND -> LobbyCommand.SetFriend(userId, true)
         MemberMenuOption.REMOVE_FRIEND -> LobbyCommand.SetFriend(userId, false)
+        MemberMenuOption.REMOVE_FROM_ROOM -> LobbyCommand.RemoveMember(userId)
     }
 
     private companion object {

@@ -17,6 +17,8 @@ sealed interface LobbyCommand {
     data class TransferLeader(val userId: String) : LobbyCommand
     data class TransferAdmin(val userId: String) : LobbyCommand
     data class SetFriend(val userId: String, val friend: Boolean) : LobbyCommand
+    /** Admin: take [userId] out of the room. */
+    data class RemoveMember(val userId: String) : LobbyCommand
     /** Back arrow: stop being present, stay a member. */
     data object ExitLobby : LobbyCommand
     /** Leave room: give up membership. */

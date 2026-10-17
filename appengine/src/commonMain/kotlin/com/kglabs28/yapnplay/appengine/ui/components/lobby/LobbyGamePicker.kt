@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,7 +18,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.domain.GameCatalogItem
-import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
+import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.games.GameCarousel
 import com.kglabs28.yapnplay.appengine.ui.components.games.GameGrid
 import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
@@ -25,8 +26,9 @@ import com.kglabs28.yapnplay.appengine.ui.components.gamezone.ViewModeToggle
 
 /**
  * Lobby phase 1 — choosing a game: the same carousel/grid as the Game
- * Zone, sized to the lobby space. The leader gets SELECT GAME (and a grid
- * tap selects too); everyone else sees that the leader is choosing.
+ * Zone, sized to the lobby space. The leader gets SELECT GAME under the
+ * carousel; in the grid a tile tap selects. Everyone else sees that the
+ * leader is choosing.
  */
 @Composable
 fun LobbyGamePicker(
@@ -70,19 +72,27 @@ fun LobbyGamePicker(
             ViewModeToggle(
                 isGrid = viewMode == GamePickerViewMode.GRID,
                 onToggle = onToggleViewMode,
+                // Part of the game area, so game-gold like Change Game.
+                accent = YapNPlayTheme.colors.StartButtonGlow,
+                contentColor = YapNPlayTheme.colors.StartButtonSub,
                 modifier = Modifier.align(Alignment.TopEnd),
             )
         }
-        if (canSelect) {
-            PillButton(
+        if (canSelect && viewMode == GamePickerViewMode.CAROUSEL) {
+            // Same tinted glass as Grid View / Change Game, in green.
+            GlassPillButton(
                 text = Strings.lobbySelectGame,
                 onClick = { onSelect(focusedIndex) },
-                gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),
-                contentColor = colors.CtaGreenContent,
                 leadingIcon = Icons.Rounded.CheckCircle,
+                trailingIcon = Icons.Rounded.ChevronRight,
+                accent = colors.ReadyGreen,
+                contentColor = colors.ReadyGreen,
+                height = YapNPlayTheme.dimens.ctaHeight,
+                iconSize = YapNPlayTheme.dimens.iconMedium,
+                textStyle = YapNPlayTheme.typography.button,
                 modifier = Modifier.fillMaxWidth(AppConstants.LOBBY_SELECT_WIDTH_FRACTION),
             )
-        } else {
+        } else if (!canSelect) {
             BasicText(
                 text = Strings.lobbyLeaderChoosing,
                 style = YapNPlayTheme.typography.label.copy(color = colors.TextSecondary),

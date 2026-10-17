@@ -10,6 +10,19 @@ object AppConstants {
     /** Length of a room join code. */
     const val ROOM_CODE_LENGTH = 6
 
+    /** Lobby game stage: specks drift up the beam / art floats up and down. */
+    const val STAGE_PARTICLE_CYCLE_MS = 6_000
+    const val STAGE_BOB_CYCLE_MS = 2_400
+
+    /** Room-code caret blink (half period). */
+    const val CARET_BLINK_MS = 500
+
+    /** Notifications kept in the top bar bell's history. */
+    const val NOTIFICATION_HISTORY_MAX = 10
+
+    /** Unread badge shows "9+" above this. */
+    const val NOTIFICATION_BADGE_MAX = 9
+
     /** Maximum display-name length. */
     const val MAX_NAME_LENGTH = 24
 
@@ -38,7 +51,7 @@ object AppConstants {
      * the server must host /.well-known/assetlinks.json on this domain so
      * Android opens the app instead of the browser (App Links).
      */
-    const val INVITE_HOST = "yapnplay.app"
+    const val INVITE_HOST = "kglabs28-yapnplay.web.app"
 
     /** App-only links (notification taps): yapnplay://room/<roomId>. Matches `appScheme`. */
     const val APP_SCHEME = "yapnplay"
@@ -106,18 +119,14 @@ object AppConstants {
     const val SEARCH_TICK_MS = 1_000L
 
     /** Lobby columns: member list | game | house rules (weights). */
-    const val LOBBY_MEMBERS_WEIGHT = 0.3f
-    const val LOBBY_GAME_WEIGHT = 0.42f
-    const val LOBBY_RULES_WEIGHT = 0.28f
+    const val LOBBY_MEMBERS_WEIGHT = 0.34f
+    const val LOBBY_GAME_WEIGHT = 0.36f
+    const val LOBBY_RULES_WEIGHT = 0.34f
 
     /** Lobby phase 1: SELECT GAME width as a share of the picker. */
     const val LOBBY_SELECT_WIDTH_FRACTION = 0.5f
 
-    /** Lobby bottom bar: the Start/Ready button share of the width. */
-    const val LOBBY_PRIMARY_WEIGHT = 0.3f
-
-    /** Bars in the "talking" wave next to a member name. */
-    const val VOICE_WAVE_BARS = 12
+    /** START/READY sits under the member list, 10% shorter on each side. */
 
     /** Wave animation cycle while someone talks. */
     const val VOICE_WAVE_CYCLE_MS = 700

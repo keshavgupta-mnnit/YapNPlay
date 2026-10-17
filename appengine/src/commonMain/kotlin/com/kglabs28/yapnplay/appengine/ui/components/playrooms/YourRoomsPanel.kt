@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,7 +20,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
-import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
+import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.SectionHeader
 
 /**
@@ -52,13 +53,10 @@ fun YourRoomsPanel(
             subtitle = Strings.roomsYourRoomsSubtitle,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            PillButton(
+            GlassPillButton(
                 text = Strings.roomsSeeAll,
                 onClick = onSeeAll,
-                gradient = listOf(colors.RoomsSmallButton, colors.RoomsSmallButton),
-                contentColor = colors.TextPrimary,
-                height = dimens.smallButtonHeight,
-                textStyle = YapNPlayTheme.typography.sectionTitle,
+                trailingIcon = Icons.Rounded.ChevronRight,
             )
         }
         Box(

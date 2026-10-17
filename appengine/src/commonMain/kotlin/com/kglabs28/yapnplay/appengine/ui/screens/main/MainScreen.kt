@@ -38,6 +38,8 @@ fun MainScreen(
     onOpenRoom: (String) -> Unit,
     onCreateRoom: () -> Unit,
     modifier: Modifier = Modifier,
+    pendingInviteCode: String? = null,
+    onInviteConsumed: () -> Unit = {},
     viewModel: MainViewModel? = null,
     gameZoneViewModel: GameZoneViewModel? = null,
     playRoomsViewModel: PlayRoomsViewModel? = null,
@@ -45,6 +47,18 @@ fun MainScreen(
     val state = viewModel?.state?.collectAsState()?.value ?: MainState()
     LaunchedEffect(viewModel) {
         viewModel?.onIntent(MainIntent.LoadProfile)
+    }
+    LaunchedEffect(viewModel) {
+        viewModel?.effects?.collect { effect ->
+            when (effect) {
+                is MainEffect.OpenRoom -> onOpenRoom(effect.roomId)
+                MainEffect.OpenSettingsDialog -> Unit
+            }
+        }
+    }
+    // An invite link was opened: show the Rooms tab, which asks to join.
+    LaunchedEffect(pendingInviteCode) {
+        if (pendingInviteCode != null) viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
     }
 
     CozyHomeBackground(
@@ -70,8 +84,17 @@ fun MainScreen(
                 onOpenSettings = {
                     viewModel?.onIntent(MainIntent.OpenSettings)
                 },
-                onOpenNotifications = {
-                    viewModel?.onIntent(MainIntent.OpenNotifications)
+                onToggleNotifications = {
+                    viewModel?.onIntent(MainIntent.ToggleNotifications)
+                },
+                notifications = state.notifications,
+                unreadNotifications = state.unreadNotifications,
+                notificationsOpen = state.notificationsOpen,
+                onDismissNotifications = {
+                    viewModel?.onIntent(MainIntent.DismissNotifications)
+                },
+                onNotificationClick = { roomId ->
+                    viewModel?.onIntent(MainIntent.NotificationClicked(roomId))
                 },
             )
 
@@ -90,15 +113,15 @@ fun MainScreen(
                         modifier = Modifier.fillMaxSize(),
                         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
                     ) {
-                        EnterGameZoneCard(
-                            onEnterGameZone = {
-                                viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.GAMES))
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
                         PlayWithFriendsCard(
                             onPlayWithFriends = {
                                 viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                        EnterGameZoneCard(
+                            onEnterGameZone = {
+                                viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.GAMES))
                             },
                             modifier = Modifier.weight(1f),
                         )
@@ -111,6 +134,8 @@ fun MainScreen(
                         onOpenRoom = onOpenRoom,
                         onCreateRoom = onCreateRoom,
                         viewModel = playRoomsViewModel,
+                        inviteCode = pendingInviteCode,
+                        onInviteConsumed = onInviteConsumed,
                     )
                 }
             }

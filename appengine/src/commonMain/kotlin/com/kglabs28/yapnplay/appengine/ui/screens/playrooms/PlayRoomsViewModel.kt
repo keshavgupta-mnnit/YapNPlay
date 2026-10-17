@@ -6,6 +6,7 @@ import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.common.TextUtils
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.JoinOutcome
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.GetPlayRoomsScreenDataUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.JoinPlayRoomByCodeUseCase
@@ -31,7 +32,17 @@ class PlayRoomsViewModel(
                     joinError = null,
                 )
             }
-            PlayRoomsIntent.JoinRoom -> preview(state.value.roomCode)
+            PlayRoomsIntent.JoinRoom -> {
+                setState { copy(keypadOpen = false) }
+                preview(state.value.roomCode)
+            }
+            PlayRoomsIntent.OpenKeypad -> setState { copy(keypadOpen = true) }
+            PlayRoomsIntent.CloseKeypad -> setState { copy(keypadOpen = false) }
+            PlayRoomsIntent.DismissRequestSent -> setState { copy(requestSent = null) }
+            is PlayRoomsIntent.KeypadDigit -> setState {
+                copy(roomCode = TextUtils.roomCode(roomCode + intent.digit, AppConstants.ROOM_CODE_LENGTH), joinError = null)
+            }
+            PlayRoomsIntent.KeypadBackspace -> setState { copy(roomCode = roomCode.dropLast(1), joinError = null) }
             is PlayRoomsIntent.PreviewInvite -> {
                 val code = TextUtils.roomCode(intent.code, AppConstants.ROOM_CODE_LENGTH)
                 setState { copy(roomCode = code, joinError = null) }
@@ -69,6 +80,12 @@ class PlayRoomsViewModel(
         when (val result = previewPlayRoom(code)) {
             is AppResult.Success -> {
                 val room = result.data
+                // Already a member (rooms may not be loaded yet on a cold start).
+                if (room.isMember) {
+                    setState { copy(isJoining = false, roomCode = "") }
+                    emitEffect(PlayRoomsEffect.OpenRoom(room.roomId))
+                    return
+                }
                 setState {
                     copy(
                         isJoining = false,
@@ -89,16 +106,28 @@ class PlayRoomsViewModel(
         if (state.value.isJoining) return
         setState { copy(isJoining = true, joinError = null) }
         when (val result = joinPlayRoomByCode(code, state.value.rooms)) {
-            is AppResult.Success -> {
-                val room = result.data
-                setState {
+            is AppResult.Success -> when (val outcome = result.data) {
+                is JoinOutcome.Joined -> {
+                    val room = outcome.room
+                    setState {
+                        copy(
+                            rooms = listOf(room) + rooms.filterNot { it.id == room.id },
+                            roomCode = "",
+                            isJoining = false,
+                        )
+                    }
+                    emitEffect(PlayRoomsEffect.OpenRoom(room.id))
+                }
+                is JoinOutcome.PendingApproval -> setState {
                     copy(
-                        rooms = listOf(room) + rooms.filterNot { it.id == room.id },
                         roomCode = "",
                         isJoining = false,
+                        requestSent = RequestSentUi(
+                            title = Strings.roomsRequestSentTitle,
+                            body = Strings.roomsRequestSentBody(outcome.roomName),
+                        ),
                     )
                 }
-                emitEffect(PlayRoomsEffect.OpenRoom(room.id))
             }
             is AppResult.Failure -> setState { copy(isJoining = false, joinError = errorMessage(result.error)) }
         }

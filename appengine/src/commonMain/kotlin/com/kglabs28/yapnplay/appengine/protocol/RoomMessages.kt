@@ -82,6 +82,15 @@ data class TransferAdmin(
     val userId: String,
 )
 
+/**
+ * Admin removes [userId] from the room's membership (not just the lobby).
+ * The removed user is told with a snapshot that no longer lists them.
+ */
+@Serializable
+data class RemoveMember(
+    val userId: String,
+)
+
 /** Set your ready status. */
 @Serializable
 data class SetReady(
@@ -140,6 +149,8 @@ data class RoomInfo(
     val adminId: String? = null,
     /** Short room tagline ("Good vibes • Great games"). */
     val description: String? = null,
+    /** Room badge key, same as RoomSummary.icon ("group", "dice", ...). */
+    val icon: String? = null,
     val members: List<RoomMember>,
     /** Selected game ID, or null if none selected. */
     val selectedGame: String? = null,

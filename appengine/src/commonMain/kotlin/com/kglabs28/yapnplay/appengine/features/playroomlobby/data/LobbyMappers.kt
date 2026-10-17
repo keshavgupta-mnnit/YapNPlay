@@ -2,6 +2,7 @@ package com.kglabs28.yapnplay.appengine.features.playroomlobby.data
 
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.LobbyMember
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.LobbyRoom
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
 import com.kglabs28.yapnplay.appengine.protocol.Presence
 import com.kglabs28.yapnplay.appengine.protocol.RoomSnapshot
 import kotlinx.datetime.Instant
@@ -15,6 +16,7 @@ fun RoomSnapshot.toLobbyRoom(now: Instant): LobbyRoom = LobbyRoom(
     id = room.id,
     name = room.name,
     description = room.description.orEmpty(),
+    icon = PlayRoomIcon.fromKey(room.icon),
     code = room.code,
     members = room.members.map { member ->
         LobbyMember(

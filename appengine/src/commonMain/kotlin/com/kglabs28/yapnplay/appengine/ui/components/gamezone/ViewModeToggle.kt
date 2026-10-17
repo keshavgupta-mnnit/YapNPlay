@@ -5,9 +5,10 @@ import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
-import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
+import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 
 /**
  * "Grid View" / "Carousel" switch for game pickers. Shows the view you
@@ -18,20 +19,15 @@ fun ViewModeToggle(
     isGrid: Boolean,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
+    accent: Color = YapNPlayTheme.colors.SocialZoneAccent,
+    contentColor: Color = YapNPlayTheme.colors.TextPrimary,
 ) {
-    val colors = YapNPlayTheme.colors
-    val dimens = YapNPlayTheme.dimens
-
-    PillButton(
+    GlassPillButton(
         text = if (isGrid) Strings.gameZoneCarouselView else Strings.gameZoneGridView,
         onClick = onToggle,
-        gradient = listOf(colors.RoomsSmallButton, colors.RoomsPanel),
-        contentColor = colors.TextPrimary,
-        rimColor = colors.SocialZoneAccent,
-        height = dimens.smallButtonHeight,
         leadingIcon = if (isGrid) Icons.Rounded.ViewCarousel else Icons.Rounded.GridView,
-        trailingIcon = null,
-        textStyle = YapNPlayTheme.typography.sectionTitle,
+        accent = accent,
+        contentColor = contentColor,
         modifier = modifier,
     )
 }

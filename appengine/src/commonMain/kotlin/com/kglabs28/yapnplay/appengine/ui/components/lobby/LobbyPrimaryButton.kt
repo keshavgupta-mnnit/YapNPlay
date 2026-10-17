@@ -4,31 +4,33 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.semantics.Role
-import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
+import androidx.compose.ui.text.rememberTextMeasurer
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.ui.components.common.IconCircle
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.LobbyPrimaryButtonUi
 
 /**
- * The lobby's main two-line button: START MATCH for the leader, READY /
- * NOT READY or WATCHING / NOT WATCHING for everyone else. Green when
- * active, dark when off, dimmed and inert when disabled.
+ * The lobby main button, from the START MATCH design: only the top-left
+ * and bottom-right corners are cut, and a thin outline of the same shape
+ * runs around it with a small gap. Glowing gold body, big white label and
+ * a warm sub-line ("4/9 PLAYERS READY"). START MATCH and an active READY /
+ * WATCHING are gold; NOT READY / NOT WATCHING are dark glass with a gold
+ * rim; disabled is filled grey and ignores taps.
  */
 @Composable
 fun LobbyPrimaryButton(
@@ -38,44 +40,73 @@ fun LobbyPrimaryButton(
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
-    val shape = YapNPlayTheme.shapes.pill
-    val contentColor = if (button.active) colors.CtaGreenContent else colors.TextPrimary
-    val icon = when {
-        button.isStart -> Icons.Rounded.PlayArrow
-        button.active -> Icons.Rounded.CheckCircle
-        else -> Icons.Rounded.RadioButtonUnchecked
+    val typography = YapNPlayTheme.typography
+    val cut = dimens.lobbyStartCut
+    val gap = dimens.lobbyStartOutlineGap
+    // The outline is larger by the gap, so its cut grows with it to stay parallel.
+    val outerShape = CutCornerShape(topStart = cut + gap, topEnd = dimens.zero, bottomEnd = cut + gap, bottomStart = dimens.zero)
+    val shape = CutCornerShape(topStart = cut, topEnd = dimens.zero, bottomEnd = cut, bottomStart = dimens.zero)
+    val lit = button.enabled && (button.isStart || button.active)
+    val rim = if (button.enabled) colors.StartButtonRim else colors.StartButtonDisabledRim
+    val body = when {
+        !button.enabled -> Brush.verticalGradient(listOf(colors.StartButtonDisabledTop, colors.StartButtonDisabledBottom))
+        lit -> Brush.verticalGradient(listOf(colors.StartButtonTop, colors.StartButtonBottom))
+        else -> Brush.verticalGradient(listOf(colors.RoomsSmallButton, colors.RoomsPanel))
     }
 
-    Row(
+    Box(
         modifier = modifier
-            .graphicsLayer { alpha = if (button.enabled) 1f else DISABLED_ALPHA }
-            .fillMaxHeight()
-            .clip(shape)
-            .background(
-                if (button.active) {
-                    Brush.horizontalGradient(listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd))
+            .height(dimens.lobbyStartHeight)
+            .then(
+                if (lit) {
+                    Modifier.shadow(dimens.glowBlur, outerShape, ambientColor = colors.StartButtonGlow, spotColor = colors.StartButtonGlow)
                 } else {
-                    Brush.horizontalGradient(listOf(colors.RoomsSmallButton, colors.RoomsPanel))
+                    Modifier
                 },
             )
-            .border(dimens.hairline, colors.GlassShine.copy(alpha = 0.3f), shape)
-            .clickable(enabled = button.enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = Spacing.Sm),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+            .border(dimens.hairline, rim.copy(alpha = 0.7f), outerShape)
+            .padding(gap),
     ) {
-        IconCircle(
-            imageVector = icon,
-            fill = colors.Background.copy(alpha = 0.35f),
-            tint = contentColor,
-            size = dimens.roomIcon,
-            iconSize = dimens.iconMedium,
-        )
-        Column {
-            BasicText(text = button.label, style = YapNPlayTheme.typography.button.copy(color = contentColor))
-            BasicText(text = button.sublabel, style = YapNPlayTheme.typography.micro.copy(color = contentColor))
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(shape)
+                .background(body)
+                .border(dimens.borderThin, rim, shape)
+                .clickable(enabled = button.enabled, role = Role.Button, onClick = onClick)
+                .padding(horizontal = cut),
+            contentAlignment = Alignment.Center,
+        ) {
+            // The label shrinks to fit a narrow column instead of being cut.
+            val measurer = rememberTextMeasurer()
+            val fullWidth = measurer.measure(button.label, typography.startLabel, maxLines = 1).size.width
+            val scale = if (fullWidth > constraints.maxWidth && fullWidth > 0) constraints.maxWidth.toFloat() / fullWidth else 1f
+            val labelStyle = typography.startLabel.copy(fontSize = typography.startLabel.fontSize * scale)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                BasicText(
+                    text = button.label,
+                    style = labelStyle.copy(
+                        color = if (button.enabled) colors.TextPrimary else colors.TextSecondary,
+                        shadow = if (lit) Shadow(color = colors.StartButtonGlow, blurRadius = labelStyle.fontSize.value) else null,
+                    ),
+                    maxLines = 1,
+                )
+                BasicText(
+                    text = button.sublabel,
+                    style = typography.micro.copy(
+                        fontWeight = typography.startLabel.fontWeight,
+                        color = when {
+                            !button.enabled -> colors.TextSecondary
+                            lit -> colors.StartButtonSub
+                            else -> colors.StartButtonRim
+                        },
+                    ),
+                    maxLines = 1,
+                )
+            }
         }
     }
 }
-
-private const val DISABLED_ALPHA = 0.5f

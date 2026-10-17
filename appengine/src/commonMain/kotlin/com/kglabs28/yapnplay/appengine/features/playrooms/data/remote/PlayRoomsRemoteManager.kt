@@ -4,6 +4,7 @@ import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.toDomain
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.JoinOutcome
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomPreview
 
@@ -27,7 +28,7 @@ class PlayRoomsRemoteManager(private val api: PlayRoomsApi) {
         AppResult.Failure(YapNPlayError.NotFound("room"))
     }
 
-    suspend fun joinRoom(code: String): AppResult<PlayRoom> = try {
+    suspend fun joinRoom(code: String): AppResult<JoinOutcome> = try {
         AppResult.Success(api.joinRoom(code).toDomain())
     } catch (e: Exception) {
         CrashReporter.record(e, "PlayRoomsRemoteManager.joinRoom")

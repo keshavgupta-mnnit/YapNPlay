@@ -3,6 +3,7 @@ package com.kglabs28.yapnplay.appengine.features.playrooms.data.remote
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.FakeDataProvider
 import com.kglabs28.yapnplay.appengine.protocol.MyRooms
+import com.kglabs28.yapnplay.appengine.protocol.JoinRoomResult
 import com.kglabs28.yapnplay.appengine.protocol.RoomPreview
 import com.kglabs28.yapnplay.appengine.protocol.RoomSummary
 import io.ktor.client.HttpClient
@@ -40,17 +41,16 @@ class PlayRoomsApiClient(
         return FakeDataProvider.PlayRooms.preview(code)
     }
 
-    override suspend fun joinRoom(code: String): RoomSummary {
+    override suspend fun joinRoom(code: String): JoinRoomResult {
         // --- production path (needs the WebSocket connection manager, Phase 12) ---
-        // val snapshot = realtime.request<RoomSnapshot>(
+        // return realtime.request<JoinRoomResult>(
         //     channel = Channel.ROOM,
         //     type = MessageType.JOIN_ROOM,
         //     payload = JoinRoom(code = code),
         // )
-        // return snapshot.room.toSummary(myUserId)
 
         // --- fake path (delete when switching to production) ---
         delay(FakeDataProvider.NETWORK_DELAY_MS)
-        return FakeDataProvider.PlayRooms.joinedRoom(code)
+        return FakeDataProvider.PlayRooms.joinResult(code)
     }
 }

@@ -15,7 +15,7 @@ enum class PlayerButtonState {
 }
 
 /** Options in a member's tap menu, depending on who you are. */
-enum class MemberMenuOption { MAKE_LEADER, MAKE_ADMIN, ADD_FRIEND, REMOVE_FRIEND }
+enum class MemberMenuOption { MAKE_LEADER, MAKE_ADMIN, ADD_FRIEND, REMOVE_FRIEND, REMOVE_FROM_ROOM }
 
 /**
  * The lobby's display rules, as pure functions so they are testable and
@@ -64,13 +64,18 @@ object LobbyRules {
             (ready >= game.minPlayers || room.botFill)
     }
 
-    /** Menu for tapping [target]: role hand-offs you hold, plus friend add/remove. */
+    /**
+     * Menu for tapping [target]: role hand-offs you hold, friend add/remove,
+     * and — for the admin, who manages membership — remove from the room.
+     */
     fun menuOptions(me: LobbyMember, target: LobbyMember): List<MemberMenuOption> {
         if (me.userId == target.userId) return emptyList()
         return buildList {
-            if (me.isLeader) add(MemberMenuOption.MAKE_LEADER)
+            // Only someone online can take over picking the game.
+            if (me.isLeader && target.online) add(MemberMenuOption.MAKE_LEADER)
             if (me.isAdmin) add(MemberMenuOption.MAKE_ADMIN)
             add(if (target.isFriend) MemberMenuOption.REMOVE_FRIEND else MemberMenuOption.ADD_FRIEND)
+            if (me.isAdmin) add(MemberMenuOption.REMOVE_FROM_ROOM)
         }
     }
 }

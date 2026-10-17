@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
-import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
+import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 
 /**
  * Quick Play search in progress, on a dark pill so it reads over any art:
@@ -69,14 +69,11 @@ fun MatchSearchPanel(
             )
         }
         onCancel?.let {
-            PillButton(
+            GlassPillButton(
                 text = cancelLabel,
                 onClick = it,
-                gradient = listOf(colors.RoomsSmallButton, colors.RoomsPanel),
-                contentColor = colors.TextPrimary,
                 leadingIcon = Icons.Rounded.Close,
-                trailingIcon = null,
-                textStyle = typography.sectionTitle,
+                height = YapNPlayTheme.dimens.ctaHeight,
             )
         }
     }

@@ -22,7 +22,14 @@ data class PlayRoomsState(
     val joinError: String? = null,
     /** "Join this room?" before joining (typed code or invite link). */
     val joinPrompt: JoinPromptUi? = null,
+    /** In-app keypad replaces rooms + friends while the code is being typed. */
+    val keypadOpen: Boolean = false,
+    /** "Request sent, the admin has to approve" after joining someone's room. */
+    val requestSent: RequestSentUi? = null,
 ) : UiState
+
+/** The waiting-for-approval note, ready to show. */
+data class RequestSentUi(val title: String, val body: String)
 
 /** The join confirmation, ready to show. */
 data class JoinPromptUi(
@@ -37,6 +44,13 @@ sealed interface PlayRoomsIntent : UiIntent {
     data class RoomCodeChanged(val code: String) : PlayRoomsIntent
     /** JOIN pressed: look the code up, then ask "Join this room?". */
     data object JoinRoom : PlayRoomsIntent
+    /** Code field tapped: show the keypad. */
+    data object OpenKeypad : PlayRoomsIntent
+    /** Tap elsewhere, Back or the cross: hide it. */
+    data object CloseKeypad : PlayRoomsIntent
+    data object DismissRequestSent : PlayRoomsIntent
+    data class KeypadDigit(val digit: Char) : PlayRoomsIntent
+    data object KeypadBackspace : PlayRoomsIntent
     /** Opened from an invite link: same lookup and question. */
     data class PreviewInvite(val code: String) : PlayRoomsIntent
     data object ConfirmJoin : PlayRoomsIntent

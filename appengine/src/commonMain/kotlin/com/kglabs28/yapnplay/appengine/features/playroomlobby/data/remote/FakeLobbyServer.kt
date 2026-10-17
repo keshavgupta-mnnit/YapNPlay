@@ -95,6 +95,9 @@ class FakeLobbyServer(
             is LobbyCommand.SetFriend -> update(roomId) {
                 copy(members = members.map { if (it.userId == command.userId) it.copy(isFriend = command.friend) else it })
             }
+            is LobbyCommand.RemoveMember -> update(roomId) {
+                copy(members = members.filterNot { it.userId == command.userId })
+            }
             LobbyCommand.ExitLobby -> Unit
             LobbyCommand.LeaveRoom -> update(roomId) { copy(members = members.filterNot { it.userId == me }) }
         }

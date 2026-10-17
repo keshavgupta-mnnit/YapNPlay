@@ -4,6 +4,7 @@ import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.local.PlayRoomsLocalManager
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.remote.PlayRoomsRemoteManager
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.JoinOutcome
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomPreview
 import com.kglabs28.yapnplay.appengine.features.playrooms.repository.PlayRoomsRepository
@@ -36,10 +37,12 @@ class PlayRoomsRepositoryImpl(
     override suspend fun previewRoom(code: String): AppResult<PlayRoomPreview> =
         withContext(dispatchers.io) { remote.previewRoom(code) }
 
-    override suspend fun joinRoom(code: String): AppResult<PlayRoom> =
+    override suspend fun joinRoom(code: String): AppResult<JoinOutcome> =
         withContext(dispatchers.io) {
             remote.joinRoom(code).also { result ->
-                if (result is AppResult.Success) local.addRoom(result.data)
+                // A pending request is not a room yet; only a real join is cached.
+                val joined = (result as? AppResult.Success)?.data as? JoinOutcome.Joined
+                if (joined != null) local.addRoom(joined.room)
             }
         }
 }

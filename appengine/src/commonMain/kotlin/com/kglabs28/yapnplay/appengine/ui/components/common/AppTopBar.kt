@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +18,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
+import com.kglabs28.yapnplay.appengine.ui.screens.main.NotificationUi
 import com.kglabs28.yapnplay.appengine.ui.components.home.HomeCenterLogo
 
 /**
@@ -35,8 +35,13 @@ fun AppTopBar(
     selectedTab: AppNavTab,
     onSelectTab: (AppNavTab) -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenNotifications: () -> Unit,
+    onToggleNotifications: () -> Unit,
     modifier: Modifier = Modifier,
+    notifications: List<NotificationUi> = emptyList(),
+    unreadNotifications: Int = 0,
+    notificationsOpen: Boolean = false,
+    onDismissNotifications: () -> Unit = {},
+    onNotificationClick: (roomId: String) -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -80,10 +85,13 @@ fun AppTopBar(
                 balancesVisible = profileLoaded,
                 modifier = Modifier.padding(end = Spacing.Xxs),
             )
-            GlassIconButton(
-                imageVector = Icons.Rounded.Notifications,
-                contentDescription = Strings.topBarNotifications,
-                onClick = onOpenNotifications,
+            NotificationsBell(
+                notifications = notifications,
+                unreadCount = unreadNotifications,
+                expanded = notificationsOpen,
+                onToggle = onToggleNotifications,
+                onDismiss = onDismissNotifications,
+                onNotificationClick = onNotificationClick,
             )
             GlassIconButton(
                 imageVector = Icons.Rounded.Settings,

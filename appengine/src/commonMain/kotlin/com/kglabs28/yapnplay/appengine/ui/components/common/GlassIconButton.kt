@@ -15,7 +15,9 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
 
 /**
  * Round glass icon button: top bar bell/settings at the default size,
- * smaller ones (friend-list arrows) by passing [size] and [iconSize].
+ * smaller ones (friend arrows, share) via [size]/[iconSize], and on/off
+ * toggles (mic, speaker) by passing the icon and [tint]/[glowColor] for
+ * the current state.
  */
 @Composable
 fun GlassIconButton(
@@ -26,19 +28,19 @@ fun GlassIconButton(
     size: Dp = YapNPlayTheme.dimens.topBarControlHeight,
     iconSize: Dp = YapNPlayTheme.dimens.iconMedium,
     surface: Color = YapNPlayTheme.colors.TopBarButton,
+    tint: Color = YapNPlayTheme.colors.IconMuted,
+    glowColor: Color = YapNPlayTheme.colors.IconMuted,
 ) {
-    val colors = YapNPlayTheme.colors
-
     Box(
         modifier = modifier
             .size(size)
-            .glassPill(glowColor = colors.IconMuted, surface = surface)
+            .glassPill(glowColor = glowColor, surface = surface)
             .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         AppIcon(
             imageVector = imageVector,
-            tint = colors.IconMuted,
+            tint = tint,
             size = iconSize,
             contentDescription = contentDescription,
         )

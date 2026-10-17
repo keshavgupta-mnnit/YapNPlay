@@ -54,6 +54,8 @@ data class RoomPreview(
     val description: String? = null,
     val memberCount: Int,
     val onlineCount: Int,
+    /** True when the caller (from the connection) is already a member. */
+    val isMember: Boolean = false,
 )
 
 /** Registers this device for push (`POST /devices`); token is the FCM token. */
@@ -104,4 +106,20 @@ data class VoiceToken(
     val token: String,
     /** Expiry time in epoch milliseconds. */
     val expiresAt: Long,
+)
+
+/** Answer to `JoinRoom(code)` from someone who is not a member yet. */
+@Serializable
+enum class JoinStatus { JOINED, PENDING_APPROVAL }
+
+/**
+ * `JoinRoom(code)` result: [JoinStatus.JOINED] with [room] for a member;
+ * otherwise [JoinStatus.PENDING_APPROVAL] — the request sits in the
+ * admin's Waiting List and the user is notified once approved.
+ */
+@Serializable
+data class JoinRoomResult(
+    val status: JoinStatus,
+    val roomName: String,
+    val room: RoomSummary? = null,
 )

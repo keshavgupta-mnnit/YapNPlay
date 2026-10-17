@@ -5,6 +5,7 @@ import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.toDomain
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomPreview
 
 /**
  * Network side of rooms data: calls the API, maps DTOs to domain,
@@ -17,6 +18,13 @@ class PlayRoomsRemoteManager(private val api: PlayRoomsApi) {
     } catch (e: Exception) {
         CrashReporter.record(e, "PlayRoomsRemoteManager.fetchMyRooms")
         AppResult.Failure(YapNPlayError.Network("rooms fetch failed"))
+    }
+
+    suspend fun previewRoom(code: String): AppResult<PlayRoomPreview> = try {
+        AppResult.Success(api.previewRoom(code).toDomain())
+    } catch (e: Exception) {
+        CrashReporter.record(e, "PlayRoomsRemoteManager.previewRoom")
+        AppResult.Failure(YapNPlayError.NotFound("room"))
     }
 
     suspend fun joinRoom(code: String): AppResult<PlayRoom> = try {

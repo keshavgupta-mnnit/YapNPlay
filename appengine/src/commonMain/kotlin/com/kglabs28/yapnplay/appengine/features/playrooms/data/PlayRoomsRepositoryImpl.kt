@@ -5,6 +5,7 @@ import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.local.PlayRoomsLocalManager
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.remote.PlayRoomsRemoteManager
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomPreview
 import com.kglabs28.yapnplay.appengine.features.playrooms.repository.PlayRoomsRepository
 import kotlinx.coroutines.withContext
 
@@ -31,6 +32,9 @@ class PlayRoomsRepositoryImpl(
                 }
             }
         }
+
+    override suspend fun previewRoom(code: String): AppResult<PlayRoomPreview> =
+        withContext(dispatchers.io) { remote.previewRoom(code) }
 
     override suspend fun joinRoom(code: String): AppResult<PlayRoom> =
         withContext(dispatchers.io) {

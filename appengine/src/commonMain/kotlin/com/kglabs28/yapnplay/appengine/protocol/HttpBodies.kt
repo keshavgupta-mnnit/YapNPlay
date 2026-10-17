@@ -42,6 +42,27 @@ data class FriendSummary(
     val online: Boolean,
 )
 
+/**
+ * What a room looks like before joining (`GET /rooms/preview/{code}`),
+ * for the "Join this room?" dialog from an invite link or a typed code.
+ */
+@Serializable
+data class RoomPreview(
+    val roomId: String,
+    val code: String,
+    val name: String,
+    val description: String? = null,
+    val memberCount: Int,
+    val onlineCount: Int,
+)
+
+/** Registers this device for push (`POST /devices`); token is the FCM token. */
+@Serializable
+data class RegisterDevice(
+    val token: String,
+    val platform: String,
+)
+
 /** How many users are connected right now (Game Zone "1248 Online"). */
 @Serializable
 data class OnlineStats(

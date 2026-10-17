@@ -20,6 +20,8 @@ class RoyalLudoEngine : Game {
         searchSeconds = ROYAL_LUDO_SEARCH_SECONDS,
     )
     override val showcase = GameShowcase(taglines = ROYAL_LUDO_TAGLINES, artKey = ROYAL_LUDO_ID)
+    override val houseRuleOptions = ROYAL_LUDO_HOUSE_RULES
+    override val fixedRules = ROYAL_LUDO_FIXED_RULES
     override val minPlayers = ROYAL_LUDO_PLAYERS
     override val maxPlayers = ROYAL_LUDO_PLAYERS
     override val maxSpectators: Int? = null

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.gamezone
 
+import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
@@ -42,10 +43,10 @@ class GameZoneViewModel(
             is GameZoneIntent.FocusGame -> focus(intent.index)
             GameZoneIntent.ToggleViewMode -> setState {
                 copy(
-                    viewMode = if (viewMode == GameZoneViewMode.GRID) {
-                        GameZoneViewMode.CAROUSEL
+                    viewMode = if (viewMode == GamePickerViewMode.GRID) {
+                        GamePickerViewMode.CAROUSEL
                     } else {
-                        GameZoneViewMode.GRID
+                        GamePickerViewMode.GRID
                     },
                 )
             }

@@ -8,6 +8,7 @@ import com.kglabs28.yapnplay.appengine.features.playrooms.data.remote.PlayRoomsR
 import com.kglabs28.yapnplay.appengine.features.playrooms.repository.PlayRoomsRepository
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.GetPlayRoomsScreenDataUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.JoinPlayRoomByCodeUseCase
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.PreviewPlayRoomUseCase
 import org.koin.dsl.module
 
 /**
@@ -21,4 +22,5 @@ val playRoomsModule = module {
     single<PlayRoomsRepository> { PlayRoomsRepositoryImpl(get(), get(), get()) }
     factory { GetPlayRoomsScreenDataUseCase(get(), get()) }
     factory { JoinPlayRoomByCodeUseCase(get(), get()) }
+    factory { PreviewPlayRoomUseCase(get()) }
 }

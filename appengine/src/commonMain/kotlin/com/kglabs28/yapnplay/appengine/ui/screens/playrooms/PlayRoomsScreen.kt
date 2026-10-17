@@ -12,6 +12,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
+import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
+import com.kglabs28.yapnplay.appengine.ui.components.playrooms.JoinRoomPromptCard
 import com.kglabs28.yapnplay.appengine.ui.components.playrooms.CreateRoomHeroCard
 import com.kglabs28.yapnplay.appengine.ui.components.playrooms.JoinRoomCard
 import com.kglabs28.yapnplay.appengine.ui.components.playrooms.OnlineFriendsPanel
@@ -23,17 +25,26 @@ import com.kglabs28.yapnplay.appengine.ui.components.playrooms.YourRoomsPanel
  */
 @Composable
 fun PlayRoomsScreen(
-    onOpenRoom: () -> Unit,
+    onOpenRoom: (String) -> Unit,
     onCreateRoom: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayRoomsViewModel? = null,
+    inviteCode: String? = null,
+    onInviteConsumed: () -> Unit = {},
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: PlayRoomsState()
+    // An invite link was opened: ask "Join this room?" for its code, once.
+    LaunchedEffect(inviteCode, viewModel) {
+        if (inviteCode != null && viewModel != null) {
+            viewModel.onIntent(PlayRoomsIntent.PreviewInvite(inviteCode))
+            onInviteConsumed()
+        }
+    }
     LaunchedEffect(viewModel) {
         viewModel?.onIntent(PlayRoomsIntent.Load)
         viewModel?.effects?.collect { effect ->
             when (effect) {
-                is PlayRoomsEffect.OpenRoom -> onOpenRoom()
+                is PlayRoomsEffect.OpenRoom -> onOpenRoom(effect.roomId)
                 PlayRoomsEffect.OpenCreateRoom -> onCreateRoom()
                 PlayRoomsEffect.OpenAllRooms -> Unit
             }
@@ -88,6 +99,19 @@ fun PlayRoomsScreen(
                 modifier = Modifier
                     .weight(AppConstants.ROOMS_FRIENDS_PANEL_WEIGHT)
                     .fillMaxWidth(),
+            )
+        }
+    }
+
+    val prompt = state.joinPrompt
+    BlockingOverlay(visible = prompt != null) {
+        if (prompt != null) {
+            JoinRoomPromptCard(
+                title = prompt.title,
+                details = prompt.details,
+                description = prompt.description,
+                onJoin = { viewModel?.onIntent(PlayRoomsIntent.ConfirmJoin) },
+                onCancel = { viewModel?.onIntent(PlayRoomsIntent.DismissJoinPrompt) },
             )
         }
     }

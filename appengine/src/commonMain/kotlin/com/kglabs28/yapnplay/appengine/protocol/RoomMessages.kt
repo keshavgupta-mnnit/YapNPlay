@@ -27,10 +27,14 @@ data object LeaveRoom
 @Serializable
 data object ExitLobby
 
-/** Leader picks the game for the next match (same picker as Game Zone). */
+/**
+ * Leader picks the game for the next match (same picker as Game Zone).
+ * null = "Change game": back to choosing. Any change resets every
+ * member's ready/watching and loads the game's default house rules.
+ */
 @Serializable
 data class SelectGame(
-    val gameId: String,
+    val gameId: String? = null,
 )
 
 /**
@@ -41,6 +45,41 @@ data class SelectGame(
 @Serializable
 data class SetBotFill(
     val enabled: Boolean,
+)
+
+/** Leader turns one of the selected game's house rules on or off. */
+@Serializable
+data class SetHouseRule(
+    val key: String,
+    val enabled: Boolean,
+)
+
+/**
+ * A member who has no seat (all seats taken) opts in or out of watching
+ * the match as a spectator.
+ */
+@Serializable
+data class SetWatching(
+    val watching: Boolean,
+)
+
+/** Your mic/speaker switches, shown to everyone on your member card. */
+@Serializable
+data class SetVoiceState(
+    val micOn: Boolean,
+    val speakerOn: Boolean,
+)
+
+/** Leader hands the leader role (game choice, start) to [userId]. */
+@Serializable
+data class TransferLeader(
+    val userId: String,
+)
+
+/** Admin hands the admin role (membership, waiting list) to [userId]. */
+@Serializable
+data class TransferAdmin(
+    val userId: String,
 )
 
 /** Set your ready status. */
@@ -97,11 +136,17 @@ data class RoomInfo(
     val code: String,
     val name: String,
     val leaderId: String,
+    /** Who manages membership (adds members, sees the waiting list). */
+    val adminId: String? = null,
+    /** Short room tagline ("Good vibes • Great games"). */
+    val description: String? = null,
     val members: List<RoomMember>,
     /** Selected game ID, or null if none selected. */
     val selectedGame: String? = null,
     /** Leader's "fill with bots up to the minimum" option (see SetBotFill). */
     val botFill: Boolean = false,
+    /** Selected game's house rules by key (see HouseRuleOption); reset on game change. */
+    val houseRules: Map<String, Boolean> = emptyMap(),
     /** Countdown deadline in epoch millis, or null if no countdown running. */
     val countdownDeadline: Long? = null,
     /** Match ID if a match is in progress, or null. */
@@ -114,6 +159,14 @@ data class RoomMember(
     val displayName: String,
     val presence: Presence,
     val ready: Boolean,
+    /** No seat free and opted in to watch the match. */
+    val watching: Boolean = false,
+    val micOn: Boolean = false,
+    val speakerOn: Boolean = false,
+    /** Relative to the receiving user: is this member their friend. */
+    val isFriend: Boolean = false,
+    /** When this member came online in the current session (epoch millis); leader succession uses it. */
+    val onlineSince: Long? = null,
 )
 
 enum class Presence {

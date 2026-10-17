@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.playrooms.data.remote
 
 import com.kglabs28.yapnplay.appengine.protocol.MyRooms
+import com.kglabs28.yapnplay.appengine.protocol.RoomPreview
 import com.kglabs28.yapnplay.appengine.protocol.RoomSummary
 
 /**
@@ -10,6 +11,9 @@ import com.kglabs28.yapnplay.appengine.protocol.RoomSummary
 interface PlayRoomsApi {
     /** `GET /rooms/mine` */
     suspend fun getMyRooms(): MyRooms
+
+    /** `GET /rooms/preview/{code}`: what the room is before joining. */
+    suspend fun previewRoom(code: String): RoomPreview
 
     /**
      * Join by code. In production this is the WebSocket room-channel

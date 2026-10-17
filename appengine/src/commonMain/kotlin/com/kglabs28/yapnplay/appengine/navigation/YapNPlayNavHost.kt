@@ -6,6 +6,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.PlayRoomLobbyScreen
 import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainScreen
@@ -35,7 +37,8 @@ fun YapNPlayNavHost(
             val playRoomsViewModel: PlayRoomsViewModel = entry.rememberScreenViewModel()
             MainScreen(
                 onOpenMatch = { navController.navigate(MatchPlaceholder) },
-                onOpenRoom = { navController.navigate(RoomPlaceholder) },
+                onOpenRoom = { roomId -> navController.navigate(RoomLobby(roomId)) },
+                onCreateRoom = { navController.navigate(RoomPlaceholder) },
                 viewModel = mainViewModel,
                 gameZoneViewModel = gameZoneViewModel,
                 playRoomsViewModel = playRoomsViewModel,
@@ -44,6 +47,14 @@ fun YapNPlayNavHost(
         composable<About> { entry ->
             AboutScreen(
                 onBack = { navController.popBackStack() },
+                viewModel = entry.rememberScreenViewModel(),
+            )
+        }
+        composable<RoomLobby> { entry ->
+            PlayRoomLobbyScreen(
+                roomId = entry.toRoute<RoomLobby>().roomId,
+                onClose = { navController.popBackStack() },
+                onOpenMatch = { navController.navigate(MatchPlaceholder) },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }

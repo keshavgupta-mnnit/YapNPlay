@@ -3,6 +3,38 @@
 `docs/project-report.md` is the original plan. These later decisions win
 where they disagree. Newest first. Every AI agent reads this file too.
 
+## 2026-10-17 — room lobby: roles, ordering, buttons
+
+- **Two roles, independent:**
+  - **Admin** (crown icon) — created the room; only they manage membership
+    and see the Waiting List button. If the admin leaves, the member on
+    top of the room leaderboard becomes admin.
+  - **Leader** (golden card border) — only they pick the game, toggle house
+    rules and press START MATCH. If the leader leaves or drops, the member
+    online longest in the current session (`onlineSince`) becomes leader.
+  - Either role is handed over by tapping a member: the menu shows "Make
+    Leader" if you are the leader, "Make Admin" if you are the admin, plus
+    Add/Remove Friend for that person.
+- **Member order:** you first, then online members (leader, admin, the
+  rest), then offline members greyed out.
+- **Member card:** talking wave only while that person speaks; otherwise
+  "Mic off" / "Speaker off" / "Mic & speaker off" so everyone sees each
+  other's voice state. Ready / Not Ready / Watching chip once a game is set.
+- **Two phases:** (1) choosing a game — same carousel/grid as the Game
+  Zone, SELECT GAME (or a grid tap) selects, never starts; (2) game chosen —
+  game art in the middle, house rules on the right ("Fill with Bots" first,
+  then the game's toggles; Rules button opens the fixed rule sheet), and
+  Change Game below for the leader. Changing the game resets everyone's
+  ready/watching and loads the new game's default rules.
+- **Main button:** leader → START MATCH (enabled once a game is set, ≥ 2
+  humans ready, and the minimum met or bot fill on). Everyone else →
+  disabled until a game is set, then NOT READY ↔ READY; when every seat is
+  taken, members without a seat get NOT WATCHING ↔ WATCHING instead, until a
+  seat frees up again.
+- **Defaults are off:** not ready, not watching, mic off, speaker off.
+- Leave Room (bottom right) asks for confirmation; the back arrow only
+  leaves the screen and keeps membership.
+
 ## 2026-10-17 — spectators
 
 - **Who:** in a room, every present member without a seat spectates:

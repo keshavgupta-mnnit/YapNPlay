@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.gamezone
 
+import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
@@ -12,7 +13,7 @@ import com.kglabs28.yapnplay.appengine.features.gamecatalog.domain.GameCatalogIt
 data class GameZoneState(
     val games: List<GameCatalogItem> = emptyList(),
     val focusedIndex: Int = 0,
-    val viewMode: GameZoneViewMode = GameZoneViewMode.CAROUSEL,
+    val viewMode: GamePickerViewMode = GamePickerViewMode.CAROUSEL,
     /** "1,248 Online"; empty until loaded. */
     val onlineLabel: String = "",
     val loaded: Boolean = false,
@@ -21,8 +22,6 @@ data class GameZoneState(
     /** Shown under QUICK PLAY after a search ended without a match. */
     val searchMessage: String? = null,
 ) : UiState
-
-enum class GameZoneViewMode { CAROUSEL, GRID }
 
 /** A running search, already formatted for display. */
 data class QuickPlaySearchUi(

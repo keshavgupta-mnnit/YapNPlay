@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.gamezone
 
+import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,7 +81,7 @@ fun GameZoneScreen(
                         modifier = Modifier.fillMaxSize(),
                     )
                     state.games.isEmpty() -> Unit
-                    state.viewMode == GameZoneViewMode.GRID -> GameGrid(
+                    state.viewMode == GamePickerViewMode.GRID -> GameGrid(
                         games = state.games,
                         focusedIndex = state.focusedIndex,
                         onGameClick = { viewModel?.onIntent(GameZoneIntent.PlayGame(it)) },
@@ -105,7 +106,7 @@ fun GameZoneScreen(
             ) {
                 OnlineCountPill(label = state.onlineLabel)
                 ViewModeToggle(
-                    isGrid = state.viewMode == GameZoneViewMode.GRID,
+                    isGrid = state.viewMode == GamePickerViewMode.GRID,
                     onToggle = { viewModel?.onIntent(GameZoneIntent.ToggleViewMode) },
                 )
             }
@@ -116,7 +117,7 @@ fun GameZoneScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
-            if (state.viewMode == GameZoneViewMode.CAROUSEL) {
+            if (state.viewMode == GamePickerViewMode.CAROUSEL) {
                 PillButton(
                     text = Strings.homeQuickPlay,
                     onClick = { viewModel?.onIntent(GameZoneIntent.PlayGame(state.focusedIndex)) },

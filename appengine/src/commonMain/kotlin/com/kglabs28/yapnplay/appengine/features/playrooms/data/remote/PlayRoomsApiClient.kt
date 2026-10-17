@@ -3,6 +3,7 @@ package com.kglabs28.yapnplay.appengine.features.playrooms.data.remote
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.FakeDataProvider
 import com.kglabs28.yapnplay.appengine.protocol.MyRooms
+import com.kglabs28.yapnplay.appengine.protocol.RoomPreview
 import com.kglabs28.yapnplay.appengine.protocol.RoomSummary
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -28,6 +29,15 @@ class PlayRoomsApiClient(
         // --- fake path (delete when switching to production) ---
         delay(FakeDataProvider.NETWORK_DELAY_MS)
         return FakeDataProvider.PlayRooms.myRooms
+    }
+
+    override suspend fun previewRoom(code: String): RoomPreview {
+        // --- production path (uncomment when backend is live) ---
+        // return client.get(AppConstants.SERVER_BASE_URL + "/rooms/preview/" + code).body()
+
+        // --- fake path (delete when switching to production) ---
+        delay(FakeDataProvider.NETWORK_DELAY_MS)
+        return FakeDataProvider.PlayRooms.preview(code)
     }
 
     override suspend fun joinRoom(code: String): RoomSummary {

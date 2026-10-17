@@ -1,11 +1,17 @@
 package com.kglabs28.yapnplay.appengine.core.common
 
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.domain.GameCatalogItem
+import com.kglabs28.yapnplay.appengine.games.base.rules.HouseRuleOption
 import com.kglabs28.yapnplay.appengine.protocol.FriendSummary
 import com.kglabs28.yapnplay.appengine.protocol.Friends
 import com.kglabs28.yapnplay.appengine.protocol.Me
 import com.kglabs28.yapnplay.appengine.protocol.MyRooms
 import com.kglabs28.yapnplay.appengine.protocol.OnlineStats
+import com.kglabs28.yapnplay.appengine.protocol.Presence
+import com.kglabs28.yapnplay.appengine.protocol.RoomInfo
+import com.kglabs28.yapnplay.appengine.protocol.RoomMember
+import com.kglabs28.yapnplay.appengine.protocol.RoomPreview
+import com.kglabs28.yapnplay.appengine.protocol.RoomSnapshot
 import com.kglabs28.yapnplay.appengine.protocol.RoomSummary
 
 /**
@@ -83,6 +89,11 @@ object FakeDataProvider {
             ),
         )
 
+        /** Preview for a code: one of your rooms if it matches, else a made-up room. */
+        fun preview(code: String) = myRooms.rooms.firstOrNull { it.code == code }
+            ?.let { RoomPreview(it.roomId, it.code, it.name, Lobby.DESCRIPTION, it.memberCount, it.onlineCount) }
+            ?: RoomPreview("room-$code", code, "Room $code", Lobby.DESCRIPTION, memberCount = 3, onlineCount = 2)
+
         /** Pretend the server accepted [code] and returned a fresh room. */
         fun joinedRoom(code: String) = RoomSummary(
             roomId = "room-$code",
@@ -100,6 +111,20 @@ object FakeDataProvider {
      * lands; Royal Ludo is already real and comes from the registry.
      */
     object Games {
+        /** Shared toggles for placeholder games (real games declare their own). */
+        val placeholderHouseRules = listOf(
+            HouseRuleOption("fast_turns", "Fast Turns", "Make your move quickly!", true),
+            HouseRuleOption("special_cards", "Special Cards", "Use special cards for extra fun!", true),
+            HouseRuleOption("mulligans", "Mulligans", "Get a re-roll if you're stuck", false),
+            HouseRuleOption("power_ups", "Power-ups", "Unlock power-up cards", true),
+        )
+
+        val placeholderFixedRules = listOf(
+            "Game rules arrive with the game",
+            "Turns pass clockwise",
+            "Leaving mid-match hands your seat to a CPU",
+        )
+
         val placeholders = listOf(
             GameCatalogItem(
                 id = "card-clash",
@@ -109,6 +134,8 @@ object FakeDataProvider {
                 minPlayers = 4,
                 maxPlayers = 8,
                 quickPlaySeats = 4,
+                houseRuleOptions = placeholderHouseRules,
+                fixedRules = placeholderFixedRules,
             ),
             GameCatalogItem(
                 id = "island-quest",
@@ -118,6 +145,8 @@ object FakeDataProvider {
                 minPlayers = 2,
                 maxPlayers = 4,
                 quickPlaySeats = 4,
+                houseRuleOptions = placeholderHouseRules,
+                fixedRules = placeholderFixedRules,
             ),
             GameCatalogItem(
                 id = "block-merge",
@@ -127,6 +156,8 @@ object FakeDataProvider {
                 minPlayers = 2,
                 maxPlayers = 2,
                 quickPlaySeats = 2,
+                houseRuleOptions = placeholderHouseRules,
+                fixedRules = placeholderFixedRules,
             ),
             GameCatalogItem(
                 id = "carrom-strike",
@@ -136,6 +167,8 @@ object FakeDataProvider {
                 minPlayers = 2,
                 maxPlayers = 4,
                 quickPlaySeats = 4,
+                houseRuleOptions = placeholderHouseRules,
+                fixedRules = placeholderFixedRules,
             ),
             GameCatalogItem(
                 id = "doodle-dash",
@@ -145,6 +178,8 @@ object FakeDataProvider {
                 minPlayers = 2,
                 maxPlayers = 8,
                 quickPlaySeats = 6,
+                houseRuleOptions = placeholderHouseRules,
+                fixedRules = placeholderFixedRules,
             ),
             GameCatalogItem(
                 id = "quiz-quest",
@@ -154,6 +189,8 @@ object FakeDataProvider {
                 minPlayers = 2,
                 maxPlayers = 6,
                 quickPlaySeats = 4,
+                houseRuleOptions = placeholderHouseRules,
+                fixedRules = placeholderFixedRules,
             ),
             GameCatalogItem(
                 id = "word-wars",
@@ -163,8 +200,68 @@ object FakeDataProvider {
                 minPlayers = 2,
                 maxPlayers = 4,
                 quickPlaySeats = 4,
+                houseRuleOptions = placeholderHouseRules,
+                fixedRules = placeholderFixedRules,
             ),
         )
+    }
+
+    /**
+     * Fake room lobby (see FakeLobbyServer). Rooms where you are the
+     * leader start in "choose a game"; the others start with Royal Ludo
+     * picked by Neha, so both lobby views can be tried.
+     */
+    object Lobby {
+        const val SPEAKER_ROTATION_MS = 1_500L
+        const val DESCRIPTION = "Good vibes • Great games • Better together"
+        private const val OTHER_LEADER = "user-neha"
+        private const val OTHER_ADMIN = "user-arjun"
+        private const val PRESET_GAME = "royal-ludo"
+
+        fun snapshot(roomId: String, now: Long): RoomSnapshot {
+            val summary = PlayRooms.myRooms.rooms.firstOrNull { it.roomId == roomId }
+            val iLead = summary?.isLeader ?: true
+            val myId = Profile.me.userId
+            return RoomSnapshot(
+                version = 1,
+                serverTime = now,
+                room = RoomInfo(
+                    id = roomId,
+                    code = summary?.code ?: "000000",
+                    name = summary?.name ?: "Room",
+                    leaderId = if (iLead) myId else OTHER_LEADER,
+                    adminId = if (iLead) myId else OTHER_ADMIN,
+                    description = DESCRIPTION,
+                    selectedGame = if (iLead) null else PRESET_GAME,
+                    members = members(myId, now),
+                ),
+            )
+        }
+
+        private fun members(myId: String, now: Long): List<RoomMember> {
+            fun member(id: String, name: String, online: Boolean, ready: Boolean, mic: Boolean, speaker: Boolean, friend: Boolean, minutes: Long) =
+                RoomMember(
+                    userId = id,
+                    displayName = name,
+                    presence = if (online) Presence.ONLINE else Presence.OFFLINE,
+                    ready = ready,
+                    micOn = mic,
+                    speakerOn = speaker,
+                    isFriend = friend,
+                    onlineSince = if (online) now - minutes * 60_000 else null,
+                )
+            return listOf(
+                member(myId, Profile.me.displayName, true, false, false, false, false, 30),
+                member("user-neha", "Neha", true, true, true, true, true, 42),
+                member("user-arjun", "Arjun", true, true, true, true, true, 25),
+                member("user-riya", "Riya", true, true, false, true, true, 18),
+                member("user-karan", "Karan", true, false, true, true, true, 12),
+                member("user-sneha", "Sneha", true, false, false, false, false, 9),
+                member("user-vikram", "Vikram", true, false, true, false, true, 5),
+                member("user-rohan", "Rohan", false, false, false, false, true, 0),
+                member("user-meera", "Meera", false, false, false, false, false, 0),
+            )
+        }
     }
 
     /** Fake server behaviour for Quick Play (see FakeMatchmakingClient). */

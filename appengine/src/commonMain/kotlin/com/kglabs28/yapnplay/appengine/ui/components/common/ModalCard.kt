@@ -1,0 +1,58 @@
+package com.kglabs28.yapnplay.appengine.ui.components.common
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
+import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
+
+/**
+ * Dark glass card for modals shown through [BlockingOverlay]: title,
+ * optional subtitle, any body, then the action buttons on the right.
+ */
+@Composable
+fun ModalCard(
+    title: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    actions: @Composable RowScope.() -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit = {},
+) {
+    val colors = YapNPlayTheme.colors
+    val typography = YapNPlayTheme.typography
+
+    Column(
+        modifier = modifier
+            .width(YapNPlayTheme.dimens.modalWidth)
+            .glassPanel(
+                glowColor = colors.SocialZoneAccent,
+                surface = colors.Background.copy(alpha = 0.94f),
+            )
+            .padding(Spacing.Lg),
+        verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
+            BasicText(text = title, style = typography.title.copy(color = colors.TextPrimary))
+            subtitle?.let {
+                BasicText(text = it, style = typography.label.copy(color = colors.TextSecondary))
+            }
+        }
+        content()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically,
+            content = actions,
+        )
+    }
+}

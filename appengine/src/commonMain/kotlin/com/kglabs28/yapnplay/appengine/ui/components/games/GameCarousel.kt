@@ -46,6 +46,9 @@ fun GameCarousel(
     onFocusChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Nothing to loop over yet (data still loading): draw nothing rather
+    // than index into an empty list.
+    if (games.isEmpty()) return
     val dimens = YapNPlayTheme.dimens
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(

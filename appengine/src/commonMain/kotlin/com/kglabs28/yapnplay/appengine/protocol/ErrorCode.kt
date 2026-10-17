@@ -9,6 +9,7 @@ enum class ErrorCode {
     NOT_FOUND,
     NOT_MEMBER,
     NOT_LEADER,
+    NOT_ADMIN,
     ROOM_FULL,
     INVALID_CODE,
     ALREADY_IN_ROOM,

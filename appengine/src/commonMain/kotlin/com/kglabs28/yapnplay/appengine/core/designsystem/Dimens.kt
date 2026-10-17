@@ -127,6 +127,18 @@ class YapNPlayDimens {
     val gameArtGlyph: Dp get() = 56.dp.scaled()
     /** Blur on carousel neighbours: visible but out of focus. */
     val carouselSideBlur: Dp get() = 1.5.dp.scaled()
+    // Room lobby
+    val lobbyBarHeight: Dp get() = 44.dp.scaled()
+    val lobbyMemberRow: Dp get() = 46.dp.scaled()
+    val lobbyAvatar: Dp get() = 32.dp.scaled()
+    val leaderBorder: Dp get() = 2.dp.scaled()
+    val switchWidth: Dp get() = 44.dp.scaled()
+    val switchHeight: Dp get() = 22.dp.scaled()
+    val switchKnob: Dp get() = 16.dp.scaled()
+    val voiceWaveHeight: Dp get() = 10.dp.scaled()
+    val voiceWaveBar: Dp get() = 2.dp.scaled()
+    val modalWidth: Dp get() = 320.dp.scaled()
+
     /** Background blur when a tab asks for a frosted backdrop. */
     val backdropBlur: Dp get() = 14.dp.scaled()
 }

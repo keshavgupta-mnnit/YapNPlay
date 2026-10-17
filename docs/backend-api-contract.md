@@ -104,6 +104,18 @@ room you belong to), `LeaveRoom`, `ExitLobby`, **`SelectGame(gameId)`**
 or disabled game), **`SetBotFill(enabled)`** (leader only), `SetReady(ready)`,
 `StartCountdown`, `CancelCountdown`, `RequestSnapshot(lastVersion)`.
 
+Lobby messages (all ROOM channel): `SetHouseRule(key, enabled)` and
+`SelectGame(null)` ("Change game") are leader-only (`NOT_LEADER`);
+`TransferLeader(userId)` leader-only, `TransferAdmin(userId)` admin-only
+(`NOT_ADMIN`); `SetWatching(watching)` and `SetVoiceState(micOn,
+speakerOn)` for yourself. `RoomInfo` carries `adminId`, `description`,
+`houseRules` (key → on/off, defaults from the game's `houseRuleOptions`,
+reset on every game change together with everyone's ready/watching);
+`RoomMember` carries `watching`, `micOn`, `speakerOn`, `isFriend` (relative
+to the receiver) and `onlineSince`. Succession: leader → longest
+`onlineSince` among online members; admin → top of the room leaderboard.
+Friends: `POST /friends/{userId}`, `DELETE /friends/{userId}` (provisional).
+
 No message ever carries a list of user ids: the server already knows the
 room's members and who is ready, and it is the only one that seats them.
 

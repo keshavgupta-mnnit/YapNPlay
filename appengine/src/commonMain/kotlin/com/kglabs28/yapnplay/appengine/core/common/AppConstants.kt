@@ -32,6 +32,17 @@ object AppConstants {
      */
     const val SERVER_BASE_URL = "http://10.0.2.2:8080"
 
+    /**
+     * Invite links: https://INVITE_HOST/join/<code>. Must match the
+     * `inviteHost` manifest placeholder in androidApp/build.gradle.kts, and
+     * the server must host /.well-known/assetlinks.json on this domain so
+     * Android opens the app instead of the browser (App Links).
+     */
+    const val INVITE_HOST = "yapnplay.app"
+
+    /** App-only links (notification taps): yapnplay://room/<roomId>. Matches `appScheme`. */
+    const val APP_SCHEME = "yapnplay"
+
     /** Window-width thresholds (dp) for [LayoutTier]. */
     const val TIER_M_MIN_WIDTH_DP = 740
     const val TIER_L_MIN_WIDTH_DP = 960
@@ -93,6 +104,26 @@ object AppConstants {
 
     /** Countdown refresh while searching for players. */
     const val SEARCH_TICK_MS = 1_000L
+
+    /** Lobby columns: member list | game | house rules (weights). */
+    const val LOBBY_MEMBERS_WEIGHT = 0.3f
+    const val LOBBY_GAME_WEIGHT = 0.42f
+    const val LOBBY_RULES_WEIGHT = 0.28f
+
+    /** Lobby phase 1: SELECT GAME width as a share of the picker. */
+    const val LOBBY_SELECT_WIDTH_FRACTION = 0.5f
+
+    /** Lobby bottom bar: the Start/Ready button share of the width. */
+    const val LOBBY_PRIMARY_WEIGHT = 0.3f
+
+    /** Bars in the "talking" wave next to a member name. */
+    const val VOICE_WAVE_BARS = 12
+
+    /** Wave animation cycle while someone talks. */
+    const val VOICE_WAVE_CYCLE_MS = 700
+
+    /** A room match needs at least this many humans ready (plus bots if allowed). */
+    const val LOBBY_MIN_HUMANS_TO_START = 2
 
     /** Friends the online-friends arrows scroll by per tap. */
     const val FRIENDS_SCROLL_STEP = 3

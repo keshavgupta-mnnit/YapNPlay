@@ -35,6 +35,12 @@ interface GameDescriptor {
     /** Taglines and art key shown in game pickers. */
     val showcase: GameShowcase
 
+    /** Toggles a room leader may change (shown in the lobby's house rules). */
+    val houseRuleOptions: List<HouseRuleOption>
+
+    /** The rules that never change, one line each (the lobby's rule sheet). */
+    val fixedRules: List<String>
+
     /** The default rules for this game. */
     fun defaultRules(): GameRules
 

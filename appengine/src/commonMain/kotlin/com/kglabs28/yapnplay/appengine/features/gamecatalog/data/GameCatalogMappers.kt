@@ -12,4 +12,6 @@ fun GameDescriptor.toCatalogItem(): GameCatalogItem = GameCatalogItem(
     minPlayers = minPlayers,
     maxPlayers = maxPlayers,
     quickPlaySeats = matchmaking.seats,
+    houseRuleOptions = houseRuleOptions,
+    fixedRules = fixedRules,
 )

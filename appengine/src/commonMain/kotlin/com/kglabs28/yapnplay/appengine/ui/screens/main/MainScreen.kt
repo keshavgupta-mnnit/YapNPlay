@@ -35,7 +35,8 @@ import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsViewModel
 @Composable
 fun MainScreen(
     onOpenMatch: () -> Unit,
-    onOpenRoom: () -> Unit,
+    onOpenRoom: (String) -> Unit,
+    onCreateRoom: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MainViewModel? = null,
     gameZoneViewModel: GameZoneViewModel? = null,
@@ -108,7 +109,7 @@ fun MainScreen(
                     )
                     AppNavTab.ROOMS -> PlayRoomsScreen(
                         onOpenRoom = onOpenRoom,
-                        onCreateRoom = onOpenRoom,
+                        onCreateRoom = onCreateRoom,
                         viewModel = playRoomsViewModel,
                     )
                 }

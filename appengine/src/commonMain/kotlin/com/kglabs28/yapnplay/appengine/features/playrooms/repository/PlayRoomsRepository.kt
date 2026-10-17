@@ -2,6 +2,7 @@ package com.kglabs28.yapnplay.appengine.features.playrooms.repository
 
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomPreview
 
 /**
  * The rooms the user belongs to, and joining one by code. Implemented by
@@ -10,5 +11,6 @@ import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
  */
 interface PlayRoomsRepository {
     suspend fun getMyRooms(): AppResult<List<PlayRoom>>
+    suspend fun previewRoom(code: String): AppResult<PlayRoomPreview>
     suspend fun joinRoom(code: String): AppResult<PlayRoom>
 }

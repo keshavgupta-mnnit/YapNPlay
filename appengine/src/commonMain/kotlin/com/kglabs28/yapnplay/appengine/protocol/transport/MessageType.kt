@@ -46,4 +46,11 @@ object MessageType {
     const val QUEUE_STATUS = "QueueStatus"
     const val MATCH_FOUND = "MatchFound"
     const val QUEUE_CANCELLED = "QueueCancelled"
+
+    // ── Moderation channel ────────────────────────────────────────────────
+    const val REPORT_PLAYER = "ReportPlayer"
+    const val CAST_REPORT_VOTE = "CastReportVote"
+    const val REPORT_VOTE_REQUESTED = "ReportVoteRequested"
+    const val REPORT_RESOLVED = "ReportResolved"
+    const val PENALTY_ISSUED = "PenaltyIssued"
 }

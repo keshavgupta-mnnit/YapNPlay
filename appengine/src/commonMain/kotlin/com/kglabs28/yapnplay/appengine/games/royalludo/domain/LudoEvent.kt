@@ -6,4 +6,6 @@ sealed interface LudoEvent {
     data class Moved(val seat: Int, val piece: Int, val from: Int, val to: Int) : LudoEvent
     data class Captured(val seat: Int, val victimSeat: Int, val victimPiece: Int) : LudoEvent
     data class TurnPassed(val seat: Int) : LudoEvent
+    /** Third six: every piece goes back to [pieces] (seat -> progress). */
+    data class Reverted(val seat: Int, val pieces: Map<Int, List<Int>>) : LudoEvent
 }

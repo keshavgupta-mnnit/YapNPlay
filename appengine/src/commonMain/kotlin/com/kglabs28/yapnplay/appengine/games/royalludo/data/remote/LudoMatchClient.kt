@@ -15,8 +15,5 @@ interface LudoMatchClient {
     /** User ids currently speaking (LiveKit active speakers later). */
     fun observeSpeaking(matchId: String): Flow<Set<String>>
 
-    /** Round-trip time to the server in ms (the ping shown in the top bar). */
-    fun observeLatency(): Flow<Int>
-
     suspend fun send(matchId: String, command: LudoCommand)
 }

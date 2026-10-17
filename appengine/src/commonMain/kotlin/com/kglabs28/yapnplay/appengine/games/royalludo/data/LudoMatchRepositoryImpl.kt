@@ -24,8 +24,6 @@ class LudoMatchRepositoryImpl(
     override fun observeSpeaking(matchId: String): Flow<Set<String>> =
         client.observeSpeaking(matchId).flowOn(dispatchers.io)
 
-    override fun observeLatency(): Flow<Int> = client.observeLatency().flowOn(dispatchers.io)
-
     override suspend fun send(matchId: String, command: LudoCommand): AppResult<Unit> =
         withContext(dispatchers.io) {
             try {

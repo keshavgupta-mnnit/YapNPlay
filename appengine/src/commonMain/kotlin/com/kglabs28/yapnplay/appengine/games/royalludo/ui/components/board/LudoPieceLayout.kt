@@ -9,18 +9,25 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.utils.PROGRESS_IN_BASE
 /** Where pieces stand on the board, and which one a tap hits. */
 object LudoPieceLayout {
 
+    /** Where a piece stands (canonical grid units) and how big it is drawn (1 = full size). */
+    data class Placement(val position: Offset, val scale: Float)
+
     /**
-     * Canonical grid position of every piece. Pieces sharing a track or
-     * lane square spread out a little so each stays visible and tappable.
+     * Where every piece stands. Pieces sharing a track or lane square
+     * shrink and spread out a little so every one stays visible and
+     * tappable.
      */
-    fun targets(pieces: List<LudoPieceUi>): Map<String, Offset> {
+    fun targets(pieces: List<LudoPieceUi>): Map<String, Placement> {
         val raw = pieces.associate { it.id to LudoBoardGeometry.position(it.colour.ordinal, it.progress, it.piece) }
-        val result = raw.toMutableMap()
+        val result = raw.mapValues { Placement(it.value, 1f) }.toMutableMap()
         pieces.filter { it.progress != PROGRESS_IN_BASE && it.progress < PROGRESS_FINISHED }
             .groupBy { raw.getValue(it.id) }
             .filterValues { it.size > 1 }
             .forEach { (cell, group) ->
-                group.forEachIndexed { index, piece -> result[piece.id] = cell + STACK_OFFSETS[index % STACK_OFFSETS.size] }
+                val scale = if (group.size == 2) PAIR_SCALE else CROWD_SCALE
+                group.forEachIndexed { index, piece ->
+                    result[piece.id] = Placement(cell + STACK_OFFSETS[index % STACK_OFFSETS.size] * scale, scale)
+                }
             }
         return result
     }
@@ -46,8 +53,10 @@ object LudoPieceLayout {
     fun drawOrder(pieces: List<LudoPieceUi>, positionOf: (String) -> Offset, projection: LudoBoardProjection) =
         pieces.sortedBy { projection.project(positionOf(it.id)).y }
 
-    private const val SPREAD = 0.2f
-    private const val TAP_REACH = 0.85f
+    private const val SPREAD = 0.3f
+    private const val PAIR_SCALE = 0.72f
+    private const val CROWD_SCALE = 0.58f
+    private const val TAP_REACH = 1.0f
     private const val TAP_RAISE = 0.5f
     private val STACK_OFFSETS = listOf(
         Offset(-SPREAD, -SPREAD), Offset(SPREAD, SPREAD), Offset(SPREAD, -SPREAD), Offset(-SPREAD, SPREAD),

@@ -23,17 +23,23 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoMatc
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.MatchSettingsCard
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.PenaltyCard
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.ReportPlayerCard
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.ReportVoteCard
 
-/** The table's dialogs: leave confirmation, final ranking, mic permission. */
+/**
+ * The table's dialogs: leave confirmation, final ranking, mic
+ * permission, settings, report a player, vote on someone's report, the
+ * report's outcome and a penalty.
+ */
 @Composable
 fun LudoMatchModalContent(
     modal: LudoMatchModal,
-    onConfirmLeave: () -> Unit,
-    onDismiss: () -> Unit,
-    onDone: () -> Unit,
-    onOpenSettings: () -> Unit,
+    actions: LudoMatchModalActions,
     modifier: Modifier = Modifier,
 ) {
+    val onDismiss = actions.onDismiss
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
     val ctaHeight = YapNPlayTheme.dimens.ctaHeight
@@ -48,7 +54,7 @@ fun LudoMatchModalContent(
                 GlassPillButton(text = Strings.ludoStay, onClick = onDismiss, leadingIcon = Icons.Rounded.Close, height = ctaHeight)
                 PillButton(
                     text = Strings.ludoLeaveConfirm,
-                    onClick = onConfirmLeave,
+                    onClick = actions.onConfirmLeave,
                     gradient = listOf(colors.Error, colors.Error.copy(alpha = LEAVE_GRADIENT_END)),
                     contentColor = colors.TextPrimary,
                     leadingIcon = Icons.AutoMirrored.Rounded.Logout,
@@ -63,7 +69,7 @@ fun LudoMatchModalContent(
             actions = {
                 PillButton(
                     text = Strings.ludoDone,
-                    onClick = onDone,
+                    onClick = actions.onDone,
                     gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),
                     contentColor = colors.CtaGreenContent,
                     leadingIcon = Icons.Rounded.EmojiEvents,
@@ -88,7 +94,7 @@ fun LudoMatchModalContent(
             actions = {
                 PillButton(
                     text = Strings.micPermissionOpenSettings,
-                    onClick = onOpenSettings,
+                    onClick = actions.onOpenAppSettings,
                     gradient = listOf(colors.CtaGreenStart, colors.CtaGreenEnd),
                     contentColor = colors.CtaGreenContent,
                     leadingIcon = Icons.Rounded.Settings,
@@ -96,6 +102,47 @@ fun LudoMatchModalContent(
                     textStyle = typography.sectionTitle,
                 )
             },
+        )
+        is LudoMatchModal.Settings -> MatchSettingsCard(
+            effectsOn = modal.effectsOn,
+            musicOn = modal.musicOn,
+            onToggleEffects = actions.onToggleEffects,
+            onToggleMusic = actions.onToggleMusic,
+            onReport = actions.onOpenReport,
+            onClose = onDismiss,
+            modifier = modifier,
+        )
+        is LudoMatchModal.Report -> ReportPlayerCard(
+            options = modal.people.map { Strings.ludoReportOption(it.name, it.role) },
+            selectedIndex = modal.people.indexOfFirst { it.userId == modal.selectedUserId }.takeIf { it >= 0 },
+            warning = modal.warning,
+            error = modal.error,
+            onSelect = { index -> actions.onSelectReportPerson(modal.people[index].userId) },
+            onSubmit = actions.onSubmitReport,
+            onClose = onDismiss,
+            modifier = modifier,
+        )
+        is LudoMatchModal.Vote -> ReportVoteCard(
+            title = modal.title,
+            body = modal.body,
+            secondsLeft = modal.secondsLeft,
+            onAgree = { actions.onVote(true) },
+            onDisagree = { actions.onVote(false) },
+            modifier = modifier,
+        )
+        is LudoMatchModal.ReportOutcome -> ModalCard(
+            title = modal.title,
+            subtitle = modal.body,
+            onClose = onDismiss,
+            modifier = modifier,
+        )
+        is LudoMatchModal.Penalty -> PenaltyCard(
+            title = modal.title,
+            body = modal.body,
+            watchingAd = modal.watchingAd,
+            onWatchAd = actions.onWatchAd,
+            onClose = onDismiss,
+            modifier = modifier,
         )
     }
 }

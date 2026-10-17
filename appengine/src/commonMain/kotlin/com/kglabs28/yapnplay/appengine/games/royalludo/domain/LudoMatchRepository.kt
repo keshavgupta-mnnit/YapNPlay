@@ -9,6 +9,5 @@ import kotlinx.coroutines.flow.Flow
 interface LudoMatchRepository {
     fun observeMatch(matchId: String): Flow<LudoUpdate>
     fun observeSpeaking(matchId: String): Flow<Set<String>>
-    fun observeLatency(): Flow<Int>
     suspend fun send(matchId: String, command: LudoCommand): AppResult<Unit>
 }

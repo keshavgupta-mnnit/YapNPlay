@@ -11,13 +11,15 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.glass.LudoG
 import com.kglabs28.yapnplay.appengine.ui.components.common.OnOffSwitch
 
 /**
- * The user's own controls: smoked glass Mic and Autoplay buttons (label
- * at the start, switch at the end), then the glossy silver Roll Dice,
- * lit only on their turn and off while autoplay plays for them.
+ * The user's own controls: smoked glass Mic and Autoplay rows (label at
+ * the start, switch at the end), then the glossy silver Roll Dice, lit
+ * only on their turn and off while autoplay plays for them. After the
+ * roll it reads [moveHint] ("Move 4") until they pick a piece.
  */
 @Composable
 fun LudoMyControls(
     canRoll: Boolean,
+    moveHint: String?,
     autoplay: Boolean,
     micOn: Boolean,
     onRoll: () -> Unit,
@@ -47,11 +49,11 @@ fun LudoMyControls(
             OnOffSwitch(on = autoplay, onToggle = onToggleAutoplay)
         }
         LudoGlassButton(
-            text = Strings.ludoRollDice,
+            text = moveHint ?: Strings.ludoRollDice,
             onClick = onRoll,
             fill = listOf(colors.LudoSilverTop, colors.LudoSilverMid, colors.LudoSilverBottom),
             textColor = colors.LudoSilverText,
-            enabled = canRoll && !autoplay,
+            enabled = (canRoll || moveHint != null) && !autoplay,
         )
     }
 }

@@ -64,7 +64,7 @@ Seats take colours in board order, clockwise from a random colour, so turns go r
 | threeSixesForfeit | true | Third consecutive six forfeits the turn |
 | pairProtection | true | Two or more same-colour pieces protect each other |
 | exactFinish | true | Need an exact roll to finish |
-| autoMoveWhenSingleOption | false | Autoplay picks the only legal move immediately |
+| autoMoveWhenSingleOption | true | With exactly one legal move after a roll, it is played at once (the roll is still sent and shown first) |
 
 ---
 
@@ -109,11 +109,11 @@ Seats take colours in board order, clockwise from a random colour, so turns go r
 
 ## 9. Three consecutive sixes
 
-**Rule:** If a player rolls three 6s in a row, the third roll forfeits the turn. Nothing moves, and the turn passes to the next player.
+**Rule:** If a player rolls three 6s in a row, the third roll voids the whole turn: every piece (theirs and any they captured this turn) goes back to where it stood when the turn began, and the turn passes to the next player.
 
 **Assumption confirmed:** The consecutive-sixes counter counts rolls by the same seat in a row and resets when the turn passes to another seat or when a non-6 is rolled.
 
-**Example:** Red rolls 6 (extra turn), rolls 6 again (extra turn), rolls 6 a third time — forfeit! Nothing moves on the third roll, and the turn passes.
+**Example:** Red rolls 6 and leaves base, rolls 6 again and captures blue, rolls 6 a third time — the turn is undone: red's piece is back in base, blue's piece is back on its square, and the turn passes.
 
 ---
 
@@ -206,7 +206,7 @@ player who turned Autoplay on. It only ever picks a legal piece.
 | # | Assumption |
 |---|---|
 | a | A 6 with no legal move passes the turn without an extra roll. |
-| b | With exactly one legal piece the player still chooses it (the app may offer one-tap confirm). |
+| b | With exactly one legal piece it moves automatically (Auto Move house rule, on by default). |
 | c | The consecutive-sixes counter counts rolls by the same seat in a row and resets when the turn passes to another seat. |
 | d | Captures happen only on the shared track, never in the home column. |
 | e | A lander captures every lone opposing piece on a non-safe square, once, with a single extra turn. |

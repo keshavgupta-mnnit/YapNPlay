@@ -32,6 +32,8 @@ class RoyalLudoState(
     val finishingOrder: List<Int> = emptyList(),
     val removalOrder: List<Int> = emptyList(),
     val turnCounter: Long = 0,
+    /** Board as it was when the current seat's turn began (a third six puts it back). */
+    val turnStartPieces: Map<Int, List<Int>> = pieces,
 ) : GameState {
     override val gameId: GameId get() = _gameId
     override val rules: GameRules get() = _rules
@@ -57,9 +59,10 @@ class RoyalLudoState(
         finishingOrder: List<Int> = this.finishingOrder,
         removalOrder: List<Int> = this.removalOrder,
         turnCounter: Long = this.turnCounter,
+        turnStartPieces: Map<Int, List<Int>> = this.turnStartPieces,
     ): RoyalLudoState = RoyalLudoState(
         _gameId, _rules, _seats, _turn, seatColours, pieces,
         currentSeat, phase, lastRoll, legalPieces, consecutiveSixes,
-        finishingOrder, removalOrder, turnCounter,
+        finishingOrder, removalOrder, turnCounter, turnStartPieces,
     )
 }

@@ -28,7 +28,7 @@ data class RoyalLudoHouseRules(
     val extraTurnOnHome: Boolean = true,
     val threeSixesForfeit: Boolean = true,
     val pairProtection: Boolean = true,
-    val autoMoveWhenSingleOption: Boolean = false,
+    val autoMoveWhenSingleOption: Boolean = true,
 ) : HouseRules
 
 /**

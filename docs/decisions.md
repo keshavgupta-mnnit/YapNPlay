@@ -3,6 +3,27 @@
 `docs/project-report.md` is the original plan. These later decisions win
 where they disagree. Newest first. Every AI agent reads this file too.
 
+## 2026-10-17 — Royal Ludo table, sound, voice reports
+
+- **Table layout:** the user's card bottom-left (Mic, Autoplay, Roll
+  Dice), the other players on the right in turn order (clockwise from the
+  user), the diamond board as large as fits. Tapping another player's
+  card offers "Hear <name>" — mute them for yourself only.
+- **Turn:** the top bar shows whose turn it is and the seconds left; the
+  turn timer also runs round the player's card border. Turns are 10 s.
+- **Dice:** takes the colour of the player rolling; hidden while a piece
+  is being chosen and moved. Tapping it rolls on your turn.
+- **Rules:** one legal move after a roll is played automatically; a third
+  six undoes the whole turn. Finished players get their place in their
+  base and as a badge on their card.
+- **Sound:** background music, dice roll, hop, capture and winner sounds;
+  effects and music each switchable in the match settings.
+- **Voice reports (all games):** Settings → Report a player. Everyone else
+  present confirms within a short time; 2 agreements needed with 4 or
+  fewer voters, else 3. Upheld → incident against the reported person,
+  otherwise against the reporter. An incident deducts points and blocks
+  play for a while; a rewarded ad lifts the block.
+
 ## 2026-10-17 — permissions, invites, notifications, member card
 
 - **Permissions:** mic + notifications are asked once, on first launch

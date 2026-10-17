@@ -13,6 +13,9 @@ import com.kglabs28.yapnplay.appengine.features.matchmaking.domain.MatchmakingSt
 import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.FindQuickPlayMatchUseCase
 import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.GetOnlinePlayerCountUseCase
 import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.LeaveQuickPlayQueueUseCase
+import com.kglabs28.yapnplay.appengine.features.moderation.usecase.ClearPenaltyWithAdUseCase
+import com.kglabs28.yapnplay.appengine.features.moderation.usecase.ObservePenaltyUseCase
+import kotlin.math.ceil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -30,6 +33,8 @@ class GameZoneViewModel(
     private val getOnlinePlayerCount: GetOnlinePlayerCountUseCase,
     private val findQuickPlayMatch: FindQuickPlayMatchUseCase,
     private val leaveQuickPlayQueue: LeaveQuickPlayQueueUseCase,
+    private val observePenalty: ObservePenaltyUseCase,
+    private val clearPenaltyWithAd: ClearPenaltyWithAdUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<GameZoneState, GameZoneIntent, GameZoneEffect>(GameZoneState(), dispatchers) {
@@ -55,6 +60,15 @@ class GameZoneViewModel(
                 startSearch()
             }
             GameZoneIntent.CancelSearch -> cancelSearch()
+            GameZoneIntent.DismissPenalty -> setState { copy(penalty = null) }
+            GameZoneIntent.WatchAd -> {
+                setState { copy(penalty = penalty?.copy(watchingAd = true)) }
+                if (clearPenaltyWithAd() is AppResult.Success) {
+                    setState { copy(penalty = null) }
+                } else {
+                    setState { copy(penalty = penalty?.copy(watchingAd = false)) }
+                }
+            }
         }
     }
 
@@ -79,6 +93,12 @@ class GameZoneViewModel(
     private fun startSearch() {
         val game = state.value.games.getOrNull(state.value.focusedIndex) ?: return
         if (searchJob?.isActive == true) return
+        // A recorded incident blocks play for a while (an ad lifts it).
+        observePenalty().value?.takeIf { it.blockedUntil > clock.now() }?.let { block ->
+            val minutes = ceil((block.blockedUntil - clock.now()).inWholeSeconds / SECONDS_PER_MINUTE.toDouble()).toInt()
+            setState { copy(penalty = PenaltyUi(Strings.ludoPenaltyTitle, Strings.ludoPenaltyBody(block.points, minutes), watchingAd = false)) }
+            return
+        }
         setState { copy(searchMessage = null) }
         searchJob = scope.launch {
             findQuickPlayMatch(game.id).collect { status ->
@@ -148,4 +168,8 @@ class GameZoneViewModel(
 
     private fun secondsUntil(instant: Instant): Long =
         (instant - clock.now()).inWholeSeconds.coerceAtLeast(0)
+
+    private companion object {
+        const val SECONDS_PER_MINUTE = 60L
+    }
 }

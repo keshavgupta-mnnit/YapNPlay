@@ -66,17 +66,13 @@ class RoyalLudoEngine : Game {
 
     override fun currentActor(state: GameState) = SeatNumber((state as RoyalLudoState).currentSeat)
 
-    override fun autoplay(state: GameState, seat: SeatNumber): ApplyResult {
+    override fun autoplay(state: GameState, seat: SeatNumber, random: GameRandom): ApplyResult {
         val s = state as RoyalLudoState
         if (s.phase == Phase.FINISHED) return ApplyResult.Rejected(TypedRejection("MATCH_ENDED", "Match ended"))
         if (seat.value != s.currentSeat) return ApplyResult.Rejected(TypedRejection("NOT_YOUR_TURN", "Not your turn"))
         return when (s.phase) {
-            Phase.AWAITING_ROLL -> {
-                // Deterministic roll derived from the turn counter: the same
-                // state always yields the same roll, and it varies turn to turn.
-                val roll = kotlin.random.Random(state.turnCounter).nextInt(1, 7)
-                handleRoll(s, FixedRandom(roll))
-            }
+            // Same fair, independent roll as a player's own.
+            Phase.AWAITING_ROLL -> handleRoll(s, random)
             Phase.AWAITING_MOVE -> bot.bestPiece(s)?.let { handleMove(s, it) }
                 ?: ApplyResult.Rejected(TypedRejection("NO_LEGAL_MOVE", "No legal move"))
             Phase.FINISHED -> ApplyResult.Rejected(TypedRejection("MATCH_ENDED", "Match ended"))
@@ -145,9 +141,12 @@ class RoyalLudoEngine : Game {
         val roll = random.nextInt(6) + 1
         val events = mutableListOf<GameEvent>()
         if (state.ludoRules.house.threeSixesForfeit && roll == 6 && state.consecutiveSixes >= MAX_CONSECUTIVE_SIXES - 1) {
+            // Third six: the whole turn is void, every piece goes back to
+            // where it stood when this turn began.
             events.add(DiceRolled(state.currentSeat, roll))
             events.add(TurnForfeited(state.currentSeat, "THREE_SIXES"))
-            val newState = state.copy(consecutiveSixes = 0, lastRoll = roll, phase = Phase.AWAITING_ROLL, legalPieces = emptyList(), turnCounter = state.turnCounter + 1)
+            events.add(TurnReverted(state.currentSeat, state.turnStartPieces))
+            val newState = state.copy(pieces = state.turnStartPieces, consecutiveSixes = 0, lastRoll = roll, phase = Phase.AWAITING_ROLL, legalPieces = emptyList(), turnCounter = state.turnCounter + 1)
             return ApplyResult.Success(advanceTurn(newState, events), events)
         }
         val newConsecutiveSixes = if (roll == 6) state.consecutiveSixes + 1 else 0
@@ -158,7 +157,11 @@ class RoyalLudoEngine : Game {
             events.add(TurnPassed(state.currentSeat, "NO_LEGAL_MOVE"))
             return ApplyResult.Success(advanceTurn(newState, events), events)
         }
-        if (state.ludoRules.house.autoMoveWhenSingleOption && legalPieces.size == 1) return handleMove(newState, legalPieces.first())
+        if (state.ludoRules.house.autoMoveWhenSingleOption && legalPieces.size == 1) {
+            // Keep the roll in front of the automatic move, so every client shows the dice first.
+            val moved = handleMove(newState, legalPieces.first())
+            return if (moved is ApplyResult.Success) ApplyResult.Success(moved.state, events + moved.events) else moved
+        }
         return ApplyResult.Success(newState, events)
     }
 
@@ -243,6 +246,8 @@ class RoyalLudoEngine : Game {
             turnCounter = s.turnCounter + 1,
             turn = RoyalLudoTurnState(SeatNumber(nextSeat), if (matchOver) Phase.FINISHED.name else Phase.AWAITING_ROLL.name),
             currentSeat = nextSeat,
+            // A new seat's turn starts from this board.
+            turnStartPieces = if (nextSeat != s.currentSeat) newPieces else s.turnStartPieces,
         )
         val finalEvents = if (matchOver) events + MatchEnded(newFinishingOrder + s.removalOrder) else events
         return ApplyResult.Success(newState, finalEvents)
@@ -287,7 +292,7 @@ class RoyalLudoEngine : Game {
 
     private fun advanceTurn(state: RoyalLudoState, events: MutableList<GameEvent>): RoyalLudoState {
         val nextSeat = nextActiveSeat(state, state.finishingOrder)
-        return state.copy(currentSeat = nextSeat, phase = Phase.AWAITING_ROLL, legalPieces = emptyList(), lastRoll = null, turnCounter = state.turnCounter + 1, turn = RoyalLudoTurnState(SeatNumber(nextSeat), Phase.AWAITING_ROLL.name))
+        return state.copy(currentSeat = nextSeat, phase = Phase.AWAITING_ROLL, legalPieces = emptyList(), lastRoll = null, turnCounter = state.turnCounter + 1, turn = RoyalLudoTurnState(SeatNumber(nextSeat), Phase.AWAITING_ROLL.name), turnStartPieces = state.pieces, consecutiveSixes = 0)
     }
 
     private fun nextActiveSeat(state: RoyalLudoState, finishingOrder: List<Int>): Int {
@@ -302,8 +307,3 @@ class RoyalLudoEngine : Game {
 data class RoyalLudoSeatView(val seat: Int, val colour: Int, val pieces: List<Int>, val status: String, val finished: Boolean)
 @Serializable
 data class RoyalLudoView(val seats: List<RoyalLudoSeatView>, val currentSeat: Int, val phase: String, val lastRoll: Int?, val legalMoves: List<Int>, val finishingOrder: List<Int>, val turnCounter: Long) : GameView
-
-/** Test-only fixed dice face (1-6). */
-private class FixedRandom(private val roll: Int) : GameRandom {
-    override fun nextInt(bound: Int): Int = (roll - 1) % bound
-}

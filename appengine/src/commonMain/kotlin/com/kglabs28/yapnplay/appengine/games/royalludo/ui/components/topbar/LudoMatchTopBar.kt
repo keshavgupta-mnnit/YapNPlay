@@ -28,15 +28,14 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.glass.ludoFrostedGlass
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoAvatarUi
-import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.PingQuality
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /**
  * Match top bar (design): the game name in brushed metal on a teal-rimmed
  * card with the room below it, a frosted tray of everyone at the table
  * and watching (ring green while talking, red with the mic off) with the
- * live spectator count, the live ping (teal good, yellow fair, red poor),
- * then settings and exit.
+ * spectator count, the match clock (time since it began), then
+ * settings and exit.
  */
 @Composable
 fun LudoMatchTopBar(
@@ -45,8 +44,7 @@ fun LudoMatchTopBar(
     audience: List<LudoAvatarUi>,
     spectatorCount: String,
     spectatorLabel: String,
-    pingLabel: String,
-    pingQuality: PingQuality,
+    elapsed: String,
     onSettings: () -> Unit,
     onExit: () -> Unit,
     modifier: Modifier = Modifier,
@@ -108,16 +106,7 @@ fun LudoMatchTopBar(
                 BasicText(text = spectatorLabel, style = typography.micro.copy(color = colors.TextSecondary))
             }
         }
-        val pingTint = pingQuality.tint()
-        BasicText(
-            text = pingLabel,
-            style = typography.label.copy(color = pingTint),
-            modifier = Modifier
-                .clip(shape)
-                .background(smoke)
-                .border(dimens.borderThin, colors.LudoTeal, shape)
-                .padding(horizontal = Spacing.Sm, vertical = Spacing.Xs),
-        )
+        LudoMatchClock(elapsed = elapsed, modifier = Modifier.fillMaxHeight())
         LudoSquareIconButton(icon = Icons.Rounded.Settings, description = Strings.ludoSettings, tint = colors.LudoTeal, onClick = onSettings)
         LudoSquareIconButton(icon = Icons.AutoMirrored.Rounded.Logout, description = Strings.ludoExit, tint = colors.Error, onClick = onExit)
     }

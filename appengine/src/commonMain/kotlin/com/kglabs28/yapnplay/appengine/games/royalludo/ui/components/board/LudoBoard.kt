@@ -20,7 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntOffset
+import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoColour
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoPieceUi
 import kotlin.math.roundToInt
@@ -37,13 +40,21 @@ fun LudoBoard(
     rotation: Int,
     onPieceClick: (LudoPieceUi) -> Unit,
     modifier: Modifier = Modifier,
+    /** "1st", "2nd"… shown inside finished players' bases, by colour. */
+    places: Map<LudoColour, String> = emptyMap(),
+    /** A tap that hit no selectable piece. */
+    onEmptyTap: () -> Unit = {},
     centre: @Composable (Modifier) -> Unit = {},
 ) {
     val colours = ludoBoardColours()
     val targets = remember(pieces) { LudoPieceLayout.targets(pieces) }
     val motions = pieces.associate { piece ->
-        key(piece.id) { piece.id to rememberPieceMotion(targets.getValue(piece.id), piece.motion) }
+        key(piece.id) { piece.id to rememberPieceMotion(targets.getValue(piece.id).position, piece.motion) }
     }
+    val scales = targets.mapValues { it.value.scale }
+    val measurer = rememberTextMeasurer()
+    val placeStyle = YapNPlayTheme.typography.heroWord
+    val placesByColour = places.mapKeys { it.key.ordinal }
     val pulse by rememberInfiniteTransition().animateFloat(
         initialValue = 0f,
         targetValue = 1f,
@@ -57,6 +68,7 @@ fun LudoBoard(
     val latestPieces by rememberUpdatedState(pieces)
     val latestMotions by rememberUpdatedState(motions)
     val latestClick by rememberUpdatedState(onPieceClick)
+    val latestEmptyTap by rememberUpdatedState(onEmptyTap)
 
     BoxWithConstraints(modifier) {
         val width = constraints.maxWidth.toFloat()
@@ -68,12 +80,13 @@ fun LudoBoard(
                 .pointerInput(projection) {
                     detectTapGestures { tap ->
                         LudoPieceLayout.hitTest(tap, latestPieces, { latestMotions.getValue(it).current }, projection)
-                            ?.let(latestClick)
+                            ?.let(latestClick) ?: latestEmptyTap()
                     }
                 },
         ) {
             drawLudoBoard(projection, colours, glow)
-            drawLudoPieces(projection, pieces, motions, colours, pulse)
+            drawBasePlaces(projection, placesByColour, colours, measurer, placeStyle)
+            drawLudoPieces(projection, pieces, motions, scales, colours, pulse)
         }
         val dice = projection.diceRect()
         with(LocalDensity.current) {

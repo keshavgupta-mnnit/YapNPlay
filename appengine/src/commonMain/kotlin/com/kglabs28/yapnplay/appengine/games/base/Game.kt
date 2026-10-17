@@ -32,8 +32,8 @@ interface Game : GameDescriptor {
     /** The game's computer player (CPU seats, timeouts, autoplay). */
     val bot: GameBot
 
-    /** Plays [seat]'s turn with [bot]'s choice. */
-    fun autoplay(state: GameState, seat: SeatNumber): ApplyResult
+    /** Plays [seat]'s turn with [bot]'s choice; any roll uses [random] like a player's own. */
+    fun autoplay(state: GameState, seat: SeatNumber, random: GameRandom): ApplyResult
     fun removeSeat(state: GameState, seat: SeatNumber): GameState
     /** What [viewer] may see — spectators get the public table only (see [GameView]). */
     fun viewFor(state: GameState, viewer: Viewer): GameView

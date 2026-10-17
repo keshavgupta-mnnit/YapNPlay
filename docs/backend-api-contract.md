@@ -249,6 +249,43 @@ must honour the same switch (`GAME_UNAVAILABLE`).
   (replaced); throttle per user+room (e.g. once per 5 minutes) and
   aggregate several arrivals. Tap → `yapnplay://room/<roomId>` → lobby.
 
+## Royal Ludo match additions
+
+- **Events:** besides rolls, moves and captures, a third six sends
+  `TurnReverted(seat, pieces)` (board as it was when the turn began) — the
+  app glides every changed piece back.
+- **Snapshot:** includes the finishing order so far (`finishedSeats`), so
+  places ("1st", "2nd") show on the board and the cards during the match.
+  Also `startedAt` (when the match began) for the match clock in the top bar.
+- **Roll before move:** a roll is never skipped. Every `DiceRolled` is sent,
+  and it comes before the move it allows, including an automatic single
+  move, a bot's move and a timed-out turn. The app shows the full roll and
+  lets the die rest on its face before any piece moves.
+- **Fairness:** every roll (players and bots alike) comes from the
+  server's secure random source, uniform and independent each time; a
+  6-6-6 happens about once in 216 sets of three rolls. The app never rolls.
+- **Spectator count:** the number of people actually watching (not
+  players); the top bar lists only spectators.
+
+## Moderation channel (all games and rooms)
+
+- `ReportPlayer(contextId, reportedUserId, reason="voice_chat")` from the
+  reporter. Voters = everyone present (players and spectators) except the
+  reporter and the reported person; fewer than 2 → rejected.
+- Each voter gets `ReportVoteRequested(reportId, reporterName,
+  reportedName, expiresAt)` and answers `CastReportVote(reportId, agree)`;
+  no answer by `expiresAt` = no vote.
+- Required agreements: 2 when there are 4 or fewer voters, otherwise 3.
+- `ReportResolved(reportId, upheld, reportedName, agreed, required)` to the
+  reporter. Upheld → incident against the reported person; otherwise
+  against the reporter (false report).
+- An incident sends `PenaltyIssued(pointsDeducted, blockedUntil)` to the
+  person it is against: points are deducted and new matches are refused
+  until `blockedUntil`. A completed rewarded ad
+  (`POST /penalties/clear-with-ad`, verified server-side) lifts the block.
+- Muting someone "for me" is local to the device (voice provider:
+  unsubscribe their audio); the server is not told.
+
 ## Error codes
 
 `NOT_AUTHENTICATED, NOT_FOUND, NOT_MEMBER, NOT_LEADER, ROOM_FULL,

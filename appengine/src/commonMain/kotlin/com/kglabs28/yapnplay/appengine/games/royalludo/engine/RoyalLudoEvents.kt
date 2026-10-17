@@ -15,6 +15,9 @@ data class PieceFinished(val seat: Int, val piece: Int) : GameEvent
 data class ExtraTurn(val seat: Int, val reason: String) : GameEvent
 @Serializable
 data class TurnForfeited(val seat: Int, val reason: String) : GameEvent
+/** A third six: the turn is void and every piece goes back to [pieces] (board at turn start). */
+@Serializable
+data class TurnReverted(val seat: Int, val pieces: Map<Int, List<Int>>) : GameEvent
 @Serializable
 data class TurnPassed(val seat: Int, val reason: String) : GameEvent
 @Serializable

@@ -42,3 +42,15 @@ Replace the glyph with an Icon/Avatar composable; delete the row here.
 
 Rule: glyphs never ship to users. When a screen goes real, its art lands
 in the same change, and this file loses the row.
+
+## Game sounds (appengine/src/androidMain/res/raw)
+
+Synthesised placeholders — replace with recorded audio of the same names:
+
+| File | Used for |
+|---|---|
+| `music_loop.wav` | Quiet background music on the match screen (loops) |
+| `dice_roll.wav` | Every dice roll |
+| `piece_hop.wav` | Each square a piece hops |
+| `piece_capture.wav` | A capture, or a turn undone by a third six |
+| `winner.wav` | A player bringing all pieces home |

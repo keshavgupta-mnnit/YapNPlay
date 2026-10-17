@@ -1,20 +1,29 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.core.audio.GameAudio
+import com.kglabs28.yapnplay.appengine.core.audio.GameSound
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.features.moderation.domain.ModerationRules
+import com.kglabs28.yapnplay.appengine.features.moderation.domain.Penalty
+import com.kglabs28.yapnplay.appengine.features.moderation.domain.ReportVoteRequest
+import com.kglabs28.yapnplay.appengine.features.moderation.usecase.ModerationUseCases
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveLocallyMutedUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetLocallyMutedUseCase
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoCommand
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoEvent
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoMatch
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoPhase
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoUpdate
-import com.kglabs28.yapnplay.appengine.games.royalludo.domain.usecase.ObserveConnectionLatencyUseCase
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.usecase.ObserveLudoMatchUseCase
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.usecase.ObserveMatchSpeakingUseCase
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.usecase.SendLudoCommandUseCase
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.mapper.LudoMatchUiMapper
+import com.kglabs28.yapnplay.appengine.games.royalludo.ui.mapper.LudoModerationUiMapper
 import com.kglabs28.yapnplay.appengine.games.royalludo.utils.LudoBoardGeometry
 import com.kglabs28.yapnplay.appengine.games.royalludo.utils.PROGRESS_IN_BASE
 import com.kglabs28.yapnplay.appengine.games.royalludo.utils.ROYAL_LUDO_TURN_SECONDS
@@ -25,15 +34,21 @@ import kotlinx.coroutines.launch
 
 /**
  * Royal Ludo table. Server updates are queued and played one event at a
- * time — the dice tumbles, a piece hops square by square, a captured
- * piece glides home — and only then does the new turn show. A ticker
- * keeps the turn timer moving. Mic changes ask for permission first.
+ * time with sound — the dice tumbles (in the roller's colour), a piece
+ * hops square by square, a captured piece or an undone turn glides home —
+ * and only then does the new turn show. The dice hides while a piece is
+ * being chosen. A ticker keeps timers moving. Mic changes ask for
+ * permission first. Other players can be muted for the user only. Voice
+ * reports go to everyone present for confirmation.
  */
 class RoyalLudoMatchViewModel(
     private val observeMatch: ObserveLudoMatchUseCase,
     private val observeSpeaking: ObserveMatchSpeakingUseCase,
     private val sendCommand: SendLudoCommandUseCase,
-    private val observeLatency: ObserveConnectionLatencyUseCase,
+    private val observeMuted: ObserveLocallyMutedUseCase,
+    private val setMuted: SetLocallyMutedUseCase,
+    private val moderation: ModerationUseCases,
+    private val audio: GameAudio,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<RoyalLudoMatchState, RoyalLudoMatchIntent, RoyalLudoMatchEffect>(RoyalLudoMatchState(), dispatchers) {
@@ -41,14 +56,18 @@ class RoyalLudoMatchViewModel(
     private var matchId: String? = null
     private var match: LudoMatch? = null
     private var speaking: Set<String> = emptySet()
-    private var latencyMs: Int? = null
+    private var mutedForMe: Set<String> = emptySet()
     /** Progress shown per seat (lags the server while events animate). */
     private val shown = mutableMapOf<Int, MutableList<Int>>()
     private val motions = mutableMapOf<String, PieceMotion>()
     private var playing = false
     private var rollId = 0
     private var diceValue = 1
+    private var diceSeat: Int? = null
+    private var diceVisible = true
     private var userModal: LudoMatchModal? = null
+    private var vote: ReportVoteRequest? = null
+    private var penalty: Penalty? = null
     private val queue = Channel<LudoUpdate>(Channel.UNLIMITED)
     private var jobs: List<Job> = emptyList()
 
@@ -72,6 +91,9 @@ class RoyalLudoMatchViewModel(
                 showModal(null)
                 emitEffect(RoyalLudoMatchEffect.OpenAppSettings)
             }
+            is RoyalLudoMatchIntent.ToggleHear -> match?.players?.firstOrNull { it.seat == intent.seat }?.let {
+                setMuted(it.userId, it.userId !in mutedForMe)
+            }
             RoyalLudoMatchIntent.ExitClicked -> showModal(LudoMatchModal.LeaveConfirm)
             RoyalLudoMatchIntent.ConfirmLeave -> {
                 showModal(null)
@@ -79,8 +101,25 @@ class RoyalLudoMatchViewModel(
                 emitEffect(RoyalLudoMatchEffect.Close)
             }
             RoyalLudoMatchIntent.DismissModal -> showModal(null)
-            // Match settings (sound, board style) come with the settings phase.
-            RoyalLudoMatchIntent.OpenSettings -> Unit
+            RoyalLudoMatchIntent.OpenSettings -> showSettings()
+            RoyalLudoMatchIntent.ToggleEffects -> {
+                audio.setEffectsOn(!audio.settings.value.effectsOn)
+                showSettings()
+            }
+            RoyalLudoMatchIntent.ToggleMusic -> {
+                audio.setMusicOn(!audio.settings.value.musicOn)
+                showSettings()
+            }
+            RoyalLudoMatchIntent.OpenReport -> showReport(selected = null, error = null)
+            is RoyalLudoMatchIntent.SelectReportPerson -> showReport(selected = intent.userId, error = null)
+            RoyalLudoMatchIntent.SubmitReport -> submitReport()
+            is RoyalLudoMatchIntent.Vote -> vote?.let {
+                vote = null
+                render()
+                moderation.castVote(it.reportId, intent.agree)
+            }
+            RoyalLudoMatchIntent.WatchAd -> watchAd()
+            is RoyalLudoMatchIntent.ScreenVisible -> if (intent.visible) audio.startMusic() else audio.stopMusic()
             RoyalLudoMatchIntent.Done -> emitEffect(RoyalLudoMatchEffect.Close)
         }
     }
@@ -92,20 +131,25 @@ class RoyalLudoMatchViewModel(
         jobs = listOf(
             scope.launch { observeMatch(id).collect { queue.send(it) } },
             scope.launch { for (update in queue) play(update) },
+            scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
+            scope.launch { observeMuted().collect { mutedForMe = it; render() } },
+            scope.launch { moderation.voteRequests().collect { vote = it; render() } },
             scope.launch {
-                observeLatency().collect {
-                    latencyMs = it
-                    render()
+                moderation.outcomes().collect {
+                    showModal(LudoModerationUiMapper.outcome(it))
                 }
             },
             scope.launch {
-                observeSpeaking(id).collect {
-                    speaking = it
-                    render()
+                moderation.penalty().collect { new ->
+                    val fresh = new != null && penalty == null
+                    penalty = new
+                    if (fresh) showPenalty(watchingAd = false) else if (new == null && userModal is LudoMatchModal.Penalty) showModal(null)
                 }
             },
             scope.launch {
                 while (true) {
+                    val request = vote
+                    if (request != null && clock.now() >= request.expiresAt) vote = null
                     render()
                     delay(AppConstants.LUDO_TIMER_TICK_MS)
                 }
@@ -113,7 +157,7 @@ class RoyalLudoMatchViewModel(
         )
     }
 
-    /** Animates [update]'s events in order, then shows the new turn. */
+    /** Animates [update]'s events in order with sound, then shows the new turn. */
     private suspend fun play(update: LudoUpdate) {
         if (match == null) {
             reset(update.match)
@@ -124,19 +168,41 @@ class RoyalLudoMatchViewModel(
             when (event) {
                 is LudoEvent.Rolled -> {
                     diceValue = event.value
+                    diceSeat = event.seat
+                    diceVisible = true
                     rollId++
+                    audio.play(GameSound.DICE_ROLL)
                     render()
-                    delay(AppConstants.DICE_ROLL_MS.toLong())
+                    // Every roll is shown in full, and rests on its face, before anything moves.
+                    delay(AppConstants.DICE_ROLL_MS + AppConstants.LUDO_DICE_REST_MS)
                 }
                 is LudoEvent.Moved -> {
+                    diceVisible = false
                     val steps = if (event.from == PROGRESS_IN_BASE) listOf(0) else (event.from + 1)..event.to
                     for (progress in steps) {
                         place(event.seat, event.piece, progress, PieceMotion.HOP)
+                        audio.play(GameSound.HOP)
                         delay(AppConstants.LUDO_HOP_MS.toLong())
                     }
                 }
                 is LudoEvent.Captured -> {
                     place(event.victimSeat, event.victimPiece, PROGRESS_IN_BASE, PieceMotion.SLIDE)
+                    audio.play(GameSound.CAPTURE)
+                    delay(AppConstants.LUDO_SLIDE_MS.toLong())
+                }
+                is LudoEvent.Reverted -> {
+                    // Third six: every piece glides back to where the turn began.
+                    motions.clear()
+                    event.pieces.forEach { (seat, list) ->
+                        list.forEachIndexed { piece, progress ->
+                            if (shown[seat]?.getOrNull(piece) != progress) {
+                                shown[seat]?.set(piece, progress)
+                                motions[LudoMatchUiMapper.pieceId(seat, piece)] = PieceMotion.SLIDE
+                            }
+                        }
+                    }
+                    audio.play(GameSound.CAPTURE)
+                    render()
                     delay(AppConstants.LUDO_SLIDE_MS.toLong())
                 }
                 is LudoEvent.TurnPassed -> Unit
@@ -148,17 +214,25 @@ class RoyalLudoMatchViewModel(
 
     /** Shows the server's pieces as they are (after any animation). */
     private fun reset(newMatch: LudoMatch) {
+        val newlyFinished = newMatch.finishedSeats.size > (match?.finishedSeats?.size ?: newMatch.finishedSeats.size)
         match = newMatch
         shown.clear()
         newMatch.pieces.forEach { (seat, list) -> shown[seat] = list.toMutableList() }
+        motions.clear()
+        diceSeat = newMatch.currentSeat
+        // The dice stays up (also while the roller picks a piece); it hides only while a piece moves.
+        diceVisible = newMatch.phase != LudoPhase.FINISHED
+        if (newlyFinished) audio.play(GameSound.WIN)
         if (newMatch.phase == LudoPhase.FINISHED && userModal == null) {
             userModal = LudoMatchModal.Result(LudoMatchUiMapper.resultRows(newMatch))
         }
         render()
     }
 
+    /** Moves one piece; every other piece keeps still (no sympathetic hops). */
     private fun place(seat: Int, piece: Int, progress: Int, motion: PieceMotion) {
         shown[seat]?.set(piece, progress)
+        motions.clear()
         motions[LudoMatchUiMapper.pieceId(seat, piece)] = motion
         render()
     }
@@ -168,12 +242,55 @@ class RoyalLudoMatchViewModel(
         render()
     }
 
+    private fun showSettings() {
+        val s = audio.settings.value
+        showModal(LudoMatchModal.Settings(effectsOn = s.effectsOn, musicOn = s.musicOn))
+    }
+
+    private fun showReport(selected: String?, error: String?) {
+        val m = match ?: return
+        val people = LudoModerationUiMapper.reportablePeople(m)
+        val voters = LudoModerationUiMapper.voters(m)
+        showModal(
+            LudoMatchModal.Report(
+                people = people,
+                selectedUserId = selected,
+                warning = Strings.ludoReportWarning(ModerationRules.requiredAgreements(voters)),
+                error = error ?: if (ModerationRules.canReport(voters)) null else Strings.ludoReportNeedPeople,
+            ),
+        )
+    }
+
+    private suspend fun submitReport() {
+        val m = match ?: return
+        val report = userModal as? LudoMatchModal.Report ?: return
+        val person = report.people.firstOrNull { it.userId == report.selectedUserId } ?: return
+        when (moderation.report(m.matchId, person.userId, person.name, LudoModerationUiMapper.voters(m))) {
+            is AppResult.Success -> showModal(null)
+            is AppResult.Failure -> showReport(report.selectedUserId, Strings.ludoReportNeedPeople)
+        }
+    }
+
+    private fun showPenalty(watchingAd: Boolean) {
+        val p = penalty ?: return
+        showModal(LudoModerationUiMapper.penalty(p, clock.now(), watchingAd))
+    }
+
+    private suspend fun watchAd() {
+        showPenalty(watchingAd = true)
+        if (moderation.clearPenaltyWithAd() is AppResult.Failure) showPenalty(watchingAd = false)
+    }
+
     private fun render() {
         val m = match ?: return
         val me = m.me
         val rotation = me?.let { LudoBoardGeometry.rotationFor(it.colour.ordinal) } ?: 0
         val myTurn = me != null && !playing && m.currentSeat == me.seat && !me.autoplay
         val remainingMs = m.turnEndsAt?.let { (it - clock.now()).inWholeMilliseconds.coerceAtLeast(0) } ?: 0L
+        val cards = LudoMatchUiMapper.cards(
+            m,
+            LudoMatchUiMapper.CardInputs(rotation, speaking, mutedForMe, if (playing) null else remainingMs, ROYAL_LUDO_TURN_SECONDS),
+        )
         setState {
             copy(
                 loaded = true,
@@ -181,17 +298,20 @@ class RoyalLudoMatchViewModel(
                 subtitle = m.title,
                 rotation = rotation,
                 pieces = LudoMatchUiMapper.pieces(m, shown, motions, selectable = if (myTurn && m.phase == LudoPhase.MOVE) m.legalPieces else emptyList()),
-                cards = LudoMatchUiMapper.cards(m, rotation, speaking, if (playing) null else remainingMs, ROYAL_LUDO_TURN_SECONDS),
-                audience = LudoMatchUiMapper.audience(m, speaking),
+                myCard = cards.firstOrNull { it.isMe },
+                opponents = cards.filterNot { it.isMe },
+                basePlaces = LudoMatchUiMapper.basePlaces(m),
+                audience = LudoMatchUiMapper.audience(m, speaking, mutedForMe),
                 spectatorCount = m.spectatorCount.toString(),
                 spectatorLabel = Strings.ludoSpectators,
-                pingLabel = latencyMs?.let { Strings.ludoPing(it) }.orEmpty(),
-                pingQuality = LudoMatchUiMapper.pingQuality(latencyMs),
-                dice = LudoDiceUi(diceValue, rollId),
+                // The clock stops once the match is over.
+                elapsed = if (m.phase == LudoPhase.FINISHED && elapsed.isNotEmpty()) elapsed else LudoMatchUiMapper.elapsed(clock.now() - m.startedAt),
+                dice = LudoDiceUi(diceValue, rollId, m.players.firstOrNull { it.seat == diceSeat }?.colour, diceVisible),
                 canRoll = myTurn && m.phase == LudoPhase.ROLL,
+                moveHint = m.lastRoll?.takeIf { myTurn && m.phase == LudoPhase.MOVE }?.let { Strings.ludoMove(it) },
                 autoplay = me?.autoplay == true,
                 micOn = me?.micOn == true,
-                modal = userModal,
+                modal = vote?.let { LudoModerationUiMapper.vote(it, clock.now()) } ?: userModal,
             )
         }
     }

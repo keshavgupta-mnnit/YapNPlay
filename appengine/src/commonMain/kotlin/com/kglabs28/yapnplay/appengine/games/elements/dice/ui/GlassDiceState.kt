@@ -3,6 +3,7 @@ package com.kglabs28.yapnplay.appengine.games.elements.dice.ui
 import com.kglabs28.yapnplay.appengine.games.elements.dice.utils.DiceMeshGeometry
 import com.kglabs28.yapnplay.appengine.games.elements.dice.utils.DiceOrientation
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.MutatorMutex
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
@@ -34,10 +35,15 @@ class GlassDiceState(initialFace: Int = 1) {
     internal var progress by mutableFloatStateOf(0f)
         private set
 
-    /** Animates a roll ending with [result] on top. */
-    suspend fun roll(result: Int, durationMs: Int = AppConstants.DICE_ROLL_MS): Int {
+    private val rolls = MutatorMutex()
+
+    /**
+     * Animates a roll ending with [result] on top. A new roll that arrives
+     * while one is still tumbling takes over from it (never skipped), so
+     * the die always lands on the latest result.
+     */
+    suspend fun roll(result: Int, durationMs: Int = AppConstants.DICE_ROLL_MS): Int = rolls.mutate {
         require(result in 1..DICE_FACES)
-        if (isRolling) return topFace
         isRolling = true
         val from = angles
         val spin = DiceMeshGeometry.QUARTER_TURN * Random.nextInt(QUARTER_SPINS)
@@ -63,7 +69,7 @@ class GlassDiceState(initialFace: Int = 1) {
             topFace = result
             isRolling = false
         }
-        return result
+        result
     }
 
     /** Shows [face] on top at rest, without animating. */

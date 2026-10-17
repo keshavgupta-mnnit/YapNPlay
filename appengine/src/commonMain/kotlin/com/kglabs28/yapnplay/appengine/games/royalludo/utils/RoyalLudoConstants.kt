@@ -53,9 +53,9 @@ val ROYAL_LUDO_HOUSE_RULES = listOf(
     HouseRuleOption("extra_turn_on_six", "Extra Turn on 6", "Roll again after a six", true),
     HouseRuleOption("extra_turn_on_capture", "Extra Turn on Capture", "Roll again after sending a piece home", true),
     HouseRuleOption("extra_turn_on_home", "Extra Turn on Finish", "Roll again when a piece reaches home", true),
-    HouseRuleOption("three_sixes_forfeit", "Three Sixes Forfeit", "A third six in a row loses the turn", true),
+    HouseRuleOption("three_sixes_forfeit", "Three Sixes Forfeit", "A third six in a row undoes the whole turn", true),
     HouseRuleOption("pair_protection", "Pair Protection", "Two pieces together can't be captured", true),
-    HouseRuleOption("auto_move_single_option", "Auto Move", "Move automatically when only one move exists", false),
+    HouseRuleOption("auto_move_single_option", "Auto Move", "Move automatically when only one move exists", true),
 )
 
 val ROYAL_LUDO_FIXED_RULES = listOf(

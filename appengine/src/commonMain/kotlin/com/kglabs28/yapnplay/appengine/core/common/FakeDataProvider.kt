@@ -305,21 +305,30 @@ object FakeDataProvider {
             Opponent("user-sneha", "Sneha", 11, micOn = false),
             Opponent("user-vikram", "Vikram", 4, micOn = true),
         )
-        /** Fake round-trip time: usual range, an occasional spike, how often it is measured. */
-        const val PING_MIN_MS = 18
-        const val PING_MAX_MS = 70
-        const val PING_SPIKE_MS = 190
-        const val PING_SPIKE_CHANCE = 0.08
-        const val PING_TICK_MS = 2_000L
         const val QUICK_PLAY_TITLE = "Quick Play"
 
         /** Pacing so the table feels human and animations finish first. */
         const val THINK_MS = 900L
-        const val AFTER_ROLL_MS = 1_700L
+        const val AFTER_ROLL_MS = 2_100L
         const val PER_STEP_MS = 230L
         const val AFTER_MOVE_MS = 500L
         const val AFTER_CAPTURE_MS = 800L
 
         data class Opponent(val userId: String, val name: String, val level: Int, val micOn: Boolean)
+    }
+
+    /** Fake moderation service (see FakeModerationServer). */
+    object Moderation {
+        /** How long the others take to vote on the user's report. */
+        const val VOTING_MS = 6_000L
+        /** Chance each fake voter agrees. */
+        const val AGREE_CHANCE = 0.6
+        /** Time the user has to answer a prompt. */
+        const val VOTE_WINDOW_MS = 15_000L
+        /** A sample prompt arrives this long into a match. */
+        const val SAMPLE_PROMPT_AFTER_MS = 60_000L
+        const val PENALTY_POINTS = 50
+        const val BLOCK_MINUTES = 10
+        const val AD_LENGTH_MS = 2_500L
     }
 }

@@ -21,7 +21,12 @@ data class GameZoneState(
     val search: QuickPlaySearchUi? = null,
     /** Shown under QUICK PLAY after a search ended without a match. */
     val searchMessage: String? = null,
+    /** Play is blocked after a recorded incident; offers a rewarded ad. */
+    val penalty: PenaltyUi? = null,
 ) : UiState
+
+/** The user's play block, ready to show. */
+data class PenaltyUi(val title: String, val body: String, val watchingAd: Boolean)
 
 /** A running search, already formatted for display. */
 data class QuickPlaySearchUi(
@@ -38,6 +43,8 @@ sealed interface GameZoneIntent : UiIntent {
     /** Start Quick Play for the game at [index] (carousel button or grid tile). */
     data class PlayGame(val index: Int) : GameZoneIntent
     data object CancelSearch : GameZoneIntent
+    data object WatchAd : GameZoneIntent
+    data object DismissPenalty : GameZoneIntent
 }
 
 sealed interface GameZoneEffect : UiEffect {

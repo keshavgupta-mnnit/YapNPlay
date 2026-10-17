@@ -94,6 +94,7 @@ internal fun DrawScope.drawLudoPieces(
     projection: LudoBoardProjection,
     pieces: List<LudoPieceUi>,
     motions: Map<String, PieceMotionState>,
+    scales: Map<String, Float>,
     colours: LudoBoardColours,
     pulse: Float,
 ) {
@@ -102,7 +103,7 @@ internal fun DrawScope.drawLudoPieces(
         val cell = projection.cellSize(motion.current)
         drawGlassPiece(
             ground = projection.project(motion.current),
-            radius = cell * PIECE_RADIUS,
+            radius = cell * PIECE_RADIUS * (scales[piece.id] ?: 1f),
             lift = motion.lift * cell * LIFT_SCALE,
             tint = colours.players[piece.colour.ordinal],
             selectable = piece.selectable,

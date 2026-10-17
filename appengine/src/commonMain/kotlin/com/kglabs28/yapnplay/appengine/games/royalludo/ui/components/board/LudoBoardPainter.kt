@@ -8,6 +8,10 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.graphics.Shadow
 import com.kglabs28.yapnplay.appengine.games.royalludo.utils.LudoBoardGeometry
 import kotlin.math.PI
 import kotlin.math.cos
@@ -19,7 +23,7 @@ import kotlin.math.sin
  * and a soft lit rim, dark track tiles, frosted safe tiles with a star in
  * their arm's colour, each home lane as a glowing neon tube, each base
  * as a raised dark tray with a neon outline and glowing sockets, and the
- * dark centre plate the dice stands on.
+ * flat dark centre plate the dice stands on.
  */
 internal fun DrawScope.drawLudoBoard(p: LudoBoardProjection, colours: LudoBoardColours, glow: Float) {
     val cell = p.cellSize(CENTRE)
@@ -28,7 +32,7 @@ internal fun DrawScope.drawLudoBoard(p: LudoBoardProjection, colours: LudoBoardC
     drawTiles(p, colours, cell)
     for (colour in 0 until COLOURS) drawLane(p, colour, colours, cell, glow)
     for (colour in 0 until COLOURS) drawBase(p, colour, colours.players[colour], colours, cell, glow)
-    drawCentre(p, colours, cell, glow)
+    drawCentre(p, colours, cell)
 }
 
 private fun DrawScope.drawSpill(p: LudoBoardProjection, colours: LudoBoardColours, cell: Float) {
@@ -136,16 +140,17 @@ private fun DrawScope.drawBase(p: LudoBoardProjection, colour: Int, tint: Color,
 }
 
 /** The dark plate in the middle with a lit rim; the dice stands on it. */
-private fun DrawScope.drawCentre(p: LudoBoardProjection, colours: LudoBoardColours, cell: Float, glow: Float) {
+private fun DrawScope.drawCentre(p: LudoBoardProjection, colours: LudoBoardColours, cell: Float) {
     val plate = roundedRect(p, HOME_LO, HOME_LO, HOME_HI, HOME_HI, PLATE_CORNER)
-    raised(plate, cell * PLATE_HEIGHT, colours.cellSide, Brush.verticalGradient(listOf(colours.cellEdge, colours.centre), plate.getBounds().top, plate.getBounds().bottom))
+    // Flat (not raised) so the squares around it stay in view.
+    drawPath(plate, Brush.verticalGradient(listOf(colours.cellEdge, colours.centre), plate.getBounds().top, plate.getBounds().bottom))
     val centre = p.project(CENTRE)
     drawCircle(
         brush = Brush.radialGradient(listOf(Color.White.copy(alpha = PLATE_GLOW_ALPHA), Color.Transparent), centre, cell * PLATE_GLOW_RADIUS),
         radius = cell * PLATE_GLOW_RADIUS,
         center = centre,
     )
-    neon(plate, colours.rim, cell * PLATE_LINE, glow)
+    drawPath(plate, colours.rim.copy(alpha = PLATE_RIM_ALPHA), style = Stroke(cell * PLATE_LINE, join = StrokeJoin.Round))
 }
 
 /**
@@ -219,7 +224,8 @@ private const val TILE_INSET = 0.06f
 private const val TILE_CORNER = 0.12f
 private const val TILE_HEIGHT = 0.16f
 private const val TRAY_HEIGHT = 0.22f
-private const val PLATE_HEIGHT = 0.26f
+private const val PLATE_RIM_ALPHA = 0.35f
+private const val PLACE_LIGHTEN = 0.35f
 private const val SHADOW_SHIFT = 0.4f
 private const val SHADOW_DROP = 1.9f
 private const val BLOCK_SHADOW_ALPHA = 0.45f
@@ -260,3 +266,23 @@ private val GLOW_LAYERS = listOf(7f to 0.07f, 4f to 0.14f, 2.2f to 0.3f)
 private const val GLOW_FLOOR = 0.65f
 private const val GLOW_SWING = 0.7f
 private const val HALO_GROW = 0.25f
+
+/**
+ * Finishing places ("1st", "2nd"…) written large inside each finished
+ * player's base, near its inner border; [places] is by engine colour.
+ */
+internal fun DrawScope.drawBasePlaces(
+    p: LudoBoardProjection,
+    places: Map<Int, String>,
+    colours: LudoBoardColours,
+    measurer: TextMeasurer,
+    style: TextStyle,
+) {
+    places.forEach { (colour, label) ->
+        val (bx, by) = LudoBoardGeometry.baseOrigin(colour)
+        val centre = p.project(Offset(bx + BASE_HALF, by + BASE_HALF))
+        val tint = colours.players[colour]
+        val layout = measurer.measure(label, style.copy(color = lerp(tint, Color.White, PLACE_LIGHTEN), shadow = Shadow(tint, blurRadius = style.fontSize.value)))
+        drawText(layout, topLeft = Offset(centre.x - layout.size.width / 2f, centre.y - layout.size.height / 2f))
+    }
+}

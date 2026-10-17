@@ -36,14 +36,6 @@ class LudoMatchClientImpl(
         return fakeServer.speaking()
     }
 
-    override fun observeLatency(): Flow<Int> {
-        // --- production path: heartbeat round trip measured by the connection manager ---
-        // return realtime.latencyMs
-
-        // --- fake path ---
-        return fakeServer.latency()
-    }
-
     override suspend fun send(matchId: String, command: LudoCommand) {
         // --- production path: one match-channel message per command ---
         // when (command) {

@@ -7,9 +7,10 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoColour
 
 /**
  * Royal Ludo table. The board is turned so the user's base is
- * bottom-left; each player card sits in its colour's corner. Pieces move
- * one event at a time so hops and captures can animate. Everything is
- * formatted here, ready to draw.
+ * bottom-left. The user's card sits on the left; the other players'
+ * cards stack on the right in turn order (clockwise from the user).
+ * Pieces move one event at a time so hops, captures and undone turns can
+ * animate. Everything is formatted here, ready to draw.
  */
 data class RoyalLudoMatchState(
     val loaded: Boolean = false,
@@ -18,26 +19,32 @@ data class RoyalLudoMatchState(
     /** Quarter turns that bring the user's base to the bottom-left. */
     val rotation: Int = 0,
     val pieces: List<LudoPieceUi> = emptyList(),
-    /** Each player's card in their colour's corner. */
-    val cards: Map<BoardCorner, LudoPlayerCardUi> = emptyMap(),
+    val myCard: LudoPlayerCardUi? = null,
+    /** The other players, clockwise from the user. */
+    val opponents: List<LudoPlayerCardUi> = emptyList(),
+    /** Finishing place shown inside each finished player's base, by colour. */
+    val basePlaces: Map<LudoColour, String> = emptyMap(),
     /** Top bar: the people watching (players are on the cards). */
     val audience: List<LudoAvatarUi> = emptyList(),
     val spectatorCount: String = "",
     val spectatorLabel: String = "",
-    val pingLabel: String = "",
-    val pingQuality: PingQuality = PingQuality.GOOD,
+    /** Time since the match began, "m:ss", for the top bar. */
+    val elapsed: String = "",
     val dice: LudoDiceUi = LudoDiceUi(),
     val canRoll: Boolean = false,
+    /** "Move 4" while the user must pick a piece to move; null otherwise. */
+    val moveHint: String? = null,
     val autoplay: Boolean = false,
     val micOn: Boolean = false,
     val modal: LudoMatchModal? = null,
 ) : UiState
 
-/** Connection quality behind the ping colour (good, fair, poor). */
-enum class PingQuality { GOOD, FAIR, POOR }
-
-/** How a piece reaches its new square: hop per square, or glide (capture). */
-enum class PieceMotion { HOP, SLIDE }
+/**
+ * How a piece reaches its new spot: a hop per square, a glide home
+ * (capture, undone turn), or a small flat shift (making room on a
+ * shared square).
+ */
+enum class PieceMotion { HOP, SLIDE, SHIFT }
 
 /** One piece on the board ([progress] as in the engine). */
 data class LudoPieceUi(
@@ -53,11 +60,12 @@ data class LudoPieceUi(
 
 enum class BoardCorner { TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT }
 
-/** A player card in its corner. */
+/** A player's card. */
 data class LudoPlayerCardUi(
     val seat: Int,
+    val userId: String,
     val name: String,
-    /** Level number, shown under a "Level" label. */
+    /** Level number, shown after a "Level" label. */
     val level: String,
     val colour: LudoColour,
     val corner: BoardCorner,
@@ -67,6 +75,10 @@ data class LudoPlayerCardUi(
     /** 1 → 0 while it is this player's turn. */
     val timerFraction: Float,
     val left: Boolean,
+    /** "1st", "2nd"… once they have finished; null while playing. */
+    val placeLabel: String?,
+    /** The user muted this player for themselves only. */
+    val mutedForMe: Boolean,
 )
 
 /** Avatar ring in the top bar: talking, mic off, or neither. */
@@ -74,17 +86,34 @@ enum class AvatarRing { TALKING, MUTED, IDLE }
 
 data class LudoAvatarUi(val userId: String, val name: String, val ring: AvatarRing)
 
-/** The die: [rollId] changes on every roll so the screen animates it once. */
-data class LudoDiceUi(val value: Int = 1, val rollId: Int = 0)
+/**
+ * The die: [rollId] changes on every roll so the screen animates it
+ * once; [colour] is the player whose turn it is; [visible] is false while
+ * a piece is being chosen and moved, so the whole board shows.
+ */
+data class LudoDiceUi(val value: Int = 1, val rollId: Int = 0, val colour: LudoColour? = null, val visible: Boolean = true)
 
 sealed interface LudoMatchModal {
     data object LeaveConfirm : LudoMatchModal
     data class Result(val rows: List<LudoResultRowUi>) : LudoMatchModal
     /** Mic permission was refused: explain and offer Settings. */
     data object MicPermissionNeeded : LudoMatchModal
+    /** Match settings: sound effects, music, report a player. */
+    data class Settings(val effectsOn: Boolean, val musicOn: Boolean) : LudoMatchModal
+    /** Pick who to report for voice chat; [warning] explains a false report is held against the reporter. */
+    data class Report(val people: List<ReportPersonUi>, val selectedUserId: String?, val warning: String, val error: String?) : LudoMatchModal
+    /** "Did they do it?" for someone else's report; closes by itself when [secondsLeft] runs out. */
+    data class Vote(val reportId: String, val title: String, val body: String, val secondsLeft: String) : LudoMatchModal
+    /** How the user's report ended. */
+    data class ReportOutcome(val title: String, val body: String) : LudoMatchModal
+    /** An incident was recorded against the user: points lost, play blocked; an ad lifts it. */
+    data class Penalty(val title: String, val body: String, val watchingAd: Boolean) : LudoMatchModal
 }
 
 data class LudoResultRowUi(val place: String, val name: String, val colour: LudoColour)
+
+/** Someone the user can report: a player or a spectator. */
+data class ReportPersonUi(val userId: String, val name: String, val role: String)
 
 sealed interface RoyalLudoMatchIntent : UiIntent {
     data class Load(val matchId: String) : RoyalLudoMatchIntent
@@ -95,10 +124,22 @@ sealed interface RoyalLudoMatchIntent : UiIntent {
     data class ToggleMic(val permissionGranted: Boolean) : RoyalLudoMatchIntent
     data class MicPermissionResult(val granted: Boolean) : RoyalLudoMatchIntent
     data object OpenAppSettings : RoyalLudoMatchIntent
+    /** Mute or unmute this player for the user only. */
+    data class ToggleHear(val seat: Int) : RoyalLudoMatchIntent
     data object ExitClicked : RoyalLudoMatchIntent
     data object ConfirmLeave : RoyalLudoMatchIntent
     data object DismissModal : RoyalLudoMatchIntent
     data object OpenSettings : RoyalLudoMatchIntent
+    data object ToggleEffects : RoyalLudoMatchIntent
+    data object ToggleMusic : RoyalLudoMatchIntent
+    data object OpenReport : RoyalLudoMatchIntent
+    data class SelectReportPerson(val userId: String) : RoyalLudoMatchIntent
+    data object SubmitReport : RoyalLudoMatchIntent
+    /** Answer to someone else's report. */
+    data class Vote(val agree: Boolean) : RoyalLudoMatchIntent
+    data object WatchAd : RoyalLudoMatchIntent
+    /** The screen came to the front or went away (music on/off). */
+    data class ScreenVisible(val visible: Boolean) : RoyalLudoMatchIntent
     data object Done : RoyalLudoMatchIntent
 }
 

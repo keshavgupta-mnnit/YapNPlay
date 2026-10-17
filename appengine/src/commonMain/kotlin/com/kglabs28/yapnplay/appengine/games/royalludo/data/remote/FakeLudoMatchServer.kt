@@ -28,6 +28,7 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.engine.RoyalLudoRules
 import com.kglabs28.yapnplay.appengine.games.royalludo.engine.RoyalLudoState
 import com.kglabs28.yapnplay.appengine.games.royalludo.engine.TurnForfeited
 import com.kglabs28.yapnplay.appengine.games.royalludo.engine.TurnPassed
+import com.kglabs28.yapnplay.appengine.games.royalludo.engine.TurnReverted
 import com.kglabs28.yapnplay.appengine.games.royalludo.utils.ROYAL_LUDO_PLAYERS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -45,7 +46,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.Instant
-import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -70,6 +70,7 @@ class FakeLudoMatchServer(
     private lateinit var state: RoyalLudoState
     private var players: List<LudoPlayer> = emptyList()
     private var deadline: Instant? = null
+    private var startedAt: Instant = Instant.DISTANT_PAST
     private var pauseMs = 0L
     private var loop: Job? = null
 
@@ -81,18 +82,6 @@ class FakeLudoMatchServer(
         delay(FakeDataProvider.NETWORK_DELAY_MS)
         mutex.withLock { if (matchId != id) startMatch(id) }
         emitAll(updates)
-    }
-
-    /**
-     * Round-trip time to the server in ms, measured every few seconds. In
-     * production this comes from the WebSocket heartbeat (ping, then pong).
-     */
-    fun latency(): Flow<Int> = flow {
-        while (true) {
-            val spike = Random.nextDouble() < fake.PING_SPIKE_CHANCE
-            emit(if (spike) fake.PING_SPIKE_MS else Random.nextInt(fake.PING_MIN_MS, fake.PING_MAX_MS))
-            delay(fake.PING_TICK_MS)
-        }
     }
 
     /** Rotates "who is talking" among seated players with their mic on. */
@@ -135,6 +124,7 @@ class FakeLudoMatchServer(
     private fun startMatch(id: String) {
         loop?.cancel()
         matchId = id
+        startedAt = clock.now()
         state = engine.start(RoyalLudoRules.TRADITIONAL, ROYAL_LUDO_PLAYERS, random) as RoyalLudoState
         val meProfile = FakeDataProvider.Profile.me
         players = (1..ROYAL_LUDO_PLAYERS).map { seat ->
@@ -169,7 +159,7 @@ class FakeLudoMatchServer(
             if (changed != null) continue
             mutex.withLock {
                 if (version.value == seen && state.currentSeat == seat && state.phase != Phase.FINISHED) {
-                    applyResult(engine.autoplay(state, SeatNumber(seat)))
+                    applyResult(engine.autoplay(state, SeatNumber(seat), random))
                 }
             }
         }
@@ -194,6 +184,7 @@ class FakeLudoMatchServer(
                 is LudoEvent.Moved -> fake.PER_STEP_MS * stepsOf(event) + fake.AFTER_MOVE_MS
                 is LudoEvent.Captured -> fake.AFTER_CAPTURE_MS
                 is LudoEvent.TurnPassed -> 0L
+                is LudoEvent.Reverted -> fake.AFTER_CAPTURE_MS
             }
         }
         if (events.isNotEmpty() || deadline == null) {
@@ -225,6 +216,8 @@ class FakeLudoMatchServer(
             lastRoll = state.lastRoll,
             legalPieces = state.legalPieces,
             turnEndsAt = if (finished) null else deadline,
+            startedAt = startedAt,
+            finishedSeats = state.finishingOrder,
             ranking = if (finished) engine.outcome(state).ranking.sortedBy { it.place }.map { it.seat.value } else emptyList(),
         )
     }
@@ -235,6 +228,7 @@ class FakeLudoMatchServer(
         is PieceCaptured -> LudoEvent.Captured(seat, victim, victimPiece)
         is TurnPassed -> LudoEvent.TurnPassed(seat)
         is TurnForfeited -> LudoEvent.TurnPassed(seat)
+        is TurnReverted -> LudoEvent.Reverted(seat, pieces)
         else -> null
     }
 

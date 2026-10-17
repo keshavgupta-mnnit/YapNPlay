@@ -5,7 +5,6 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.data.remote.FakeLudoMatch
 import com.kglabs28.yapnplay.appengine.games.royalludo.data.remote.LudoMatchClient
 import com.kglabs28.yapnplay.appengine.games.royalludo.data.remote.LudoMatchClientImpl
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoMatchRepository
-import com.kglabs28.yapnplay.appengine.games.royalludo.domain.usecase.ObserveConnectionLatencyUseCase
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.usecase.ObserveLudoMatchUseCase
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.usecase.ObserveMatchSpeakingUseCase
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.usecase.SendLudoCommandUseCase
@@ -20,6 +19,5 @@ val royalLudoModule = module {
     factory { ObserveLudoMatchUseCase(get()) }
     factory { ObserveMatchSpeakingUseCase(get()) }
     factory { SendLudoCommandUseCase(get()) }
-    factory { ObserveConnectionLatencyUseCase(get()) }
-    factory { RoyalLudoMatchViewModel(get(), get(), get(), get(), get(), get()) }
+    factory { RoyalLudoMatchViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

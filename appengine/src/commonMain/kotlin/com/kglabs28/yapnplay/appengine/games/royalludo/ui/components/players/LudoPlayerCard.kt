@@ -1,15 +1,20 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.style.TextOverflow
@@ -21,16 +26,19 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.glass.turnT
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoPlayerCardUi
 
 /**
- * A player's card in thick neutral frosted glass (design): avatar framed
- * in their colour, their name in that colour, and "Level" with the
- * level number on one line. Only during
- * their turn does a border of their colour run round the card, shrinking
- * as time runs out. The user's own card adds [controls] under it.
+ * A player's card in neutral frosted glass: avatar framed in their
+ * colour, name in that colour, "Level" and the number on one line. During
+ * their turn a solid border of their colour runs round the card and
+ * shrinks as time runs out. Once they finish, a "1st"/"2nd" badge sits on
+ * the card's top edge. Other players' cards have a round mute button
+ * ([onToggleHear]): red while the user has muted them, grey otherwise.
+ * The user's own card adds [controls] under it.
  */
 @Composable
 fun LudoPlayerCard(
     card: LudoPlayerCardUi,
     modifier: Modifier = Modifier,
+    onToggleHear: () -> Unit = {},
     controls: @Composable ColumnScope.() -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
@@ -39,38 +47,57 @@ fun LudoPlayerCard(
     val tint = card.colour.tint()
     val shape = RoundedCornerShape(dimens.ludoCardRadius)
 
-    Column(
-        modifier = modifier
-            .graphicsLayer { alpha = if (card.left) LEFT_ALPHA else 1f }
-            .ludoFrostedGlass(tint = colors.AvatarRingSilver, shape = shape, radius = dimens.ludoCardRadius, glow = dimens.zero)
-            .turnTimerBorder(
-                active = card.isTurn,
-                fraction = card.timerFraction,
-                tint = lerp(tint, colors.Background, TIMER_DARKEN),
-                radius = dimens.ludoCardRadius,
-                width = dimens.ludoTimerStroke,
-            )
-            .padding(Spacing.Sm),
-        verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-            LudoCardAvatar(tint = tint, talking = card.talking)
-            Column(modifier = Modifier.weight(1f)) {
-                BasicText(
-                    text = card.name,
-                    style = typography.sectionTitle.copy(color = tint),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+    Box(modifier = modifier, contentAlignment = Alignment.TopCenter) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = dimens.ludoPlaceBadgeHeight / 2)
+                .graphicsLayer { alpha = if (card.left) LEFT_ALPHA else 1f }
+                .ludoFrostedGlass(tint = colors.AvatarRingSilver, shape = shape, radius = dimens.ludoCardRadius, glow = dimens.zero)
+                .turnTimerBorder(
+                    active = card.isTurn,
+                    fraction = card.timerFraction,
+                    tint = lerp(tint, colors.Background, TIMER_DARKEN),
+                    radius = dimens.ludoCardRadius,
+                    width = dimens.ludoTimerStroke,
                 )
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-                    BasicText(text = Strings.ludoLevelLabel, style = typography.label.copy(color = colors.TextSecondary))
-                    BasicText(text = card.level, style = typography.label.copy(color = colors.TextPrimary))
+                .padding(Spacing.Sm),
+            verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
+                LudoCardAvatar(tint = tint, talking = card.talking)
+                Column(modifier = Modifier.weight(1f)) {
+                    BasicText(
+                        text = card.name,
+                        style = typography.sectionTitle.copy(color = tint),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+                        BasicText(text = Strings.ludoLevelLabel, style = typography.label.copy(color = colors.TextSecondary))
+                        BasicText(text = card.level, style = typography.label.copy(color = colors.TextPrimary))
+                    }
+                }
+                if (!card.isMe) {
+                    LudoMuteButton(muted = card.mutedForMe, description = Strings.ludoMuteFor(card.name), onToggle = onToggleHear)
                 }
             }
+            controls()
         }
-        controls()
+        card.placeLabel?.let { place ->
+            BasicText(
+                text = place,
+                style = typography.label.copy(color = colors.TextPrimary),
+                modifier = Modifier
+                    .clip(YapNPlayTheme.shapes.pill)
+                    .background(lerp(tint, colors.Background, BADGE_DARKEN))
+                    .border(dimens.hairline, tint, YapNPlayTheme.shapes.pill)
+                    .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxxs),
+            )
+        }
     }
 }
 
 private const val LEFT_ALPHA = 0.4f
 private const val TIMER_DARKEN = 0.3f
+private const val BADGE_DARKEN = 0.45f

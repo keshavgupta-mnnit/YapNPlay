@@ -20,7 +20,8 @@ import kotlin.math.sin
 /**
  * Where one piece is drawn (canonical grid units) while it moves: a
  * quick arc per square for a [PieceMotion.HOP], a smooth higher glide
- * for a [PieceMotion.SLIDE] (a captured piece going back to base).
+ * for a [PieceMotion.SLIDE] (back to base), and a small flat move for a
+ * [PieceMotion.SHIFT] (making room when pieces share a square).
  */
 @Stable
 class PieceMotionState(start: Offset) {
@@ -35,8 +36,16 @@ class PieceMotionState(start: Offset) {
 
     suspend fun moveTo(target: Offset, motion: PieceMotion) = coroutineScope {
         if (target == position.targetValue) return@coroutineScope
-        val duration = if (motion == PieceMotion.HOP) AppConstants.LUDO_HOP_MS else AppConstants.LUDO_SLIDE_MS
-        arcHeight = if (motion == PieceMotion.HOP) HOP_HEIGHT else SLIDE_HEIGHT
+        val duration = when (motion) {
+            PieceMotion.HOP -> AppConstants.LUDO_HOP_MS
+            PieceMotion.SLIDE -> AppConstants.LUDO_SLIDE_MS
+            PieceMotion.SHIFT -> AppConstants.LUDO_SHIFT_MS
+        }
+        arcHeight = when (motion) {
+            PieceMotion.HOP -> HOP_HEIGHT
+            PieceMotion.SLIDE -> SLIDE_HEIGHT
+            PieceMotion.SHIFT -> 0f
+        }
         launch {
             arc.snapTo(0f)
             arc.animateTo(1f, tween(duration, easing = LinearEasing))

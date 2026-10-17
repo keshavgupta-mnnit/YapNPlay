@@ -29,6 +29,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.games.GameGrid
 import com.kglabs28.yapnplay.appengine.ui.components.gamezone.MatchSearchPanel
 import com.kglabs28.yapnplay.appengine.ui.components.gamezone.OnlineCountPill
 import com.kglabs28.yapnplay.appengine.ui.components.gamezone.ViewModeToggle
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.PenaltyCard
 
 /**
  * Game Zone tab (the scaffold frosts the whole background for it, see
@@ -141,6 +142,19 @@ fun GameZoneScreen(
                     onCancel = if (search.matchFound) null else {
                         { viewModel?.onIntent(GameZoneIntent.CancelSearch) }
                     },
+                )
+            }
+            val penalty = state.penalty
+            BlockingOverlay(
+                visible = penalty != null,
+                onDismiss = { viewModel?.onIntent(GameZoneIntent.DismissPenalty) },
+            ) {
+                if (penalty != null) PenaltyCard(
+                    title = penalty.title,
+                    body = penalty.body,
+                    watchingAd = penalty.watchingAd,
+                    onWatchAd = { viewModel?.onIntent(GameZoneIntent.WatchAd) },
+                    onClose = { viewModel?.onIntent(GameZoneIntent.DismissPenalty) },
                 )
             }
             state.searchMessage?.let {

@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 
 /**
- * The turn timer drawn as the card's border: a glowing [tint] line round
+ * The turn timer drawn as the card's border: a solid [tint] line round
  * the rounded rectangle, ending at the top centre; it shrinks clockwise
  * (its start chases round toward the top) as [fraction] goes from 1 to 0. Nothing is drawn when it is not this
  * player's turn ([active] false).
@@ -27,7 +27,6 @@ fun Modifier.turnTimerBorder(active: Boolean, fraction: Float, tint: Color, radi
         val measure = PathMeasure().apply { setPath(outline, false) }
         val left = Path()
         measure.getSegment(measure.length * (1f - fraction.coerceIn(0f, 1f)), measure.length, left, true)
-        drawPath(left, tint.copy(alpha = GLOW_ALPHA), style = Stroke(stroke * GLOW_WIDTH, cap = StrokeCap.Round))
         drawPath(left, tint, style = Stroke(stroke, cap = StrokeCap.Round))
     }
 
@@ -54,5 +53,3 @@ private fun outline(size: Size, radius: Float, inset: Float): Path {
 
 private const val QUARTER = 90f
 private const val TRACK_ALPHA = 0.25f
-private const val GLOW_ALPHA = 0.35f
-private const val GLOW_WIDTH = 3f

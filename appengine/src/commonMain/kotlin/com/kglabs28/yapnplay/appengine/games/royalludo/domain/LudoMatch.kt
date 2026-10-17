@@ -5,7 +5,8 @@ import kotlinx.datetime.Instant
 /**
  * The live match, rebuilt from every server snapshot. Piece progress per
  * seat follows the engine: -1 base, 0..50 shared track, 51..55 home
- * column, 56 finished. [turnEndsAt] is already on this device's clock.
+ * column, 56 finished. [turnEndsAt] and [startedAt] are already on this
+ * device's clock.
  */
 data class LudoMatch(
     val matchId: String,
@@ -20,6 +21,10 @@ data class LudoMatch(
     val lastRoll: Int?,
     val legalPieces: List<Int>,
     val turnEndsAt: Instant?,
+    /** When the match began; the top bar shows the time since. */
+    val startedAt: Instant,
+    /** Seats that have brought all pieces home, in order (1st, 2nd…), during the match. */
+    val finishedSeats: List<Int>,
     /** Seats in finishing order once the match is over. */
     val ranking: List<Int>,
 ) {

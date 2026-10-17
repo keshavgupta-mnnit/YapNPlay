@@ -26,6 +26,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.table.turnTimerBorder
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoPlayerCardUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableCardAvatar
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableMuteButton
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableTalkWave
 
 /**
  * A player's card in neutral frosted glass: avatar framed in their
@@ -68,14 +69,17 @@ fun LudoPlayerCard(
             verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-                TableCardAvatar(tint = tint, talking = card.talking, level = card.level)
-                BasicText(
-                    text = card.name,
-                    style = typography.cardTitle.copy(color = tint),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
+                TableCardAvatar(tint = tint, level = card.level)
+                // Name, and the voice wave under it.
+                Column(modifier = Modifier.weight(1f)) {
+                    BasicText(
+                        text = card.name,
+                        style = typography.cardTitle.copy(color = tint),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    TableTalkWave(talking = card.talking)
+                }
                 if (!card.isMe) {
                     TableMuteButton(muted = card.mutedForMe, description = Strings.ludoMuteFor(card.name), onToggle = onToggleHear)
                 }

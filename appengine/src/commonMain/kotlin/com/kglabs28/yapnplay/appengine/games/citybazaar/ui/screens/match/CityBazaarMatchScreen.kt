@@ -1,8 +1,9 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +18,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
@@ -46,13 +49,13 @@ import kotlinx.coroutines.launch
 
 /**
  * City Bazaar table (design): top bar (game, spectators in room matches,
- * match clock, settings, exit); the isometric board with two dice in the
- * middle (2D / 3D switch in the top bar); every other player's pod on the
- * left, the user's pod top-right with Mic, Autoplay and Roll Dice, their
- * cities stacked by colour under it, then My Cities and Trade. Tapping a
- * player or a tile opens its info over the left column.
- * Tapping the Luck or Shagun Chest pile shows its 2–12 table. Balance-sheet dialogs for each decision; short balance
- * sheets for rent, taxes and cards.
+ * match clock, 2D / 3D switch, settings, exit); the board with two dice in
+ * the middle; every other player's pod on the left (sized to fit however
+ * many there are); the user's pod top-right with Mic, Autoplay and Roll
+ * Dice, then My Properties and their properties stacked by colour.
+ * Tapping a player, a tile, a pile or a stack opens its info in the left
+ * column. Balance-sheet dialogs for each decision; short balance sheets
+ * for rent, taxes and cards.
  */
 @Composable
 fun CityBazaarMatchScreen(
@@ -110,14 +113,29 @@ fun CityBazaarMatchScreen(
                 // The view to switch to.
                 switchLabel = if (state.threeD) Strings.cbView2d else Strings.cbView3d,
                 onSwitch = { send(CityBazaarMatchIntent.ToggleView) },
+                // As wide as the player cards below.
+                titleWidthFraction = AppConstants.CB_SIDE_COLUMN_WEIGHT,
             )
-            BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            val panelOpen = state.panel != null
+            BoxWithConstraints(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    // A touch outside the info panel closes it, and still does what it touched (Trade, a tile…).
+                    .pointerInput(panelOpen) {
+                        if (!panelOpen) return@pointerInput
+                        awaitEachGesture {
+                            val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                            if (down.position.x > size.width * AppConstants.CB_SIDE_COLUMN_WEIGHT) send(CityBazaarMatchIntent.DismissPanel)
+                        }
+                    },
+            ) {
                 val side = maxWidth * AppConstants.CB_SIDE_COLUMN_WEIGHT
                 val palette = cityBazaarDicePalette(state.dice.colour)
                 val colors = YapNPlayTheme.colors
                 val smoke = listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom)
-                // Side buttons match the pod's Mic / Autoplay / Roll rows.
-                val buttonSize = Modifier.padding(horizontal = Spacing.Xs).height(YapNPlayTheme.dimens.cbControlHeight)
+                // Side buttons as wide as the user's pod, as tall as its Mic / Autoplay / Roll rows.
+                val buttonSize = Modifier.fillMaxWidth().height(YapNPlayTheme.dimens.cbControlHeight)
                 CityBazaarBoardView(
                     tiles = state.tiles,
                     tokens = state.tokens,
@@ -132,8 +150,8 @@ fun CityBazaarMatchScreen(
                 ) { left, right ->
                     // Tap the dice to roll (no press highlight), when it's the user's roll.
                     val tap = if (state.canRoll) Modifier.clickable(interactionSource = null, indication = null) { send(CityBazaarMatchIntent.Roll) } else Modifier
-                    GlassDice(state = die1, palette = palette, modifier = left.then(tap))
-                    GlassDice(state = die2, palette = palette, modifier = right.then(tap))
+                    GlassDice(state = die1, palette = palette, grounded = false, modifier = left.then(tap))
+                    GlassDice(state = die2, palette = palette, grounded = false, modifier = right.then(tap))
                 }
                 // Every other player on the left (hidden while the info panel takes their place).
                 if (state.panel == null) {
@@ -144,7 +162,7 @@ fun CityBazaarMatchScreen(
                         modifier = Modifier.align(Alignment.CenterStart).width(side),
                     )
                 }
-                // The user on the right: their pod, their cities by colour, then My Cities and Trade.
+                // The user on the right: their pod, My Properties, then their properties by colour.
                 Column(
                     modifier = Modifier.align(Alignment.CenterEnd).width(side).fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
@@ -174,12 +192,6 @@ fun CityBazaarMatchScreen(
                             )
                         }
                     }
-                    CityBazaarOwnedStacks(
-                        stacks = state.stacks,
-                        onOpen = { send(CityBazaarMatchIntent.OpenStack(it)) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.weight(1f))
                     if (!state.spectating) {
                         TableGlassButton(
                             text = Strings.cbMyCities,
@@ -189,14 +201,12 @@ fun CityBazaarMatchScreen(
                             enabled = state.stacks.isNotEmpty(),
                             modifier = buttonSize,
                         )
-                        TableGlassButton(
-                            text = Strings.cbTrade,
-                            onClick = { send(CityBazaarMatchIntent.Trade) },
-                            fill = smoke,
-                            textColor = colors.TextPrimary,
-                            modifier = buttonSize,
-                        )
                     }
+                    CityBazaarOwnedStacks(
+                        stacks = state.stacks,
+                        onOpen = { send(CityBazaarMatchIntent.OpenStack(it)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
                 if (state.spectating) {
                     TableSpectatorMicButton(
@@ -206,8 +216,6 @@ fun CityBazaarMatchScreen(
                     )
                 }
                 state.panel?.let { panel ->
-                    // Any touch outside the panel closes it.
-                    Box(Modifier.fillMaxSize().clickable(interactionSource = null, indication = null) { send(CityBazaarMatchIntent.DismissPanel) })
                     CityBazaarSidePanel(
                         panel = panel,
                         onPropertyClick = { send(CityBazaarMatchIntent.PanelPropertyClicked(it)) },

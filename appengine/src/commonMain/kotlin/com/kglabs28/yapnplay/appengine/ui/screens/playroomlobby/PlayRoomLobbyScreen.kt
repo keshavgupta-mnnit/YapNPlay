@@ -14,6 +14,7 @@ import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -80,6 +81,12 @@ fun PlayRoomLobbyScreen(
                 is PlayRoomLobbyEffect.ShareText -> share(effect.text)
             }
         }
+    }
+
+    // Started/stopped covers both leaving the screen and the app going to the background.
+    LifecycleStartEffect(viewModel) {
+        send(PlayRoomLobbyIntent.ScreenVisible(true))
+        onStopOrDispose { send(PlayRoomLobbyIntent.ScreenVisible(false)) }
     }
 
     // House-rule description that slides; tapping it sets this.

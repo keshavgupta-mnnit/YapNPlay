@@ -26,7 +26,7 @@ data class CityBazaarMatchState(
     /** Tiles glowing on the board (the cards being looked at). */
     val highlight: Set<Int> = emptySet(),
     /** The board as a 3D diamond (true) or flat 2D square (false). */
-    val threeD: Boolean = false,
+    val threeD: Boolean = true,
     val dice: CbDiceUi = CbDiceUi(),
     /** The user's pod (with controls), bottom-left; null while watching. */
     val myCard: CbPlayerCardUi? = null,
@@ -80,11 +80,8 @@ data class CbSheetRowUi(val label: String, val amount: String, val kind: CbRowKi
 
 enum class CbRowKind { NORMAL, MINUS, PLUS, TOTAL }
 
-/**
- * One line of a rate card; [highlighted] glows (the current tier, or the
- * next). [gain]: a Luck / Shagun Chest row that pays (true) or costs (false).
- */
-data class CbRateRowUi(val label: String, val rent: String, val highlighted: Boolean, val gain: Boolean? = null)
+/** One line of a rate card; [highlighted] glows (the current tier, or the next). */
+data class CbRateRowUi(val label: String, val rent: String, val highlighted: Boolean)
 
 /**
  * A city's card: rent per tier (the current one highlighted), what it earns
@@ -111,16 +108,19 @@ data class CbPropertyCardUi(
  */
 sealed interface CbPanel {
     /** Luck or Shagun Chest: what each dice total (2–12) does. */
-    data class Deck(val deck: CardDeck, val title: String, val body: String, val rows: List<CbRateRowUi>) : CbPanel
-    /** The user's cities (a colour stack, or all of them). */
-    data class Cities(val title: String, val cards: List<CbPropertyCardUi>) : CbPanel
+    data class Deck(val deck: CardDeck, val title: String, val body: String, val rows: List<CbDeckRowUi>) : CbPanel
+    /** The user's properties (a colour stack, or all of them) as compact cards; a tap opens one. */
+    data class Cities(val title: String, val cities: List<CbOwnedRowUi>) : CbPanel
     data class Property(val card: CbPropertyCardUi) : CbPanel
     /** A player's balance and worth, and each of their properties with the rent it earns now. */
     data class Player(val name: String, val colour: CityBazaarColour, val sheet: List<CbSheetRowUi>, val cities: List<CbOwnedRowUi>) : CbPanel
 }
 
-/** One of a player's properties in their panel; a tap opens its card. */
-data class CbOwnedRowUi(val tile: Int, val name: String, val group: CityGroup?, val kind: TileKind, val rent: String)
+/** One property in a list (a player's panel, My Properties): its colour, name and the rent it earns now; a tap opens its card. */
+data class CbOwnedRowUi(val tile: Int, val name: String, val group: CityGroup?, val kind: TileKind, val rent: String, val worth: String)
+
+/** One Luck / Shagun Chest result: the dice total, what happens, the amount (may be empty) and whether it pays ([gain]) or costs. */
+data class CbDeckRowUi(val roll: String, val text: String, val amount: String, val gain: Boolean)
 
 /** A balance-sheet note that shows for a moment. */
 data class CbToastUi(val id: Long, val title: String, val rows: List<CbSheetRowUi>, val gain: Boolean)
@@ -225,7 +225,6 @@ sealed interface CityBazaarMatchIntent : UiIntent {
     data class PlayerClicked(val seat: Int) : CityBazaarMatchIntent
     data class PanelPropertyClicked(val tile: Int) : CityBazaarMatchIntent
     data object DismissPanel : CityBazaarMatchIntent
-    data object Trade : CityBazaarMatchIntent
     data object ToggleAutoplay : CityBazaarMatchIntent
     data class ToggleMic(val permissionGranted: Boolean) : CityBazaarMatchIntent
     data class MicPermissionResult(val granted: Boolean) : CityBazaarMatchIntent

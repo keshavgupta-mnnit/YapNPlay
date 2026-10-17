@@ -28,6 +28,8 @@ fun GlassDice(
         deep = YapNPlayTheme.colors.DiceDeep,
         pip = YapNPlayTheme.colors.DicePip,
     ),
+    /** Draw the contact shadow and halo under the die (false: just the glowing glass die). */
+    grounded: Boolean = true,
 ) {
     val transition = rememberInfiniteTransition()
     val pulse by transition.animateFloat(
@@ -41,6 +43,6 @@ fun GlassDice(
         animationSpec = infiniteRepeatable(tween(AppConstants.DICE_TINT_CYCLE_MS, easing = LinearEasing)),
     )
     Canvas(modifier.aspectRatio(1f)) {
-        drawGlassDice(state.angles, state.progress, palette, pulse, phase)
+        drawGlassDice(state.angles, state.progress, palette, pulse, phase, grounded)
     }
 }

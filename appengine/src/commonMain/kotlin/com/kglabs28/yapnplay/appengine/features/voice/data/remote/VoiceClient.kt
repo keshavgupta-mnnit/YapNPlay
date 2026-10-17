@@ -12,4 +12,15 @@ interface VoiceClient {
     val locallyMuted: StateFlow<Set<String>>
 
     fun setLocallyMuted(userId: String, muted: Boolean)
+
+    /** The user's mic switch: the same in every room and game until they change it. */
+    val micOn: StateFlow<Boolean>
+
+    fun setMicOn(on: Boolean)
+
+    /** True while the user is speaking into their open mic. */
+    val mySpeaking: StateFlow<Boolean>
+
+    /** Opens or closes the user's mic (today: just listens to its level). */
+    fun setMicOpen(open: Boolean)
 }

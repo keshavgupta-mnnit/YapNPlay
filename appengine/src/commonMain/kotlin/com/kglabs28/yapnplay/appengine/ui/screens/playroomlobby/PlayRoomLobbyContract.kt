@@ -94,6 +94,8 @@ sealed interface PlayRoomLobbyIntent : UiIntent {
     data class ToggleMic(val permissionGranted: Boolean) : PlayRoomLobbyIntent
     data class MicPermissionResult(val granted: Boolean) : PlayRoomLobbyIntent
     data object OpenAppSettings : PlayRoomLobbyIntent
+    /** The room came to the front, or went away (another screen, or the app to the background). */
+    data class ScreenVisible(val visible: Boolean) : PlayRoomLobbyIntent
     data object ToggleSpeaker : PlayRoomLobbyIntent
     data class MemberClicked(val userId: String) : PlayRoomLobbyIntent
     /** Opens the confirmation for [option]; nothing is sent yet. */

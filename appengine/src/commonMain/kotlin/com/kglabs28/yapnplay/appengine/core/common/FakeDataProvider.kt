@@ -362,7 +362,7 @@ object FakeDataProvider {
             LudoMatch.Opponent("user-arjun", "Arjun", 23, micOn = true),
             LudoMatch.Opponent("user-riya", "Riya", 7, micOn = false),
             LudoMatch.Opponent("user-karan", "Karan", 9, micOn = true),
-            LudoMatch.Opponent("user-sneha", "Sneha", 11, micOn = false),
+            LudoMatch.Opponent("user-sneha", "Sneha", 11, micOn = true),
         )
         /** Watching a room match. */
         val spectators = listOf(

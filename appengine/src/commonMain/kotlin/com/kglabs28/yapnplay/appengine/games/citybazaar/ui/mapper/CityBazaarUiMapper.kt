@@ -21,6 +21,7 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.RupeeFormat
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.SET_FOR_DOUBLE
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TileKind
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbAssetUi
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbDeckRowUi
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbModal
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbOwnedRowUi
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbPanel
@@ -219,8 +220,22 @@ object CityBazaarUiMapper {
         if (tiles.isEmpty()) return null
         return CbPanel.Cities(
             title = group?.let { Strings.cbYourColour(groupName(it)) } ?: Strings.cbYourCities,
-            cards = tiles.map { propertyCard(match, it) },
+            cities = ownedRows(match, tiles),
         )
+    }
+
+    /** Properties grouped by colour (board colour order, companies last), the most valuable first in each. */
+    private fun ownedRows(match: CityBazaarMatch, tiles: Collection<Int>): List<CbOwnedRowUi> =
+        tiles.sortedWith(compareBy<Int> { CityBazaarBoard.tile(it).group?.ordinal ?: Int.MAX_VALUE }.thenByDescending { worth(match, it) })
+            .map { tile ->
+                val spec = CityBazaarBoard.tile(tile)
+                CbOwnedRowUi(tile, spec.name, spec.group, spec.kind, rupees(rentNow(match, tile) ?: 0), rupees(worth(match, tile)))
+            }
+
+    /** What a property is worth: its price plus what its buildings cost. */
+    private fun worth(match: CityBazaarMatch, tile: Int): Int {
+        val spec = CityBazaarBoard.tile(tile)
+        return spec.price + (match.levels[tile] ?: 0) * spec.buildCost
     }
 
     /** Luck or Shagun Chest: the result of each dice total. */
@@ -231,7 +246,7 @@ object CityBazaarUiMapper {
             title = if (luck) Strings.cbCardTableTitle(Strings.cbLuckLabel, Strings.cbLuckGlyph) else Strings.cbCardTableTitle(Strings.cbChestLabel, Strings.cbChestGlyph),
             body = if (luck) Strings.cbLuckTableBody else Strings.cbChestTableBody,
             rows = CityBazaarCards.deck(deck).map {
-                CbRateRowUi(Strings.cbRollRow(it.roll, it.text), cardAmount(it.effect), false, gain = CityBazaarCards.isGain(deck, it.roll))
+                CbDeckRowUi(it.roll.toString(), it.text, cardAmount(it.effect), CityBazaarCards.isGain(deck, it.roll))
             },
         )
     }
@@ -269,10 +284,7 @@ object CityBazaarUiMapper {
                 CbSheetRowUi(Strings.cbHotels, levels.count { it >= HOTEL_LEVEL }.toString(), CbRowKind.NORMAL),
                 CbSheetRowUi(Strings.cbNetWorth, rupees(match.netWorth[seat] ?: cash), CbRowKind.TOTAL),
             ),
-            cities = tiles.map { t ->
-                val spec = CityBazaarBoard.tile(t)
-                CbOwnedRowUi(t, spec.name, spec.group, spec.kind, rupees(rentNow(match, t) ?: 0))
-            },
+            cities = ownedRows(match, tiles),
         )
     }
 

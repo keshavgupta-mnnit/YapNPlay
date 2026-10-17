@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -52,6 +54,8 @@ fun TableTopBar(
     /** A short switch label before settings ("3D" / "2D"); null hides it. */
     switchLabel: String? = null,
     onSwitch: () -> Unit = {},
+    /** The title card's share of the bar's width (to line up with the side columns below); null: as wide as its text. */
+    titleWidthFraction: Float? = null,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -60,64 +64,67 @@ fun TableTopBar(
     val shape = RoundedCornerShape(radius)
     val smoke = Brush.verticalGradient(listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom))
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            // Title, tray, clock and buttons all as tall as the square buttons.
-            .height(dimens.ludoSquareButton),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
-    ) {
-        Column(
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val titleWidth = titleWidthFraction?.let { Modifier.width(maxWidth * it) } ?: Modifier
+        Row(
             modifier = Modifier
-                .fillMaxHeight()
-                .clip(shape)
-                .background(smoke)
-                .border(dimens.borderThin, colors.LudoTeal, shape)
-                .padding(horizontal = Spacing.Sm),
-            verticalArrangement = Arrangement.Center,
+                .fillMaxWidth()
+                // Title, tray, clock and buttons all as tall as the square buttons.
+                .height(dimens.ludoSquareButton),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
-            TableMetalTitle(text = title)
-            BasicText(
-                text = subtitle,
-                style = typography.micro.copy(color = colors.TextSecondary),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        if (showAudience) {
-            Row(
-                modifier = Modifier
-                    .weight(1f)
+            Column(
+                modifier = titleWidth
                     .fillMaxHeight()
-                    .tableFrostedGlass(tint = colors.IconMuted, shape = shape, radius = radius, glow = dimens.zero)
+                    .clip(shape)
+                    .background(smoke)
+                    .border(dimens.borderThin, colors.LudoTeal, shape)
                     .padding(horizontal = Spacing.Sm),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
+                verticalArrangement = Arrangement.Center,
             ) {
+                TableMetalTitle(text = title)
+                BasicText(
+                    text = subtitle,
+                    style = typography.micro.copy(color = colors.TextSecondary),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (showAudience) {
                 Row(
                     modifier = Modifier
                         .weight(1f)
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                        .fillMaxHeight()
+                        .tableFrostedGlass(tint = colors.IconMuted, shape = shape, radius = radius, glow = dimens.zero)
+                        .padding(horizontal = Spacing.Sm),
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
                 ) {
-                    audience.forEach { person -> TableAudienceMember(person) }
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
-                        AppIcon(imageVector = Icons.Rounded.Groups, tint = colors.TextPrimary, size = dimens.iconSmall)
-                        BasicText(text = spectatorCount, style = typography.title.copy(color = colors.TextPrimary))
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        audience.forEach { person -> TableAudienceMember(person) }
                     }
-                    BasicText(text = spectatorLabel, style = typography.micro.copy(color = colors.TextSecondary))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
+                            AppIcon(imageVector = Icons.Rounded.Groups, tint = colors.TextPrimary, size = dimens.iconSmall)
+                            BasicText(text = spectatorCount, style = typography.title.copy(color = colors.TextPrimary))
+                        }
+                        BasicText(text = spectatorLabel, style = typography.micro.copy(color = colors.TextSecondary))
+                    }
                 }
+            } else {
+                Spacer(Modifier.weight(1f))
             }
-        } else {
-            Spacer(Modifier.weight(1f))
+            TableMatchClock(elapsed = elapsed, modifier = Modifier.fillMaxHeight())
+            switchLabel?.let { TableTextSquareButton(text = it, onClick = onSwitch) }
+            TableSquareIconButton(icon = Icons.Rounded.Settings, description = Strings.ludoSettings, tint = colors.LudoTeal, onClick = onSettings)
+            TableSquareIconButton(icon = Icons.AutoMirrored.Rounded.Logout, description = Strings.ludoExit, tint = colors.Error, onClick = onExit)
         }
-        TableMatchClock(elapsed = elapsed, modifier = Modifier.fillMaxHeight())
-        switchLabel?.let { TableTextSquareButton(text = it, onClick = onSwitch) }
-        TableSquareIconButton(icon = Icons.Rounded.Settings, description = Strings.ludoSettings, tint = colors.LudoTeal, onClick = onSettings)
-        TableSquareIconButton(icon = Icons.AutoMirrored.Rounded.Logout, description = Strings.ludoExit, tint = colors.Error, onClick = onExit)
     }
 }

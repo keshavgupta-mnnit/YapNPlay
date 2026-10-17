@@ -71,15 +71,13 @@ fun CbPropertyCard(card: CbPropertyCardUi, modifier: Modifier = Modifier, fillHe
                 )
             }
             if (card.costs.isNotEmpty()) CbSheetTable(rows = card.costs)
-            if (card.owner.isNotEmpty() && card.ownerColour == null) {
-                BasicText(text = card.owner, style = typography.micro.copy(color = colors.TextSecondary))
-            }
         }
-        card.ownerColour?.let { colour ->
+        // Bottom bar: the owner on their colour, or "Available for sale" on dark grey (none for tiles that can't be owned).
+        if (card.owner.isNotEmpty()) {
             BasicText(
                 text = card.owner,
                 style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
-                modifier = Modifier.fillMaxWidth().background(colour.tint()).padding(vertical = Spacing.Xxs),
+                modifier = Modifier.fillMaxWidth().background(card.ownerColour?.tint() ?: colors.CbUnownedBar).padding(vertical = Spacing.Xxs),
             )
         }
     }

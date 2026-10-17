@@ -206,8 +206,18 @@ class YapNPlayDimens {
     val cbCardAvatarMax: Dp get() = 56.dp.scaled()
     /** A player pod's height beyond its avatar (status pill, padding, level badge). */
     val cbCardChrome: Dp get() = 36.dp.scaled()
-    val cbStackCard: Dp get() = 34.dp.scaled()
-    val cbStackOffset: Dp get() = 4.dp.scaled()
+    /** The same in the compact pod (many players). */
+    val cbCardChromeCompact: Dp get() = 26.dp.scaled()
+    val cbCardAvatarMin: Dp get() = 20.dp.scaled()
+    /** The talking wave on a table player card. */
+    val tableTalkWaveHeight: Dp get() = 14.dp.scaled()
+    /** A compact city card in the My Properties list. */
+    val cbCityCardHeight: Dp get() = 56.dp.scaled()
+    val cbRollBadge: Dp get() = 22.dp.scaled()
+    /** Pods get compact (tighter padding, smaller text) when each has less height than this. */
+    val cbCardCompactBelow: Dp get() = 80.dp.scaled()
+    val cbStackCard: Dp get() = 27.dp.scaled()
+    val cbStackOffset: Dp get() = 3.dp.scaled()
     val cbOwnerDot: Dp get() = 6.dp.scaled()
     val cbToastWidth: Dp get() = 300.dp.scaled()
     val cbAssetCardWidth: Dp get() = 108.dp.scaled()

@@ -19,5 +19,5 @@ val playRoomLobbyModule = module {
     factory { ObservePlayRoomLobbyUseCase(get(), get(), get()) }
     factory { SendLobbyCommandUseCase(get()) }
     factory { ObserveMatchStartingUseCase(get()) }
-    factory { PlayRoomLobbyViewModel(get(), get(), get(), get(), get()) }
+    factory { PlayRoomLobbyViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

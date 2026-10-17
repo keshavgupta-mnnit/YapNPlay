@@ -38,13 +38,12 @@ fun DrawScope.drawCityBazaarFlatBoard(
     colours: CityBazaarBoardColours,
     tiles: List<CbTileUi>,
     measurer: TextMeasurer,
-    glow: Float,
     highlight: Set<Int> = emptySet(),
 ) {
     drawSlab(p, colours)
-    drawDeck(p, CardDeck.CHEST, colours.chest, Strings.cbChestGlyph, Strings.cbChestLabel, colours, measurer, glow)
-    drawDeck(p, CardDeck.LUCK, colours.luck, Strings.cbLuckGlyph, Strings.cbLuckLabel, colours, measurer, glow)
-    tiles.forEach { drawTile(p, it, colours, measurer, glow, it.index in highlight) }
+    drawDeck(p, CardDeck.CHEST, colours.chest, Strings.cbChestGlyph, Strings.cbChestLabel, colours, measurer)
+    drawDeck(p, CardDeck.LUCK, colours.luck, Strings.cbLuckGlyph, Strings.cbLuckLabel, colours, measurer)
+    tiles.forEach { drawTile(p, it, colours, measurer, it.index in highlight) }
 }
 
 /** Tokens as pawn icons (a disc, a body and a glossy head), each lifted by its hop. */
@@ -84,7 +83,7 @@ private fun DrawScope.drawSlab(p: CityBazaarFlatProjection, colours: CityBazaarB
     rect(p, d, d, CityBazaarBoardGeometry.SIDE - d, CityBazaarBoardGeometry.SIDE - d).let { (o, s) -> drawRect(colours.field, o, s) }
 }
 
-private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colours: CityBazaarBoardColours, measurer: TextMeasurer, glow: Float, lit: Boolean) {
+private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colours: CityBazaarBoardColours, measurer: TextMeasurer, lit: Boolean) {
     val u = p.unit
     val spec = CityBazaarBoard.tile(tile.index)
     val r = CityBazaarBoardGeometry.rect(tile.index)
@@ -105,11 +104,9 @@ private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colo
     tile.ownerColour?.let { owner ->
         val tint = colours.players[owner] ?: colours.text
         val (o, s) = band(p, x0, y0, x1, y1, -ix, -iy, depth * OWNER_BAND)
-        drawRect(tint.copy(alpha = OWNER_GLOW_ALPHA * glow), o - Offset(u * OWNER_GLOW, u * OWNER_GLOW), Size(s.width + u * OWNER_GLOW * 2, s.height + u * OWNER_GLOW * 2))
         drawRect(tint, o, s)
     }
     if (lit) {
-        drawRoundRect(colours.highlight.copy(alpha = HIGHLIGHT_GLOW_ALPHA * glow), origin, size, radius, style = Stroke(u * HIGHLIGHT_GLOW))
         drawRoundRect(colours.highlight, origin, size, radius, style = Stroke(u * HIGHLIGHT_WIDTH))
     }
 
@@ -235,7 +232,6 @@ private fun DrawScope.drawDeck(
     label: String,
     colours: CityBazaarBoardColours,
     measurer: TextMeasurer,
-    glow: Float,
 ) {
     val u = p.unit
     val centre = p.project(CityBazaarFlatProjection.deckCentre(deck))
@@ -246,7 +242,6 @@ private fun DrawScope.drawDeck(
         drawRoundRect(lerp(tint, colours.field, if (layer == 0) DECK_TOP_MIX else DECK_LAYER_MIX), o, Size(half * 2, half * 2), radius)
         drawRoundRect(tint.copy(alpha = if (layer == 0) 1f else DECK_EDGE_ALPHA), o, Size(half * 2, half * 2), radius, style = Stroke(u * DECK_EDGE))
     }
-    drawRoundRect(tint.copy(alpha = DECK_GLOW_ALPHA * glow), Offset(centre.x - half, centre.y - half), Size(half * 2, half * 2), radius, style = Stroke(u * DECK_GLOW))
     // Symbol and name (two words on two lines) kept inside the pile.
     val room = half * 2 * DECK_TEXT_ROOM
     val glyphLayout = fitText(measurer, glyph, TextStyle(color = tint, fontSize = (u * DECK_GLYPH).toSp(), fontWeight = FontWeight.Bold), room, room * DECK_GLYPH_SHARE, maxLines = 1)
@@ -262,13 +257,9 @@ private const val SLAB_RADIUS = 0.3f
 private const val SLAB_SHADOW = 0.15f
 private const val HEADER = 0.26f
 private const val OWNER_BAND = 0.1f
-private const val OWNER_GLOW = 0.05f
-private const val OWNER_GLOW_ALPHA = 0.45f
 private const val RIM_ALPHA = 0.35f
 private const val RIM_WIDTH = 0.05f
 private const val HIGHLIGHT_WIDTH = 0.06f
-private const val HIGHLIGHT_GLOW = 0.22f
-private const val HIGHLIGHT_GLOW_ALPHA = 0.7f
 private const val NAME_TEXT = 0.24f
 private const val CORNER_TEXT = 0.27f
 private const val GLYPH_TEXT = 0.42f
@@ -296,8 +287,6 @@ private const val DECK_TOP_MIX = 0.72f
 private const val DECK_LAYER_MIX = 0.4f
 private const val DECK_EDGE = 0.04f
 private const val DECK_EDGE_ALPHA = 0.7f
-private const val DECK_GLOW = 0.2f
-private const val DECK_GLOW_ALPHA = 0.35f
 private const val DECK_GLYPH = 0.55f
 private const val DECK_TEXT = 0.22f
 private const val DECK_TEXT_ROOM = 0.8f

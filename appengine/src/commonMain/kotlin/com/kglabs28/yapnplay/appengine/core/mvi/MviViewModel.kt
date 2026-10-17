@@ -54,6 +54,10 @@ abstract class MviViewModel<S : UiState, I : UiIntent, E : UiEffect>(
 
     /** Cancel coroutines when the host is destroyed. */
     fun clear() {
+        onCleared()
         scope.cancel()
     }
+
+    /** Release anything held outside [scope] (e.g. an open mic). */
+    protected open fun onCleared() = Unit
 }

@@ -58,7 +58,8 @@ class FakeLobbyServer(
         var turn = 0
         while (true) {
             val talkers = stateOf(roomId).value.room.members
-                .filter { it.presence == Presence.ONLINE && it.micOn }
+                // Not the user: their talking comes from their real mic.
+                .filter { it.presence == Presence.ONLINE && it.micOn && it.userId != me }
             emit(talkers.getOrNull(turn % talkers.size.coerceAtLeast(1))?.let { setOf(it.userId) }.orEmpty())
             turn++
             delay(FakeDataProvider.Lobby.SPEAKER_ROTATION_MS)

@@ -106,8 +106,8 @@ object YapNPlayColors {
 
     // Lobby member card
     val AvatarRingSilver = Color(0xFF8E97B5)
-    val VoiceWaveStart = Color(0xFF4FE3F0)
-    val VoiceWaveEnd = Color(0xFFC062F0)
+    val VoiceWaveStart = Color(0xFF1C8FB0)
+    val VoiceWaveEnd = Color(0xFF8336B8)
     val IconMuted = Color(0xFF9EAEDE)
 
     // Top Bar (sampled from the top bar design). Surfaces are glass
@@ -158,6 +158,8 @@ object YapNPlayColors {
     val CbHotel = Color(0xFFFF4A5E)
     val CbChest = Color(0xFFFF6B6B)
     val CbLuck = Color(0xFFFFC94A)
+    /** A City Bazaar card's bottom bar while nobody owns it. */
+    val CbUnownedBar = Color(0xFF2A2F3A)
     val CbCash = Color(0xFFFFD36B)
     val CbGain = Color(0xFF3BE07A)
     val CbLoss = Color(0xFFFF5A6E)

@@ -1,10 +1,5 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -12,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -21,7 +15,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntOffset
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbTileUi
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbTokenUi
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CardDeck
@@ -31,7 +24,8 @@ import kotlin.math.roundToInt
  * The City Bazaar board, as large as fits, flat (2D) or as a diamond (3D): tiles, buildings and owners
  * (painter), the players' tokens hopping tile to tile, and the two dice
  * standing in the middle ([dice] gets one slot modifier per die). A tap on
- * a tile asks for its card; [highlight] tiles glow while their cards are open.
+ * a tile asks for its card; [highlight] tiles get a plain border while their cards are open. No glow
+ * anywhere on the board (only the dice glow).
  */
 @Composable
 fun CityBazaarBoardView(
@@ -47,11 +41,6 @@ fun CityBazaarBoardView(
 ) {
     val colours = cityBazaarBoardColours()
     val measurer = rememberTextMeasurer()
-    val glow by rememberInfiniteTransition().animateFloat(
-        initialValue = GLOW_LOW,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(AppConstants.LUDO_NEON_BREATH_MS), RepeatMode.Reverse),
-    )
     val spots = tokens.map { token ->
         key(token.seat) { animateTokenSpot(token.seat, token.tile, CityBazaarTokenLayout.target(token, tokens)) to (colours.players[token.colour] ?: colours.text) }
     }
@@ -64,7 +53,7 @@ fun CityBazaarBoardView(
                     .fillMaxSize()
                     .pointerInput(projection) { detectTapGestures { point -> projection.deckAt(point)?.let(onDeckClick) ?: projection.tileAt(point)?.let(onTileClick) } },
             ) {
-                drawCityBazaarIsoBoard(projection, colours, tiles, measurer, glow, highlight)
+                drawCityBazaarIsoBoard(projection, colours, tiles, measurer, highlight)
                 drawCityBazaarIsoTokens(projection, spots)
             }
             projection.diceRects()
@@ -75,7 +64,7 @@ fun CityBazaarBoardView(
                     .fillMaxSize()
                     .pointerInput(projection) { detectTapGestures { point -> projection.deckAt(point)?.let(onDeckClick) ?: projection.tileAt(point)?.let(onTileClick) } },
             ) {
-                drawCityBazaarFlatBoard(projection, colours, tiles, measurer, glow, highlight)
+                drawCityBazaarFlatBoard(projection, colours, tiles, measurer, highlight)
                 drawCityBazaarFlatTokens(projection, spots)
             }
             projection.diceRects()
@@ -89,4 +78,3 @@ fun CityBazaarBoardView(
     }
 }
 
-private const val GLOW_LOW = 0.45f

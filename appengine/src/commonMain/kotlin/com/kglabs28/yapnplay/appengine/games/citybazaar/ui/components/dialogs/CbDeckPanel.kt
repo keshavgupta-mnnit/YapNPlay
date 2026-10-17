@@ -2,7 +2,9 @@ package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -31,6 +33,7 @@ fun CbDeckPanel(panel: CbPanel.Deck, modifier: Modifier = Modifier) {
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
     val shape = RoundedCornerShape(dimens.cbRowRadius)
+    val tint = if (panel.deck == CardDeck.LUCK) colors.CbLuck else colors.CbChest
     Column(
         modifier = modifier
             .background(colors.Background, shape)
@@ -43,7 +46,7 @@ fun CbDeckPanel(panel: CbPanel.Deck, modifier: Modifier = Modifier) {
             style = typography.label.copy(color = colors.Background, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
             modifier = Modifier
                 .fillMaxWidth()
-                .background(if (panel.deck == CardDeck.LUCK) colors.CbLuck else colors.CbChest)
+                .background(tint)
                 .padding(vertical = Spacing.Xxs),
         )
         Column(
@@ -51,7 +54,21 @@ fun CbDeckPanel(panel: CbPanel.Deck, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
             BasicText(text = panel.body, style = typography.micro.copy(color = colors.TextSecondary))
-            CbRateTable(rows = panel.rows)
+            // The results on a dark sheet, like a property card's costs, divided by hairlines.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(colors.RoomsSmallButton, shape)
+                    .padding(Spacing.Xs),
+                verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
+            ) {
+                panel.rows.forEachIndexed { i, row ->
+                    if (i > 0) Box(Modifier.fillMaxWidth().height(dimens.hairline).background(colors.IconMuted.copy(alpha = DIVIDER_ALPHA)))
+                    CbDeckRow(row = row, tint = tint)
+                }
+            }
         }
     }
 }
+
+private const val DIVIDER_ALPHA = 0.4f

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -17,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
@@ -24,7 +25,7 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbStackUi
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CityGroup
 
-/** The user's cities as little card stacks, one per colour (wrapping), with the count; a tap opens that colour's cards. */
+/** The user's cities as little card stacks, one per colour (wrapping), with the count and no name; a tap opens that colour's cards. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CityBazaarOwnedStacks(
@@ -37,13 +38,14 @@ fun CityBazaarOwnedStacks(
     val shape = RoundedCornerShape(dimens.cbRowRadius / 2)
     FlowRow(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
         verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
         stacks.forEach { stack ->
             val tint = stack.group.tint()
             Column(
-                modifier = Modifier.clickable { onOpen(stack.group) },
+                // No name under the square; it's what a screen reader says.
+                modifier = Modifier.clickable { onOpen(stack.group) }.semantics { contentDescription = stack.label },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs),
             ) {
@@ -57,9 +59,8 @@ fun CityBazaarOwnedStacks(
                                 .border(dimens.hairline, colors.TextPrimary.copy(alpha = RIM_ALPHA), shape),
                         )
                     }
-                    BasicText(text = stack.count.toString(), style = YapNPlayTheme.typography.title.copy(color = colors.Background, fontWeight = FontWeight.Bold))
+                    BasicText(text = stack.count.toString(), style = YapNPlayTheme.typography.label.copy(color = colors.Background, fontWeight = FontWeight.Bold))
                 }
-                BasicText(text = stack.label, style = YapNPlayTheme.typography.micro.copy(color = colors.TextSecondary), modifier = Modifier.padding(top = Spacing.Xxxs))
             }
         }
     }

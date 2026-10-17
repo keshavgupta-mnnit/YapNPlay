@@ -34,6 +34,7 @@ internal fun DrawScope.drawGlassDice(
     palette: DicePalette,
     pulse: Float,
     phase: Float,
+    grounded: Boolean = true,
 ) {
     val hop = sin(PI.toFloat() * progress)
     val glow = GLOW_BASE + GLOW_PULSE * pulse + GLOW_HOP * hop
@@ -67,26 +68,8 @@ internal fun DrawScope.drawGlassDice(
         close()
     }
 
-    // Contact shadow on the board (shrinks as the die hops) and the halo.
-    val shadowWidth = unit * SHADOW_WIDTH * (1f - SHADOW_SHRINK * hop)
-    drawOval(
-        brush = Brush.radialGradient(
-            listOf(Color.Black.copy(alpha = SHADOW_ALPHA * (1f - hop * SHADOW_SHRINK)), Color.Transparent),
-            center = Offset(center.x, center.y + unit * SHADOW_DROP),
-            radius = shadowWidth,
-        ),
-        topLeft = Offset(center.x - shadowWidth, center.y + unit * SHADOW_DROP - shadowWidth * SHADOW_FLATTEN),
-        size = Size(shadowWidth * 2, shadowWidth * 2 * SHADOW_FLATTEN),
-    )
-    drawCircle(
-        brush = Brush.radialGradient(
-            listOf(glowColor.copy(alpha = (HALO_ALPHA * glow).coerceAtMost(1f)), Color.Transparent),
-            center = c,
-            radius = size.minDimension / 2,
-        ),
-        radius = size.minDimension / 2,
-        center = c,
-    )
+    // Contact shadow on the board (shrinks as the die hops) and the halo; left out when not [grounded].
+    if (grounded) drawGround(center, unit, hop, glowColor, glow, c)
 
     // Visible surface cells, each with its own glass colour and opacity.
     val silhouette = Path()
@@ -220,3 +203,26 @@ private const val PIP_CORE = 0.15f
 private const val PIP_GLOW_ALPHA = 0.22f
 private const val PIP_RING_ALPHA = 0.85f
 private const val PIP_CORE_ALPHA = 0.92f
+
+/** The contact shadow under the die and the soft halo around it. */
+private fun DrawScope.drawGround(center: Offset, unit: Float, hop: Float, glowColor: Color, glow: Float, c: Offset) {
+    val shadowWidth = unit * SHADOW_WIDTH * (1f - SHADOW_SHRINK * hop)
+    drawOval(
+        brush = Brush.radialGradient(
+            listOf(Color.Black.copy(alpha = SHADOW_ALPHA * (1f - hop * SHADOW_SHRINK)), Color.Transparent),
+            center = Offset(center.x, center.y + unit * SHADOW_DROP),
+            radius = shadowWidth,
+        ),
+        topLeft = Offset(center.x - shadowWidth, center.y + unit * SHADOW_DROP - shadowWidth * SHADOW_FLATTEN),
+        size = Size(shadowWidth * 2, shadowWidth * 2 * SHADOW_FLATTEN),
+    )
+    drawCircle(
+        brush = Brush.radialGradient(
+            listOf(glowColor.copy(alpha = (HALO_ALPHA * glow).coerceAtMost(1f)), Color.Transparent),
+            center = c,
+            radius = size.minDimension / 2,
+        ),
+        radius = size.minDimension / 2,
+        center = c,
+    )
+}

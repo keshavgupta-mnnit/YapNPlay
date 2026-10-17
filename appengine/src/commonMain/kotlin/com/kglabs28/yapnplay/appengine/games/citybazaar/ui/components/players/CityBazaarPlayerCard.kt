@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -24,12 +25,14 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.coerceAtMost
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableCardAvatar
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableMuteButton
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableTalkWave
 import com.kglabs28.yapnplay.appengine.ui.components.table.tableFrostedGlass
 import com.kglabs28.yapnplay.appengine.ui.components.table.turnTimerBorder
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
@@ -51,6 +54,8 @@ fun CityBazaarPlayerCard(
     onToggleHear: () -> Unit = {},
     onClick: () -> Unit = {},
     avatarSize: Dp = YapNPlayTheme.dimens.cbCardAvatar,
+    /** Tighter padding and smaller text, for many players. */
+    compact: Boolean = false,
     controls: @Composable ColumnScope.() -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
@@ -74,7 +79,7 @@ fun CityBazaarPlayerCard(
                 .tableFrostedGlass(tint = colors.AvatarRingSilver, shape = shape, radius = dimens.ludoCardRadius, glow = dimens.zero)
                 .clickable(onClick = onClick)
                 .turnTimerBorder(active = card.isTurn, fraction = card.timerFraction, tint = lerp(tint, colors.Background, TIMER_DARKEN), radius = dimens.ludoCardRadius, width = dimens.ludoTimerStroke)
-                .padding(Spacing.Xs),
+                .padding(if (compact) Spacing.Xxs else Spacing.Xs),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
         ) {
             // Room under the avatar for its level badge, clear of the turn border.
@@ -83,13 +88,22 @@ fun CityBazaarPlayerCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
-                TableCardAvatar(tint = tint, talking = card.talking, level = card.level, size = avatarSize)
+                TableCardAvatar(tint = tint, level = card.level, size = avatarSize)
+                // Middle column: name, balance and the voice wave.
                 Column(modifier = Modifier.weight(1f)) {
-                    BasicText(text = card.name, style = typography.cardTitle.copy(color = tint), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    BasicText(text = Strings.cbRupees(RupeeFormat.digits(shownCash)), style = typography.label.copy(color = cashColour, fontWeight = FontWeight.Bold), maxLines = 1)
+                    val nameStyle = if (compact) typography.micro.copy(fontWeight = FontWeight.Bold) else typography.cardTitle
+                    val cashStyle = if (compact) typography.micro else typography.label
+                    BasicText(text = card.name, style = nameStyle.copy(color = tint), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    BasicText(text = Strings.cbRupees(RupeeFormat.digits(shownCash)), style = cashStyle.copy(color = cashColour, fontWeight = FontWeight.Bold), maxLines = 1)
+                    TableTalkWave(talking = card.talking)
                 }
                 if (!card.isMe) {
-                    TableMuteButton(muted = card.mutedForMe, description = Strings.ludoMuteFor(card.name), onToggle = onToggleHear)
+                    TableMuteButton(
+                        muted = card.mutedForMe,
+                        description = Strings.ludoMuteFor(card.name),
+                        onToggle = onToggleHear,
+                        modifier = if (compact) Modifier.size(avatarSize.coerceAtMost(dimens.ludoMuteButton)) else Modifier,
+                    )
                 }
             }
             controls()

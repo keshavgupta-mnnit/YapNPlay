@@ -55,7 +55,8 @@ class CityBazaarFlatProjection private constructor(private val origin: Offset, p
         /** Shagun Chest top-left of the dice, Luck bottom-right (units from the middle, both axes). */
         private const val DECK_OFFSET = 2.6f
         private const val DIE_UNITS = 2.2f
-        private const val DIE_GAP = 0.06f
+        // Negative: the dice canvases overlap so the dice themselves sit close together.
+        private const val DIE_GAP = -0.35f
 
         fun tileCentre(index: Int): Offset = CityBazaarBoardGeometry.rect(index).let { Offset(it.centreX, it.centreY) }
 

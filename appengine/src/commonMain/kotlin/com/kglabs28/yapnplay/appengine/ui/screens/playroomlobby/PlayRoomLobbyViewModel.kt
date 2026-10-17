@@ -17,6 +17,10 @@ import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.PlayerButto
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.usecase.ObserveMatchStartingUseCase
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.usecase.ObservePlayRoomLobbyUseCase
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.usecase.SendLobbyCommandUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMicOnUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMySpeakingUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOnUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOpenUseCase
 import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -32,6 +36,10 @@ class PlayRoomLobbyViewModel(
     private val observeLobby: ObservePlayRoomLobbyUseCase,
     private val sendCommand: SendLobbyCommandUseCase,
     private val observeMatchStarting: ObserveMatchStartingUseCase,
+    private val observeMicOn: ObserveMicOnUseCase,
+    private val setMicOn: SetMicOnUseCase,
+    private val observeMySpeaking: ObserveMySpeakingUseCase,
+    private val setMicOpen: SetMicOpenUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<PlayRoomLobbyState, PlayRoomLobbyIntent, PlayRoomLobbyEffect>(PlayRoomLobbyState(), dispatchers) {
@@ -39,6 +47,12 @@ class PlayRoomLobbyViewModel(
     private var roomId: String? = null
     private var data: LobbyData? = null
     private var userModal: LobbyModal? = null
+    /** The app-wide mic switch the room follows. */
+    private var micSwitch = false
+    /** The user speaking into their mic, whether it's listening, and whether the room is on screen. */
+    private var mySpeaking = false
+    private var micOpen = false
+    private var foreground = true
     private var tickJob: Job? = null
 
     override suspend fun handleIntent(intent: PlayRoomLobbyIntent) {
@@ -55,17 +69,20 @@ class PlayRoomLobbyViewModel(
             PlayRoomLobbyIntent.ChangeGame -> send(LobbyCommand.SelectGame(null))
             is PlayRoomLobbyIntent.ToggleHouseRule -> toggleHouseRule(intent.key)
             PlayRoomLobbyIntent.PrimaryAction -> primaryAction()
-            is PlayRoomLobbyIntent.ToggleMic -> me()?.let {
-                when {
-                    it.micOn -> send(LobbyCommand.SetVoiceState(false, it.speakerOn))
-                    intent.permissionGranted -> send(LobbyCommand.SetVoiceState(true, it.speakerOn))
-                    else -> emitEffect(PlayRoomLobbyEffect.RequestMicPermission)
-                }
+            // The mic switch is the user's, everywhere: the room follows it.
+            is PlayRoomLobbyIntent.ToggleMic -> when {
+                micSwitch -> setMicOn(false)
+                intent.permissionGranted -> setMicOn(true)
+                else -> emitEffect(PlayRoomLobbyEffect.RequestMicPermission)
             }
             is PlayRoomLobbyIntent.MicPermissionResult -> if (intent.granted) {
-                me()?.let { send(LobbyCommand.SetVoiceState(true, it.speakerOn)) }
+                setMicOn(true)
             } else {
                 showModal(LobbyModal.MicPermissionNeeded)
+            }
+            is PlayRoomLobbyIntent.ScreenVisible -> {
+                foreground = intent.visible
+                render()
             }
             PlayRoomLobbyIntent.OpenAppSettings -> {
                 showModal(null)
@@ -109,9 +126,12 @@ class PlayRoomLobbyViewModel(
         scope.launch {
             observeLobby(id).collect {
                 data = it
+                syncMic()
                 render()
             }
         }
+        scope.launch { observeMicOn().collect { micSwitch = it; syncMic() } }
+        scope.launch { observeMySpeaking().collect { mySpeaking = it; render() } }
         scope.launch {
             observeMatchStarting(id).collect { emitEffect(PlayRoomLobbyEffect.OpenMatch(selectedGameId(), it)) }
         }
@@ -122,6 +142,16 @@ class PlayRoomLobbyViewModel(
     }
 
     private fun selectedGameId(): String = data?.room?.selectedGameId.orEmpty()
+
+    /** Tells the room the user's mic state when it differs from the app-wide switch. */
+    private fun syncMic() {
+        val me = me() ?: return
+        if (me.micOn != micSwitch) scope.launch { send(LobbyCommand.SetVoiceState(micSwitch, me.speakerOn)) }
+    }
+
+    override fun onCleared() {
+        if (micOpen) setMicOpen(false)
+    }
 
     private fun me(): LobbyMember? = data?.let { d -> d.room.members.firstOrNull { it.userId == d.myUserId } }
 
@@ -177,6 +207,12 @@ class PlayRoomLobbyViewModel(
         val d = data ?: return
         val room = d.room
         val me = me()
+        // The mic listens only while it's on in the room and the room is on screen.
+        val wantMic = foreground && me?.micOn == true
+        if (wantMic != micOpen) {
+            micOpen = wantMic
+            setMicOpen(wantMic)
+        }
         val game = d.selectedGame
         manageCountdownTicker(room)
         setState {
@@ -203,7 +239,8 @@ class PlayRoomLobbyViewModel(
     }
 
     private fun LobbyMember.toUi(d: LobbyData): LobbyMemberUi {
-        val talking = online && micOn && userId in d.speakingUserIds
+        // Others' talking comes from the server; the user's own from their mic.
+        val talking = online && micOn && if (userId == d.myUserId) micOpen && mySpeaking else userId in d.speakingUserIds
         return LobbyMemberUi(
             userId = userId,
             name = name,

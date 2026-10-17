@@ -38,13 +38,12 @@ fun DrawScope.drawCityBazaarIsoBoard(
     colours: CityBazaarBoardColours,
     tiles: List<CbTileUi>,
     measurer: TextMeasurer,
-    glow: Float,
     highlight: Set<Int> = emptySet(),
 ) {
     drawSlab(p, colours)
-    drawDeck(p, CardDeck.CHEST, colours.chest, Strings.cbChestGlyph, Strings.cbChestLabel, colours, measurer, glow)
-    drawDeck(p, CardDeck.LUCK, colours.luck, Strings.cbLuckGlyph, Strings.cbLuckLabel, colours, measurer, glow)
-    tiles.sortedBy { p.project(CityBazaarIsoProjection.tileCentre(it.index)).y }.forEach { drawTile(p, it, colours, measurer, glow, it.index in highlight) }
+    drawDeck(p, CardDeck.CHEST, colours.chest, Strings.cbChestGlyph, Strings.cbChestLabel, colours, measurer)
+    drawDeck(p, CardDeck.LUCK, colours.luck, Strings.cbLuckGlyph, Strings.cbLuckLabel, colours, measurer)
+    tiles.sortedBy { p.project(CityBazaarIsoProjection.tileCentre(it.index)).y }.forEach { drawTile(p, it, colours, measurer, it.index in highlight) }
 }
 
 /** Tokens as pawns (a disc, a cone and a glossy head), far to near, each lifted by its hop. */
@@ -91,7 +90,7 @@ private fun DrawScope.drawSlab(p: CityBazaarIsoProjection, colours: CityBazaarBo
     drawPath(quad(p, d, d, CityBazaarBoardGeometry.SIDE - d, CityBazaarBoardGeometry.SIDE - d), colours.field)
 }
 
-private fun DrawScope.drawTile(p: CityBazaarIsoProjection, tile: CbTileUi, colours: CityBazaarBoardColours, measurer: TextMeasurer, glow: Float, lit: Boolean) {
+private fun DrawScope.drawTile(p: CityBazaarIsoProjection, tile: CbTileUi, colours: CityBazaarBoardColours, measurer: TextMeasurer, lit: Boolean) {
     val spec = CityBazaarBoard.tile(tile.index)
     val r = CityBazaarBoardGeometry.rect(tile.index)
     val x0 = r.x0 + INSET
@@ -115,11 +114,9 @@ private fun DrawScope.drawTile(p: CityBazaarIsoProjection, tile: CbTileUi, colou
     tile.ownerColour?.let { owner ->
         val tint = colours.players[owner] ?: colours.text
         val band = edgeBand(p, x0, y0, x1, y1, -ix, -iy, depth * OWNER_BAND)
-        drawPath(band, tint.copy(alpha = OWNER_GLOW_ALPHA * glow), style = Stroke(cell * OWNER_GLOW_WIDTH))
         drawPath(band, tint)
     }
     if (lit) {
-        drawPath(top, colours.highlight.copy(alpha = HIGHLIGHT_GLOW_ALPHA * glow), style = Stroke(cell * HIGHLIGHT_GLOW))
         drawPath(top, colours.highlight, style = Stroke(cell * HIGHLIGHT_WIDTH))
     }
 
@@ -282,7 +279,6 @@ private fun DrawScope.drawBox(p: CityBazaarIsoProjection, at: Offset, h: Float, 
         close()
     }
     drawPath(top, Brush.verticalGradient(listOf(lerp(tint, Color.White, BLOCK_SHINE), tint), top.getBounds().top, top.getBounds().bottom))
-    drawPath(top, tint.copy(alpha = BLOCK_GLOW_ALPHA), style = Stroke(cell * BLOCK_GLOW))
 }
 
 private fun DrawScope.drawDeck(
@@ -293,7 +289,6 @@ private fun DrawScope.drawDeck(
     label: String,
     colours: CityBazaarBoardColours,
     measurer: TextMeasurer,
-    glow: Float,
 ) {
     val centre = CityBazaarIsoProjection.deckCentre(deck)
     val cell = p.cellSize(centre)
@@ -302,8 +297,6 @@ private fun DrawScope.drawDeck(
         drawPath(path, lerp(tint, colours.field, if (layer == 0) DECK_TOP_MIX else DECK_LAYER_MIX))
         drawPath(path, tint.copy(alpha = if (layer == 0) 1f else DECK_EDGE_ALPHA), style = Stroke(cell * DECK_EDGE))
     }
-    val top = quad(p, centre.x - DECK_HALF, centre.y - DECK_HALF, centre.x + DECK_HALF, centre.y + DECK_HALF)
-    drawPath(top, tint.copy(alpha = DECK_GLOW_ALPHA * glow), style = Stroke(cell * DECK_GLOW))
     // Symbol and name (two words on two lines) kept inside the pile's top.
     val room = cell * DECK_HALF * DECK_TEXT_ROOM
     val glyphLayout = fitText(measurer, glyph, TextStyle(color = tint, fontSize = (cell * DECK_GLYPH).toSp(), fontWeight = FontWeight.Bold), room, room * DECK_GLYPH_SHARE, maxLines = 1)
@@ -328,11 +321,7 @@ private const val OWNER_BAND = 0.1f
 private const val TILE_HEIGHT = 0.12f
 private const val RIM_ALPHA = 0.35f
 private const val RIM_WIDTH = 0.05f
-private const val OWNER_GLOW_WIDTH = 0.18f
-private const val OWNER_GLOW_ALPHA = 0.55f
 private const val HIGHLIGHT_WIDTH = 0.07f
-private const val HIGHLIGHT_GLOW = 0.28f
-private const val HIGHLIGHT_GLOW_ALPHA = 0.7f
 private const val NAME_TEXT = 0.24f
 private const val CORNER_TEXT = 0.3f
 private const val GLYPH_TEXT = 0.6f
@@ -355,8 +344,6 @@ private const val FLOOR_ALPHA = 0.45f
 private const val FLOOR_WIDTH = 0.015f
 private const val BLOCK_SIDE = 0.45f
 private const val BLOCK_SHINE = 0.35f
-private const val BLOCK_GLOW = 0.03f
-private const val BLOCK_GLOW_ALPHA = 0.6f
 private const val DECK_HALF = 1.2f
 private const val DECK_LAYERS = 4
 private const val DECK_STEP = 0.05f
@@ -364,8 +351,6 @@ private const val DECK_TOP_MIX = 0.72f
 private const val DECK_LAYER_MIX = 0.4f
 private const val DECK_EDGE = 0.04f
 private const val DECK_EDGE_ALPHA = 0.7f
-private const val DECK_GLOW = 0.25f
-private const val DECK_GLOW_ALPHA = 0.35f
 private const val DECK_GLYPH = 0.55f
 private const val DECK_TEXT = 0.22f
 private const val DECK_TEXT_ROOM = 1.1f

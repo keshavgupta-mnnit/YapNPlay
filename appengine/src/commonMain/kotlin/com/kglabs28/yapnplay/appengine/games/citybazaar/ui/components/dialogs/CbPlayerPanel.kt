@@ -1,10 +1,8 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -12,19 +10,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.table.tableFrostedGlass
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tileHeaderTint
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CbCityCard
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbPanel
 
 /**
@@ -42,7 +37,6 @@ fun CbPlayerPanel(
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
     val shape = RoundedCornerShape(dimens.cbRowRadius)
-    val chipShape = RoundedCornerShape(dimens.cbRowRadius / 2)
     val tint = panel.colour.tint()
     Column(
         modifier = modifier
@@ -64,35 +58,10 @@ fun CbPlayerPanel(
             if (panel.cities.isEmpty()) {
                 CbDialogNote(text = Strings.cbNoProperties)
             } else {
-                Row(modifier = Modifier.padding(horizontal = Spacing.Xxs)) {
-                    BasicText(text = Strings.cbPropertyColumn, style = typography.micro.copy(color = colors.TextSecondary), modifier = Modifier.weight(1f))
-                    BasicText(text = Strings.cbRentColumn, style = typography.micro.copy(color = colors.TextSecondary))
-                }
-                panel.cities.forEach { city ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(chipShape)
-                            .background(lerp(tileHeaderTint(city.group, city.kind), colors.Background, ROW_DARKEN))
-                            .clickable { onPropertyClick(city.tile) }
-                            .padding(horizontal = Spacing.Xxs, vertical = Spacing.Xxxs),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
-                    ) {
-                        BasicText(
-                            text = city.name,
-                            style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                        )
-                        BasicText(text = city.rent, style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
-                    }
-                }
+                // Grouped by colour, most valuable first; a tap opens the full card.
+                panel.cities.forEach { CbCityCard(city = it, onClick = { onPropertyClick(it.tile) }) }
             }
         }
     }
 }
 
-/** Deepens the group colour a little so white text reads on every row. */
-private const val ROW_DARKEN = 0.2f

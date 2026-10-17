@@ -64,7 +64,8 @@ class CityBazaarIsoProjection private constructor(private val origin: Offset, pr
         const val FRAME = 0.35f
         private const val SLAB_DEPTH = 0.4f
         private const val DIE_UNITS = 2.1f
-        private const val DIE_GAP = 0.1f
+        // Negative: the dice canvases overlap so the dice themselves sit close together.
+        private const val DIE_GAP = -0.35f
         private const val DIE_STAND = 0.72f
         private const val TAP_REACH = 0.85f
         private const val DECK_REACH = 1.5f

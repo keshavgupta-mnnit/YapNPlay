@@ -3,9 +3,9 @@
 `docs/project-report.md` is the original plan. These later decisions win
 where they disagree. Newest first. Every AI agent reads this file too.
 
-## 2026-10-17 — City Baazar v0.2 rules (owner's answers)
+## 2026-10-17 — City Bazaar v0.2 rules (owner's answers)
 
-The full rules are in `docs/city-baazar-rules.md` and replace v0.1's
+The full rules are in `docs/city-bazaar-rules.md` and replace v0.1's
 "Changed from the spec" table. What changed:
 
 - **Board and prices:**
@@ -35,7 +35,7 @@ The full rules are in `docs/city-baazar-rules.md` and replace v0.1's
   - The two limits each have an on/off room toggle.
 - **Players and name:**
   - Rooms 3–6 players, random tables 4.
-  - Name "City Baazar". The image file is still `ic_game_city_baazar.png`
+  - Name "City Bazaar". The image file is still `ic_game_city_bazaar.png`
     until it's replaced.
 - **UI:**
   - Your cities stacked by colour at the bottom.
@@ -48,10 +48,10 @@ The full rules are in `docs/city-baazar-rules.md` and replace v0.1's
   - Trade explains that selling and auctions happen when you're short of
     money.
 
-## 2026-10-17 — City Baazar v0.1 (built while the owner was away)
+## 2026-10-17 — City Bazaar v0.1 (built while the owner was away)
 
-- **New game:** City Baazar (`city-baazar`), our Indian city-trading board
-  game. The rules are in `docs/city-baazar-rules.md`. The spec it came from
+- **New game:** City Bazaar (`city-bazaar`), our Indian city-trading board
+  game. The rules are in `docs/city-bazaar-rules.md`. The spec it came from
   was checked rule by rule; its **"Changed from the spec"** table lists 15
   decisions that need review (groups, prices, jail, doubles, end of match,
   timeouts, and more).
@@ -74,7 +74,7 @@ The full rules are in `docs/city-baazar-rules.md` and replace v0.1's
 - **Not in v0.1:**
   - Trading (the button says "coming soon").
   - Seat handover, the idle check and spectating flows (Royal Ludo has
-    them; City Baazar gives a left seat to the bot).
+    them; City Bazaar gives a left seat to the bot).
   - Room house-rule toggles reaching the engine.
   - Game-specific sounds (it reuses dice, hop, capture and win).
   - Real art: the catalog uses a glyph; the board is drawn in code.

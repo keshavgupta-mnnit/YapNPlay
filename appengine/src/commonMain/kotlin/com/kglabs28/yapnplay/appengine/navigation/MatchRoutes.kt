@@ -1,12 +1,12 @@
 package com.kglabs28.yapnplay.appengine.navigation
 
 import androidx.navigation.NavController
-import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CITY_BAAZAR_ID
+import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CITY_BAZAAR_ID
 
 /** Opens the table for [gameId]'s match (Royal Ludo unless another game claims it). */
 fun NavController.openMatch(gameId: String, matchId: String) {
     when (gameId) {
-        CITY_BAAZAR_ID -> navigate(CityBaazarMatch(matchId))
+        CITY_BAZAAR_ID -> navigate(CityBazaarMatch(matchId))
         else -> navigate(RoyalLudoMatch(matchId))
     }
 }

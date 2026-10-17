@@ -198,10 +198,14 @@ class YapNPlayDimens {
     /** Background blur when a tab asks for a frosted backdrop. */
     val backdropBlur: Dp get() = 14.dp.scaled()
 
-    // City Baazar
+    // City Bazaar
     val cbCardAvatar: Dp get() = 32.dp.scaled()
     val cbDialogWidth: Dp get() = 520.dp.scaled()
-    val cbPropertyCardWidth: Dp get() = 190.dp.scaled()
+    val cbPropertyCardMinWidth: Dp get() = 150.dp.scaled()
+    val cbPanelWidth: Dp get() = 230.dp.scaled()
+    val cbCardAvatarMax: Dp get() = 56.dp.scaled()
+    /** A player pod's height beyond its avatar (status pill, padding, level badge). */
+    val cbCardChrome: Dp get() = 36.dp.scaled()
     val cbStackCard: Dp get() = 34.dp.scaled()
     val cbStackOffset: Dp get() = 4.dp.scaled()
     val cbOwnerDot: Dp get() = 6.dp.scaled()

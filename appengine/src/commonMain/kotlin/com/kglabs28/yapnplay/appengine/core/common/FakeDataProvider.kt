@@ -354,8 +354,8 @@ object FakeDataProvider {
         data class Opponent(val userId: String, val name: String, val level: Int, val micOn: Boolean, val onlineMinutes: Long = 0)
     }
 
-    /** Fake City Baazar table (see FakeCityBaazarServer). */
-    object CityBaazar {
+    /** Fake City Bazaar table (see FakeCityBazaarServer). */
+    object CityBazaar {
         /** Opponents in seat order after the user (Quick Play uses the first three). */
         val opponents = listOf(
             LudoMatch.Opponent("user-neha", "Neha", 18, micOn = true),

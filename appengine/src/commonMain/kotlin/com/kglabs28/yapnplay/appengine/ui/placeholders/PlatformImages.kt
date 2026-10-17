@@ -39,9 +39,9 @@ expect fun RoyalLudoArtwork(
     contentDescription: String? = null,
 )
 
-/** City Baazar's game art (carousel, lobby, every game picker). */
+/** City Bazaar's game art (carousel, lobby, every game picker). */
 @Composable
-expect fun CityBaazarArtwork(
+expect fun CityBazaarArtwork(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
 )

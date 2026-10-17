@@ -12,7 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CityBaazarMatchScreen
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CityBazaarMatchScreen
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.RoyalLudoMatchScreen
 import com.kglabs28.yapnplay.appengine.core.common.DeepLink
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.PlayRoomLobbyScreen
@@ -92,9 +92,9 @@ fun YapNPlayNavHost(
         composable<RoomPlaceholder> {
             PlaceholderScreen()
         }
-        composable<CityBaazarMatch> { entry ->
-            CityBaazarMatchScreen(
-                matchId = entry.toRoute<CityBaazarMatch>().matchId,
+        composable<CityBazaarMatch> { entry ->
+            CityBazaarMatchScreen(
+                matchId = entry.toRoute<CityBazaarMatch>().matchId,
                 onClose = { navController.popBackStack() },
                 viewModel = entry.rememberScreenViewModel(),
             )

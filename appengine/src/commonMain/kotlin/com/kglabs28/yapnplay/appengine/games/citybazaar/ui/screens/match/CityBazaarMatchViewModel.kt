@@ -1,0 +1,559 @@
+package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
+
+import com.kglabs28.yapnplay.appengine.core.audio.GameAudio
+import com.kglabs28.yapnplay.appengine.core.audio.GameSound
+import com.kglabs28.yapnplay.appengine.core.common.AppClock
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.common.AppResult
+import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
+import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
+import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.features.moderation.domain.ModerationRules
+import com.kglabs28.yapnplay.appengine.features.moderation.domain.Penalty
+import com.kglabs28.yapnplay.appengine.features.moderation.domain.ReportVoteRequest
+import com.kglabs28.yapnplay.appengine.features.moderation.usecase.ModerationUseCases
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveLocallyMutedUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetLocallyMutedUseCase
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarColour
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarCommand
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarEvent
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarMatch
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarPresence
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarTurnPhase
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarUpdate
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.usecase.ObserveCityBazaarMatchUseCase
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.usecase.ObserveCityBazaarSpeakingUseCase
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.usecase.SendCityBazaarCommandUseCase
+import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CITY_BAZAAR_TURN_SECONDS
+import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CardDeck
+import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CityBazaarBoard
+import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CityBazaarCards
+import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.MoneyReason
+import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TileKind
+import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TILE_COUNT
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CityBazaarModerationUiMapper
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CityBazaarUiMapper
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.abs
+
+/**
+ * City Bazaar table. Server updates are queued and played event by event:
+ * the dice tumble in the roller's colour, the token hops tile by tile,
+ * money moves show on the cards, the user's own money shows as a short
+ * balance sheet. The user's decisions (buy, build, jail, debt) appear as
+ * balance-sheet dialogs on their turn; any running auction shows to every
+ * player (bid or pass; the seller watches). The user's cities sit below in
+ * colour stacks; open cards light their tiles on the board.
+ */
+class CityBazaarMatchViewModel(
+    private val observeMatch: ObserveCityBazaarMatchUseCase,
+    private val observeSpeaking: ObserveCityBazaarSpeakingUseCase,
+    private val sendCommand: SendCityBazaarCommandUseCase,
+    private val observeMuted: ObserveLocallyMutedUseCase,
+    private val setMuted: SetLocallyMutedUseCase,
+    private val moderation: ModerationUseCases,
+    private val audio: GameAudio,
+    private val clock: AppClock,
+    dispatchers: DispatcherProvider,
+) : MviViewModel<CityBazaarMatchState, CityBazaarMatchIntent, CityBazaarMatchEffect>(CityBazaarMatchState(), dispatchers) {
+
+    private var matchId: String? = null
+    private var match: CityBazaarMatch? = null
+    private var speaking: Set<String> = emptySet()
+    private var mutedForMe: Set<String> = emptySet()
+    /** What the board and cards show (lags the server while events play). */
+    private val shownPositions = mutableMapOf<Int, Int>()
+    private val shownCash = mutableMapOf<Int, Int>()
+    private val shownOwners = mutableMapOf<Int, Int>()
+    private val shownLevels = mutableMapOf<Int, Int>()
+    private var playing = false
+    private var rollId = 0
+    private var die1 = 1
+    private var die2 = 1
+    private var diceSeat: Int? = null
+    private var userModal: CbModal? = null
+    /** What the side panel shows: a tile's card, or a player. */
+    private var panelTile: Int? = null
+    private var panelSeat: Int? = null
+    private var vote: ReportVoteRequest? = null
+    private var penalty: Penalty? = null
+    private var saleSelection: Set<String> = emptySet()
+    /** The auction (tile) the user passed on: no more prompts for it. */
+    private var passedAuction: Int? = null
+    private var toast: CbToastUi? = null
+    private var toastId = 0L
+    private var toastJob: Job? = null
+    /** The card the user just drew, so the money that follows is titled with it. */
+    private var cardTitle: String? = null
+    private var foreground = true
+    private var awayJob: Job? = null
+    private var markedAway = false
+    private val queue = Channel<CityBazaarUpdate>(Channel.UNLIMITED)
+    private var jobs: List<Job> = emptyList()
+
+    override suspend fun handleIntent(intent: CityBazaarMatchIntent) {
+        when (intent) {
+            is CityBazaarMatchIntent.Load -> load(intent.matchId)
+            CityBazaarMatchIntent.Roll -> if (state.value.canRoll) send(CityBazaarCommand.Roll)
+            CityBazaarMatchIntent.Buy -> send(CityBazaarCommand.Buy)
+            CityBazaarMatchIntent.Decline -> send(CityBazaarCommand.Decline)
+            CityBazaarMatchIntent.ConfirmBuild -> (state.value.modal as? CbModal.Build)?.let { send(CityBazaarCommand.Build(it.tile)) }
+            CityBazaarMatchIntent.SkipBuild -> send(CityBazaarCommand.SkipBuild)
+            CityBazaarMatchIntent.PayJailFine -> send(CityBazaarCommand.PayJailFine)
+            CityBazaarMatchIntent.StayInJail -> send(CityBazaarCommand.StayInJail)
+            is CityBazaarMatchIntent.ToggleSale -> {
+                saleSelection = if (intent.assetId in saleSelection) saleSelection - intent.assetId else saleSelection + intent.assetId
+                render()
+            }
+            CityBazaarMatchIntent.ConfirmSale -> {
+                // Buildings first: a city can only be sold bare.
+                val picked = saleSelection.sortedBy { if (CityBazaarUiMapper.isBuilding(it)) 0 else 1 }
+                saleSelection = emptySet()
+                picked.forEach { id ->
+                    val tile = CityBazaarUiMapper.assetTile(id)
+                    send(if (CityBazaarUiMapper.isBuilding(id)) CityBazaarCommand.SellBuilding(tile) else CityBazaarCommand.SellTile(tile))
+                }
+            }
+            CityBazaarMatchIntent.StartAuction -> saleSelection.singleOrNull()?.takeIf { !CityBazaarUiMapper.isBuilding(it) }?.let {
+                saleSelection = emptySet()
+                send(CityBazaarCommand.StartAuction(CityBazaarUiMapper.assetTile(it)))
+            }
+            CityBazaarMatchIntent.Bid -> send(CityBazaarCommand.Bid)
+            CityBazaarMatchIntent.PassAuction -> {
+                passedAuction = match?.auction?.tile
+                render()
+            }
+            CityBazaarMatchIntent.DeclareBankruptcy -> send(CityBazaarCommand.DeclareBankruptcy)
+            is CityBazaarMatchIntent.TileClicked -> match?.let { m ->
+                if (state.value.modal != null) return@let
+                // Luck / Shagun Chest tiles show their 2–12 table; others their card in the side panel.
+                when (CityBazaarBoard.tile(intent.tile).kind) {
+                    TileKind.LUCK -> showModal(CityBazaarUiMapper.cardTable(CardDeck.LUCK))
+                    TileKind.CHEST -> showModal(CityBazaarUiMapper.cardTable(CardDeck.CHEST))
+                    else -> if (CityBazaarUiMapper.tileInfo(m, intent.tile) != null) showPanel(tile = intent.tile, seat = null)
+                }
+            }
+            is CityBazaarMatchIntent.OpenStack -> match?.let { m -> CityBazaarUiMapper.properties(m, intent.group)?.let { showModal(it) } }
+            is CityBazaarMatchIntent.OpenDeck -> showModal(CityBazaarUiMapper.cardTable(intent.deck))
+            is CityBazaarMatchIntent.PlayerClicked -> showPanel(tile = null, seat = intent.seat)
+            is CityBazaarMatchIntent.PanelPropertyClicked -> showPanel(tile = intent.tile, seat = null)
+            CityBazaarMatchIntent.DismissPanel -> showPanel(tile = null, seat = null)
+            CityBazaarMatchIntent.ToggleView -> setState { copy(threeD = !threeD) }
+            CityBazaarMatchIntent.OpenMyCities -> match?.let { m -> CityBazaarUiMapper.properties(m, null)?.let { showModal(it) } }
+            CityBazaarMatchIntent.Trade -> showToast(CityBazaarUiMapper.noteToast(Strings.cbTrade, Strings.cbTradeHint))
+            CityBazaarMatchIntent.ToggleAutoplay -> send(CityBazaarCommand.SetAutoplay(!state.value.autoplay))
+            is CityBazaarMatchIntent.ToggleMic -> when {
+                state.value.micOn -> send(CityBazaarCommand.SetMic(false))
+                intent.permissionGranted -> send(CityBazaarCommand.SetMic(true))
+                else -> emitEffect(CityBazaarMatchEffect.RequestMicPermission)
+            }
+            is CityBazaarMatchIntent.MicPermissionResult ->
+                if (intent.granted) send(CityBazaarCommand.SetMic(true)) else showModal(CbModal.MicPermissionNeeded)
+            CityBazaarMatchIntent.OpenAppSettings -> {
+                showModal(null)
+                emitEffect(CityBazaarMatchEffect.OpenAppSettings)
+            }
+            is CityBazaarMatchIntent.ToggleHear -> match?.player(intent.seat)?.let { setMuted(it.userId, it.userId !in mutedForMe) }
+            CityBazaarMatchIntent.ExitClicked -> showModal(CbModal.LeaveConfirm)
+            CityBazaarMatchIntent.ConfirmLeave -> {
+                showModal(null)
+                if (match?.me != null) send(CityBazaarCommand.Leave)
+                emitEffect(CityBazaarMatchEffect.Close)
+            }
+            CityBazaarMatchIntent.DismissModal -> showModal(null)
+            CityBazaarMatchIntent.OpenSettings -> showSettings()
+            CityBazaarMatchIntent.ToggleEffects -> {
+                audio.setEffectsOn(!audio.settings.value.effectsOn)
+                showSettings()
+            }
+            CityBazaarMatchIntent.ToggleMusic -> {
+                audio.setMusicOn(!audio.settings.value.musicOn)
+                showSettings()
+            }
+            CityBazaarMatchIntent.OpenReport -> showReport(selected = null, error = null)
+            is CityBazaarMatchIntent.SelectReportPerson -> showReport(selected = intent.userId, error = null)
+            CityBazaarMatchIntent.SubmitReport -> submitReport()
+            is CityBazaarMatchIntent.Vote -> vote?.let {
+                vote = null
+                render()
+                moderation.castVote(it.reportId, intent.agree)
+            }
+            CityBazaarMatchIntent.WatchAd -> watchAd()
+            is CityBazaarMatchIntent.ScreenVisible -> onScreenVisible(intent.visible)
+            CityBazaarMatchIntent.Done -> emitEffect(CityBazaarMatchEffect.Close)
+        }
+    }
+
+    private fun load(id: String) {
+        if (matchId == id) return
+        matchId = id
+        jobs.forEach { it.cancel() }
+        jobs = listOf(
+            scope.launch { observeMatch(id).collect { queue.send(it) } },
+            scope.launch { for (update in queue) play(update) },
+            scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
+            scope.launch { observeMuted().collect { mutedForMe = it; render() } },
+            scope.launch { moderation.voteRequests().collect { vote = it; render() } },
+            scope.launch { moderation.outcomes().collect { showModal(CityBazaarModerationUiMapper.outcome(it)) } },
+            scope.launch {
+                moderation.penalty().collect { new ->
+                    val fresh = new != null && penalty == null
+                    penalty = new
+                    if (fresh) showPenalty(watchingAd = false) else if (new == null && userModal is CbModal.Penalty) showModal(null)
+                }
+            },
+            scope.launch {
+                while (true) {
+                    val request = vote
+                    if (request != null && clock.now() >= request.expiresAt) vote = null
+                    render()
+                    delay(AppConstants.LUDO_TIMER_TICK_MS)
+                }
+            },
+        )
+    }
+
+    /** Plays [update]'s events in order with sound, then shows the new turn. */
+    private suspend fun play(update: CityBazaarUpdate) {
+        // First snapshot, or in the background: straight to the latest table.
+        if (match == null || !foreground) {
+            reset(update.match)
+            return
+        }
+        playing = true
+        val m = update.match
+        for (event in update.events) {
+            when (event) {
+                is CityBazaarEvent.Rolled -> {
+                    die1 = event.die1
+                    die2 = event.die2
+                    diceSeat = event.seat
+                    rollId++
+                    sound(GameSound.DICE_ROLL)
+                    render()
+                    delay(AppConstants.DICE_ROLL_MS + AppConstants.LUDO_DICE_REST_MS)
+                }
+                is CityBazaarEvent.Moved -> walk(event)
+                is CityBazaarEvent.Money -> money(event, m)
+                is CityBazaarEvent.Card -> card(event, m)
+                is CityBazaarEvent.Bought -> {
+                    shownOwners[event.tile] = event.seat
+                    render()
+                }
+                is CityBazaarEvent.Built -> {
+                    shownLevels[event.tile] = event.level
+                    render()
+                }
+                is CityBazaarEvent.Sold -> {
+                    val level = shownLevels[event.tile] ?: 0
+                    if (level > 0) shownLevels[event.tile] = level - 1 else shownOwners.remove(event.tile)
+                    render()
+                }
+                is CityBazaarEvent.Jailed -> {
+                    sound(GameSound.CAPTURE)
+                    if (event.seat == m.me?.seat) showToast(CityBazaarUiMapper.noteToast(Strings.cbSentToJail, Strings.cbJailedBody, gain = false))
+                }
+                is CityBazaarEvent.CantAfford -> if (event.seat == m.me?.seat) {
+                    val spec = CityBazaarBoard.tile(event.tile)
+                    showToast(CityBazaarUiMapper.noteToast(Strings.cbNotEnoughTitle, Strings.cbCantBuy(spec.name, CityBazaarUiMapper.rupees(spec.price)), gain = false))
+                }
+                is CityBazaarEvent.Freed -> if (event.seat == m.me?.seat) showToast(CityBazaarUiMapper.noteToast(Strings.cbFreedTitle, Strings.cbFreedBody))
+                is CityBazaarEvent.AuctionEnded -> {
+                    val name = CityBazaarBoard.tile(event.tile).name
+                    val line = event.winner?.let { w ->
+                        shownOwners[event.tile] = w
+                        Strings.cbAuctionWon(m.player(w)?.name.orEmpty(), name, CityBazaarUiMapper.rupees(event.amount))
+                    } ?: Strings.cbAuctionBank(name, CityBazaarUiMapper.rupees(event.amount))
+                    passedAuction = null
+                    showToast(CityBazaarUiMapper.noteToast(Strings.cbAuctionEnded, line))
+                }
+                is CityBazaarEvent.Bankrupt -> m.player(event.seat)?.let {
+                    showToast(CityBazaarUiMapper.noteToast(Strings.cbWentBankrupt(it.name), Strings.cbBankruptBody, gain = false))
+                }
+                else -> Unit
+            }
+        }
+        playing = false
+        reset(m)
+    }
+
+    /** The token hops tile by tile (or jumps straight to jail). */
+    private suspend fun walk(event: CityBazaarEvent.Moved) {
+        if (event.jump || event.steps == 0) {
+            shownPositions[event.seat] = event.to
+            render()
+            delay(AppConstants.CB_HOP_MS.toLong() * 2)
+            return
+        }
+        val step = if (event.steps > 0) 1 else -1
+        var at = shownPositions[event.seat] ?: event.from
+        repeat(abs(event.steps)) {
+            at = (at + step + TILE_COUNT) % TILE_COUNT
+            shownPositions[event.seat] = at
+            sound(GameSound.HOP)
+            render()
+            delay(AppConstants.CB_HOP_MS.toLong())
+        }
+    }
+
+    /** Money moves on the cards; the user's own (rent, tax, cards, START, fines) shows as a balance sheet. */
+    private suspend fun money(event: CityBazaarEvent.Money, m: CityBazaarMatch) {
+        val mySeat = m.me?.seat
+        val mine = mySeat != null && (event.from == mySeat || event.to == mySeat)
+        val before = mySeat?.let { shownCash[it] } ?: 0
+        event.from?.let { shownCash[it] = (shownCash[it] ?: 0) - event.amount }
+        event.to?.let { shownCash[it] = (shownCash[it] ?: 0) + event.amount }
+        if (event.reason in QUIET) {
+            render()
+            return
+        }
+        if (!mine) {
+            // Everyone sees who paid whom (rent, taxes, fees, fines).
+            val payer = event.from?.let { m.player(it)?.name }
+            if (payer != null && event.reason in PAYMENTS) {
+                val tileName = event.tile?.let { CityBazaarBoard.tile(it).name }
+                val reason = tileName ?: reasonLabel(event.reason)
+                showToast(CityBazaarUiMapper.paymentToast(payer, event.to?.let { m.player(it)?.name }, reason, event.amount))
+            }
+            render()
+            return
+        }
+        val gain = event.to == mySeat
+        val tileName = event.tile?.let { CityBazaarBoard.tile(it).name }.orEmpty()
+        val other = (if (gain) event.from else event.to)?.let { m.player(it)?.name }.orEmpty()
+        val (title, label) = when (event.reason) {
+            MoneyReason.RENT -> if (gain) Strings.cbPaidYouRent(other, tileName) to Strings.cbRentFrom(other)
+            else Strings.cbLandedOnOwned(tileName, other) to Strings.cbRentPaidTo(other)
+            MoneyReason.TAX -> Strings.cbTaxTitle to tileName
+            MoneyReason.CLUB -> Strings.cbClubTitle to Strings.cbCornerClub
+            MoneyReason.START -> Strings.cbStartTitle to Strings.cbCornerStart
+            MoneyReason.JAIL_FINE -> Strings.cbJailFineTitle to Strings.cbCornerJail
+            MoneyReason.LATE_ROLL -> Strings.cbLateFineTitle to Strings.cbLateFineLabel
+            MoneyReason.AUCTION -> Strings.cbAuctionEnded to tileName
+            else -> (cardTitle ?: Strings.cbChange) to Strings.cbChange
+        }
+        showToast(CityBazaarUiMapper.moneyToast(title, before, label, event.amount, gain))
+        delay(AppConstants.CB_MONEY_PAUSE_MS)
+    }
+
+    private fun reasonLabel(reason: MoneyReason): String = when (reason) {
+        MoneyReason.RENT -> Strings.cbRentLand
+        MoneyReason.TAX -> Strings.cbTaxTitle
+        MoneyReason.CLUB -> Strings.cbClubTitle
+        MoneyReason.JAIL_FINE -> Strings.cbJailFineTitle
+        MoneyReason.LATE_ROLL -> Strings.cbLateFineLabel
+        else -> Strings.cbChange
+    }
+
+    private suspend fun card(event: CityBazaarEvent.Card, m: CityBazaarMatch) {
+        val spec = CityBazaarCards.find(event.cardId) ?: return
+        val deck = if (spec.deck == CardDeck.LUCK) Strings.cbLuckLabel else Strings.cbChestLabel
+        if (event.seat == m.me?.seat) {
+            cardTitle = Strings.cbCardTitle(deck, spec.text)
+            showToast(CityBazaarUiMapper.noteToast(deck, spec.text))
+        } else {
+            showToast(CityBazaarUiMapper.noteToast(Strings.cbSomeoneDrew(m.player(event.seat)?.name.orEmpty(), deck), spec.text))
+        }
+        delay(AppConstants.CB_CARD_PAUSE_MS)
+    }
+
+    /** Shows the server's table as it is (after any animation). */
+    private fun reset(newMatch: CityBazaarMatch) {
+        val justFinished = newMatch.phase == CityBazaarTurnPhase.FINISHED && match?.phase != CityBazaarTurnPhase.FINISHED
+        match = newMatch
+        cardTitle = null
+        shownPositions.clear()
+        shownCash.clear()
+        newMatch.players.forEach {
+            shownPositions[it.seat] = it.position
+            shownCash[it.seat] = it.cash
+        }
+        shownOwners.clear()
+        shownOwners.putAll(newMatch.owners)
+        shownLevels.clear()
+        shownLevels.putAll(newMatch.levels)
+        diceSeat = newMatch.currentSeat
+        if (newMatch.phase != CityBazaarTurnPhase.DEBT) saleSelection = emptySet()
+        if (justFinished) {
+            sound(GameSound.WIN)
+            userModal = CityBazaarUiMapper.result(newMatch)
+        }
+        render()
+    }
+
+    private fun render() {
+        val m = match ?: return
+        val me = m.me
+        val now = clock.now()
+        val myTurn = me != null && !playing && !me.bankrupt && m.currentSeat == me.seat && !me.autoplay && me.presence == CityBazaarPresence.PLAYING
+        val remainingMs = m.turnEndsAt?.let { (it - now).inWholeMilliseconds.coerceAtLeast(0) } ?: 0L
+        val countdown = CityBazaarUiMapper.countdown(remainingMs / MILLIS)
+        val cards = CityBazaarUiMapper.cards(
+            m,
+            CityBazaarUiMapper.CardInputs(speaking, mutedForMe, if (playing) null else remainingMs, CITY_BAZAAR_TURN_SECONDS, shownCash),
+        )
+        val (myCard, left, right) = CityBazaarUiMapper.sides(m, cards)
+        val colourOf: (Int) -> CityBazaarColour? = { seat -> m.player(seat)?.colour }
+        val shownMe = me?.copy(cash = shownCash[me.seat] ?: me.cash)
+        // The user's turn decision, as a balance-sheet dialog.
+        val decision: CbModal? = if (myTurn && shownMe != null) {
+            when (m.phase) {
+                CityBazaarTurnPhase.BUY -> m.pendingTile?.let { CityBazaarUiMapper.buy(shownMe, it, countdown) }
+                CityBazaarTurnPhase.BUILD -> m.pendingTile?.let { CityBazaarUiMapper.build(m, shownMe, it, countdown) }
+                CityBazaarTurnPhase.JAIL_ROLL -> CityBazaarUiMapper.jailRoll(m, countdown)
+                CityBazaarTurnPhase.JAIL_CHOICE -> CityBazaarUiMapper.jailChoice(shownMe, countdown)
+                CityBazaarTurnPhase.DEBT -> CityBazaarUiMapper.debt(m, shownMe, saleSelection, countdown)
+                else -> null
+            }
+        } else {
+            null
+        }
+        // A running auction shows to every player (not to watchers, nor after passing it).
+        val auction = m.auction?.takeIf { !playing && shownMe != null && !shownMe.bankrupt && it.tile != passedAuction }?.let { a ->
+            CityBazaarUiMapper.auction(m, a, shownMe!!, CityBazaarUiMapper.countdown((a.endsAt - now).inWholeSeconds))
+        }
+        val modal = vote?.let { CityBazaarModerationUiMapper.vote(it, now) } ?: auction ?: decision ?: userModal
+        val panel = panelTile?.let { CityBazaarUiMapper.tileInfo(m, it) }
+            ?: panelSeat?.let { CityBazaarUiMapper.playerPanel(m, it, shownCash[it] ?: 0) }
+        setState {
+            copy(
+                loaded = true,
+                title = Strings.cbTitle,
+                subtitle = m.roundLimit?.let { limit -> m.title + " · " + Strings.cbRoundOf(m.round, limit) } ?: m.title,
+                audience = CityBazaarUiMapper.audience(m, speaking, mutedForMe),
+                roomMatch = m.isRoomMatch,
+                spectatorCount = m.spectatorCount.toString(),
+                spectatorLabel = Strings.ludoSpectators,
+                elapsed = if (m.phase == CityBazaarTurnPhase.FINISHED && elapsed.isNotEmpty()) elapsed else CityBazaarUiMapper.elapsed(now - m.startedAt),
+                tiles = CityBazaarUiMapper.tiles(shownOwners, shownLevels, colourOf),
+                tokens = CityBazaarUiMapper.tokens(m, shownPositions),
+                highlight = when (modal) {
+                    is CbModal.Properties -> modal.cards.map { it.tile }.toSet()
+                    is CbModal.Buy -> setOf(modal.tile)
+                    is CbModal.Build -> setOf(modal.tile)
+                    is CbModal.Auction -> setOf(modal.tile)
+                    else -> when (panel) {
+                        is CbPanel.Property -> setOf(panel.card.tile)
+                        is CbPanel.Player -> panel.cities.map { it.tile }.toSet()
+                        null -> emptySet()
+                    }
+                },
+                dice = CbDiceUi(die1, die2, rollId, diceSeat?.let(colourOf)),
+                myCard = myCard,
+                leftCards = left,
+                rightCards = right,
+                stacks = CityBazaarUiMapper.stacks(m),
+                spectating = me == null,
+                canRoll = myTurn && (m.phase == CityBazaarTurnPhase.ROLL || m.phase == CityBazaarTurnPhase.JAIL_ROLL),
+                rollLabel = if (m.phase == CityBazaarTurnPhase.JAIL_ROLL && myTurn) Strings.cbRollDoubles else Strings.cbRollDice,
+                autoplay = me?.autoplay == true || me?.presence == CityBazaarPresence.BOT,
+                micOn = me?.micOn == true,
+                toast = toast,
+                modal = modal,
+                panel = panel,
+            )
+        }
+    }
+
+    private fun showToast(next: CbToastUi) {
+        toastId++
+        toast = next.copy(id = toastId)
+        toastJob?.cancel()
+        toastJob = scope.launch {
+            delay(AppConstants.CB_TOAST_MS)
+            toast = null
+            render()
+        }
+        render()
+    }
+
+    private fun showPanel(tile: Int?, seat: Int?) {
+        panelTile = tile
+        panelSeat = seat
+        render()
+    }
+
+    private fun showModal(modal: CbModal?) {
+        userModal = modal
+        render()
+    }
+
+    private fun showSettings() {
+        val s = audio.settings.value
+        showModal(CbModal.Settings(effectsOn = s.effectsOn, musicOn = s.musicOn))
+    }
+
+    private fun showReport(selected: String?, error: String?) {
+        val m = match ?: return
+        val voters = CityBazaarModerationUiMapper.voters(m)
+        showModal(
+            CbModal.Report(
+                people = CityBazaarModerationUiMapper.reportablePeople(m),
+                selectedUserId = selected,
+                warning = Strings.ludoReportWarning(ModerationRules.requiredAgreements(voters)),
+                error = error ?: if (ModerationRules.canReport(voters)) null else Strings.ludoReportNeedPeople,
+            ),
+        )
+    }
+
+    private suspend fun submitReport() {
+        val m = match ?: return
+        val report = userModal as? CbModal.Report ?: return
+        val person = report.people.firstOrNull { it.userId == report.selectedUserId } ?: return
+        when (moderation.report(m.matchId, person.userId, person.name, CityBazaarModerationUiMapper.voters(m))) {
+            is AppResult.Success -> showModal(null)
+            is AppResult.Failure -> showReport(report.selectedUserId, Strings.ludoReportNeedPeople)
+        }
+    }
+
+    private fun showPenalty(watchingAd: Boolean) {
+        val p = penalty ?: return
+        showModal(CityBazaarModerationUiMapper.penalty(p, clock.now(), watchingAd))
+    }
+
+    private suspend fun watchAd() {
+        showPenalty(watchingAd = true)
+        if (moderation.clearPenaltyWithAd() is AppResult.Failure) showPenalty(watchingAd = false)
+    }
+
+    /** Background: sound stops, the mic goes off, and after a short grace the server plays for the user. */
+    private suspend fun onScreenVisible(visible: Boolean) {
+        foreground = visible
+        awayJob?.cancel()
+        if (visible) {
+            audio.startMusic()
+            if (markedAway) {
+                markedAway = false
+                send(CityBazaarCommand.SetAway(false))
+            }
+        } else {
+            audio.stopMusic()
+            if (state.value.micOn) send(CityBazaarCommand.SetMic(false))
+            awayJob = scope.launch {
+                delay(AppConstants.LUDO_AWAY_GRACE_MS)
+                markedAway = true
+                send(CityBazaarCommand.SetAway(true))
+            }
+        }
+    }
+
+    private fun sound(sound: GameSound) {
+        if (foreground) audio.play(sound)
+    }
+
+    private suspend fun send(command: CityBazaarCommand) {
+        val id = matchId ?: return
+        sendCommand(id, command)
+    }
+
+    private companion object {
+        const val MILLIS = 1_000L
+        /** Money the dialogs already showed (buying, building, selling). */
+        val QUIET = setOf(MoneyReason.BUY, MoneyReason.BUILD, MoneyReason.SELL, MoneyReason.BANKRUPTCY)
+        /** Payments everyone is told about. */
+        val PAYMENTS = setOf(MoneyReason.RENT, MoneyReason.TAX, MoneyReason.CLUB, MoneyReason.JAIL_FINE, MoneyReason.LATE_ROLL, MoneyReason.CARD, MoneyReason.AUCTION)
+    }
+}

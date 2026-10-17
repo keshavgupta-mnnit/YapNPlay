@@ -55,9 +55,9 @@ Synthesised placeholders — replace with recorded audio of the same names:
 | `piece_capture.wav` | A capture, or a turn undone by a third six |
 | `winner.wav` | A player bringing all pieces home |
 
-## City Baazar
+## City Bazaar
 
-- **Game art:** `ic_game_city_baazar.png` (androidMain drawable), shown
+- **Game art:** `ic_game_city_bazaar.png` (androidMain drawable), shown
   wherever games are picked (carousel, grid, lobby). Royal Ludo uses
   `ic_game_royal_ludo.png` the same way.
 - **Board:** drawn in code (tiles, group headers, owner borders, houses,

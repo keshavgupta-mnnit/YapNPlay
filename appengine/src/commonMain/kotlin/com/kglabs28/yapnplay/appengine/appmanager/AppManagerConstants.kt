@@ -16,9 +16,9 @@ object AppManagerConstants {
         const val PARTY_CHAT_ENABLED = "party_chat_enabled"
         const val UPDATE_CONFIG = "update_config"
         const val MAX_ROOMS_PER_USER = "max_rooms_per_user"
-        const val CITY_BAAZAR_STARTING_CASH = "city_baazar_starting_cash"
-        const val CITY_BAAZAR_ROUND_LIMIT = "city_baazar_round_limit"
-        const val CITY_BAAZAR_TIME_LIMIT_MINUTES = "city_baazar_time_limit_minutes"
+        const val CITY_BAZAAR_STARTING_CASH = "city_bazaar_starting_cash"
+        const val CITY_BAZAAR_ROUND_LIMIT = "city_bazaar_round_limit"
+        const val CITY_BAZAAR_TIME_LIMIT_MINUTES = "city_bazaar_time_limit_minutes"
 
         /** Per-game kill switch key, e.g. game_enabled_card_clash. */
         fun gameEnabled(gameId: String) = "game_enabled_" + gameId.replace('-', '_')
@@ -30,8 +30,8 @@ object AppManagerConstants {
         const val PARTY_CHAT_ENABLED = true
         const val UPDATE_CONFIG = ""
         const val MAX_ROOMS_PER_USER = 5
-        const val CITY_BAAZAR_STARTING_CASH = 20_000
-        const val CITY_BAAZAR_ROUND_LIMIT = 30
-        const val CITY_BAAZAR_TIME_LIMIT_MINUTES = 30
+        const val CITY_BAZAAR_STARTING_CASH = 20_000
+        const val CITY_BAZAAR_ROUND_LIMIT = 30
+        const val CITY_BAZAAR_TIME_LIMIT_MINUTES = 30
     }
 }

@@ -11,7 +11,7 @@ import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.FindQuickPla
 import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.GetOnlinePlayerCountUseCase
 import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.LeaveQuickPlayQueueUseCase
 import com.kglabs28.yapnplay.appengine.games.base.GameRegistry
-import com.kglabs28.yapnplay.appengine.games.citybaazar.engine.CityBaazarEngine
+import com.kglabs28.yapnplay.appengine.games.citybazaar.engine.CityBazaarEngine
 import com.kglabs28.yapnplay.appengine.games.royalludo.engine.RoyalLudoEngine
 import org.koin.dsl.module
 
@@ -24,7 +24,7 @@ val gamesModule = module {
         GameRegistry(
             listOf(
                 RoyalLudoEngine(),
-                CityBaazarEngine(),
+                CityBazaarEngine(),
             ),
         )
     }

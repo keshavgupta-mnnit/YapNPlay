@@ -141,8 +141,15 @@ object YapNPlayColors {
     val PlayerBlue = Color(0xFF3D9BFF)
     val PlayerPurple = Color(0xFFB45CFF)
     val PlayerOrange = Color(0xFFFF8A2B)
+    // City Bazaar players: deeper than the city groups' colours, so the two don't mix up.
+    val CbPlayerRed = Color(0xFFB3132B)
+    val CbPlayerGreen = Color(0xFF128A3E)
+    val CbPlayerYellow = Color(0xFFB88A00)
+    val CbPlayerBlue = Color(0xFF1858B8)
+    val CbPlayerPurple = Color(0xFF6E28B8)
+    val CbPlayerOrange = Color(0xFFB85000)
 
-    // City Baazar board: matte tiles, colour headers (the original's colours), neon owners
+    // City Bazaar board: matte tiles, colour headers (the original's colours), neon owners
     val CbTile = Color(0xFF2B313C)
     val CbTileEdge = Color(0xFF3B4352)
     val CbTileSide = Color(0xFF12161D)

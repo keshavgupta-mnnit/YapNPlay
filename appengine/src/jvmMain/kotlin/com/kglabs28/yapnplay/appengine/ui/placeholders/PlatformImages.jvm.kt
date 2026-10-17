@@ -41,6 +41,6 @@ actual fun RoyalLudoArtwork(modifier: Modifier, contentDescription: String?) {
 }
 
 @Composable
-actual fun CityBaazarArtwork(modifier: Modifier, contentDescription: String?) {
+actual fun CityBazaarArtwork(modifier: Modifier, contentDescription: String?) {
     FallbackArtwork(modifier)
 }

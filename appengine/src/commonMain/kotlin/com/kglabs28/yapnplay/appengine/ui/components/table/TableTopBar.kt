@@ -34,8 +34,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
  * card with the room below it, a frosted tray of everyone at the table
  * and watching (ring green while talking, red with the mic off) with the
  * spectator count (room matches only; Quick Play has no spectators), the
- * match clock (time since it began), then
- * settings and exit.
+ * match clock (time since it began), then an optional switch (City
+ * Bazaar's 2D / 3D), settings and exit.
  */
 @Composable
 fun TableTopBar(
@@ -49,6 +49,9 @@ fun TableTopBar(
     onSettings: () -> Unit,
     onExit: () -> Unit,
     modifier: Modifier = Modifier,
+    /** A short switch label before settings ("3D" / "2D"); null hides it. */
+    switchLabel: String? = null,
+    onSwitch: () -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -60,7 +63,8 @@ fun TableTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(dimens.ludoTopBarHeight),
+            // Title, tray, clock and buttons all as tall as the square buttons.
+            .height(dimens.ludoSquareButton),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
     ) {
@@ -112,6 +116,7 @@ fun TableTopBar(
             Spacer(Modifier.weight(1f))
         }
         TableMatchClock(elapsed = elapsed, modifier = Modifier.fillMaxHeight())
+        switchLabel?.let { TableTextSquareButton(text = it, onClick = onSwitch) }
         TableSquareIconButton(icon = Icons.Rounded.Settings, description = Strings.ludoSettings, tint = colors.LudoTeal, onClick = onSettings)
         TableSquareIconButton(icon = Icons.AutoMirrored.Rounded.Logout, description = Strings.ludoExit, tint = colors.Error, onClick = onExit)
     }

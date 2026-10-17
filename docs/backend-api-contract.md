@@ -267,7 +267,7 @@ must honour the same switch (`GAME_UNAVAILABLE`).
 - **Spectator count:** the number of people actually watching (not
   players); the top bar lists only spectators.
 
-## City Baazar match additions
+## City Bazaar match additions
 
 - **Actions** (`GameAction` on the match channel):
   - `RollDice`

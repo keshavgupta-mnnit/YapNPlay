@@ -63,17 +63,17 @@ class AppManager(private val store: AppConfigStore) {
     fun maxRoomsPerUser(): Int =
         getInt(AppManagerConstants.Key.MAX_ROOMS_PER_USER, AppManagerConstants.Default.MAX_ROOMS_PER_USER)
 
-    /** City Baazar: each player's starting balance (₹). */
-    fun cityBaazarStartingCash(): Int =
-        getInt(AppManagerConstants.Key.CITY_BAAZAR_STARTING_CASH, AppManagerConstants.Default.CITY_BAAZAR_STARTING_CASH)
+    /** City Bazaar: each player's starting balance (₹). */
+    fun cityBazaarStartingCash(): Int =
+        getInt(AppManagerConstants.Key.CITY_BAZAAR_STARTING_CASH, AppManagerConstants.Default.CITY_BAZAAR_STARTING_CASH)
 
-    /** City Baazar: rounds before the match ends on net worth (when the room's toggle is on). */
-    fun cityBaazarRoundLimit(): Int =
-        getInt(AppManagerConstants.Key.CITY_BAAZAR_ROUND_LIMIT, AppManagerConstants.Default.CITY_BAAZAR_ROUND_LIMIT)
+    /** City Bazaar: rounds before the match ends on net worth (when the room's toggle is on). */
+    fun cityBazaarRoundLimit(): Int =
+        getInt(AppManagerConstants.Key.CITY_BAZAAR_ROUND_LIMIT, AppManagerConstants.Default.CITY_BAZAAR_ROUND_LIMIT)
 
-    /** City Baazar: minutes before the match ends on net worth (when the room's toggle is on). */
-    fun cityBaazarTimeLimitMinutes(): Int =
-        getInt(AppManagerConstants.Key.CITY_BAAZAR_TIME_LIMIT_MINUTES, AppManagerConstants.Default.CITY_BAAZAR_TIME_LIMIT_MINUTES)
+    /** City Bazaar: minutes before the match ends on net worth (when the room's toggle is on). */
+    fun cityBazaarTimeLimitMinutes(): Int =
+        getInt(AppManagerConstants.Key.CITY_BAZAAR_TIME_LIMIT_MINUTES, AppManagerConstants.Default.CITY_BAZAAR_TIME_LIMIT_MINUTES)
 
     // ── Typed getters ────────────────────────────────────────────────────
 

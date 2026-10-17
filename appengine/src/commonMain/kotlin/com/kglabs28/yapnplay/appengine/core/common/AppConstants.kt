@@ -18,17 +18,17 @@ object AppConstants {
     const val DICE_ROLL_MS = 1_500
     /** The die rests on its result this long before any piece moves. */
     const val LUDO_DICE_REST_MS = 500L
-    /** City Baazar: a token's hop from one tile to the next. */
+    /** City Bazaar: a token's hop from one tile to the next. */
     const val CB_HOP_MS = 200
-    /** City Baazar: each side column of player pods, as a share of the width. */
+    /** City Bazaar: each side column of player pods, as a share of the width. */
     const val CB_SIDE_COLUMN_WEIGHT = 0.21f
-    /** City Baazar: pause on the user's own balance sheet before play goes on. */
+    /** City Bazaar: pause on the user's own balance sheet before play goes on. */
     const val CB_MONEY_PAUSE_MS = 900L
-    /** City Baazar: pause on a card draw. */
+    /** City Bazaar: pause on a card draw. */
     const val CB_CARD_PAUSE_MS = 1_300L
-    /** City Baazar: how long a balance-sheet toast stays. */
+    /** City Bazaar: how long a balance-sheet toast stays. */
     const val CB_TOAST_MS = 2_800L
-    /** City Baazar: a balance counting to its new value. */
+    /** City Bazaar: a balance counting to its new value. */
     const val CB_CASH_COUNT_MS = 900
     /** In the background this long (not a quick glance) and the server is told the user is away. */
     const val LUDO_AWAY_GRACE_MS = 5_000L

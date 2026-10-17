@@ -23,6 +23,6 @@ data object RoomPlaceholder
 @Serializable
 data class RoyalLudoMatch(val matchId: String)
 
-/** A City Baazar table. */
+/** A City Bazaar table. */
 @Serializable
-data class CityBaazarMatch(val matchId: String)
+data class CityBazaarMatch(val matchId: String)

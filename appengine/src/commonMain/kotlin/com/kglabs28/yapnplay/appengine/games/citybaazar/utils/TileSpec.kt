@@ -1,9 +1,9 @@
 package com.kglabs28.yapnplay.appengine.games.citybaazar.utils
 
 /**
- * One board tile. [rents] for a city: land, 1, 2, 3 houses, hotel.
- * [price] is the purchase price (cities, transit, utilities); [tax] what a
- * tax tile charges.
+ * One board tile. [rents] for a city: land, 1, 2, 3 houses, hotel; for
+ * transit and utilities a single fixed rent. [buildCost] is the price of
+ * one house, and of the hotel. [tax] is what a tax tile charges.
  */
 data class TileSpec(
     val index: Int,

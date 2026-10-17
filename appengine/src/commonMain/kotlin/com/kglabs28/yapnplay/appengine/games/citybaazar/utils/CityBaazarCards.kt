@@ -7,7 +7,7 @@ object CityBaazarCards {
         CardSpec("luck-traffic", CardDeck.LUCK, "Traffic fine", CardEffect.Money(-1_000)),
         CardSpec("luck-start", CardDeck.LUCK, "Advance to START", CardEffect.AdvanceTo(START_TILE)),
         CardSpec("luck-jail", CardDeck.LUCK, "Go to Jail", CardEffect.GoToJail),
-        CardSpec("luck-pass", CardDeck.LUCK, "Jail Pass: leave jail free once", CardEffect.JailPass),
+        CardSpec("luck-scholarship", CardDeck.LUCK, "Scholarship", CardEffect.Money(1_000)),
         CardSpec("luck-back", CardDeck.LUCK, "Go back 3 tiles", CardEffect.MoveBack(BACK_STEPS)),
         CardSpec("luck-mumbai", CardDeck.LUCK, "Advance to Mumbai", CardEffect.AdvanceTo(35)),
         CardSpec("luck-club", CardDeck.LUCK, "Advance to the Club", CardEffect.AdvanceTo(CLUB_TILE)),
@@ -26,7 +26,7 @@ object CityBaazarCards {
         CardSpec("chest-interest", CardDeck.CHEST, "Bank interest", CardEffect.Money(500)),
         CardSpec("chest-start", CardDeck.CHEST, "Advance to START", CardEffect.AdvanceTo(START_TILE)),
         CardSpec("chest-jail", CardDeck.CHEST, "Go to Jail", CardEffect.GoToJail),
-        CardSpec("chest-pass", CardDeck.CHEST, "Jail Pass: leave jail free once", CardEffect.JailPass),
+        CardSpec("chest-gift", CardDeck.CHEST, "Gift from a relative", CardEffect.Money(750)),
         CardSpec("chest-gifts", CardDeck.CHEST, "Festival gifts: ₹250 from each player", CardEffect.CollectFromEach(250)),
         CardSpec("chest-property", CardDeck.CHEST, "Property tax: ₹250 per house, ₹750 per hotel", CardEffect.Repairs(250, 750)),
     )

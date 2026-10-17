@@ -3,29 +3,29 @@ package com.kglabs28.yapnplay.appengine.games.citybaazar.ui.mapper
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.table.AvatarRing
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableAvatarUi
+import com.kglabs28.yapnplay.appengine.games.citybaazar.domain.CityBaazarAuctionInfo
 import com.kglabs28.yapnplay.appengine.games.citybaazar.domain.CityBaazarColour
 import com.kglabs28.yapnplay.appengine.games.citybaazar.domain.CityBaazarMatch
 import com.kglabs28.yapnplay.appengine.games.citybaazar.domain.CityBaazarPlayer
 import com.kglabs28.yapnplay.appengine.games.citybaazar.domain.CityBaazarPresence
 import com.kglabs28.yapnplay.appengine.games.citybaazar.domain.CityBaazarTurnPhase
-import com.kglabs28.yapnplay.appengine.games.citybaazar.engine.CityBaazarEconomy
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CityBaazarBoard
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CityGroup
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.HOTEL_LEVEL
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.JAIL_FINE
-import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.MAX_JAIL_TRIES
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.RESALE_DIVISOR
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.RupeeFormat
-import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.TRANSIT_RENTS
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.SET_FOR_DOUBLE
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.TileKind
-import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.UTILITY_RENT_BOTH
-import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.UTILITY_RENT_ONE
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbAssetUi
-import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbBuildOptionUi
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbModal
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbPlayerCardUi
+import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbPropertyCardUi
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbRateRowUi
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbResultRowUi
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbRowKind
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbSheetRowUi
+import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbStackUi
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbTileUi
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbToastUi
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbTokenUi
@@ -74,6 +74,7 @@ object CityBaazarUiMapper {
                 status = when {
                     finished && place >= 0 -> Strings.ludoPlace(place + 1)
                     p.bankrupt -> Strings.cbStatusBankrupt
+                    p.inJail && p.halfRent -> Strings.cbStatusHalf
                     p.inJail -> Strings.cbStatusJail
                     p.presence == CityBaazarPresence.AWAY -> Strings.cbStatusAway
                     p.presence == CityBaazarPresence.BOT -> Strings.cbStatusBot
@@ -85,21 +86,13 @@ object CityBaazarUiMapper {
         }
     }
 
-    /**
-     * Card columns: the user bottom-left; the others in turn order after
-     * them, the first half on the right and the rest on the left above the
-     * user. Watching: half on each side.
-     */
+    /** Card columns: the user bottom-left; the others in turn order, the first half on the right. Watching: half each side. */
     fun sides(match: CityBaazarMatch, cards: List<CbPlayerCardUi>): Triple<CbPlayerCardUi?, List<CbPlayerCardUi>, List<CbPlayerCardUi>> {
         val mine = cards.firstOrNull { it.isMe }
         val start = match.me?.seat ?: 0
         val others = cards.filterNot { it.isMe }.sortedBy { (it.seat - start + match.players.size) % match.players.size }
         val rightCount = (others.size + 1) / 2
-        return if (mine == null) {
-            Triple(null, others.drop(rightCount), others.take(rightCount))
-        } else {
-            Triple(mine, others.drop(rightCount), others.take(rightCount))
-        }
+        return Triple(mine, others.drop(rightCount), others.take(rightCount))
     }
 
     fun audience(match: CityBaazarMatch, speaking: Set<String>, mutedForMe: Set<String>): List<TableAvatarUi> =
@@ -119,28 +112,110 @@ object CityBaazarUiMapper {
 
     fun countdown(seconds: Long): String = Strings.seatCountdown(seconds.coerceAtLeast(0))
 
-    // ---------------- rate cards ----------------
+    fun levelName(level: Int): String = if (level >= HOTEL_LEVEL) Strings.cbHotelLevel else Strings.cbHouseLevel(level)
 
-    fun levelName(level: Int): String = if (level >= HOTEL_LEVEL) Strings.cbRentHotel else Strings.cbHouseLevel(level)
+    fun groupName(group: CityGroup): String = when (group) {
+        CityGroup.RED -> Strings.cbGroupRed
+        CityGroup.BLUE -> Strings.cbGroupBlue
+        CityGroup.GREEN -> Strings.cbGroupGreen
+        CityGroup.YELLOW -> Strings.cbGroupYellow
+        CityGroup.PURPLE -> Strings.cbGroupPurple
+        CityGroup.ORANGE -> Strings.cbGroupOrange
+    }
 
-    /** The full rate card of [tile]; [current] highlights a tier (city level or transit count). */
+    // ---------------- cards ----------------
+
+    /** The tiers of [tile] with [current] highlighted (cities: land, 1–3 houses, hotel; others: one fixed rent). */
     fun rates(tile: Int, current: Int?): List<CbRateRowUi> {
         val spec = CityBaazarBoard.tile(tile)
         return when (spec.kind) {
-            TileKind.CITY -> listOf(
-                CbRateRowUi(Strings.cbRentLand, rupees(spec.rents[0]), current == 0),
-                CbRateRowUi(Strings.cbRentSet, rupees(spec.rents[0] * 2), false),
-            ) + (1 until HOTEL_LEVEL).map { CbRateRowUi(Strings.cbRentHouses(it), rupees(spec.rents[it]), current == it) } +
+            TileKind.CITY -> listOf(CbRateRowUi(Strings.cbRentLand, rupees(spec.rents[0]), current == 0)) +
+                (1 until HOTEL_LEVEL).map { CbRateRowUi(Strings.cbRentHouses(it), rupees(spec.rents[it]), current == it) } +
                 CbRateRowUi(Strings.cbRentHotel, rupees(spec.rents[HOTEL_LEVEL]), current == HOTEL_LEVEL)
-            TileKind.TRANSIT -> TRANSIT_RENTS.mapIndexed { i, rent -> CbRateRowUi(Strings.cbTransitOwned(i + 1), rupees(rent), current == i + 1) }
-            TileKind.UTILITY -> listOf(
-                CbRateRowUi(Strings.cbUtilityOne, Strings.cbDiceTimes(rupees(UTILITY_RENT_ONE)), current == 1),
-                CbRateRowUi(Strings.cbUtilityBoth, Strings.cbDiceTimes(rupees(UTILITY_RENT_BOTH)), current == 2),
+            TileKind.TRANSIT, TileKind.UTILITY -> listOf(
+                CbRateRowUi(Strings.cbRentLand, rupees(spec.rents[0]), current == 0),
+                CbRateRowUi(Strings.cbRentColourDouble, rupees(spec.rents[0] * 2), false),
             )
             TileKind.TAX -> listOf(CbRateRowUi(Strings.cbTax, rupees(spec.tax), true))
             else -> emptyList()
         }
     }
+
+    /** How many of [tile]'s colour [seat] owns. */
+    fun colourCount(match: CityBaazarMatch, seat: Int, tile: Int): Int {
+        val group = CityBaazarBoard.tile(tile).group ?: return 0
+        return CityBaazarBoard.groupTiles(group).count { match.owners[it] == seat }
+    }
+
+    /** A tile's card as its owner (or anyone) sees it: tiers, rent now, next sale, costs. */
+    fun propertyCard(match: CityBaazarMatch, tile: Int): CbPropertyCardUi {
+        val spec = CityBaazarBoard.tile(tile)
+        val owner = match.owners[tile]?.let { match.player(it) }
+        val level = match.levels[tile] ?: 0
+        val tierIndex = if (spec.kind == TileKind.CITY) level else 0
+        val income = owner?.let { o ->
+            val base = spec.rents.getOrElse(tierIndex) { 0 }
+            val doubled = colourCount(match, o.seat, tile) >= SET_FOR_DOUBLE
+            val now = (if (doubled) base * 2 else base).let { if (o.halfRent) it / 2 else it }
+            Strings.cbRentNow(rupees(now)) + (if (doubled) Strings.cbDoubleTag else "") + (if (o.halfRent) Strings.cbHalfTag else "")
+        }
+        val sale = owner?.let {
+            if (level > 0) Strings.cbSellNext(levelName(level), plus(spec.buildCost / RESALE_DIVISOR))
+            else Strings.cbSellBankValue(plus(spec.price / RESALE_DIVISOR))
+        }
+        val costs = buildList {
+            add(CbSheetRowUi(Strings.cbPrice, rupees(spec.price), CbRowKind.NORMAL))
+            if (spec.kind == TileKind.CITY) {
+                add(CbSheetRowUi(Strings.cbHouseCost, rupees(spec.buildCost), CbRowKind.NORMAL))
+                add(CbSheetRowUi(Strings.cbHotelCost, rupees(spec.buildCost), CbRowKind.NORMAL))
+            }
+        }
+        return CbPropertyCardUi(
+            tile = tile,
+            name = spec.name,
+            group = spec.group,
+            kind = spec.kind,
+            rows = rates(tile, if (owner != null) tierIndex else null),
+            income = income,
+            sale = sale,
+            costs = if (spec.buyable) costs else emptyList(),
+            owner = when {
+                !spec.buyable -> ""
+                owner != null -> Strings.cbOwnedBy + " " + owner.name
+                else -> Strings.cbUnowned
+            },
+        )
+    }
+
+    /** The user's cities stacked by colour, in board colour order. */
+    fun stacks(match: CityBaazarMatch): List<CbStackUi> {
+        val me = match.me ?: return emptyList()
+        val mine = match.owners.filter { it.value == me.seat }.keys
+        return CityGroup.entries.mapNotNull { group ->
+            val count = CityBaazarBoard.groupTiles(group).count { it in mine }
+            if (count == 0) null else CbStackUi(group, count, groupName(group))
+        }
+    }
+
+    fun properties(match: CityBaazarMatch, group: CityGroup?): CbModal.Properties? {
+        val me = match.me ?: return null
+        val tiles = match.owners.filter { it.value == me.seat }.keys
+            .filter { group == null || CityBaazarBoard.tile(it).group == group }
+            .sorted()
+        if (tiles.isEmpty()) return null
+        return CbModal.Properties(
+            title = group?.let { Strings.cbYourColour(groupName(it)) } ?: Strings.cbYourCities,
+            cards = tiles.map { propertyCard(match, it) },
+        )
+    }
+
+    fun tileInfo(match: CityBaazarMatch, tile: Int): CbModal.TileInfo? {
+        val spec = CityBaazarBoard.tile(tile)
+        if (!spec.buyable && spec.kind != TileKind.TAX) return null
+        return CbModal.TileInfo(propertyCard(match, tile))
+    }
+
+    // ---------------- decisions ----------------
 
     private fun sheet(balance: Int, label: String, amount: Int, gain: Boolean): List<CbSheetRowUi> = listOf(
         CbSheetRowUi(Strings.cbCurrentBalance, rupees(balance), CbRowKind.NORMAL),
@@ -148,79 +223,57 @@ object CityBaazarUiMapper {
         CbSheetRowUi(Strings.cbRemaining, rupees(if (gain) balance + amount else balance - amount), CbRowKind.TOTAL),
     )
 
-    /** "Landed on Goa": rate card, balance sheet and a note on what it can earn. */
     fun buy(me: CityBaazarPlayer, tile: Int, countdown: String): CbModal.Buy {
         val spec = CityBaazarBoard.tile(tile)
         return CbModal.Buy(
+            tile = tile,
             title = Strings.cbLandedOn(spec.name),
-            tileName = spec.name,
             group = spec.group,
             kind = spec.kind,
             rates = rates(tile, null),
             sheet = sheet(me.cash, Strings.cbPropertyCost, spec.price, gain = false),
-            note = when (spec.kind) {
-                TileKind.TRANSIT -> Strings.cbTransitNote
-                TileKind.UTILITY -> Strings.cbUtilityNote
-                else -> Strings.cbBuyNote(rupees(spec.rents[0]), rupees(spec.rents[1]))
-            },
+            note = if (spec.kind == TileKind.CITY) Strings.cbBuyNote(rupees(spec.rents[0]), rupees(spec.rents[1])) else Strings.cbFixedRentNote,
             canAfford = me.cash >= spec.price,
             countdown = countdown,
         )
     }
 
-    /** One more house (or the hotel) on [tile]: this tier vs the next, and the cost. */
-    fun build(match: CityBaazarMatch, me: CityBaazarPlayer, tile: Int, fromLanding: Boolean, countdown: String): CbModal.Build {
+    fun build(match: CityBaazarMatch, me: CityBaazarPlayer, tile: Int, countdown: String): CbModal.Build {
         val spec = CityBaazarBoard.tile(tile)
         val level = match.levels[tile] ?: 0
         val next = level + 1
-        val nowRent = if (level == 0) spec.rents[0] * 2 else spec.rents[level]
-        val nextRent = spec.rents[next]
         return CbModal.Build(
             tile = tile,
             title = Strings.cbUpgrade(spec.name),
             group = spec.group,
-            rates = listOf(
-                CbRateRowUi(if (level == 0) Strings.cbRentSet else Strings.cbRentHouses(level), rupees(nowRent), false),
-                CbRateRowUi(if (next >= HOTEL_LEVEL) Strings.cbRentHotel else Strings.cbRentHouses(next), rupees(nextRent), true),
-            ),
+            rates = rates(tile, null).mapIndexed { i, row -> row.copy(highlighted = i == next) }.filterIndexed { i, _ -> i == level || i == next },
             sheet = sheet(me.cash, Strings.cbUpgradeCost(levelName(next)), spec.buildCost, gain = false),
-            note = Strings.cbBuildNote(plus(nextRent - nowRent)),
+            note = Strings.cbBuildNote(plus(spec.rents[next] - spec.rents[level])),
             canAfford = me.cash >= spec.buildCost,
-            fromLanding = fromLanding,
             countdown = countdown,
         )
     }
 
-    fun buildPicker(match: CityBaazarMatch): CbModal.BuildPicker = CbModal.BuildPicker(
-        match.buildable.map { tile ->
-            val spec = CityBaazarBoard.tile(tile)
-            val next = (match.levels[tile] ?: 0) + 1
-            CbBuildOptionUi(tile, spec.name, spec.group, Strings.cbBuildOption(levelName(next), rupees(spec.buildCost)))
-        },
-    )
+    fun jailRoll(match: CityBaazarMatch, countdown: String): CbModal.JailRoll =
+        CbModal.JailRoll(Strings.cbJailRollBody(match.jailTriesLeft), countdown)
 
-    fun jail(me: CityBaazarPlayer, countdown: String): CbModal.Jail = CbModal.Jail(
-        body = Strings.cbJailBody(MAX_JAIL_TRIES - me.jailTries),
-        canPay = me.cash >= JAIL_FINE,
-        hasPass = me.jailPasses > 0,
-        countdown = countdown,
-    )
+    fun jailChoice(me: CityBaazarPlayer, countdown: String): CbModal.JailChoice = CbModal.JailChoice(me.cash >= JAIL_FINE, countdown)
 
-    /** What the user can sell: the top building of each built city, or bare tiles. */
+    /** What the user can sell: the top building of each built city (hotel first), or bare cities. */
     fun assets(match: CityBaazarMatch, seat: Int): List<CbAssetUi> =
         match.owners.filter { it.value == seat }.keys.sorted().map { tile ->
             val spec = CityBaazarBoard.tile(tile)
             val level = match.levels[tile] ?: 0
             if (level > 0) {
-                CbAssetUi(BUILDING + tile, tile, spec.name, spec.group, spec.kind, Strings.cbSellHouse(levelName(level).lowercase()), plus(CityBaazarEconomy.buildingResale(tile)))
+                CbAssetUi(BUILDING + tile, tile, spec.name, spec.group, spec.kind, Strings.cbSellBuilding(levelName(level)), plus(spec.buildCost / RESALE_DIVISOR))
             } else {
-                CbAssetUi(TILE + tile, tile, spec.name, spec.group, spec.kind, Strings.cbSellProperty, plus(CityBaazarEconomy.tileResale(tile)))
+                CbAssetUi(TILE + tile, tile, spec.name, spec.group, spec.kind, Strings.cbSellProperty, plus(spec.price / RESALE_DIVISOR))
             }
         }
 
     fun assetValue(id: String): Int {
-        val tile = id.drop(1).toInt()
-        return if (id.startsWith(BUILDING)) CityBaazarEconomy.buildingResale(tile) else CityBaazarEconomy.tileResale(tile)
+        val spec = CityBaazarBoard.tile(assetTile(id))
+        return if (isBuilding(id)) spec.buildCost / RESALE_DIVISOR else spec.price / RESALE_DIVISOR
     }
 
     fun isBuilding(id: String): Boolean = id.startsWith(BUILDING)
@@ -237,32 +290,48 @@ object CityBaazarUiMapper {
             selected = selected,
             tracker = Strings.cbSelectedValue(rupees(picked), rupees(deficit)),
             enough = picked >= deficit,
+            canAuction = selected.size == 1 && !isBuilding(selected.first()),
             countdown = countdown,
         )
     }
 
-    /** A tapped tile's rate card (cities, transit, utilities, taxes); null for the rest. */
-    fun tileInfo(match: CityBaazarMatch, tile: Int): CbModal.TileInfo? {
-        val spec = CityBaazarBoard.tile(tile)
-        if (!spec.buyable && spec.kind != TileKind.TAX) return null
-        val owner = match.owners[tile]?.let { match.player(it) }
-        val current = when (spec.kind) {
-            TileKind.CITY -> owner?.let { match.levels[tile] ?: 0 }
-            TileKind.TRANSIT, TileKind.UTILITY -> owner?.let { o ->
-                CityBaazarBoard.tilesOf(spec.kind).count { match.owners[it] == o.seat }
+    /** The auction prompt: the card, who holds this colour, and the bid sheet for [viewer]. */
+    fun auction(match: CityBaazarMatch, auction: CityBaazarAuctionInfo, viewer: CityBaazarPlayer, countdown: String): CbModal.Auction {
+        val spec = CityBaazarBoard.tile(auction.tile)
+        val seller = match.player(auction.sellerSeat)?.name.orEmpty()
+        val isSeller = viewer.seat == auction.sellerSeat
+        val colourLines = spec.group?.let { group ->
+            val others = CityBaazarBoard.groupTiles(group).filter { it != auction.tile }
+            val byOwner = others.mapNotNull { t -> match.owners[t]?.let { it to t } }.groupBy({ it.first }, { it.second })
+            buildList {
+                add(Strings.cbYouOwnColour(byOwner[viewer.seat]?.size ?: 0))
+                byOwner.filterKeys { it != viewer.seat }.forEach { (seat, tiles) ->
+                    val name = match.player(seat)?.name.orEmpty()
+                    add(Strings.cbOwnsColour(name, tiles.joinToString { CityBaazarBoard.tile(it).name }))
+                    if (tiles.size + 1 >= SET_FOR_DOUBLE) add(Strings.cbColourRisk(name))
+                }
             }
-            else -> null
-        }
-        return CbModal.TileInfo(
-            title = spec.name.uppercase(),
-            group = spec.group,
-            kind = spec.kind,
-            rates = rates(tile, current),
-            owner = when {
-                !spec.buyable -> ""
-                owner != null -> Strings.cbOwnedBy + " " + owner.name
-                else -> Strings.cbUnowned
-            },
+        }.orEmpty()
+        val leader = auction.leaderSeat?.let { match.player(it)?.name }
+        val step = auction.nextBid - auction.bid
+        val sheet = listOf(
+            CbSheetRowUi(if (leader == null) Strings.cbOpeningBid else Strings.cbCurrentBid, rupees(auction.bid), CbRowKind.NORMAL),
+            CbSheetRowUi(Strings.cbBidStep, if (leader == null) plus(0) else plus(step), CbRowKind.NORMAL),
+            CbSheetRowUi(Strings.cbYourBid, rupees(auction.nextBid), CbRowKind.MINUS),
+            CbSheetRowUi(Strings.cbBalanceAfter, rupees(viewer.cash - auction.nextBid), CbRowKind.TOTAL),
+        )
+        return CbModal.Auction(
+            tile = auction.tile,
+            title = Strings.cbAuctionTitle(spec.name),
+            body = if (isSeller) Strings.cbAuctionYours else Strings.cbAuctionBody(seller),
+            card = propertyCard(match, auction.tile),
+            colourLines = colourLines,
+            leader = leader?.let { Strings.cbHighest(it) + " · " + rupees(auction.bid) } ?: Strings.cbNoBidsYet,
+            sheet = sheet,
+            bidLabel = Strings.cbBid(rupees(auction.nextBid)),
+            isSeller = isSeller,
+            canBid = !isSeller && auction.leaderSeat != viewer.seat && viewer.cash >= auction.nextBid,
+            countdown = countdown,
         )
     }
 
@@ -272,13 +341,11 @@ object CityBaazarUiMapper {
         },
     )
 
-    /** A balance-sheet toast: balance before, the change, and what's left. */
     fun moneyToast(title: String, balance: Int, label: String, amount: Int, gain: Boolean): CbToastUi =
         CbToastUi(0, title, sheet(balance, label, amount, gain), gain)
 
-    /** A one-line toast (someone else's card, a bankruptcy, trading soon). */
-    fun noteToast(title: String, line: String): CbToastUi =
-        CbToastUi(0, title, listOf(CbSheetRowUi(line, "", CbRowKind.NORMAL)), gain = true)
+    fun noteToast(title: String, line: String, gain: Boolean = true): CbToastUi =
+        CbToastUi(0, title, listOf(CbSheetRowUi(line, "", CbRowKind.NORMAL)), gain)
 
     private const val MILLIS = 1_000L
     private const val SECONDS_PER_MINUTE = 60L

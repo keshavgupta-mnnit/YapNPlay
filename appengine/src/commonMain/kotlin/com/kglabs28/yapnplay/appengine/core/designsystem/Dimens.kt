@@ -200,7 +200,11 @@ class YapNPlayDimens {
 
     // City Baazar
     val cbCardAvatar: Dp get() = 38.dp.scaled()
-    val cbDialogWidth: Dp get() = 440.dp.scaled()
+    val cbDialogWidth: Dp get() = 520.dp.scaled()
+    val cbPropertyCardWidth: Dp get() = 190.dp.scaled()
+    val cbStackCard: Dp get() = 34.dp.scaled()
+    val cbStackOffset: Dp get() = 4.dp.scaled()
+    val cbOwnerDot: Dp get() = 6.dp.scaled()
     val cbToastWidth: Dp get() = 300.dp.scaled()
     val cbAssetCardWidth: Dp get() = 108.dp.scaled()
     val cbHeaderChip: Dp get() = 14.dp.scaled()

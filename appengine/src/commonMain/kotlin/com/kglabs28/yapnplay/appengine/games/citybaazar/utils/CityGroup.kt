@@ -1,4 +1,4 @@
 package com.kglabs28.yapnplay.appengine.games.citybaazar.utils
 
-/** The 8 colour groups of cities, in board order (2–3 neighbouring cities each). */
-enum class CityGroup { BROWN, SKY, PINK, AMBER, CRIMSON, LIME, TEAL, INDIGO }
+/** Colour groups, as in the original game: 4 city colours of 5, utilities (purple) and transit (orange). */
+enum class CityGroup { RED, BLUE, GREEN, YELLOW, PURPLE, ORANGE }

@@ -13,7 +13,7 @@ import org.koin.dsl.module
 
 /** City Baazar table: fake match server today, WebSocket match channel later. */
 val cityBaazarModule = module {
-    single { FakeCityBaazarServer(get(), get()) }
+    single { FakeCityBaazarServer(get(), get(), get()) }
     single<CityBaazarMatchClient> { CityBaazarMatchClientImpl(get()) }
     single<CityBaazarMatchRepository> { CityBaazarMatchRepositoryImpl(get(), get()) }
     factory { ObserveCityBaazarMatchUseCase(get()) }

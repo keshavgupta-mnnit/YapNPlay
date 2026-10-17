@@ -57,7 +57,7 @@ Synthesised placeholders — replace with recorded audio of the same names:
 
 ## City Baazar
 
-- **Game art:** `ic_game_city_bazar.png` (androidMain drawable), shown
+- **Game art:** `ic_game_city_baazar.png` (androidMain drawable), shown
   wherever games are picked (carousel, grid, lobby). Royal Ludo uses
   `ic_game_royal_ludo.png` the same way.
 - **Board:** drawn in code (tiles, group headers, owner borders, houses,

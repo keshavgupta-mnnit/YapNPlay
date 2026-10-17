@@ -1,29 +1,27 @@
 package com.kglabs28.yapnplay.appengine.games.citybaazar.engine
 
-import com.kglabs28.yapnplay.appengine.games.base.identity.SeatNumber
 import com.kglabs28.yapnplay.appengine.games.base.play.ApplyResult
 import com.kglabs28.yapnplay.appengine.games.base.play.GameEvent
 import com.kglabs28.yapnplay.appengine.games.base.play.GameRandom
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.BidSteps
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CLUB_FEE
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CardDeck
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CardEffect
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CityBaazarBoard
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CityBaazarCards
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.DICE_FACES
-import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.HOTEL_LEVEL
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.JAIL_FINE
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.JAIL_TILE
-import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.MAX_DOUBLES
-import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.MAX_JAIL_TRIES
-import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.ROUND_LIMIT
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.JAIL_TRIES
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.LATE_ROLL_FINE
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.MoneyReason
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.TILE_COUNT
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.TileKind
-import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.MoneyReason
 
 /**
  * One action's worth of play: works on a copy of the state and collects
- * the events. A move ends in a decision (BUY / BUILD / DEBT), another roll
- * (doubles) or the next player's turn.
+ * the events. A move ends in a decision (BUY / BUILD / DEBT) or the next
+ * player's turn. Doubles mean nothing, except as the way out of jail.
  */
 internal class CityBaazarTurn(private var s: CityBaazarState, private val random: GameRandom) {
     private val events = mutableListOf<GameEvent>()
@@ -32,80 +30,71 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
 
     fun result(): ApplyResult = ApplyResult.Success(s, events.toList())
 
+    fun state(): CityBaazarState = s
+
     // ---------------- rolling and moving ----------------
 
     fun roll() {
         val seat = s.currentSeat
-        val d1 = random.nextInt(DICE_FACES) + 1
-        val d2 = random.nextInt(DICE_FACES) + 1
-        val total = d1 + d2
-        events += DiceRolled(seat, d1, d2)
-        s = s.copy(die1 = d1, die2 = d2, turnCounter = s.turnCounter + 1)
-        if (s.inJail(seat)) return jailRoll(seat, d1 == d2, total)
-        if (d1 == d2) {
-            val run = s.doublesInRow + 1
-            if (run >= MAX_DOUBLES) return goToJail(seat)
-            s = s.copy(doublesInRow = run, rollAgain = true)
-        } else {
-            s = s.copy(rollAgain = false)
-        }
-        moveSteps(seat, total, total)
+        val (d1, d2) = dice(seat)
+        moveSteps(seat, d1 + d2)
         settle()
     }
 
-    private fun jailRoll(seat: Int, doubles: Boolean, total: Int) {
-        s = s.copy(rollAgain = false)
-        if (doubles) {
+    /** In jail: doubles free you (you move next turn); 3 misses and you choose fine or half rent. */
+    fun jailRoll() {
+        val seat = s.currentSeat
+        val (d1, d2) = dice(seat)
+        if (d1 == d2) {
             leaveJail(seat, "DOUBLES")
-            moveSteps(seat, total, total)
-            return settle()
-        }
-        val tries = (s.jailTries[seat] ?: 0) + 1
-        if (tries < MAX_JAIL_TRIES) {
-            s = s.copy(jailTries = s.jailTries + (seat to tries))
             return nextTurn()
         }
-        // Third failed try: pay the fine, then move by this roll.
-        leaveJail(seat, "FINE")
-        if (charge(seat, JAIL_FINE, emptyMap(), MoneyReason.JAIL_FINE, JAIL_TILE)) {
-            moveSteps(seat, total, total)
-            settle()
-        } else {
-            s = s.copy(pendingMove = total)
-        }
+        val left = s.jailTriesLeft - 1
+        s = s.copy(jailTriesLeft = left, phase = if (left > 0) CityBaazarPhase.JAIL_ROLL else CityBaazarPhase.JAIL_CHOICE)
     }
 
-    private fun moveSteps(seat: Int, steps: Int, diceTotal: Int) {
+    private fun dice(seat: Int): Pair<Int, Int> {
+        val d1 = random.nextInt(DICE_FACES) + 1
+        val d2 = random.nextInt(DICE_FACES) + 1
+        events += DiceRolled(seat, d1, d2)
+        s = s.copy(die1 = d1, die2 = d2, turnCounter = s.turnCounter + 1)
+        return d1 to d2
+    }
+
+    private fun moveSteps(seat: Int, steps: Int) {
         val from = s.positions[seat] ?: 0
         val raw = from + steps
         val to = raw % TILE_COUNT
         events += TokenMoved(seat, from, to, steps, jump = false)
         s = s.copy(positions = s.positions + (seat to to))
+        // ₹1,500 every time START is passed or landed on.
         if (raw >= TILE_COUNT) receive(seat, s.cbRules.mandatory.startBonus, MoneyReason.START, null)
-        land(seat, to, diceTotal)
+        land(seat, to)
     }
 
-    private fun land(seat: Int, tile: Int, diceTotal: Int) {
+    private fun land(seat: Int, tile: Int) {
         val spec = CityBaazarBoard.tile(tile)
         when (spec.kind) {
-            TileKind.START, TileKind.JAIL -> Unit
+            TileKind.START -> Unit
+            TileKind.JAIL -> goToJail(seat)
             TileKind.CLUB -> if (s.cbRules.house.clubFee) charge(seat, CLUB_FEE, emptyMap(), MoneyReason.CLUB, tile)
             TileKind.REST_HOUSE -> if (s.cbRules.house.restHouseSkips) {
                 s = s.copy(skipNext = s.skipNext + seat)
                 events += RestTaken(seat)
             }
             TileKind.TAX -> charge(seat, spec.tax, emptyMap(), MoneyReason.TAX, tile)
-            TileKind.LUCK -> drawCard(seat, CardDeck.LUCK, diceTotal)
-            TileKind.CHEST -> drawCard(seat, CardDeck.CHEST, diceTotal)
+            TileKind.LUCK -> drawCard(seat, CardDeck.LUCK)
+            TileKind.CHEST -> drawCard(seat, CardDeck.CHEST)
             TileKind.CITY, TileKind.TRANSIT, TileKind.UTILITY -> {
                 val owner = s.owners[tile]
                 when {
                     owner == null -> s = s.copy(phase = CityBaazarPhase.BUY, pendingTile = tile)
-                    owner == seat -> if (CityBaazarEconomy.buildAllowed(s, seat, tile) && s.cashOf(seat) >= spec.buildCost) {
+                    // Your own city: offered one more house (or the hotel).
+                    owner == seat -> if (CityBaazarEconomy.buildAllowed(s, seat, tile)) {
                         s = s.copy(phase = CityBaazarPhase.BUILD, pendingTile = tile)
                     }
                     else -> {
-                        val rent = CityBaazarEconomy.rent(s, tile, diceTotal)
+                        val rent = CityBaazarEconomy.rent(s, tile)
                         if (rent > 0) charge(seat, rent, mapOf(owner to rent), MoneyReason.RENT, tile)
                     }
                 }
@@ -113,7 +102,7 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
         }
     }
 
-    private fun drawCard(seat: Int, deck: CardDeck, diceTotal: Int) {
+    private fun drawCard(seat: Int, deck: CardDeck) {
         val cards = CityBaazarCards.deck(deck)
         val card = cards[random.nextInt(cards.size)]
         events += CardDrawn(seat, card.id)
@@ -126,16 +115,15 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
             is CardEffect.AdvanceTo -> {
                 val from = s.positions[seat] ?: 0
                 val steps = (e.tile - from + TILE_COUNT) % TILE_COUNT
-                if (steps == 0) land(seat, e.tile, diceTotal) else moveSteps(seat, steps, diceTotal)
+                if (steps == 0) land(seat, e.tile) else moveSteps(seat, steps)
             }
             CardEffect.GoToJail -> goToJail(seat)
-            CardEffect.JailPass -> s = s.copy(jailPasses = s.jailPasses + (seat to (s.jailPasses[seat] ?: 0) + 1))
             is CardEffect.MoveBack -> {
                 val from = s.positions[seat] ?: 0
                 val to = (from - e.steps + TILE_COUNT) % TILE_COUNT
                 events += TokenMoved(seat, from, to, -e.steps, jump = false)
                 s = s.copy(positions = s.positions + (seat to to))
-                land(seat, to, diceTotal)
+                land(seat, to)
             }
             is CardEffect.CollectFromEach -> s.active.filter { it != seat }.forEach { other ->
                 charge(other, e.amount, mapOf(seat to e.amount), MoneyReason.CARD, null)
@@ -153,20 +141,35 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
 
     private fun goToJail(seat: Int) {
         val from = s.positions[seat] ?: 0
-        events += TokenMoved(seat, from, JAIL_TILE, 0, jump = true)
+        if (from != JAIL_TILE) events += TokenMoved(seat, from, JAIL_TILE, 0, jump = true)
         events += SentToJail(seat)
-        s = s.copy(
-            positions = s.positions + (seat to JAIL_TILE),
-            jailTries = s.jailTries + (seat to 0),
-            rollAgain = false,
-            doublesInRow = 0,
-        )
+        s = s.copy(positions = s.positions + (seat to JAIL_TILE), jailed = s.jailed + seat)
         if (seat == s.currentSeat) nextTurn()
     }
 
     private fun leaveJail(seat: Int, how: String) {
-        s = s.copy(jailTries = s.jailTries - seat)
+        s = s.copy(jailed = s.jailed - seat)
         events += LeftJail(seat, how)
+    }
+
+    fun payJailFine(seat: Int): Boolean {
+        if (s.cashOf(seat) < JAIL_FINE) return false
+        pay(seat, JAIL_FINE, emptyMap(), MoneyReason.JAIL_FINE, JAIL_TILE)
+        leaveJail(seat, "FINE")
+        nextTurn()
+        return true
+    }
+
+    /** Didn't pay: still in jail, rent collected is halved until the next turn. */
+    fun stayInJail(seat: Int) {
+        s = s.copy(halfRent = s.halfRent + seat)
+        events += HalfRentTaken(seat)
+        nextTurn()
+    }
+
+    fun lateRollFine(seat: Int) {
+        val fine = minOf(s.cashOf(seat), LATE_ROLL_FINE)
+        if (fine > 0) pay(seat, fine, emptyMap(), MoneyReason.LATE_ROLL, null)
     }
 
     // ---------------- money ----------------
@@ -208,14 +211,15 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
         s = s.copy(cash = cash)
     }
 
-    /** Sells (as the bot would) until [seat] has [amount] or nothing is left. */
+    /** Sells to the bank (as the bot would) until [seat] has [amount] or nothing is left. */
     private fun raiseByBot(seat: Int, amount: Int) {
         while (s.cashOf(seat) < amount) {
-            val sale = CityBaazarBot.nextSale(s, seat) ?: return
-            if (sale.second) sellBuilding(seat, sale.first) else sellTile(seat, sale.first)
+            val (tile, building) = CityBaazarBot.nextSale(s, seat) ?: return
+            if (building) sellBuilding(seat, tile) else sellTile(seat, tile)
         }
     }
 
+    /** Buildings go in reverse: the hotel back to 3 houses, then house by house; half the build cost each. */
     fun sellBuilding(seat: Int, tile: Int): Boolean {
         if (s.owners[tile] != seat || s.level(tile) == 0) return false
         val amount = CityBaazarEconomy.buildingResale(tile)
@@ -226,6 +230,7 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
         return true
     }
 
+    /** A bare tile back to the bank at half its price. */
     fun sellTile(seat: Int, tile: Int): Boolean {
         if (s.owners[tile] != seat || s.level(tile) > 0) return false
         val amount = CityBaazarEconomy.tileResale(tile)
@@ -235,16 +240,52 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
         return true
     }
 
-    /** In DEBT: pays once the balance covers it, then the move carries on. */
+    /** A bare tile up for auction: opens at its bank value (half the price). */
+    fun startAuction(seat: Int, tile: Int): Boolean {
+        if (s.owners[tile] != seat || s.level(tile) > 0) return false
+        val opening = CityBaazarEconomy.tileResale(tile)
+        s = s.copy(phase = CityBaazarPhase.AUCTION, auction = CityBaazarAuction(tile, seat, opening, null))
+        events += AuctionStarted(seat, tile, opening)
+        return true
+    }
+
+    /** [bidder] bids the next step (the opening amount if nobody has yet). */
+    fun bid(bidder: Int): Boolean {
+        val a = s.auction ?: return false
+        if (bidder == a.seller || bidder !in s.active || bidder == a.leader) return false
+        val amount = if (a.leader == null) a.bid else a.bid + BidSteps.after(a.bid)
+        if (s.cashOf(bidder) < amount) return false
+        s = s.copy(auction = a.copy(bid = amount, leader = bidder))
+        events += BidPlaced(bidder, a.tile, amount)
+        return true
+    }
+
+    /** Time's up: the highest bidder pays the seller and takes the tile (no backing out); no bids, the bank buys it at half. */
+    fun closeAuction(): Boolean {
+        val a = s.auction ?: return false
+        val winner = a.leader
+        if (winner != null) {
+            s = s.copy(
+                owners = s.owners + (a.tile to winner),
+                cash = s.cash + (winner to s.cashOf(winner) - a.bid) + (a.seller to s.cashOf(a.seller) + a.bid),
+            )
+            events += MoneyMoved(winner, a.seller, a.bid, MoneyReason.AUCTION, a.tile)
+        } else {
+            sellTile(a.seller, a.tile)
+        }
+        events += AuctionEnded(a.seller, a.tile, winner, if (winner != null) a.bid else CityBaazarEconomy.tileResale(a.tile))
+        s = s.copy(auction = null, phase = CityBaazarPhase.DEBT)
+        settleDebtIfPossible()
+        return true
+    }
+
+    /** In DEBT: pays once the balance covers it, then the turn moves on. */
     fun settleDebtIfPossible() {
         val debt = s.debt ?: return
         val seat = s.currentSeat
         if (s.cashOf(seat) < debt.total) return
         pay(seat, debt.total, debt.payees, debt.reason, debt.tile)
         s = s.copy(debt = null, phase = CityBaazarPhase.ROLL)
-        val owed = s.pendingMove
-        s = s.copy(pendingMove = null)
-        if (owed != null) moveSteps(seat, owed, owed)
         settle()
     }
 
@@ -269,7 +310,8 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
             cash = cash + (seat to 0),
             seats = s.seats.filter { it.value != seat },
             bankruptOrder = s.bankruptOrder + seat,
-            jailTries = s.jailTries - seat,
+            jailed = s.jailed - seat,
+            halfRent = s.halfRent - seat,
             skipNext = s.skipNext - seat,
             debt = if (wasCurrent) null else s.debt,
         )
@@ -300,23 +342,7 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
         return true
     }
 
-    fun payJailFine(seat: Int): Boolean {
-        if (s.cashOf(seat) < JAIL_FINE) return false
-        pay(seat, JAIL_FINE, emptyMap(), MoneyReason.JAIL_FINE, JAIL_TILE)
-        leaveJail(seat, "FINE")
-        s = s.copy(phase = CityBaazarPhase.ROLL)
-        return true
-    }
-
-    fun useJailPass(seat: Int): Boolean {
-        val passes = s.jailPasses[seat] ?: 0
-        if (passes == 0) return false
-        s = s.copy(jailPasses = s.jailPasses + (seat to passes - 1), phase = CityBaazarPhase.ROLL)
-        leaveJail(seat, "PASS")
-        return true
-    }
-
-    /** A BUY / BUILD decision is done: carry on with the move. */
+    /** A BUY / BUILD decision is done: the turn moves on. */
     fun decided() {
         s = s.copy(phase = CityBaazarPhase.ROLL, pendingTile = null)
         settle()
@@ -326,12 +352,7 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
 
     private fun settle() {
         if (ended || s.phase in WAITING) return
-        val seat = s.currentSeat
-        if (s.rollAgain && !s.inJail(seat) && seat in s.active) {
-            s = s.copy(phase = CityBaazarPhase.ROLL, pendingTile = null)
-        } else {
-            nextTurn()
-        }
+        nextTurn()
     }
 
     fun nextTurn() {
@@ -356,20 +377,22 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
             currentSeat = seat,
             round = round,
             skipNext = skip,
-            phase = if (s.inJail(seat)) CityBaazarPhase.JAIL_CHOICE else CityBaazarPhase.ROLL,
-            rollAgain = false,
-            doublesInRow = 0,
+            // Half rent lasts until the player's own next turn.
+            halfRent = s.halfRent - seat,
+            phase = if (s.inJail(seat)) CityBaazarPhase.JAIL_ROLL else CityBaazarPhase.ROLL,
+            jailTriesLeft = if (s.inJail(seat)) JAIL_TRIES else 0,
             pendingTile = null,
-            pendingMove = null,
             debt = null,
+            auction = null,
         )
-        if (s.cbRules.house.roundLimit && round > ROUND_LIMIT) return finish()
+        val limit = s.cbRules.house.roundLimit
+        if (limit != null && round > limit) return finish()
         events += TurnPassed(seat)
     }
 
-    private fun finish() {
+    fun finish() {
         ended = true
-        s = s.copy(phase = CityBaazarPhase.FINISHED, pendingTile = null, debt = null)
+        s = s.copy(phase = CityBaazarPhase.FINISHED, pendingTile = null, debt = null, auction = null)
         events += MatchEnded(CityBaazarEngine.ranking(s))
     }
 
@@ -378,9 +401,10 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
         bankrupt(seat, emptyMap())
     }
 
-    fun state(): CityBaazarState = s
-
     private companion object {
-        val WAITING = setOf(CityBaazarPhase.BUY, CityBaazarPhase.BUILD, CityBaazarPhase.DEBT, CityBaazarPhase.FINISHED)
+        val WAITING = setOf(
+            CityBaazarPhase.BUY, CityBaazarPhase.BUILD, CityBaazarPhase.DEBT,
+            CityBaazarPhase.AUCTION, CityBaazarPhase.JAIL_CHOICE, CityBaazarPhase.FINISHED,
+        )
     }
 }

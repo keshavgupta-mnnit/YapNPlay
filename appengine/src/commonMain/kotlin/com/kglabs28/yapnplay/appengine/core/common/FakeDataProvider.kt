@@ -379,6 +379,11 @@ object FakeDataProvider {
         const val AFTER_MOVE_MS = 500L
         const val CARD_MS = 1_800L
         const val MONEY_MS = 700L
+        /** Auction timers and CPU bidding are checked this often. */
+        const val TICK_MS = 250L
+        /** CPU players wait at least this long after a bid, then bid with this chance per check. */
+        const val CPU_BID_DELAY_MS = 1_200L
+        const val CPU_BID_CHANCE = 0.35
     }
 
     /** Fake moderation service (see FakeModerationServer). */

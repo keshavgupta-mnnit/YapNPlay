@@ -31,11 +31,13 @@ import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatPickerDialog
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.board.tileHeaderTint
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.board.tint
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbAssetCard
+import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbPropertyCard
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbDialogFrame
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbDialogNote
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbRateTable
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbSheetTable
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbModal
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.TileKind
 
 /** The dialog for [modal]: balance-sheet decisions, debts, jail, rate cards, results, settings and reports. */
 @Composable
@@ -69,8 +71,8 @@ fun CityBaazarModalContent(
         is CbModal.Build -> CbDialogFrame(
             title = modal.title,
             accent = colors.CbGain,
-            chip = tileHeaderTint(modal.group, com.kglabs28.yapnplay.appengine.games.citybaazar.utils.TileKind.CITY),
-            countdown = modal.countdown.ifEmpty { null },
+            chip = tileHeaderTint(modal.group, TileKind.CITY),
+            countdown = modal.countdown,
             modifier = modifier,
             buttons = {
                 CutCornerButton(text = Strings.cbNo, onClick = actions.onSkipBuild, lit = false)
@@ -83,44 +85,26 @@ fun CityBaazarModalContent(
             }
             CbDialogNote(text = if (modal.canAfford) modal.note else Strings.cbCantAfford)
         }
-        is CbModal.BuildPicker -> CbDialogFrame(
-            title = Strings.cbBuildPickerTitle,
-            accent = colors.CbGain,
-            modifier = modifier,
-            buttons = { CutCornerButton(text = Strings.cbClose, onClick = actions.onDismiss, lit = false) },
-        ) {
-            CbDialogNote(text = Strings.cbBuildPickerBody)
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterHorizontally),
-            ) {
-                modal.options.forEach { option ->
-                    CbAssetCard(
-                        name = option.name,
-                        header = tileHeaderTint(option.group, com.kglabs28.yapnplay.appengine.games.citybaazar.utils.TileKind.CITY),
-                        line = option.detail,
-                        value = "",
-                        selected = false,
-                        onClick = { actions.onPickBuild(option.tile) },
-                    )
-                }
-            }
-        }
-        is CbModal.Jail -> CbDialogFrame(
+        is CbModal.JailRoll -> CbDialogFrame(
             title = Strings.cbJailTitle,
             accent = colors.Warning,
             countdown = modal.countdown,
             modifier = modifier,
-            buttons = {
-                CutCornerButton(text = Strings.cbRollDoubles, onClick = actions.onJailRoll, lit = false)
-                if (modal.hasPass) {
-                    CutCornerButton(text = Strings.cbUsePass, onClick = actions.onUseJailPass)
-                } else {
-                    CutCornerButton(text = Strings.cbPayFine, onClick = actions.onPayJailFine, enabled = modal.canPay)
-                }
-            },
+            buttons = { CutCornerButton(text = Strings.cbRollDoubles, onClick = actions.onRoll) },
         ) {
             CbDialogNote(text = modal.body)
+        }
+        is CbModal.JailChoice -> CbDialogFrame(
+            title = Strings.cbJailChoiceTitle,
+            accent = colors.Warning,
+            countdown = modal.countdown,
+            modifier = modifier,
+            buttons = {
+                CutCornerButton(text = Strings.cbHalfRent, onClick = actions.onStayInJail, lit = false)
+                CutCornerButton(text = Strings.cbPayFine, onClick = actions.onPayJailFine, enabled = modal.canPay)
+            },
+        ) {
+            CbDialogNote(text = Strings.cbJailChoiceBody)
         }
         is CbModal.Debt -> CbDialogFrame(
             title = Strings.cbDebtTitle,
@@ -129,7 +113,8 @@ fun CityBaazarModalContent(
             modifier = modifier,
             buttons = {
                 CutCornerButton(text = Strings.cbBankrupt, onClick = actions.onDeclareBankruptcy, lit = false)
-                CutCornerButton(text = Strings.cbConfirmSale, onClick = actions.onConfirmSale, enabled = modal.enough)
+                CutCornerButton(text = Strings.cbAuction, onClick = actions.onStartAuction, lit = false, enabled = modal.canAuction)
+                CutCornerButton(text = Strings.cbSellAndPay, onClick = actions.onConfirmSale, enabled = modal.enough)
             },
         ) {
             CbDialogNote(text = modal.body)
@@ -150,15 +135,50 @@ fun CityBaazarModalContent(
             }
             BasicText(text = modal.tracker, style = typography.label.copy(color = if (modal.enough) colors.CbGain else colors.CbLoss))
         }
-        is CbModal.TileInfo -> CbDialogFrame(
+        is CbModal.Auction -> CbDialogFrame(
             title = modal.title,
             accent = colors.CbCash,
-            chip = tileHeaderTint(modal.group, modal.kind),
+            chip = tileHeaderTint(modal.card.group, modal.card.kind),
+            countdown = modal.countdown,
+            modifier = modifier,
+            buttons = {
+                if (!modal.isSeller) {
+                    CutCornerButton(text = Strings.cbPass, onClick = actions.onPassAuction, lit = false)
+                    CutCornerButton(text = modal.bidLabel, onClick = actions.onBid, enabled = modal.canBid)
+                }
+            },
+        ) {
+            CbDialogNote(text = modal.body)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
+                CbPropertyCard(card = modal.card)
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+                    modal.colourLines.forEach { BasicText(text = it, style = typography.label.copy(color = colors.TextSecondary)) }
+                    BasicText(text = modal.leader, style = typography.label.copy(color = colors.CbCash))
+                    if (!modal.isSeller) CbSheetTable(rows = modal.sheet)
+                }
+            }
+        }
+        is CbModal.Properties -> CbDialogFrame(
+            title = modal.title,
+            accent = colors.CbCash,
             modifier = modifier,
             buttons = { CutCornerButton(text = Strings.cbClose, onClick = actions.onDismiss, lit = false) },
         ) {
-            CbRateTable(rows = modal.rates)
-            if (modal.owner.isNotEmpty()) CbDialogNote(text = modal.owner)
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterHorizontally),
+            ) {
+                modal.cards.forEach { CbPropertyCard(card = it) }
+            }
+        }
+        is CbModal.TileInfo -> CbDialogFrame(
+            title = modal.card.name.uppercase(),
+            accent = colors.CbCash,
+            chip = tileHeaderTint(modal.card.group, modal.card.kind),
+            modifier = modifier,
+            buttons = { CutCornerButton(text = Strings.cbClose, onClick = actions.onDismiss, lit = false) },
+        ) {
+            CbPropertyCard(card = modal.card)
         }
         is CbModal.Result -> CbDialogFrame(
             title = Strings.ludoResultTitle,

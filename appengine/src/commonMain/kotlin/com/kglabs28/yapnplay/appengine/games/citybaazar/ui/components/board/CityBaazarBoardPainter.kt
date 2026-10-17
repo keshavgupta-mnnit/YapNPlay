@@ -3,7 +3,9 @@ package com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.board
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
@@ -33,11 +35,12 @@ fun DrawScope.drawCityBaazarBoard(
     tiles: List<CbTileUi>,
     measurer: TextMeasurer,
     glow: Float,
+    highlight: Set<Int> = emptySet(),
 ) {
     drawSlab(p, colours)
     drawDeck(p, Offset(DECK_CHEST, DECK_CHEST), colours.chest, Strings.cbChestLabel, colours, measurer, glow)
     drawDeck(p, Offset(DECK_LUCK, DECK_LUCK), colours.luck, Strings.cbLuckLabel, colours, measurer, glow)
-    tiles.sortedBy { p.project(CityBaazarBoardProjection.tileCentre(it.index)).y }.forEach { drawTile(p, it, colours, measurer, glow) }
+    tiles.sortedBy { p.project(CityBaazarBoardProjection.tileCentre(it.index)).y }.forEach { drawTile(p, it, colours, measurer, glow, it.index in highlight) }
 }
 
 /** Tokens as glossy marbles, far to near, each lifted by its hop. */
@@ -68,7 +71,7 @@ private fun DrawScope.drawSlab(p: CityBaazarBoardProjection, colours: CityBaazar
     drawPath(quad(p, 1f, 1f, CityBaazarBoardGeometry.GRID - 1f, CityBaazarBoardGeometry.GRID - 1f), colours.field)
 }
 
-private fun DrawScope.drawTile(p: CityBaazarBoardProjection, tile: CbTileUi, colours: CityBaazarBoardColours, measurer: TextMeasurer, glow: Float) {
+private fun DrawScope.drawTile(p: CityBaazarBoardProjection, tile: CbTileUi, colours: CityBaazarBoardColours, measurer: TextMeasurer, glow: Float, lit: Boolean) {
     val spec = CityBaazarBoard.tile(tile.index)
     val (col, row) = CityBaazarBoardGeometry.cell(tile.index)
     val x0 = col + INSET
@@ -84,12 +87,7 @@ private fun DrawScope.drawTile(p: CityBaazarBoardProjection, tile: CbTileUi, col
     drawPath(top, Brush.verticalGradient(listOf(colours.tileEdge, colours.tile), b.top, b.bottom))
 
     // Coloured header on the inner side (cities, transit, utilities).
-    val header = when (spec.kind) {
-        TileKind.CITY -> spec.group?.let { colours.groups[it] }
-        TileKind.TRANSIT -> colours.transit
-        TileKind.UTILITY -> colours.utility
-        else -> null
-    }
+    val header = spec.group?.let { colours.groups[it] }
     val (ix, iy) = CityBaazarBoardGeometry.inward(tile.index)
     var body = centre
     if (header != null) {
@@ -106,6 +104,15 @@ private fun DrawScope.drawTile(p: CityBaazarBoardProjection, tile: CbTileUi, col
         val tint = colours.players[owner] ?: colours.text
         drawPath(top, tint.copy(alpha = OWNER_GLOW_ALPHA * glow), style = Stroke(cell * OWNER_GLOW_WIDTH))
         drawPath(top, tint, style = Stroke(cell * OWNER_WIDTH))
+        // A dot in the owner's colour on the outer corner: owner and group colours can match.
+        val dot = p.project(centre - Offset(ix * DOT_SHIFT, iy * DOT_SHIFT) + Offset(iy * DOT_SIDE, ix * DOT_SIDE))
+        drawCircle(tint, cell * DOT_RADIUS, dot)
+        drawCircle(Color.White, cell * DOT_RADIUS, dot, style = Stroke(cell * DOT_RIM))
+    }
+    // Being looked at in a card: the tile glows.
+    if (lit) {
+        drawPath(top, colours.highlight.copy(alpha = HIGHLIGHT_GLOW_ALPHA * glow), style = Stroke(cell * HIGHLIGHT_GLOW))
+        drawPath(top, colours.highlight, style = Stroke(cell * OWNER_WIDTH))
     }
 
     val name = when (spec.kind) {
@@ -146,8 +153,29 @@ private fun DrawScope.drawTile(p: CityBaazarBoardProjection, tile: CbTileUi, col
         measurer.measure(it, TextStyle(color = colours.subText, fontSize = (cell * PRICE_TEXT).toSp(), fontWeight = FontWeight.Medium))
     }
     val totalHeight = nameLayout.size.height + (priceLayout?.size?.height ?: 0)
-    drawText(nameLayout, topLeft = Offset(at.x - nameLayout.size.width / 2f, at.y - totalHeight / 2f))
-    priceLayout?.let { drawText(it, topLeft = Offset(at.x - it.size.width / 2f, at.y - totalHeight / 2f + nameLayout.size.height)) }
+    val draw: DrawScope.() -> Unit = {
+        drawText(nameLayout, topLeft = Offset(-nameLayout.size.width / 2f, -totalHeight / 2f))
+        priceLayout?.let { drawText(it, topLeft = Offset(-it.size.width / 2f, -totalHeight / 2f + nameLayout.size.height)) }
+    }
+    if (corner || glyph) {
+        withTransform({ translate(at.x, at.y) }, draw)
+    } else {
+        // Lay the text on the tile: along the ring, reading left to right, tops toward the far side.
+        val along = if (ix != 0) Offset(0f, 1f) else Offset(1f, 0f)
+        val inward = Offset(ix.toFloat(), iy.toFloat())
+        val alongScreen = p.project(body + along) - at
+        val reading = if (alongScreen.x >= 0) alongScreen else -alongScreen
+        val upScreen = (p.project(body + inward) - at).let { if (it.y <= 0) it else -it }
+        val unit = cell
+        val m = Matrix()
+        m.values[Matrix.ScaleX] = reading.x / unit
+        m.values[Matrix.SkewY] = reading.y / unit
+        m.values[Matrix.SkewX] = -upScreen.x / unit
+        m.values[Matrix.ScaleY] = -upScreen.y / unit
+        m.values[Matrix.TranslateX] = at.x
+        m.values[Matrix.TranslateY] = at.y
+        withTransform({ transform(m) }, draw)
+    }
 
     drawBuildings(p, tile, centre, ix, iy, colours)
 }
@@ -226,11 +254,17 @@ private const val RIM_WIDTH = 0.05f
 private const val OWNER_WIDTH = 0.07f
 private const val OWNER_GLOW_WIDTH = 0.2f
 private const val OWNER_GLOW_ALPHA = 0.45f
-private const val NAME_TEXT = 0.2f
+private const val NAME_TEXT = 0.17f
 private const val CORNER_TEXT = 0.24f
 private const val GLYPH_TEXT = 0.45f
 private const val PRICE_TEXT = 0.16f
 private const val OUTER_SHIFT = 0.28f
+private const val DOT_SHIFT = 0.36f
+private const val DOT_SIDE = 0.34f
+private const val DOT_RADIUS = 0.07f
+private const val DOT_RIM = 0.02f
+private const val HIGHLIGHT_GLOW = 0.28f
+private const val HIGHLIGHT_GLOW_ALPHA = 0.7f
 private const val HOUSE_SIZE = 0.16f
 private const val HOUSE_HEIGHT = 0.12f
 private const val HOUSE_SPACING = 0.22f

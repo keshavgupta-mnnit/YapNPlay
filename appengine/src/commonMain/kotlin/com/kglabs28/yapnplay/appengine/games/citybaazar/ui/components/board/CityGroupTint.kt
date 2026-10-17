@@ -6,26 +6,21 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CityGroup
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.TileKind
 
-/** A colour group's header colour. */
+/** A colour group's header colour (the original game's colours). */
 @Composable
 fun CityGroup.tint(): Color {
     val c = YapNPlayTheme.colors
     return when (this) {
-        CityGroup.BROWN -> c.CbGroupBrown
-        CityGroup.SKY -> c.CbGroupSky
-        CityGroup.PINK -> c.CbGroupPink
-        CityGroup.AMBER -> c.CbGroupAmber
-        CityGroup.CRIMSON -> c.CbGroupCrimson
-        CityGroup.LIME -> c.CbGroupLime
-        CityGroup.TEAL -> c.CbGroupTeal
-        CityGroup.INDIGO -> c.CbGroupIndigo
+        CityGroup.RED -> c.PlayerRed
+        CityGroup.BLUE -> c.PlayerBlue
+        CityGroup.GREEN -> c.PlayerGreen
+        CityGroup.YELLOW -> c.PlayerYellow
+        CityGroup.PURPLE -> c.PlayerPurple
+        CityGroup.ORANGE -> c.PlayerOrange
     }
 }
 
-/** A tile's header colour: its group, or transit / utility grey. */
+/** A tile's header colour: its group's, or grey for tiles without one. */
 @Composable
-fun tileHeaderTint(group: CityGroup?, kind: TileKind): Color = group?.tint() ?: when (kind) {
-    TileKind.TRANSIT -> YapNPlayTheme.colors.CbTransit
-    TileKind.UTILITY -> YapNPlayTheme.colors.CbUtility
-    else -> YapNPlayTheme.colors.TextSecondary
-}
+fun tileHeaderTint(group: CityGroup?, kind: TileKind): Color =
+    group?.tint() ?: if (kind == TileKind.TAX) YapNPlayTheme.colors.Warning else YapNPlayTheme.colors.TextSecondary

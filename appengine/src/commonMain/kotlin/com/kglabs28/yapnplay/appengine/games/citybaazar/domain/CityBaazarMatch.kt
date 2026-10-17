@@ -4,9 +4,9 @@ import kotlinx.datetime.Instant
 
 /**
  * The live match, rebuilt from every server snapshot. [owners] tile → seat,
- * [levels] tile → 0 land, 1–3 houses, 4 hotel. [buildable] the cities the
- * current player can build on before rolling. Times are on this device's
- * clock. [roomId] is null for Quick Play (no spectators).
+ * [levels] tile → 0 land, 1–3 houses, 4 hotel. Times are on this device's
+ * clock; [timeEndsAt] is the match time limit (null: off). [roomId] is null
+ * for random tables (no spectators).
  */
 data class CityBaazarMatch(
     val matchId: String,
@@ -22,11 +22,14 @@ data class CityBaazarMatch(
     val die2: Int,
     val pendingTile: Int?,
     val debt: CityBaazarDebtInfo?,
-    val buildable: List<Int>,
+    /** Rolls for doubles left this turn (in jail). */
+    val jailTriesLeft: Int,
+    val auction: CityBaazarAuctionInfo?,
     val turnEndsAt: Instant?,
     val startedAt: Instant,
+    val timeEndsAt: Instant?,
     val round: Int,
-    /** Rounds before the match ends on net worth, or null (until one is left). */
+    /** Rounds before the match ends on net worth, or null (off). */
     val roundLimit: Int?,
     val netWorth: Map<Int, Int>,
     /** Seats from first to last once the match is over. */

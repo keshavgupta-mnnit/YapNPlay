@@ -1,6 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybaazar.domain
 
-/** One seat at the table, with its live balance and position. */
+/** One seat at the table, with its live balance and position. [halfRent]: in jail, collecting half rent. */
 data class CityBaazarPlayer(
     val seat: Int,
     val userId: String,
@@ -14,8 +14,6 @@ data class CityBaazarPlayer(
     val cash: Int = 0,
     val position: Int = 0,
     val inJail: Boolean = false,
-    val jailPasses: Int = 0,
-    /** Failed rolls for doubles so far this stay. */
-    val jailTries: Int = 0,
+    val halfRent: Boolean = false,
     val bankrupt: Boolean = false,
 )

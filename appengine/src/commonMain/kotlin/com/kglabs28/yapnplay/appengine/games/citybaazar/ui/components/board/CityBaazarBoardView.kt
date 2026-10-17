@@ -30,7 +30,7 @@ import kotlin.math.roundToInt
  * The City Baazar board, as large as fits: tiles, buildings and owners
  * (painter), the players' tokens hopping tile to tile, and the two dice
  * standing in the middle ([dice] gets one slot modifier per die). A tap on
- * a tile asks for its rate card.
+ * a tile asks for its card; [highlight] tiles glow while their cards are open.
  */
 @Composable
 fun CityBaazarBoardView(
@@ -38,6 +38,7 @@ fun CityBaazarBoardView(
     tokens: List<CbTokenUi>,
     onTileClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    highlight: Set<Int> = emptySet(),
     dice: @Composable (left: Modifier, right: Modifier) -> Unit = { _, _ -> },
 ) {
     val colours = cityBaazarBoardColours()
@@ -58,7 +59,7 @@ fun CityBaazarBoardView(
                 .fillMaxSize()
                 .pointerInput(projection) { detectTapGestures { point -> projection.tileAt(point)?.let(onTileClick) } },
         ) {
-            drawCityBaazarBoard(projection, colours, tiles, measurer, glow)
+            drawCityBaazarBoard(projection, colours, tiles, measurer, glow, highlight)
             drawCityBaazarTokens(projection, spots)
         }
         val (left, right) = projection.diceRects()

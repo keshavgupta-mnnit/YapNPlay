@@ -63,7 +63,7 @@ actual fun RoyalLudoArtwork(modifier: Modifier, contentDescription: String?) {
 @Composable
 actual fun CityBaazarArtwork(modifier: Modifier, contentDescription: String?) {
     Image(
-        painter = painterResource(id = R.drawable.ic_game_city_bazar),
+        painter = painterResource(id = R.drawable.ic_game_city_baazar),
         contentDescription = contentDescription,
         modifier = modifier,
         contentScale = ContentScale.Crop,

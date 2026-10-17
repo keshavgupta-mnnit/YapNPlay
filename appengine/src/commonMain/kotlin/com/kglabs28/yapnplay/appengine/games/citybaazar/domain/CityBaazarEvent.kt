@@ -14,6 +14,12 @@ sealed interface CityBaazarEvent {
     data class Built(val seat: Int, val tile: Int, val level: Int) : CityBaazarEvent
     data class Sold(val seat: Int, val tile: Int) : CityBaazarEvent
     data class Jailed(val seat: Int) : CityBaazarEvent
+    data class Freed(val seat: Int) : CityBaazarEvent
+    data class HalfRent(val seat: Int) : CityBaazarEvent
+    data class AuctionStarted(val seller: Int, val tile: Int, val opening: Int) : CityBaazarEvent
+    data class BidPlaced(val seat: Int, val tile: Int, val amount: Int) : CityBaazarEvent
+    /** [winner] null: nobody bid, the bank bought it. */
+    data class AuctionEnded(val seller: Int, val tile: Int, val winner: Int?, val amount: Int) : CityBaazarEvent
     data class Bankrupt(val seat: Int) : CityBaazarEvent
     data class Skipped(val seat: Int) : CityBaazarEvent
     data class TurnPassed(val seat: Int) : CityBaazarEvent

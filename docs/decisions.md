@@ -3,6 +3,51 @@
 `docs/project-report.md` is the original plan. These later decisions win
 where they disagree. Newest first. Every AI agent reads this file too.
 
+## 2026-10-17 — City Baazar v0.2 rules (owner's answers)
+
+The full rules are in `docs/city-baazar-rules.md` and replace v0.1's
+"Changed from the spec" table. What changed:
+
+- **Board and prices:**
+  - The spec's board, groups and prices, with the original game's card
+    values where known.
+  - One build price per city, for each house and the hotel.
+- **Rent and building:**
+  - 3 of a colour doubles rent at any tier.
+  - Landing on your own city offers one house, up to 3 houses and then a
+    hotel. A full colour group isn't needed.
+- **Doubles** mean nothing, except as the way out of jail.
+- **Jail:** landing on JAIL (or a card) puts you in. Each turn: 3 rolls for
+  doubles, then pay ₹500 or take half rent until your next turn.
+- **Debt:**
+  - Buildings are sold in reverse (the hotel back to 3 houses), then cities
+    go to the bank or to auction.
+  - Auction: other players only, opening at half the price, steps growing
+    with the price, a 5-second timer that restarts on each bid. The winner
+    pays the seller, with no backing out; with no bids, the bank buys it.
+- **Timeouts:**
+  - Timer runs out: the bot rolls and moves only, plus a ₹50 fine if the
+    player didn't roll and Autoplay is off.
+  - Autoplay: the same, with no fine.
+  - CPU players: buy, build and bid.
+- **AppManager values:**
+  - Starting balance (₹20,000), round limit (30) and time limit (30 min).
+  - The two limits each have an on/off room toggle.
+- **Players and name:**
+  - Rooms 3–6 players, random tables 4.
+  - Name "City Baazar". The image file is still `ic_game_city_baazar.png`
+    until it's replaced.
+- **UI:**
+  - Your cities stacked by colour at the bottom.
+  - Full title cards: current tier highlighted, rent now (2X), next sale
+    value, and all costs.
+  - Tiles glow on the board while their cards are open.
+  - Names drawn at the board's angle.
+  - "My Cities" replaces "Build House/Hotel", since building happens on
+    landing.
+  - Trade explains that selling and auctions happen when you're short of
+    money.
+
 ## 2026-10-17 — City Baazar v0.1 (built while the owner was away)
 
 - **New game:** City Baazar (`city-baazar`), our Indian city-trading board

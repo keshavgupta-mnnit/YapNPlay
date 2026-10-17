@@ -1,4 +1,4 @@
 package com.kglabs28.yapnplay.appengine.games.citybaazar.domain
 
-/** What the player whose turn it is must do now. */
-enum class CityBaazarTurnPhase { ROLL, JAIL, BUY, BUILD, DEBT, FINISHED }
+/** What happens now on the current player's turn. */
+enum class CityBaazarTurnPhase { ROLL, JAIL_ROLL, JAIL_CHOICE, BUY, BUILD, DEBT, AUCTION, FINISHED }

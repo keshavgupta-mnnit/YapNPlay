@@ -41,11 +41,11 @@ import kotlin.math.abs
 /**
  * City Baazar table. Server updates are queued and played event by event:
  * the dice tumble in the roller's colour, the token hops tile by tile,
- * money moves show on the cards, and the user's own money shows as a short
+ * money moves show on the cards, the user's own money shows as a short
  * balance sheet. The user's decisions (buy, build, jail, debt) appear as
- * balance-sheet dialogs on their turn. Voice, mute-for-me, reports and
- * Autoplay work as on the Royal Ludo table; in the background the table
- * goes quiet and the server plays for the user.
+ * balance-sheet dialogs on their turn; any running auction shows to every
+ * player (bid or pass; the seller watches). The user's cities sit below in
+ * colour stacks; open cards light their tiles on the board.
  */
 class CityBaazarMatchViewModel(
     private val observeMatch: ObserveCityBaazarMatchUseCase,
@@ -77,6 +77,8 @@ class CityBaazarMatchViewModel(
     private var vote: ReportVoteRequest? = null
     private var penalty: Penalty? = null
     private var saleSelection: Set<String> = emptySet()
+    /** The auction (tile) the user passed on: no more prompts for it. */
+    private var passedAuction: Int? = null
     private var toast: CbToastUi? = null
     private var toastId = 0L
     private var toastJob: Job? = null
@@ -94,28 +96,16 @@ class CityBaazarMatchViewModel(
             CityBaazarMatchIntent.Roll -> if (state.value.canRoll) send(CityBaazarCommand.Roll)
             CityBaazarMatchIntent.Buy -> send(CityBaazarCommand.Buy)
             CityBaazarMatchIntent.Decline -> send(CityBaazarCommand.Decline)
-            CityBaazarMatchIntent.OpenBuild -> match?.let { m -> if (state.value.canBuild) showModal(CityBaazarUiMapper.buildPicker(m)) }
-            is CityBaazarMatchIntent.PickBuild -> {
-                val m = match ?: return
-                val me = m.me ?: return
-                showModal(CityBaazarUiMapper.build(m, me, intent.tile, fromLanding = false, countdown = ""))
-            }
-            CityBaazarMatchIntent.ConfirmBuild -> (state.value.modal as? CbModal.Build)?.let { build ->
-                if (!build.fromLanding) showModal(null)
-                send(CityBaazarCommand.Build(build.tile))
-            }
-            CityBaazarMatchIntent.SkipBuild -> {
-                val build = state.value.modal as? CbModal.Build
-                if (build?.fromLanding == true) send(CityBaazarCommand.SkipBuild) else showModal(null)
-            }
+            CityBaazarMatchIntent.ConfirmBuild -> (state.value.modal as? CbModal.Build)?.let { send(CityBaazarCommand.Build(it.tile)) }
+            CityBaazarMatchIntent.SkipBuild -> send(CityBaazarCommand.SkipBuild)
             CityBaazarMatchIntent.PayJailFine -> send(CityBaazarCommand.PayJailFine)
-            CityBaazarMatchIntent.UseJailPass -> send(CityBaazarCommand.UseJailPass)
+            CityBaazarMatchIntent.StayInJail -> send(CityBaazarCommand.StayInJail)
             is CityBaazarMatchIntent.ToggleSale -> {
                 saleSelection = if (intent.assetId in saleSelection) saleSelection - intent.assetId else saleSelection + intent.assetId
                 render()
             }
             CityBaazarMatchIntent.ConfirmSale -> {
-                // Buildings first: a tile can only be sold bare.
+                // Buildings first: a city can only be sold bare.
                 val picked = saleSelection.sortedBy { if (CityBaazarUiMapper.isBuilding(it)) 0 else 1 }
                 saleSelection = emptySet()
                 picked.forEach { id ->
@@ -123,11 +113,22 @@ class CityBaazarMatchViewModel(
                     send(if (CityBaazarUiMapper.isBuilding(id)) CityBaazarCommand.SellBuilding(tile) else CityBaazarCommand.SellTile(tile))
                 }
             }
+            CityBaazarMatchIntent.StartAuction -> saleSelection.singleOrNull()?.takeIf { !CityBaazarUiMapper.isBuilding(it) }?.let {
+                saleSelection = emptySet()
+                send(CityBaazarCommand.StartAuction(CityBaazarUiMapper.assetTile(it)))
+            }
+            CityBaazarMatchIntent.Bid -> send(CityBaazarCommand.Bid)
+            CityBaazarMatchIntent.PassAuction -> {
+                passedAuction = match?.auction?.tile
+                render()
+            }
             CityBaazarMatchIntent.DeclareBankruptcy -> send(CityBaazarCommand.DeclareBankruptcy)
             is CityBaazarMatchIntent.TileClicked -> match?.let { m ->
                 if (state.value.modal == null) CityBaazarUiMapper.tileInfo(m, intent.tile)?.let { showModal(it) }
             }
-            CityBaazarMatchIntent.Trade -> showToast(CityBaazarUiMapper.noteToast(Strings.cbTrade, Strings.cbTradeSoon))
+            is CityBaazarMatchIntent.OpenStack -> match?.let { m -> CityBaazarUiMapper.properties(m, intent.group)?.let { showModal(it) } }
+            CityBaazarMatchIntent.OpenMyCities -> match?.let { m -> CityBaazarUiMapper.properties(m, null)?.let { showModal(it) } }
+            CityBaazarMatchIntent.Trade -> showToast(CityBaazarUiMapper.noteToast(Strings.cbTrade, Strings.cbTradeHint))
             CityBaazarMatchIntent.ToggleAutoplay -> send(CityBaazarCommand.SetAutoplay(!state.value.autoplay))
             is CityBaazarMatchIntent.ToggleMic -> when {
                 state.value.micOn -> send(CityBaazarCommand.SetMic(false))
@@ -238,10 +239,20 @@ class CityBaazarMatchViewModel(
                 }
                 is CityBaazarEvent.Jailed -> {
                     sound(GameSound.CAPTURE)
-                    if (event.seat == m.me?.seat) showToast(CityBaazarUiMapper.noteToast(Strings.cbSentToJail, Strings.cbJailedBody).copy(gain = false))
+                    if (event.seat == m.me?.seat) showToast(CityBaazarUiMapper.noteToast(Strings.cbSentToJail, Strings.cbJailedBody, gain = false))
+                }
+                is CityBaazarEvent.Freed -> if (event.seat == m.me?.seat) showToast(CityBaazarUiMapper.noteToast(Strings.cbFreedTitle, Strings.cbFreedBody))
+                is CityBaazarEvent.AuctionEnded -> {
+                    val name = CityBaazarBoard.tile(event.tile).name
+                    val line = event.winner?.let { w ->
+                        shownOwners[event.tile] = w
+                        Strings.cbAuctionWon(m.player(w)?.name.orEmpty(), name, CityBaazarUiMapper.rupees(event.amount))
+                    } ?: Strings.cbAuctionBank(name, CityBaazarUiMapper.rupees(event.amount))
+                    passedAuction = null
+                    showToast(CityBaazarUiMapper.noteToast(Strings.cbAuctionEnded, line))
                 }
                 is CityBaazarEvent.Bankrupt -> m.player(event.seat)?.let {
-                    showToast(CityBaazarUiMapper.noteToast(Strings.cbWentBankrupt(it.name), Strings.cbBankruptBody).copy(gain = false))
+                    showToast(CityBaazarUiMapper.noteToast(Strings.cbWentBankrupt(it.name), Strings.cbBankruptBody, gain = false))
                 }
                 else -> Unit
             }
@@ -269,7 +280,7 @@ class CityBaazarMatchViewModel(
         }
     }
 
-    /** Money moves on the cards; the user's own (rent, tax, cards, START) shows as a balance sheet. */
+    /** Money moves on the cards; the user's own (rent, tax, cards, START, fines) shows as a balance sheet. */
     private suspend fun money(event: CityBaazarEvent.Money, m: CityBaazarMatch) {
         val mySeat = m.me?.seat
         val mine = mySeat != null && (event.from == mySeat || event.to == mySeat)
@@ -290,6 +301,8 @@ class CityBaazarMatchViewModel(
             MoneyReason.CLUB -> Strings.cbClubTitle to Strings.cbCornerClub
             MoneyReason.START -> Strings.cbStartTitle to Strings.cbCornerStart
             MoneyReason.JAIL_FINE -> Strings.cbJailFineTitle to Strings.cbCornerJail
+            MoneyReason.LATE_ROLL -> Strings.cbLateFineTitle to Strings.cbLateFineLabel
+            MoneyReason.AUCTION -> Strings.cbAuctionEnded to tileName
             else -> (cardTitle ?: Strings.cbChange) to Strings.cbChange
         }
         showToast(CityBaazarUiMapper.moneyToast(title, before, label, event.amount, gain))
@@ -303,8 +316,7 @@ class CityBaazarMatchViewModel(
             cardTitle = Strings.cbCardTitle(deck, spec.text)
             showToast(CityBaazarUiMapper.noteToast(deck, spec.text))
         } else {
-            val name = m.player(event.seat)?.name.orEmpty()
-            showToast(CityBaazarUiMapper.noteToast(Strings.cbSomeoneDrew(name, deck), spec.text))
+            showToast(CityBaazarUiMapper.noteToast(Strings.cbSomeoneDrew(m.player(event.seat)?.name.orEmpty(), deck), spec.text))
         }
         delay(AppConstants.CB_CARD_PAUSE_MS)
     }
@@ -346,18 +358,25 @@ class CityBaazarMatchViewModel(
         )
         val (myCard, left, right) = CityBaazarUiMapper.sides(m, cards)
         val colourOf: (Int) -> CityBaazarColour? = { seat -> m.player(seat)?.colour }
+        val shownMe = me?.copy(cash = shownCash[me.seat] ?: me.cash)
         // The user's turn decision, as a balance-sheet dialog.
-        val decision: CbModal? = if (myTurn && me != null) {
+        val decision: CbModal? = if (myTurn && shownMe != null) {
             when (m.phase) {
-                CityBaazarTurnPhase.BUY -> m.pendingTile?.let { CityBaazarUiMapper.buy(me.copy(cash = shownCash[me.seat] ?: me.cash), it, countdown) }
-                CityBaazarTurnPhase.BUILD -> m.pendingTile?.let { CityBaazarUiMapper.build(m, me, it, fromLanding = true, countdown = countdown) }
-                CityBaazarTurnPhase.JAIL -> CityBaazarUiMapper.jail(me, countdown)
-                CityBaazarTurnPhase.DEBT -> CityBaazarUiMapper.debt(m, me, saleSelection, countdown)
+                CityBaazarTurnPhase.BUY -> m.pendingTile?.let { CityBaazarUiMapper.buy(shownMe, it, countdown) }
+                CityBaazarTurnPhase.BUILD -> m.pendingTile?.let { CityBaazarUiMapper.build(m, shownMe, it, countdown) }
+                CityBaazarTurnPhase.JAIL_ROLL -> CityBaazarUiMapper.jailRoll(m, countdown)
+                CityBaazarTurnPhase.JAIL_CHOICE -> CityBaazarUiMapper.jailChoice(shownMe, countdown)
+                CityBaazarTurnPhase.DEBT -> CityBaazarUiMapper.debt(m, shownMe, saleSelection, countdown)
                 else -> null
             }
         } else {
             null
         }
+        // A running auction shows to every player (not to watchers, nor after passing it).
+        val auction = m.auction?.takeIf { !playing && shownMe != null && !shownMe.bankrupt && it.tile != passedAuction }?.let { a ->
+            CityBaazarUiMapper.auction(m, a, shownMe!!, CityBaazarUiMapper.countdown((a.endsAt - now).inWholeSeconds))
+        }
+        val modal = vote?.let { CityBaazarModerationUiMapper.vote(it, now) } ?: auction ?: decision ?: userModal
         setState {
             copy(
                 loaded = true,
@@ -370,19 +389,26 @@ class CityBaazarMatchViewModel(
                 elapsed = if (m.phase == CityBaazarTurnPhase.FINISHED && elapsed.isNotEmpty()) elapsed else CityBaazarUiMapper.elapsed(now - m.startedAt),
                 tiles = CityBaazarUiMapper.tiles(shownOwners, shownLevels, colourOf),
                 tokens = CityBaazarUiMapper.tokens(m, shownPositions),
+                highlight = when (modal) {
+                    is CbModal.Properties -> modal.cards.map { it.tile }.toSet()
+                    is CbModal.TileInfo -> setOf(modal.card.tile)
+                    is CbModal.Buy -> setOf(modal.tile)
+                    is CbModal.Build -> setOf(modal.tile)
+                    is CbModal.Auction -> setOf(modal.tile)
+                    else -> emptySet()
+                },
                 dice = CbDiceUi(die1, die2, rollId, diceSeat?.let(colourOf)),
                 myCard = myCard,
                 leftCards = left,
                 rightCards = right,
+                stacks = CityBaazarUiMapper.stacks(m),
                 spectating = me == null,
-                canRoll = myTurn && (m.phase == CityBaazarTurnPhase.ROLL || m.phase == CityBaazarTurnPhase.JAIL),
-                rollLabel = if (m.phase == CityBaazarTurnPhase.JAIL && myTurn) Strings.cbRollDoubles else Strings.cbRollDice,
-                canBuild = myTurn && m.phase == CityBaazarTurnPhase.ROLL && m.buildable.isNotEmpty(),
+                canRoll = myTurn && (m.phase == CityBaazarTurnPhase.ROLL || m.phase == CityBaazarTurnPhase.JAIL_ROLL),
+                rollLabel = if (m.phase == CityBaazarTurnPhase.JAIL_ROLL && myTurn) Strings.cbRollDoubles else Strings.cbRollDice,
                 autoplay = me?.autoplay == true || me?.presence == CityBaazarPresence.BOT,
                 micOn = me?.micOn == true,
                 toast = toast,
-                // A vote is timed, then the turn's decision, then the user's own dialogs.
-                modal = vote?.let { CityBaazarModerationUiMapper.vote(it, now) } ?: decision ?: userModal,
+                modal = modal,
             )
         }
     }
@@ -442,10 +468,7 @@ class CityBaazarMatchViewModel(
         if (moderation.clearPenaltyWithAd() is AppResult.Failure) showPenalty(watchingAd = false)
     }
 
-    /**
-     * Background: sound stops, the mic goes off, and after a short grace the
-     * server is told the user is away (it plays for them). Front again: back.
-     */
+    /** Background: sound stops, the mic goes off, and after a short grace the server plays for the user. */
     private suspend fun onScreenVisible(visible: Boolean) {
         foreground = visible
         awayJob?.cancel()

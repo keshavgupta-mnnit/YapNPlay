@@ -2,5 +2,5 @@ package com.kglabs28.yapnplay.appengine.games.citybaazar.engine.action
 
 import com.kglabs28.yapnplay.appengine.games.base.play.Action
 
-/** Leave jail with a Jail Pass card, then roll normally. */
-data object UseJailPass : Action
+/** The turn timer rolled for someone who hadn't (₹50, Autoplay off) (server). */
+data object LateRollFine : Action

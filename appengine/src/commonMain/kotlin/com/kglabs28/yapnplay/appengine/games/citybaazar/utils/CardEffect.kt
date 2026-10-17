@@ -4,11 +4,9 @@ package com.kglabs28.yapnplay.appengine.games.citybaazar.utils
 sealed interface CardEffect {
     /** Gain (positive) or pay the bank (negative). */
     data class Money(val amount: Int) : CardEffect
-    /** Move forward to [tile] (START money if passing it). */
+    /** Move forward to [tile] (₹1,500 if passing START). */
     data class AdvanceTo(val tile: Int) : CardEffect
     data object GoToJail : CardEffect
-    /** Keep it: leaves jail free once. */
-    data object JailPass : CardEffect
     data class MoveBack(val steps: Int) : CardEffect
     data class CollectFromEach(val amount: Int) : CardEffect
     data class PayEach(val amount: Int) : CardEffect

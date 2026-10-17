@@ -9,8 +9,13 @@ sealed interface CityBaazarCommand {
     data object SkipBuild : CityBaazarCommand
     data class SellBuilding(val tile: Int) : CityBaazarCommand
     data class SellTile(val tile: Int) : CityBaazarCommand
+    /** Put a bare city up for auction among the other players. */
+    data class StartAuction(val tile: Int) : CityBaazarCommand
+    /** Bid the next step in the running auction. */
+    data object Bid : CityBaazarCommand
     data object PayJailFine : CityBaazarCommand
-    data object UseJailPass : CityBaazarCommand
+    /** Stay in jail on half rent until the next turn. */
+    data object StayInJail : CityBaazarCommand
     data object DeclareBankruptcy : CityBaazarCommand
     data class SetAutoplay(val enabled: Boolean) : CityBaazarCommand
     data class SetMic(val on: Boolean) : CityBaazarCommand

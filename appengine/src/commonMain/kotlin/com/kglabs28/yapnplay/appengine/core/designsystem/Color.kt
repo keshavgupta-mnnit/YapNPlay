@@ -142,17 +142,7 @@ object YapNPlayColors {
     val PlayerPurple = Color(0xFFB45CFF)
     val PlayerOrange = Color(0xFFFF8A2B)
 
-    // City Baazar board: matte tiles, coloured group headers, neon owners
-    val CbGroupBrown = Color(0xFFA0673F)
-    val CbGroupSky = Color(0xFF5BC8F5)
-    val CbGroupPink = Color(0xFFF266B3)
-    val CbGroupAmber = Color(0xFFF2A93B)
-    val CbGroupCrimson = Color(0xFFE0455A)
-    val CbGroupLime = Color(0xFF9BDB4D)
-    val CbGroupTeal = Color(0xFF2EC4B6)
-    val CbGroupIndigo = Color(0xFF7474F2)
-    val CbTransit = Color(0xFF8A94A8)
-    val CbUtility = Color(0xFFDDE5F2)
+    // City Baazar board: matte tiles, colour headers (the original's colours), neon owners
     val CbTile = Color(0xFF2B313C)
     val CbTileEdge = Color(0xFF3B4352)
     val CbTileSide = Color(0xFF12161D)

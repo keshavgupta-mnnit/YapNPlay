@@ -36,6 +36,7 @@ import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.board.city
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbMoneyToast
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.players.CityBaazarCardColumn
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.players.CityBaazarMyControls
+import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.players.CityBaazarOwnedStacks
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.players.CityBaazarPlayerCard
 import kotlinx.coroutines.launch
 
@@ -43,8 +44,8 @@ import kotlinx.coroutines.launch
  * City Baazar table (design): top bar (game, spectators in room matches,
  * match clock, settings, exit); the isometric board with two dice in the
  * middle; other players' pods on both sides, the user's pod bottom-left
- * with Mic, Autoplay and Roll Dice; Build House/Hotel and Trade
- * bottom-right. Balance-sheet dialogs for each decision; short balance
+ * with Mic, Autoplay and Roll Dice; the user's cities stacked by colour
+ * at the bottom; My Cities and Trade bottom-right. Balance-sheet dialogs for each decision; short balance
  * sheets for rent, taxes and cards.
  */
 @Composable
@@ -108,6 +109,7 @@ fun CityBaazarMatchScreen(
                     tiles = state.tiles,
                     tokens = state.tokens,
                     onTileClick = { send(CityBaazarMatchIntent.TileClicked(it)) },
+                    highlight = state.highlight,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .fillMaxHeight()
@@ -144,10 +146,10 @@ fun CityBaazarMatchScreen(
                 ) {
                     if (!state.spectating) {
                         CityBaazarActionButton(
-                            text = Strings.cbBuild,
+                            text = Strings.cbMyCities,
                             accent = YapNPlayTheme.colors.CbGain,
-                            enabled = state.canBuild,
-                            onClick = { send(CityBaazarMatchIntent.OpenBuild) },
+                            enabled = state.stacks.isNotEmpty(),
+                            onClick = { send(CityBaazarMatchIntent.OpenMyCities) },
                         )
                         CityBaazarActionButton(
                             text = Strings.cbTrade,
@@ -163,6 +165,12 @@ fun CityBaazarMatchScreen(
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
                 }
+                // The user's cities, stacked by colour, under the board.
+                CityBaazarOwnedStacks(
+                    stacks = state.stacks,
+                    onOpen = { send(CityBaazarMatchIntent.OpenStack(it)) },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
                 state.toast?.let { CbMoneyToast(toast = it, modifier = Modifier.align(Alignment.TopCenter)) }
             }
         }
@@ -180,14 +188,16 @@ fun CityBaazarMatchScreen(
                         onDismiss = { send(CityBaazarMatchIntent.DismissModal) },
                         onBuy = { send(CityBaazarMatchIntent.Buy) },
                         onDecline = { send(CityBaazarMatchIntent.Decline) },
-                        onPickBuild = { send(CityBaazarMatchIntent.PickBuild(it)) },
                         onConfirmBuild = { send(CityBaazarMatchIntent.ConfirmBuild) },
                         onSkipBuild = { send(CityBaazarMatchIntent.SkipBuild) },
+                        onRoll = { send(CityBaazarMatchIntent.Roll) },
                         onPayJailFine = { send(CityBaazarMatchIntent.PayJailFine) },
-                        onUseJailPass = { send(CityBaazarMatchIntent.UseJailPass) },
-                        onJailRoll = { send(CityBaazarMatchIntent.Roll) },
+                        onStayInJail = { send(CityBaazarMatchIntent.StayInJail) },
                         onToggleSale = { send(CityBaazarMatchIntent.ToggleSale(it)) },
                         onConfirmSale = { send(CityBaazarMatchIntent.ConfirmSale) },
+                        onStartAuction = { send(CityBaazarMatchIntent.StartAuction) },
+                        onBid = { send(CityBaazarMatchIntent.Bid) },
+                        onPassAuction = { send(CityBaazarMatchIntent.PassAuction) },
                         onDeclareBankruptcy = { send(CityBaazarMatchIntent.DeclareBankruptcy) },
                         onConfirmLeave = { send(CityBaazarMatchIntent.ConfirmLeave) },
                         onDone = { send(CityBaazarMatchIntent.Done) },

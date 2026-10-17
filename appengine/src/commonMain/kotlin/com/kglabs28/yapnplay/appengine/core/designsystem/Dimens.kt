@@ -199,7 +199,7 @@ class YapNPlayDimens {
     val backdropBlur: Dp get() = 14.dp.scaled()
 
     // City Baazar
-    val cbCardAvatar: Dp get() = 38.dp.scaled()
+    val cbCardAvatar: Dp get() = 32.dp.scaled()
     val cbDialogWidth: Dp get() = 520.dp.scaled()
     val cbPropertyCardWidth: Dp get() = 190.dp.scaled()
     val cbStackCard: Dp get() = 34.dp.scaled()

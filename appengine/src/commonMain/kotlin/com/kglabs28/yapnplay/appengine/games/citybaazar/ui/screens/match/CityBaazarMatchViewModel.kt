@@ -29,6 +29,7 @@ import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CardDeck
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CityBaazarBoard
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CityBaazarCards
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.MoneyReason
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.TileKind
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.TILE_COUNT
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.mapper.CityBaazarModerationUiMapper
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.mapper.CityBaazarUiMapper
@@ -124,9 +125,20 @@ class CityBaazarMatchViewModel(
             }
             CityBaazarMatchIntent.DeclareBankruptcy -> send(CityBaazarCommand.DeclareBankruptcy)
             is CityBaazarMatchIntent.TileClicked -> match?.let { m ->
-                if (state.value.modal == null) CityBaazarUiMapper.tileInfo(m, intent.tile)?.let { showModal(it) }
+                if (state.value.modal != null) return@let
+                // Luck / Shagun Chest tiles show their 2–12 table; others their card.
+                when (CityBaazarBoard.tile(intent.tile).kind) {
+                    TileKind.LUCK -> showModal(CityBaazarUiMapper.cardTable(CardDeck.LUCK))
+                    TileKind.CHEST -> showModal(CityBaazarUiMapper.cardTable(CardDeck.CHEST))
+                    else -> CityBaazarUiMapper.tileInfo(m, intent.tile)?.let { showModal(it) }
+                }
             }
             is CityBaazarMatchIntent.OpenStack -> match?.let { m -> CityBaazarUiMapper.properties(m, intent.group)?.let { showModal(it) } }
+            is CityBaazarMatchIntent.OpenDeck -> showModal(CityBaazarUiMapper.cardTable(intent.deck))
+            is CityBaazarMatchIntent.PlayerClicked -> match?.let { m ->
+                CityBaazarUiMapper.playerInfo(m, intent.seat, shownCash[intent.seat] ?: 0)?.let { showModal(it) }
+            }
+            CityBaazarMatchIntent.ToggleView -> setState { copy(threeD = !threeD) }
             CityBaazarMatchIntent.OpenMyCities -> match?.let { m -> CityBaazarUiMapper.properties(m, null)?.let { showModal(it) } }
             CityBaazarMatchIntent.Trade -> showToast(CityBaazarUiMapper.noteToast(Strings.cbTrade, Strings.cbTradeHint))
             CityBaazarMatchIntent.ToggleAutoplay -> send(CityBaazarCommand.SetAutoplay(!state.value.autoplay))
@@ -287,7 +299,18 @@ class CityBaazarMatchViewModel(
         val before = mySeat?.let { shownCash[it] } ?: 0
         event.from?.let { shownCash[it] = (shownCash[it] ?: 0) - event.amount }
         event.to?.let { shownCash[it] = (shownCash[it] ?: 0) + event.amount }
-        if (!mine || event.reason in QUIET) {
+        if (event.reason in QUIET) {
+            render()
+            return
+        }
+        if (!mine) {
+            // Everyone sees who paid whom (rent, taxes, fees, fines).
+            val payer = event.from?.let { m.player(it)?.name }
+            if (payer != null && event.reason in PAYMENTS) {
+                val tileName = event.tile?.let { CityBaazarBoard.tile(it).name }
+                val reason = tileName ?: reasonLabel(event.reason)
+                showToast(CityBaazarUiMapper.paymentToast(payer, event.to?.let { m.player(it)?.name }, reason, event.amount))
+            }
             render()
             return
         }
@@ -307,6 +330,15 @@ class CityBaazarMatchViewModel(
         }
         showToast(CityBaazarUiMapper.moneyToast(title, before, label, event.amount, gain))
         delay(AppConstants.CB_MONEY_PAUSE_MS)
+    }
+
+    private fun reasonLabel(reason: MoneyReason): String = when (reason) {
+        MoneyReason.RENT -> Strings.cbRentLand
+        MoneyReason.TAX -> Strings.cbTaxTitle
+        MoneyReason.CLUB -> Strings.cbClubTitle
+        MoneyReason.JAIL_FINE -> Strings.cbJailFineTitle
+        MoneyReason.LATE_ROLL -> Strings.cbLateFineLabel
+        else -> Strings.cbChange
     }
 
     private suspend fun card(event: CityBaazarEvent.Card, m: CityBaazarMatch) {
@@ -395,6 +427,7 @@ class CityBaazarMatchViewModel(
                     is CbModal.Buy -> setOf(modal.tile)
                     is CbModal.Build -> setOf(modal.tile)
                     is CbModal.Auction -> setOf(modal.tile)
+                    is CbModal.PlayerInfo -> modal.cards.map { it.tile }.toSet()
                     else -> emptySet()
                 },
                 dice = CbDiceUi(die1, die2, rollId, diceSeat?.let(colourOf)),
@@ -502,5 +535,7 @@ class CityBaazarMatchViewModel(
         const val MILLIS = 1_000L
         /** Money the dialogs already showed (buying, building, selling). */
         val QUIET = setOf(MoneyReason.BUY, MoneyReason.BUILD, MoneyReason.SELL, MoneyReason.BANKRUPTCY)
+        /** Payments everyone is told about. */
+        val PAYMENTS = setOf(MoneyReason.RENT, MoneyReason.TAX, MoneyReason.CLUB, MoneyReason.JAIL_FINE, MoneyReason.LATE_ROLL, MoneyReason.CARD, MoneyReason.AUCTION)
     }
 }

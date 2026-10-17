@@ -20,6 +20,10 @@ const val STARTING_CASH = 20_000
 const val START_BONUS = 1_500
 const val JAIL_FINE = 500
 const val CLUB_FEE = 500
+/** Property tax (a Shagun Chest result): per property owned. */
+const val PROPERTY_TAX_PER = 50
+/** Wealth Tax tile: per building owned (each house and each hotel). */
+const val WEALTH_TAX_PER_BUILDING = 50
 /** Taken when the turn timer rolls for someone who didn't roll and has Autoplay off. */
 const val LATE_ROLL_FINE = 50
 /** Selling to the bank pays half the price (tiles) or build cost (buildings). */
@@ -37,6 +41,7 @@ const val START_TILE = 0
 const val JAIL_TILE = 9
 const val CLUB_TILE = 18
 const val REST_HOUSE_TILE = 27
+const val MUMBAI_TILE = 35
 /** Building level of a hotel (after 3 houses). */
 const val HOTEL_LEVEL = 4
 const val DICE_FACES = 6

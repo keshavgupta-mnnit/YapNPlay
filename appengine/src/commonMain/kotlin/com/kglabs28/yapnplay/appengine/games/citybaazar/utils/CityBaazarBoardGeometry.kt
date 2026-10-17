@@ -1,21 +1,29 @@
 package com.kglabs28.yapnplay.appengine.games.citybaazar.utils
 
 /**
- * Board tiles on a 10×10 grid ring: START bottom-left (grid 0,9), then up
- * the left column to JAIL (0,0), along the top to CLUB (9,0), down the
- * right to REST HOUSE (9,9) and back along the bottom. Seen as a diamond
- * that puts START at the bottom tip and JAIL at the left.
+ * The tile ring on the board, in board units. Edge tiles are 1 wide and
+ * [DEPTH] deep (deeper than wide, so names fit and the middle is smaller);
+ * corners are [DEPTH] square. START is bottom-left, then up the left side
+ * to JAIL, along the top to CLUB, down the right to REST HOUSE and back
+ * along the bottom. Seen as a diamond: START at the bottom tip, JAIL left.
  */
 object CityBaazarBoardGeometry {
-    const val GRID = 10
-    private const val LAST = GRID - 1
+    const val DEPTH = 1.7f
+    private const val EDGE_TILES = 8
+    const val SIDE = 2 * DEPTH + EDGE_TILES
 
-    /** Grid cell (column, row) of [index]. */
-    fun cell(index: Int): Pair<Int, Int> = when {
-        index <= JAIL_TILE -> 0 to LAST - index
-        index <= CLUB_TILE -> index - JAIL_TILE to 0
-        index <= REST_HOUSE_TILE -> LAST to index - CLUB_TILE
-        else -> LAST - (index - REST_HOUSE_TILE) to LAST
+    fun rect(index: Int): TileRect {
+        val far = SIDE - DEPTH
+        return when {
+            index == START_TILE -> TileRect(0f, far, DEPTH, SIDE)
+            index < JAIL_TILE -> (far - (index - 1)).let { y1 -> TileRect(0f, y1 - 1, DEPTH, y1) }
+            index == JAIL_TILE -> TileRect(0f, 0f, DEPTH, DEPTH)
+            index < CLUB_TILE -> (DEPTH + (index - JAIL_TILE - 1)).let { x0 -> TileRect(x0, 0f, x0 + 1, DEPTH) }
+            index == CLUB_TILE -> TileRect(far, 0f, SIDE, DEPTH)
+            index < REST_HOUSE_TILE -> (DEPTH + (index - CLUB_TILE - 1)).let { y0 -> TileRect(far, y0, SIDE, y0 + 1) }
+            index == REST_HOUSE_TILE -> TileRect(far, far, SIDE, SIDE)
+            else -> (far - (index - REST_HOUSE_TILE - 1)).let { x1 -> TileRect(x1 - 1, far, x1, SIDE) }
+        }
     }
 
     /** Unit step from the tile toward the middle of the board (its coloured header side); (0, 0) for corners. */

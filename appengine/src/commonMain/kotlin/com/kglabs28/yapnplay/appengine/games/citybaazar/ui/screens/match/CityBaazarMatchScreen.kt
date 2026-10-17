@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,12 +26,12 @@ import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.rememberGlassDiceS
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableGlassButton
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorMicButton
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableTopBar
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.CityBaazarModalActions
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.CityBaazarModalContent
-import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.actions.CityBaazarActionButton
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.board.CityBaazarBoardView
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.board.cityBaazarDicePalette
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbMoneyToast
@@ -43,9 +44,10 @@ import kotlinx.coroutines.launch
 /**
  * City Baazar table (design): top bar (game, spectators in room matches,
  * match clock, settings, exit); the isometric board with two dice in the
- * middle; other players' pods on both sides, the user's pod bottom-left
- * with Mic, Autoplay and Roll Dice; the user's cities stacked by colour
- * at the bottom; My Cities and Trade bottom-right. Balance-sheet dialogs for each decision; short balance
+ * middle; every other player's pod on the left (a tap shows all about
+ * them), the user's pod top-right with Mic, Autoplay and Roll Dice, My
+ * Cities and Trade below it; the user's cities stacked by colour at the bottom.
+ * Tapping the Luck or Shagun Chest pile shows its 2–12 table. Balance-sheet dialogs for each decision; short balance
  * sheets for rent, taxes and cards.
  */
 @Composable
@@ -109,7 +111,9 @@ fun CityBaazarMatchScreen(
                     tiles = state.tiles,
                     tokens = state.tokens,
                     onTileClick = { send(CityBaazarMatchIntent.TileClicked(it)) },
+                    onDeckClick = { send(CityBaazarMatchIntent.OpenDeck(it)) },
                     highlight = state.highlight,
+                    threeD = state.threeD,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .fillMaxHeight()
@@ -123,10 +127,28 @@ fun CityBaazarMatchScreen(
                 CityBaazarCardColumn(
                     cards = state.leftCards,
                     onToggleHear = { send(CityBaazarMatchIntent.ToggleHear(it)) },
+                    onCardClick = { send(CityBaazarMatchIntent.PlayerClicked(it)) },
                     modifier = Modifier.align(Alignment.CenterStart).width(side),
+                )
+                // The user on the right: their pod on top, My Cities and Trade at the bottom.
+                Column(
+                    modifier = Modifier.align(Alignment.CenterEnd).width(side).fillMaxHeight(),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
                 ) {
+                    state.rightCards.forEach { card ->
+                        CityBaazarPlayerCard(
+                            card = card,
+                            onToggleHear = { send(CityBaazarMatchIntent.ToggleHear(card.seat)) },
+                            onClick = { send(CityBaazarMatchIntent.PlayerClicked(card.seat)) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                     state.myCard?.let { card ->
-                        CityBaazarPlayerCard(card = card, modifier = Modifier.fillMaxWidth()) {
+                        CityBaazarPlayerCard(
+                            card = card,
+                            onClick = { send(CityBaazarMatchIntent.PlayerClicked(card.seat)) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             CityBaazarMyControls(
                                 canRoll = state.canRoll,
                                 rollLabel = state.rollLabel,
@@ -138,23 +160,27 @@ fun CityBaazarMatchScreen(
                             )
                         }
                     }
-                }
-                CityBaazarCardColumn(
-                    cards = state.rightCards,
-                    onToggleHear = { send(CityBaazarMatchIntent.ToggleHear(it)) },
-                    modifier = Modifier.align(Alignment.CenterEnd).width(side),
-                ) {
+                    Spacer(Modifier.weight(1f))
                     if (!state.spectating) {
-                        CityBaazarActionButton(
-                            text = Strings.cbMyCities,
-                            accent = YapNPlayTheme.colors.CbGain,
-                            enabled = state.stacks.isNotEmpty(),
-                            onClick = { send(CityBaazarMatchIntent.OpenMyCities) },
+                        val colors = YapNPlayTheme.colors
+                        TableGlassButton(
+                            text = if (state.threeD) Strings.cbView2d else Strings.cbView3d,
+                            onClick = { send(CityBaazarMatchIntent.ToggleView) },
+                            fill = listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom),
+                            textColor = colors.TextPrimary,
                         )
-                        CityBaazarActionButton(
+                        TableGlassButton(
+                            text = Strings.cbMyCities,
+                            onClick = { send(CityBaazarMatchIntent.OpenMyCities) },
+                            fill = listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom),
+                            textColor = colors.TextPrimary,
+                            enabled = state.stacks.isNotEmpty(),
+                        )
+                        TableGlassButton(
                             text = Strings.cbTrade,
-                            accent = YapNPlayTheme.colors.CbCash,
                             onClick = { send(CityBaazarMatchIntent.Trade) },
+                            fill = listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom),
+                            textColor = colors.TextPrimary,
                         )
                     }
                 }
@@ -178,7 +204,7 @@ fun CityBaazarMatchScreen(
         val modal = state.modal
         BlockingOverlay(
             visible = modal != null,
-            // Turn decisions, a vote and the final ranking need an answer.
+            // Turn decisions, an auction, a vote and the final ranking need an answer.
             onDismiss = if (modal == null || modal.needsAnswer) null else ({ send(CityBaazarMatchIntent.DismissModal) }),
         ) {
             if (modal != null) {

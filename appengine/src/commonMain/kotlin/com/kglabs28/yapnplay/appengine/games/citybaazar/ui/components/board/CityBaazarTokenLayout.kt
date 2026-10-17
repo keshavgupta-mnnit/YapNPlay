@@ -9,7 +9,7 @@ import kotlin.math.sin
 /** Where each token stands: the tile's middle, or a small ring when tokens share a tile. */
 object CityBaazarTokenLayout {
     fun target(token: CbTokenUi, all: List<CbTokenUi>): Offset {
-        val centre = CityBaazarBoardProjection.tileCentre(token.tile)
+        val centre = CityBaazarFlatProjection.tileCentre(token.tile)
         val sharing = all.filter { it.tile == token.tile }
         if (sharing.size < 2) return centre
         val i = sharing.indexOfFirst { it.seat == token.seat }

@@ -70,7 +70,7 @@ house and for the hotel.
 | 28 | Chennai | Yellow | 7,000 | 900 / 2,600 / 5,200 / 7,800 / 10,000 | 3,500 |
 | 29 | Shagun Chest | card | | | |
 | 30 | Bengaluru | Yellow | 5,000 | 650 / 1,900 / 3,800 / 5,700 / 7,500 | 2,500 |
-| 31 | Wealth Tax | pay ₹1,500 | | | |
+| 31 | Wealth Tax | ₹50 per building | | | |
 | 32 | Pune | Green | 3,000 | 400 / 1,200 / 2,400 / 3,600 / 5,000 | 1,500 |
 | 33 | Kolkata | Green | 4,000 | 500 / 1,500 / 3,000 / 4,500 / 6,000 | 2,000 |
 | 34 | Waterways | Transit | 3,000 | 400 | |
@@ -116,26 +116,34 @@ auction.
 
 ## 7. Other tiles
 
-- **Taxes and Club:** Income Tax ₹1,000, Wealth Tax ₹1,500 and CLUB ₹500,
-  all paid to the bank.
+- **Taxes:**
+  - **Income Tax:** ₹1,000.
+  - **Wealth Tax:** ₹50 for every building the player owns (each house and
+    each hotel counts as one).
+  - **CLUB:** ₹500.
+
+  All are paid to the bank.
 - **REST HOUSE:** skip the next turn.
-- **Luck and Shagun Chest:** draw a card. Each draw is equally likely, and
-  cards stay in the pile.
-  - **Luck:**
-    - Money: Lottery +₹2,000, Traffic fine −₹1,000, Scholarship +₹1,000,
-      Crossword prize +₹1,000.
-    - Moves: Advance to START, Go to Jail, Go back 3 tiles, Advance to
-      Mumbai, Advance to the Club.
-    - Other players: Birthday (₹500 from each player), Treat everyone (₹250
-      to each player).
-    - Repairs: ₹400 per house, ₹1,000 per hotel.
-  - **Shagun Chest:**
-    - Money: Wedding shagun +₹1,500, Income tax refund +₹2,000, Medical bill
-      −₹1,000, Insurance −₹1,500, Diwali bonus +₹1,000, School fees −₹750,
-      Bank interest +₹500, Gift +₹750.
-    - Moves: Advance to START, Go to Jail.
-    - Other players: Festival gifts (₹250 from each player).
-    - Property tax: ₹250 per house, ₹750 per hotel.
+- **Luck (?) and Shagun Chest (₹):** as in the original game, the player
+  rolls both dice and the total picks the result. Tapping a pile, or a
+  Luck or Shagun Chest tile, shows its table.
+
+  The original game prints these tables on its board, and they aren't
+  available online, so the results below are ours. **Review them.**
+
+| Roll | Luck (?) | Shagun Chest (₹) |
+|---|---|---|
+| 2 | Lottery win +₹2,500 | Wedding shagun +₹1,500 |
+| 3 | Go to Jail | Medical bill −₹1,000 |
+| 4 | Traffic fine −₹1,000 | Income tax refund +₹2,000 |
+| 5 | Advance to START | Go to Jail |
+| 6 | Scholarship +₹1,000 | Diwali bonus +₹1,000 |
+| 7 | Go back 3 tiles | Insurance premium −₹1,500 |
+| 8 | Crossword prize +₹1,000 | Bank interest +₹500 |
+| 9 | Advance to the Club | Advance to START |
+| 10 | Advance to Mumbai | School fees −₹750 |
+| 11 | Birthday: ₹500 from each player | Festival gifts: ₹250 from each player |
+| 12 | Treat everyone: ₹250 to each player | Property tax: ₹50 per property owned |
 
 ## 8. Short of money
 

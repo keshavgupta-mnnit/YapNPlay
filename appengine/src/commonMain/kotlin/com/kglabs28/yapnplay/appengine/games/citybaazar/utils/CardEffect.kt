@@ -1,6 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybaazar.utils
 
-/** What a Luck or Shagun Chest card does. */
+/** What a Luck or Shagun Chest result does. */
 sealed interface CardEffect {
     /** Gain (positive) or pay the bank (negative). */
     data class Money(val amount: Int) : CardEffect
@@ -10,5 +10,6 @@ sealed interface CardEffect {
     data class MoveBack(val steps: Int) : CardEffect
     data class CollectFromEach(val amount: Int) : CardEffect
     data class PayEach(val amount: Int) : CardEffect
-    data class Repairs(val perHouse: Int, val perHotel: Int) : CardEffect
+    /** Property tax: [amount] for every property owned, to the bank. */
+    data class PerProperty(val amount: Int) : CardEffect
 }

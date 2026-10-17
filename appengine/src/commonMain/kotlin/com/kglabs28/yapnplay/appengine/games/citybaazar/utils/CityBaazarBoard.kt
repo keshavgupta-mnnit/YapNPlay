@@ -38,7 +38,7 @@ object CityBaazarBoard {
         TileSpec(28, "Chennai", TileKind.CITY, CityGroup.YELLOW, 7000, listOf(900, 2600, 5200, 7800, 10000), 3500),
         TileSpec(29, "Shagun Chest", TileKind.CHEST),
         TileSpec(30, "Bengaluru", TileKind.CITY, CityGroup.YELLOW, 5000, listOf(650, 1900, 3800, 5700, 7500), 2500),
-        TileSpec(31, "Wealth Tax", TileKind.TAX, tax = 1500),
+        TileSpec(31, "Wealth Tax", TileKind.TAX, taxPerBuilding = WEALTH_TAX_PER_BUILDING),
         TileSpec(32, "Pune", TileKind.CITY, CityGroup.GREEN, 3000, listOf(400, 1200, 2400, 3600, 5000), 1500),
         TileSpec(33, "Kolkata", TileKind.CITY, CityGroup.GREEN, 4000, listOf(500, 1500, 3000, 4500, 6000), 2000),
         TileSpec(34, "Waterways", TileKind.TRANSIT, CityGroup.ORANGE, 3000, listOf(400)),

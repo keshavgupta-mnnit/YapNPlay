@@ -46,6 +46,11 @@ object CityBaazarEconomy {
             CityBaazarBoard.tile(it).price + s.level(it) * CityBaazarBoard.tile(it).buildCost
         }
 
+    fun properties(s: CityBaazarState, seat: Int): Int = s.owners.count { it.value == seat }
+
+    /** Each house and each hotel counts as one building. */
+    fun buildings(s: CityBaazarState, seat: Int): Int = houses(s, seat) + hotels(s, seat)
+
     fun houses(s: CityBaazarState, seat: Int): Int =
         s.owners.filter { it.value == seat }.keys.sumOf { s.level(it).let { l -> if (l in 1 until HOTEL_LEVEL) l else 0 } }
 

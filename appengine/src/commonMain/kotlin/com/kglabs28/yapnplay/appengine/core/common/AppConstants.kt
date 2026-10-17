@@ -28,6 +28,8 @@ object AppConstants {
     const val CB_CARD_PAUSE_MS = 1_300L
     /** City Baazar: how long a balance-sheet toast stays. */
     const val CB_TOAST_MS = 2_800L
+    /** City Baazar: a balance counting to its new value. */
+    const val CB_CASH_COUNT_MS = 900
     /** In the background this long (not a quick glance) and the server is told the user is away. */
     const val LUDO_AWAY_GRACE_MS = 5_000L
     const val DICE_PULSE_MS = 1_800

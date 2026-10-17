@@ -9,7 +9,9 @@ import com.kglabs28.yapnplay.appengine.games.citybaazar.domain.CityBaazarMatch
 import com.kglabs28.yapnplay.appengine.games.citybaazar.domain.CityBaazarPlayer
 import com.kglabs28.yapnplay.appengine.games.citybaazar.domain.CityBaazarPresence
 import com.kglabs28.yapnplay.appengine.games.citybaazar.domain.CityBaazarTurnPhase
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CardDeck
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CityBaazarBoard
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CityBaazarCards
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CityGroup
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.HOTEL_LEVEL
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.JAIL_FINE
@@ -66,7 +68,7 @@ object CityBaazarUiMapper {
                 name = p.name,
                 level = p.level.toString(),
                 colour = p.colour,
-                cash = rupees(inputs.cash[p.seat] ?: p.cash),
+                cash = inputs.cash[p.seat] ?: p.cash,
                 isMe = p.isMe,
                 isTurn = isTurn,
                 talking = p.userId in inputs.speaking && p.micOn && !muted,
@@ -86,13 +88,14 @@ object CityBaazarUiMapper {
         }
     }
 
-    /** Card columns: the user bottom-left; the others in turn order, the first half on the right. Watching: half each side. */
+    /** Card columns: every other player on the left in turn order, the user on the right. Watching: half each side. */
     fun sides(match: CityBaazarMatch, cards: List<CbPlayerCardUi>): Triple<CbPlayerCardUi?, List<CbPlayerCardUi>, List<CbPlayerCardUi>> {
         val mine = cards.firstOrNull { it.isMe }
         val start = match.me?.seat ?: 0
         val others = cards.filterNot { it.isMe }.sortedBy { (it.seat - start + match.players.size) % match.players.size }
+        if (mine != null) return Triple(mine, others, emptyList())
         val rightCount = (others.size + 1) / 2
-        return Triple(mine, others.drop(rightCount), others.take(rightCount))
+        return Triple(null, others.drop(rightCount), others.take(rightCount))
     }
 
     fun audience(match: CityBaazarMatch, speaking: Set<String>, mutedForMe: Set<String>): List<TableAvatarUi> =
@@ -208,6 +211,46 @@ object CityBaazarUiMapper {
             cards = tiles.map { propertyCard(match, it) },
         )
     }
+
+    /** Luck or Shagun Chest: the result of each dice total. */
+    fun cardTable(deck: CardDeck): CbModal.CardTable {
+        val luck = deck == CardDeck.LUCK
+        return CbModal.CardTable(
+            title = if (luck) Strings.cbCardTableTitle(Strings.cbLuckLabel, Strings.cbLuckGlyph) else Strings.cbCardTableTitle(Strings.cbChestLabel, Strings.cbChestGlyph),
+            group = null,
+            rows = CityBaazarCards.deck(deck).map { CbRateRowUi(Strings.cbRollTotal(it.roll), it.text, false) },
+        )
+    }
+
+    /** A player's balance, worth, buildings and the cards of their cities. */
+    fun playerInfo(match: CityBaazarMatch, seat: Int, cash: Int): CbModal.PlayerInfo? {
+        val player = match.player(seat) ?: return null
+        val tiles = match.owners.filter { it.value == seat }.keys.sorted()
+        val levels = tiles.map { match.levels[it] ?: 0 }
+        return CbModal.PlayerInfo(
+            title = player.name.uppercase(),
+            colour = player.colour,
+            sheet = listOf(
+                CbSheetRowUi(Strings.cbBalance, rupees(cash), CbRowKind.NORMAL),
+                CbSheetRowUi(Strings.cbProperties, tiles.size.toString(), CbRowKind.NORMAL),
+                CbSheetRowUi(Strings.cbHouses, levels.sumOf { if (it in 1 until HOTEL_LEVEL) it else 0 }.toString(), CbRowKind.NORMAL),
+                CbSheetRowUi(Strings.cbHotels, levels.count { it >= HOTEL_LEVEL }.toString(), CbRowKind.NORMAL),
+                CbSheetRowUi(Strings.cbNetWorth, rupees(match.netWorth[seat] ?: cash), CbRowKind.TOTAL),
+            ),
+            cards = tiles.map { propertyCard(match, it) },
+        )
+    }
+
+    /** Someone else's payment, for everyone: who paid whom (or the bank), how much, and why. */
+    fun paymentToast(payer: String, payee: String?, reason: String, amount: Int): CbToastUi = CbToastUi(
+        0,
+        Strings.cbPaid(payer),
+        listOf(
+            CbSheetRowUi(if (payee != null) Strings.cbPaidTo(payer, payee) else Strings.cbPaidBank(payer), minus(amount), CbRowKind.MINUS),
+            CbSheetRowUi(reason, "", CbRowKind.NORMAL),
+        ),
+        gain = false,
+    )
 
     fun tileInfo(match: CityBaazarMatch, tile: Int): CbModal.TileInfo? {
         val spec = CityBaazarBoard.tile(tile)

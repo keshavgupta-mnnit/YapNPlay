@@ -1,7 +1,10 @@
 package com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.players
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,6 +23,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
@@ -28,19 +33,22 @@ import com.kglabs28.yapnplay.appengine.ui.components.table.tableFrostedGlass
 import com.kglabs28.yapnplay.appengine.ui.components.table.turnTimerBorder
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.board.tint
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbPlayerCardUi
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.RupeeFormat
 
 /**
  * A player's HUD pod (design): frosted glass, avatar framed in their colour
  * with the level badge, name in that colour and the live balance in gold.
  * A shrinking border in their colour runs round it during their turn; a
  * pill on the top edge says "In Jail", "Away", "Bankrupt" or their place.
- * Others' cards have the mute button; the user's adds [controls].
+ * Others' cards have the mute button; the user's adds [controls]. A tap
+ * ([onClick]) opens everything about the player.
  */
 @Composable
 fun CityBaazarPlayerCard(
     card: CbPlayerCardUi,
     modifier: Modifier = Modifier,
     onToggleHear: () -> Unit = {},
+    onClick: () -> Unit = {},
     controls: @Composable ColumnScope.() -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
@@ -48,6 +56,13 @@ fun CityBaazarPlayerCard(
     val typography = YapNPlayTheme.typography
     val tint = card.colour.tint()
     val shape = RoundedCornerShape(dimens.ludoCardRadius)
+    // The balance counts to its new value: green going up, red going down.
+    val shownCash by animateIntAsState(card.cash, tween(AppConstants.CB_CASH_COUNT_MS))
+    val cashColour = when {
+        shownCash < card.cash -> colors.CbGain
+        shownCash > card.cash -> colors.CbLoss
+        else -> colors.CbCash
+    }
     Box(modifier = modifier, contentAlignment = Alignment.TopCenter) {
         Column(
             modifier = Modifier
@@ -55,6 +70,7 @@ fun CityBaazarPlayerCard(
                 .padding(top = dimens.ludoPlaceBadgeHeight / 2)
                 .graphicsLayer { alpha = if (card.out) OUT_ALPHA else 1f }
                 .tableFrostedGlass(tint = colors.AvatarRingSilver, shape = shape, radius = dimens.ludoCardRadius, glow = dimens.zero)
+                .clickable(onClick = onClick)
                 .turnTimerBorder(active = card.isTurn, fraction = card.timerFraction, tint = lerp(tint, colors.Background, TIMER_DARKEN), radius = dimens.ludoCardRadius, width = dimens.ludoTimerStroke)
                 .padding(Spacing.Xs),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
@@ -63,7 +79,7 @@ fun CityBaazarPlayerCard(
                 TableCardAvatar(tint = tint, talking = card.talking, level = card.level, size = dimens.cbCardAvatar)
                 Column(modifier = Modifier.weight(1f)) {
                     BasicText(text = card.name, style = typography.cardTitle.copy(color = tint), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    BasicText(text = card.cash, style = typography.title.copy(color = colors.CbCash, fontWeight = FontWeight.Bold), maxLines = 1)
+                    BasicText(text = Strings.cbRupees(RupeeFormat.digits(shownCash)), style = typography.label.copy(color = cashColour, fontWeight = FontWeight.Bold), maxLines = 1)
                 }
                 if (!card.isMe) {
                     TableMuteButton(muted = card.mutedForMe, description = Strings.ludoMuteFor(card.name), onToggle = onToggleHear)

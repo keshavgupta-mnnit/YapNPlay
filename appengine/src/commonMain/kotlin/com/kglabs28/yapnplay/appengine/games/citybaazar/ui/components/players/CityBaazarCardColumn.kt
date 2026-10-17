@@ -16,12 +16,13 @@ import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbPlaye
 fun CityBaazarCardColumn(
     cards: List<CbPlayerCardUi>,
     onToggleHear: (seat: Int) -> Unit,
+    onCardClick: (seat: Int) -> Unit,
     modifier: Modifier = Modifier,
     footer: @Composable ColumnScope.() -> Unit = {},
 ) {
     Column(modifier = modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
         cards.forEach { card ->
-            CityBaazarPlayerCard(card = card, onToggleHear = { onToggleHear(card.seat) }, modifier = Modifier.fillMaxWidth())
+            CityBaazarPlayerCard(card = card, onToggleHear = { onToggleHear(card.seat) }, onClick = { onCardClick(card.seat) }, modifier = Modifier.fillMaxWidth())
         }
         Spacer(Modifier.weight(1f))
         footer()

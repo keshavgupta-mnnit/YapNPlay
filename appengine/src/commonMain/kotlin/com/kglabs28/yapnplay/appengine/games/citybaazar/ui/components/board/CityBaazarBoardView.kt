@@ -24,10 +24,11 @@ import androidx.compose.ui.unit.IntOffset
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbTileUi
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CbTokenUi
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CardDeck
 import kotlin.math.roundToInt
 
 /**
- * The City Baazar board, as large as fits: tiles, buildings and owners
+ * The City Baazar board, as large as fits, flat (2D) or as a diamond (3D): tiles, buildings and owners
  * (painter), the players' tokens hopping tile to tile, and the two dice
  * standing in the middle ([dice] gets one slot modifier per die). A tap on
  * a tile asks for its card; [highlight] tiles glow while their cards are open.
@@ -37,8 +38,11 @@ fun CityBaazarBoardView(
     tiles: List<CbTileUi>,
     tokens: List<CbTokenUi>,
     onTileClick: (Int) -> Unit,
+    onDeckClick: (CardDeck) -> Unit,
     modifier: Modifier = Modifier,
     highlight: Set<Int> = emptySet(),
+    /** True: the diamond 3D board; false: the flat square board. */
+    threeD: Boolean = false,
     dice: @Composable (left: Modifier, right: Modifier) -> Unit = { _, _ -> },
 ) {
     val colours = cityBaazarBoardColours()
@@ -49,20 +53,33 @@ fun CityBaazarBoardView(
         animationSpec = infiniteRepeatable(tween(AppConstants.LUDO_NEON_BREATH_MS), RepeatMode.Reverse),
     )
     val spots = tokens.map { token ->
-        key(token.seat) { animateTokenSpot(token.seat, CityBaazarTokenLayout.target(token, tokens)) to (colours.players[token.colour] ?: colours.text) }
+        key(token.seat) { animateTokenSpot(token.seat, token.tile, CityBaazarTokenLayout.target(token, tokens)) to (colours.players[token.colour] ?: colours.text) }
     }
     BoxWithConstraints(modifier = modifier) {
         val size = Size(constraints.maxWidth.toFloat(), constraints.maxHeight.toFloat())
-        val projection = remember(size) { CityBaazarBoardProjection.fit(size) }
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(projection) { detectTapGestures { point -> projection.tileAt(point)?.let(onTileClick) } },
-        ) {
-            drawCityBaazarBoard(projection, colours, tiles, measurer, glow, highlight)
-            drawCityBaazarTokens(projection, spots)
+        val (left, right) = if (threeD) {
+            val projection = remember(size) { CityBaazarIsoProjection.fit(size) }
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(projection) { detectTapGestures { point -> projection.deckAt(point)?.let(onDeckClick) ?: projection.tileAt(point)?.let(onTileClick) } },
+            ) {
+                drawCityBaazarIsoBoard(projection, colours, tiles, measurer, glow, highlight)
+                drawCityBaazarIsoTokens(projection, spots)
+            }
+            projection.diceRects()
+        } else {
+            val projection = remember(size) { CityBaazarFlatProjection.fit(size) }
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(projection) { detectTapGestures { point -> projection.deckAt(point)?.let(onDeckClick) ?: projection.tileAt(point)?.let(onTileClick) } },
+            ) {
+                drawCityBaazarFlatBoard(projection, colours, tiles, measurer, glow, highlight)
+                drawCityBaazarFlatTokens(projection, spots)
+            }
+            projection.diceRects()
         }
-        val (left, right) = projection.diceRects()
         with(LocalDensity.current) {
             dice(
                 Modifier.offset { IntOffset(left.left.roundToInt(), left.top.roundToInt()) }.size(left.width.toDp()),

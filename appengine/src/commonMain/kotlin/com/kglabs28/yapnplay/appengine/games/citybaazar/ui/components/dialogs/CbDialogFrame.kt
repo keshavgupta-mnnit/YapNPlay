@@ -29,7 +29,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatTimerChip
 /**
  * City Baazar's dialog: frosted glass with an [accent] glow, the title (with
  * the tile's group colour as a chip), the time left, a divider, the body
- * and the buttons (the START MATCH design).
+ * and the buttons (Royal Ludo's glass, side by side).
  */
 @Composable
 fun CbDialogFrame(
@@ -64,7 +64,7 @@ fun CbDialogFrame(
         }
         Box(Modifier.fillMaxWidth().height(dimens.hairline).background(accent.copy(alpha = DIVIDER_ALPHA)))
         content()
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
             buttons()
         }
     }

@@ -6,6 +6,7 @@ import com.kglabs28.yapnplay.appengine.core.mvi.UiState
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.ReportPersonUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableAvatarUi
 import com.kglabs28.yapnplay.appengine.games.citybaazar.domain.CityBaazarColour
+import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CardDeck
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.CityGroup
 import com.kglabs28.yapnplay.appengine.games.citybaazar.utils.TileKind
 
@@ -24,6 +25,8 @@ data class CityBaazarMatchState(
     val tokens: List<CbTokenUi> = emptyList(),
     /** Tiles glowing on the board (the cards being looked at). */
     val highlight: Set<Int> = emptySet(),
+    /** The board as a 3D diamond (true) or flat 2D square (false). */
+    val threeD: Boolean = false,
     val dice: CbDiceUi = CbDiceUi(),
     /** The user's pod (with controls), bottom-left; null while watching. */
     val myCard: CbPlayerCardUi? = null,
@@ -56,7 +59,8 @@ data class CbPlayerCardUi(
     val name: String,
     val level: String,
     val colour: CityBaazarColour,
-    val cash: String,
+    /** Balance (₹); the card counts to it when it changes. */
+    val cash: Int,
     val isMe: Boolean,
     val isTurn: Boolean,
     val talking: Boolean,
@@ -169,6 +173,12 @@ sealed interface CbModal {
     /** A tapped tile's card. */
     data class TileInfo(val card: CbPropertyCardUi) : CbModal
 
+    /** Luck or Shagun Chest: what each dice total (2–12) does. */
+    data class CardTable(val title: String, val group: CityGroup?, val rows: List<CbRateRowUi>) : CbModal
+
+    /** Everything about a player: balance, worth, buildings and their cities' cards. */
+    data class PlayerInfo(val title: String, val colour: CityBaazarColour, val sheet: List<CbSheetRowUi>, val cards: List<CbPropertyCardUi>) : CbModal
+
     data class Result(val rows: List<CbResultRowUi>) : CbModal
     data object LeaveConfirm : CbModal
     data object MicPermissionNeeded : CbModal
@@ -197,6 +207,9 @@ sealed interface CityBaazarMatchIntent : UiIntent {
     data class TileClicked(val tile: Int) : CityBaazarMatchIntent
     data class OpenStack(val group: CityGroup) : CityBaazarMatchIntent
     data object OpenMyCities : CityBaazarMatchIntent
+    data object ToggleView : CityBaazarMatchIntent
+    data class OpenDeck(val deck: CardDeck) : CityBaazarMatchIntent
+    data class PlayerClicked(val seat: Int) : CityBaazarMatchIntent
     data object Trade : CityBaazarMatchIntent
     data object ToggleAutoplay : CityBaazarMatchIntent
     data class ToggleMic(val permissionGranted: Boolean) : CityBaazarMatchIntent

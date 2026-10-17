@@ -395,8 +395,6 @@ object FakeDataProvider {
         const val NO_RESPONSE_SHARE = 0.4
         /** Time the user has to answer a prompt. */
         const val VOTE_WINDOW_MS = 15_000L
-        /** A sample prompt arrives this long into a match. */
-        const val SAMPLE_PROMPT_AFTER_MS = 60_000L
         const val PENALTY_POINTS = 50
         const val BLOCK_MINUTES = 10
         const val AD_LENGTH_MS = 2_500L

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
@@ -20,7 +21,6 @@ import androidx.compose.ui.text.style.TextAlign
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
-import com.kglabs28.yapnplay.appengine.ui.components.common.CutCornerButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.MatchSettingsCard
@@ -31,6 +31,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatPickerDialog
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.board.tileHeaderTint
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.board.tint
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbAssetCard
+import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbGlassAction
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbPropertyCard
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbDialogFrame
 import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.components.dialogs.CbDialogNote
@@ -56,8 +57,8 @@ fun CityBaazarModalContent(
             countdown = modal.countdown,
             modifier = modifier,
             buttons = {
-                CutCornerButton(text = Strings.cbNo, onClick = actions.onDecline, lit = false)
-                CutCornerButton(text = Strings.cbYes, onClick = actions.onBuy, enabled = modal.canAfford)
+                CbGlassAction(text = Strings.cbNo, onClick = actions.onDecline, primary = false, modifier = Modifier.weight(1f))
+                CbGlassAction(text = Strings.cbYes, onClick = actions.onBuy, enabled = modal.canAfford, modifier = Modifier.weight(1f))
             },
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
@@ -75,8 +76,8 @@ fun CityBaazarModalContent(
             countdown = modal.countdown,
             modifier = modifier,
             buttons = {
-                CutCornerButton(text = Strings.cbNo, onClick = actions.onSkipBuild, lit = false)
-                CutCornerButton(text = Strings.cbYes, onClick = actions.onConfirmBuild, enabled = modal.canAfford)
+                CbGlassAction(text = Strings.cbNo, onClick = actions.onSkipBuild, primary = false, modifier = Modifier.weight(1f))
+                CbGlassAction(text = Strings.cbYes, onClick = actions.onConfirmBuild, enabled = modal.canAfford, modifier = Modifier.weight(1f))
             },
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
@@ -90,7 +91,7 @@ fun CityBaazarModalContent(
             accent = colors.Warning,
             countdown = modal.countdown,
             modifier = modifier,
-            buttons = { CutCornerButton(text = Strings.cbRollDoubles, onClick = actions.onRoll) },
+            buttons = { CbGlassAction(text = Strings.cbRollDoubles, onClick = actions.onRoll, modifier = Modifier.weight(1f)) },
         ) {
             CbDialogNote(text = modal.body)
         }
@@ -100,8 +101,8 @@ fun CityBaazarModalContent(
             countdown = modal.countdown,
             modifier = modifier,
             buttons = {
-                CutCornerButton(text = Strings.cbHalfRent, onClick = actions.onStayInJail, lit = false)
-                CutCornerButton(text = Strings.cbPayFine, onClick = actions.onPayJailFine, enabled = modal.canPay)
+                CbGlassAction(text = Strings.cbHalfRent, onClick = actions.onStayInJail, primary = false, modifier = Modifier.weight(1f))
+                CbGlassAction(text = Strings.cbPayFine, onClick = actions.onPayJailFine, enabled = modal.canPay, modifier = Modifier.weight(1f))
             },
         ) {
             CbDialogNote(text = Strings.cbJailChoiceBody)
@@ -112,9 +113,9 @@ fun CityBaazarModalContent(
             countdown = modal.countdown,
             modifier = modifier,
             buttons = {
-                CutCornerButton(text = Strings.cbBankrupt, onClick = actions.onDeclareBankruptcy, lit = false)
-                CutCornerButton(text = Strings.cbAuction, onClick = actions.onStartAuction, lit = false, enabled = modal.canAuction)
-                CutCornerButton(text = Strings.cbSellAndPay, onClick = actions.onConfirmSale, enabled = modal.enough)
+                CbGlassAction(text = Strings.cbBankrupt, onClick = actions.onDeclareBankruptcy, primary = false, modifier = Modifier.weight(1f))
+                CbGlassAction(text = Strings.cbAuction, onClick = actions.onStartAuction, primary = false, enabled = modal.canAuction, modifier = Modifier.weight(1f))
+                CbGlassAction(text = Strings.cbSellAndPay, onClick = actions.onConfirmSale, enabled = modal.enough, modifier = Modifier.weight(1f))
             },
         ) {
             CbDialogNote(text = modal.body)
@@ -143,8 +144,8 @@ fun CityBaazarModalContent(
             modifier = modifier,
             buttons = {
                 if (!modal.isSeller) {
-                    CutCornerButton(text = Strings.cbPass, onClick = actions.onPassAuction, lit = false)
-                    CutCornerButton(text = modal.bidLabel, onClick = actions.onBid, enabled = modal.canBid)
+                    CbGlassAction(text = Strings.cbPass, onClick = actions.onPassAuction, primary = false, modifier = Modifier.weight(1f))
+                    CbGlassAction(text = modal.bidLabel, onClick = actions.onBid, enabled = modal.canBid, modifier = Modifier.weight(1f))
                 }
             },
         ) {
@@ -162,7 +163,7 @@ fun CityBaazarModalContent(
             title = modal.title,
             accent = colors.CbCash,
             modifier = modifier,
-            buttons = { CutCornerButton(text = Strings.cbClose, onClick = actions.onDismiss, lit = false) },
+            buttons = { CbGlassAction(text = Strings.cbClose, onClick = actions.onDismiss, primary = false, modifier = Modifier.weight(1f)) },
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -176,15 +177,45 @@ fun CityBaazarModalContent(
             accent = colors.CbCash,
             chip = tileHeaderTint(modal.card.group, modal.card.kind),
             modifier = modifier,
-            buttons = { CutCornerButton(text = Strings.cbClose, onClick = actions.onDismiss, lit = false) },
+            buttons = { CbGlassAction(text = Strings.cbClose, onClick = actions.onDismiss, primary = false, modifier = Modifier.weight(1f)) },
         ) {
             CbPropertyCard(card = modal.card)
+        }
+        is CbModal.CardTable -> CbDialogFrame(
+            title = modal.title,
+            accent = colors.CbLuck,
+            modifier = modifier,
+            buttons = { CbGlassAction(text = Strings.cbClose, onClick = actions.onDismiss, primary = false, modifier = Modifier.weight(1f)) },
+        ) {
+            CbDialogNote(text = Strings.cbCardTableBody)
+            CbRateTable(rows = modal.rows)
+        }
+        is CbModal.PlayerInfo -> CbDialogFrame(
+            title = modal.title,
+            accent = modal.colour.tint(),
+            chip = modal.colour.tint(),
+            modifier = modifier,
+            buttons = { CbGlassAction(text = Strings.cbClose, onClick = actions.onDismiss, primary = false, modifier = Modifier.weight(1f)) },
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
+                CbSheetTable(rows = modal.sheet, modifier = Modifier.width(YapNPlayTheme.dimens.cbPropertyCardWidth))
+                if (modal.cards.isEmpty()) {
+                    CbDialogNote(text = Strings.cbNoProperties, modifier = Modifier.weight(1f))
+                } else {
+                    Row(
+                        modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
+                    ) {
+                        modal.cards.forEach { CbPropertyCard(card = it) }
+                    }
+                }
+            }
         }
         is CbModal.Result -> CbDialogFrame(
             title = Strings.ludoResultTitle,
             accent = colors.Gold,
             modifier = modifier,
-            buttons = { CutCornerButton(text = Strings.ludoDone, onClick = actions.onDone) },
+            buttons = { CbGlassAction(text = Strings.ludoDone, onClick = actions.onDone, modifier = Modifier.weight(1f)) },
         ) {
             modal.rows.forEach { row ->
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm), modifier = Modifier.fillMaxWidth()) {

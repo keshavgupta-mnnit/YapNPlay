@@ -28,7 +28,6 @@ import kotlin.time.Duration.Companion.minutes
  * In-memory stand-in for the moderation service: the others in the room
  * vote on the user's report after a short while, the report resolves by
  * [ModerationRules], and a false report penalises the user. Each match
- * screen also gets one sample vote prompt so the flow can be tried.
  * Every voter's answer is kept as a ballot (agree, disagree, or no
  * response when the prompt closes unanswered), as the real server does.
  * Deleted with the fakes.
@@ -72,18 +71,8 @@ class FakeModerationServer(private val clock: AppClock, dispatchers: DispatcherP
         }
     }
 
-    /** Prompts for the user; each new listener (a match screen) gets one sample prompt later on. */
+    /** Vote prompts for the user (only from real reports now; the test prompt is gone). */
     val voteRequests: Flow<ReportVoteRequested> = flow {
-        scope.launch {
-            delay(fake.SAMPLE_PROMPT_AFTER_MS)
-            val (reporter, reported) = FakeDataProvider.LudoMatch.opponents.take(2).map { it.name }
-            val expires = clock.now().toEpochMilliseconds() + fake.VOTE_WINDOW_MS
-            val reportId = "sample-$expires"
-            requests.emit(ReportVoteRequested(reportId, reporter, reported, expires))
-            // Closed without an answer: recorded as no response.
-            delay(fake.VOTE_WINDOW_MS)
-            if (ballotsFor(reportId).none { it.voterUserId == myUserId }) record(reportId, myUserId, VoteResponse.NO_RESPONSE)
-        }
         emitAll(requests)
     }
 

@@ -82,7 +82,10 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
                 s = s.copy(skipNext = s.skipNext + seat)
                 events += RestTaken(seat)
             }
-            TileKind.TAX -> charge(seat, spec.tax, emptyMap(), MoneyReason.TAX, tile)
+            TileKind.TAX -> {
+                val bill = spec.tax + spec.taxPerBuilding * CityBaazarEconomy.buildings(s, seat)
+                if (bill > 0) charge(seat, bill, emptyMap(), MoneyReason.TAX, tile)
+            }
             TileKind.LUCK -> drawCard(seat, CardDeck.LUCK)
             TileKind.CHEST -> drawCard(seat, CardDeck.CHEST)
             TileKind.CITY, TileKind.TRANSIT, TileKind.UTILITY -> {
@@ -102,9 +105,10 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
         }
     }
 
+    /** Luck / Shagun Chest: roll both dice; the total (2–12) picks the result. */
     private fun drawCard(seat: Int, deck: CardDeck) {
-        val cards = CityBaazarCards.deck(deck)
-        val card = cards[random.nextInt(cards.size)]
+        val (d1, d2) = dice(seat)
+        val card = CityBaazarCards.forRoll(deck, d1 + d2)
         events += CardDrawn(seat, card.id)
         when (val e = card.effect) {
             is CardEffect.Money -> if (e.amount >= 0) {
@@ -132,8 +136,8 @@ internal class CityBaazarTurn(private var s: CityBaazarState, private val random
                 val others = s.active.filter { it != seat }
                 if (others.isNotEmpty()) charge(seat, e.amount * others.size, others.associateWith { e.amount }, MoneyReason.CARD, null)
             }
-            is CardEffect.Repairs -> {
-                val bill = CityBaazarEconomy.houses(s, seat) * e.perHouse + CityBaazarEconomy.hotels(s, seat) * e.perHotel
+            is CardEffect.PerProperty -> {
+                val bill = CityBaazarEconomy.properties(s, seat) * e.amount
                 if (bill > 0) charge(seat, bill, emptyMap(), MoneyReason.CARD, null)
             }
         }

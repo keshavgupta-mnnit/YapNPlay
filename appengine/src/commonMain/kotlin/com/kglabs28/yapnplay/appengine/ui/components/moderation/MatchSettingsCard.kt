@@ -24,7 +24,8 @@ fun MatchSettingsCard(
     musicOn: Boolean,
     onToggleEffects: () -> Unit,
     onToggleMusic: () -> Unit,
-    onReport: () -> Unit,
+    /** Null hides Report (games without voice reports). */
+    onReport: (() -> Unit)? = null,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -32,15 +33,17 @@ fun MatchSettingsCard(
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
             SettingRow(Strings.ludoSoundEffects, effectsOn, onToggleEffects)
             SettingRow(Strings.ludoMusic, musicOn, onToggleMusic)
-            GlassPillButton(
-                text = Strings.ludoReport,
-                onClick = onReport,
-                leadingIcon = Icons.Rounded.Flag,
-                accent = YapNPlayTheme.colors.Error,
-                contentColor = YapNPlayTheme.colors.Error,
-                height = YapNPlayTheme.dimens.ctaHeight,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            onReport?.let {
+                GlassPillButton(
+                    text = Strings.ludoReport,
+                    onClick = it,
+                    leadingIcon = Icons.Rounded.Flag,
+                    accent = YapNPlayTheme.colors.Error,
+                    contentColor = YapNPlayTheme.colors.Error,
+                    height = YapNPlayTheme.dimens.ctaHeight,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
     }
 }

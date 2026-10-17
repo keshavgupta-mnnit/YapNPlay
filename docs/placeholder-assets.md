@@ -54,3 +54,14 @@ Synthesised placeholders — replace with recorded audio of the same names:
 | `piece_hop.wav` | Each square a piece hops |
 | `piece_capture.wav` | A capture, or a turn undone by a third six |
 | `winner.wav` | A player bringing all pieces home |
+
+## City Baazar
+
+- **Game art:** `ic_game_city_bazar.png` (androidMain drawable), shown
+  wherever games are picked (carousel, grid, lobby). Royal Ludo uses
+  `ic_game_royal_ludo.png` the same way.
+- **Board:** drawn in code (tiles, group headers, owner borders, houses,
+  hotel, Shagun Chest and Luck decks, tokens). No image assets.
+- **Sounds:** reuses Royal Ludo's dice, hop, capture and win sounds. A
+  cash register and a card flip would be good additions.
+

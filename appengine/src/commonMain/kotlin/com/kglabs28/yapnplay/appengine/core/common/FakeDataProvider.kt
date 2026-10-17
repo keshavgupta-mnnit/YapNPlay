@@ -354,6 +354,33 @@ object FakeDataProvider {
         data class Opponent(val userId: String, val name: String, val level: Int, val micOn: Boolean, val onlineMinutes: Long = 0)
     }
 
+    /** Fake City Baazar table (see FakeCityBaazarServer). */
+    object CityBaazar {
+        /** Opponents in seat order after the user (Quick Play uses the first three). */
+        val opponents = listOf(
+            LudoMatch.Opponent("user-neha", "Neha", 18, micOn = true),
+            LudoMatch.Opponent("user-arjun", "Arjun", 23, micOn = true),
+            LudoMatch.Opponent("user-riya", "Riya", 7, micOn = false),
+            LudoMatch.Opponent("user-karan", "Karan", 9, micOn = true),
+            LudoMatch.Opponent("user-sneha", "Sneha", 11, micOn = false),
+        )
+        /** Watching a room match. */
+        val spectators = listOf(
+            LudoMatch.Opponent("user-vikram", "Vikram", 4, micOn = true),
+        )
+        const val QUICK_PLAY_TITLE = "Quick Play"
+        const val QUICK_PLAY_SEATS = 4
+        const val ROOM_SEATS = 6
+
+        /** Pacing so the table feels human and animations finish first. */
+        const val THINK_MS = 1_000L
+        const val AFTER_ROLL_MS = 2_100L
+        const val PER_STEP_MS = 200L
+        const val AFTER_MOVE_MS = 500L
+        const val CARD_MS = 1_800L
+        const val MONEY_MS = 700L
+    }
+
     /** Fake moderation service (see FakeModerationServer). */
     object Moderation {
         /** How long the others take to vote on the user's report. */

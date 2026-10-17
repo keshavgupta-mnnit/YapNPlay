@@ -113,13 +113,15 @@ class PlayRoomLobbyViewModel(
             }
         }
         scope.launch {
-            observeMatchStarting(id).collect { emitEffect(PlayRoomLobbyEffect.OpenMatch(it)) }
+            observeMatchStarting(id).collect { emitEffect(PlayRoomLobbyEffect.OpenMatch(selectedGameId(), it)) }
         }
     }
 
     private suspend fun send(command: LobbyCommand) {
         roomId?.let { sendCommand(it, command) }
     }
+
+    private fun selectedGameId(): String = data?.room?.selectedGameId.orEmpty()
 
     private fun me(): LobbyMember? = data?.let { d -> d.room.members.firstOrNull { it.userId == d.myUserId } }
 
@@ -141,7 +143,7 @@ class PlayRoomLobbyViewModel(
         val me = me() ?: return
         // A match is already running: join it as a spectator.
         d.room.matchInProgress?.let {
-            emitEffect(PlayRoomLobbyEffect.OpenMatch(it))
+            emitEffect(PlayRoomLobbyEffect.OpenMatch(selectedGameId(), it))
             return
         }
         if (me.isLeader) {

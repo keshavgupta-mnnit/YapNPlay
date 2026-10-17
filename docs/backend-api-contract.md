@@ -267,6 +267,35 @@ must honour the same switch (`GAME_UNAVAILABLE`).
 - **Spectator count:** the number of people actually watching (not
   players); the top bar lists only spectators.
 
+## City Baazar match additions
+
+- **Actions** (`GameAction` on the match channel):
+  - `RollDice`
+  - `BuyTile` / `DeclineTile`
+  - `BuildOnTile(tile)` / `SkipBuild`
+  - `SellBuilding(tile)` / `SellTile(tile)`
+  - `PayJailFine` / `UseJailPass`
+  - `DeclareBankruptcy`
+  - `SetAutoplay`, `SetMic`, `SetPresence` and `LeaveSeat` work as for
+    every game.
+- **Snapshot:**
+  - Per player: `cash`, `position`, `inJail`, `jailTries`, `jailPasses`,
+    `bankrupt`.
+  - Table: `owners` (tile to seat) and `levels` (tile to 0–4).
+  - Turn: `phase` (`ROLL`/`JAIL`/`BUY`/`BUILD`/`DEBT`/`FINISHED`),
+    `die1`/`die2`, `pendingTile`, `debt(amount, reason, tile)`, `buildable`
+    (the current seat's cities).
+  - Match: `round`/`roundLimit`, `netWorth` per seat, and `ranking` once
+    finished.
+- **Events:** `DiceRolled`, `TokenMoved(steps, jump)`,
+  `MoneyMoved(from?, to?, amount, reason, tile?)` (null means the bank),
+  `CardDrawn(cardId)`, `TileBought`, `BuildingBuilt`, `BuildingSold`,
+  `TileSold`, `SentToJail`, `WentBankrupt`, `TurnSkipped`, `TurnPassed`,
+  `MatchEnded`.
+- **Timeouts:** a seat whose 20 s runs out is played by the engine's
+  cautious bot (rolls, never buys or builds). CPU seats, Autoplay and away
+  seats use the full bot.
+
 ## Presence and seat handover (every game)
 
 Messages live in `protocol/SeatHandoverMessages.kt`; the rules are in

@@ -113,7 +113,7 @@ sealed interface PlayRoomLobbyIntent : UiIntent {
 
 sealed interface PlayRoomLobbyEffect : UiEffect {
     data object Close : PlayRoomLobbyEffect
-    data class OpenMatch(val matchId: String) : PlayRoomLobbyEffect
+    data class OpenMatch(val gameId: String, val matchId: String) : PlayRoomLobbyEffect
     /** Ask the OS for mic permission, then report MicPermissionResult. */
     data object RequestMicPermission : PlayRoomLobbyEffect
     data object OpenAppSettings : PlayRoomLobbyEffect

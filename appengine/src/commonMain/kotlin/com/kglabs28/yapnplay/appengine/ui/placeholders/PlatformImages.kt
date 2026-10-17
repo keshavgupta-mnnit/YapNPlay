@@ -31,3 +31,17 @@ expect fun HomeBackgroundArtwork(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
 )
+
+/** Royal Ludo's game art (carousel, lobby, every game picker). */
+@Composable
+expect fun RoyalLudoArtwork(
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+)
+
+/** City Baazar's game art (carousel, lobby, every game picker). */
+@Composable
+expect fun CityBaazarArtwork(
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+)

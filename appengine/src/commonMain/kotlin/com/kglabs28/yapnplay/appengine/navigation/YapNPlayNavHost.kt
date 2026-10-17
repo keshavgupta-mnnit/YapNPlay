@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.kglabs28.yapnplay.appengine.games.citybaazar.ui.screens.match.CityBaazarMatchScreen
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.RoyalLudoMatchScreen
 import com.kglabs28.yapnplay.appengine.core.common.DeepLink
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.PlayRoomLobbyScreen
@@ -64,7 +65,7 @@ fun YapNPlayNavHost(
             val gameZoneViewModel: GameZoneViewModel = entry.rememberScreenViewModel()
             val playRoomsViewModel: PlayRoomsViewModel = entry.rememberScreenViewModel()
             MainScreen(
-                onOpenMatch = { matchId -> navController.navigate(RoyalLudoMatch(matchId)) },
+                onOpenMatch = { gameId, matchId -> navController.openMatch(gameId, matchId) },
                 onOpenRoom = { roomId -> navController.navigate(RoomLobby(roomId)) },
                 onCreateRoom = { navController.navigate(RoomPlaceholder) },
                 pendingInviteCode = pendingInviteCode,
@@ -84,12 +85,19 @@ fun YapNPlayNavHost(
             PlayRoomLobbyScreen(
                 roomId = entry.toRoute<RoomLobby>().roomId,
                 onClose = { navController.popBackStack() },
-                onOpenMatch = { matchId -> navController.navigate(RoyalLudoMatch(matchId)) },
+                onOpenMatch = { gameId, matchId -> navController.openMatch(gameId, matchId) },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<RoomPlaceholder> {
             PlaceholderScreen()
+        }
+        composable<CityBaazarMatch> { entry ->
+            CityBaazarMatchScreen(
+                matchId = entry.toRoute<CityBaazarMatch>().matchId,
+                onClose = { navController.popBackStack() },
+                viewModel = entry.rememberScreenViewModel(),
+            )
         }
         composable<RoyalLudoMatch> { entry ->
             RoyalLudoMatchScreen(

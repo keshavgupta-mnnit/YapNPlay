@@ -21,9 +21,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
-import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.glass.ludoFrostedGlass
-import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.glass.turnTimerBorder
+import com.kglabs28.yapnplay.appengine.ui.components.table.tableFrostedGlass
+import com.kglabs28.yapnplay.appengine.ui.components.table.turnTimerBorder
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoPlayerCardUi
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableCardAvatar
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableMuteButton
 
 /**
  * A player's card in neutral frosted glass: avatar framed in their
@@ -54,7 +56,7 @@ fun LudoPlayerCard(
                 .fillMaxWidth()
                 .padding(top = dimens.ludoPlaceBadgeHeight / 2)
                 .graphicsLayer { alpha = if (card.left) LEFT_ALPHA else 1f }
-                .ludoFrostedGlass(tint = colors.AvatarRingSilver, shape = shape, radius = dimens.ludoCardRadius, glow = dimens.zero)
+                .tableFrostedGlass(tint = colors.AvatarRingSilver, shape = shape, radius = dimens.ludoCardRadius, glow = dimens.zero)
                 .turnTimerBorder(
                     active = card.isTurn,
                     fraction = card.timerFraction,
@@ -66,7 +68,7 @@ fun LudoPlayerCard(
             verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-                LudoCardAvatar(tint = tint, talking = card.talking, level = card.level)
+                TableCardAvatar(tint = tint, talking = card.talking, level = card.level)
                 BasicText(
                     text = card.name,
                     style = typography.cardTitle.copy(color = tint),
@@ -75,7 +77,7 @@ fun LudoPlayerCard(
                     modifier = Modifier.weight(1f),
                 )
                 if (!card.isMe) {
-                    LudoMuteButton(muted = card.mutedForMe, description = Strings.ludoMuteFor(card.name), onToggle = onToggleHear)
+                    TableMuteButton(muted = card.mutedForMe, description = Strings.ludoMuteFor(card.name), onToggle = onToggleHear)
                 }
             }
             controls()

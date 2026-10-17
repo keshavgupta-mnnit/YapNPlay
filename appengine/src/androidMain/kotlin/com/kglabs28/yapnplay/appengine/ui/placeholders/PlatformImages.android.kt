@@ -48,3 +48,24 @@ actual fun HomeBackgroundArtwork(modifier: Modifier, contentDescription: String?
         contentScale = ContentScale.Crop,
     )
 }
+
+@Composable
+actual fun RoyalLudoArtwork(modifier: Modifier, contentDescription: String?) {
+    Image(
+        painter = painterResource(id = R.drawable.ic_game_royal_ludo),
+        contentDescription = contentDescription,
+        modifier = modifier,
+        // Wide art: fill the card, trimming the edges.
+        contentScale = ContentScale.Crop,
+    )
+}
+
+@Composable
+actual fun CityBaazarArtwork(modifier: Modifier, contentDescription: String?) {
+    Image(
+        painter = painterResource(id = R.drawable.ic_game_city_bazar),
+        contentDescription = contentDescription,
+        modifier = modifier,
+        contentScale = ContentScale.Crop,
+    )
+}

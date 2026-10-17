@@ -6,9 +6,9 @@ import com.kglabs28.yapnplay.appengine.features.moderation.domain.ReportOutcome
 import com.kglabs28.yapnplay.appengine.features.moderation.domain.ReportVoteRequest
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoMatch
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoMatchModal
-import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.ReportPersonUi
 import kotlin.math.ceil
 import kotlinx.datetime.Instant
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.ReportPersonUi
 
 /** Report, vote and penalty dialogs for the table. Pure functions. */
 object LudoModerationUiMapper {

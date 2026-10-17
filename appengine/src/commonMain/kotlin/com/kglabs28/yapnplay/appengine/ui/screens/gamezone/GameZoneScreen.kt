@@ -42,7 +42,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.moderation.PenaltyCard
  */
 @Composable
 fun GameZoneScreen(
-    onOpenMatch: (matchId: String) -> Unit,
+    onOpenMatch: (gameId: String, matchId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GameZoneViewModel? = null,
 ) {
@@ -52,7 +52,7 @@ fun GameZoneScreen(
         viewModel?.onIntent(GameZoneIntent.Load)
         viewModel?.effects?.collect { effect ->
             when (effect) {
-                is GameZoneEffect.OpenMatch -> onOpenMatch(effect.matchId)
+                is GameZoneEffect.OpenMatch -> onOpenMatch(effect.gameId, effect.matchId)
             }
         }
     }

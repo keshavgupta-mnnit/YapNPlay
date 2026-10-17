@@ -197,6 +197,16 @@ class YapNPlayDimens {
 
     /** Background blur when a tab asks for a frosted backdrop. */
     val backdropBlur: Dp get() = 14.dp.scaled()
+
+    // City Baazar
+    val cbCardAvatar: Dp get() = 38.dp.scaled()
+    val cbDialogWidth: Dp get() = 440.dp.scaled()
+    val cbToastWidth: Dp get() = 300.dp.scaled()
+    val cbAssetCardWidth: Dp get() = 108.dp.scaled()
+    val cbHeaderChip: Dp get() = 14.dp.scaled()
+    val cbActionButtonHeight: Dp get() = 46.dp.scaled()
+    val cbControlHeight: Dp get() = 34.dp.scaled()
+    val cbRowRadius: Dp get() = 8.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
-import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.glass.LudoGlassButton
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableGlassButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.OnOffSwitch
 
 /**
@@ -30,7 +30,7 @@ fun LudoMyControls(
     val colors = YapNPlayTheme.colors
     val smoke = listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom)
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-        LudoGlassButton(
+        TableGlassButton(
             text = Strings.lobbyMic,
             onClick = onToggleMic,
             fill = smoke,
@@ -39,7 +39,7 @@ fun LudoMyControls(
         ) {
             OnOffSwitch(on = micOn, onToggle = onToggleMic)
         }
-        LudoGlassButton(
+        TableGlassButton(
             text = Strings.ludoAutoplay,
             onClick = onToggleAutoplay,
             fill = smoke,
@@ -48,7 +48,7 @@ fun LudoMyControls(
         ) {
             OnOffSwitch(on = autoplay, onToggle = onToggleAutoplay)
         }
-        LudoGlassButton(
+        TableGlassButton(
             text = moveHint ?: Strings.ludoRollDice,
             onClick = onRoll,
             fill = listOf(colors.LudoSilverTop, colors.LudoSilverMid, colors.LudoSilverBottom),

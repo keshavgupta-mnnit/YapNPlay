@@ -5,9 +5,9 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoColour
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoMatch
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoPhase
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoPresence
-import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.AvatarRing
+import com.kglabs28.yapnplay.appengine.ui.components.table.AvatarRing
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.BoardCorner
-import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoAvatarUi
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableAvatarUi
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoMatchModal
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoPieceUi
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoPlayerCardUi
@@ -172,8 +172,8 @@ object LudoMatchUiMapper {
     }
 
     /** Top bar avatars: the spectators (not the players), ringed by voice state. */
-    fun audience(match: LudoMatch, speaking: Set<String>, mutedForMe: Set<String>): List<LudoAvatarUi> =
-        match.spectators.map { LudoAvatarUi(it.userId, it.name, ring(it.userId in speaking && it.userId !in mutedForMe, it.micOn)) }
+    fun audience(match: LudoMatch, speaking: Set<String>, mutedForMe: Set<String>): List<TableAvatarUi> =
+        match.spectators.map { TableAvatarUi(it.userId, it.name, ring(it.userId in speaking && it.userId !in mutedForMe, it.micOn)) }
 
     fun resultRows(match: LudoMatch): List<LudoResultRowUi> = match.ranking.mapIndexedNotNull { index, seat ->
         match.players.firstOrNull { it.seat == seat }?.let { LudoResultRowUi(Strings.ludoPlace(index + 1), it.name, it.colour) }

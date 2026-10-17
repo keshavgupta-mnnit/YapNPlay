@@ -16,8 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.graphicsLayer
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
@@ -26,6 +24,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
  */
 object GameArtKeys {
     const val ROYAL_LUDO = "royal-ludo"
+    const val CITY_BAAZAR = "city-baazar"
     const val CARD_CLASH = "card-clash"
     const val ISLAND_QUEST = "island-quest"
     const val BLOCK_MERGE = "block-merge"
@@ -36,8 +35,8 @@ object GameArtKeys {
 }
 
 /**
- * A game's picker art by its art key. Royal Ludo uses the game-zone
- * board art; games without art yet get a glowing glyph (see
+ * A game's picker art by its art key. Royal Ludo and City Baazar have
+ * their own art; games without art yet get a glowing glyph (see
  * docs/placeholder-assets.md). Swap a branch for real art when it lands.
  */
 @Composable
@@ -47,14 +46,8 @@ fun GameArt(
 ) {
     val colors = YapNPlayTheme.colors
     when (artKey) {
-        GameArtKeys.ROYAL_LUDO -> GameZoneArtwork(
-            modifier = modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                scaleX = AppConstants.CARD_ART_ZOOM
-                scaleY = AppConstants.CARD_ART_ZOOM
-            },
-        )
+        GameArtKeys.ROYAL_LUDO -> RoyalLudoArtwork(modifier = modifier.fillMaxSize())
+        GameArtKeys.CITY_BAAZAR -> CityBaazarArtwork(modifier = modifier.fillMaxSize())
         GameArtKeys.CARD_CLASH -> GlyphArt(Icons.Rounded.Style, colors.Pink, modifier)
         GameArtKeys.ISLAND_QUEST -> GlyphArt(Icons.Rounded.Terrain, colors.GameZoneAccent, modifier)
         GameArtKeys.BLOCK_MERGE -> GlyphArt(Icons.Rounded.Extension, colors.Cyan, modifier)

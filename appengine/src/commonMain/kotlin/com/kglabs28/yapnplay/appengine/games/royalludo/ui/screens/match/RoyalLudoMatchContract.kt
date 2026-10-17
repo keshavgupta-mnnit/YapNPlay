@@ -5,6 +5,8 @@ import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatPickOptionUi
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoColour
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableAvatarUi
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.ReportPersonUi
 
 /**
  * Royal Ludo table. The board is turned so the user's base is
@@ -26,7 +28,7 @@ data class RoyalLudoMatchState(
     /** Finishing place shown inside each finished player's base, by colour. */
     val basePlaces: Map<LudoColour, String> = emptyMap(),
     /** Top bar: the people watching (players are on the cards). */
-    val audience: List<LudoAvatarUi> = emptyList(),
+    val audience: List<TableAvatarUi> = emptyList(),
     val spectatorCount: String = "",
     val spectatorLabel: String = "",
     /** Time since the match began, "m:ss", for the top bar. */
@@ -92,10 +94,6 @@ data class LudoPlayerCardUi(
     val statusLabel: String? = null,
 )
 
-/** Avatar ring in the top bar: talking, mic off, or neither. */
-enum class AvatarRing { TALKING, MUTED, IDLE }
-
-data class LudoAvatarUi(val userId: String, val name: String, val ring: AvatarRing)
 
 /**
  * The die: [rollId] changes on every roll so the screen animates it
@@ -133,8 +131,6 @@ sealed interface LudoMatchModal {
 
 data class LudoResultRowUi(val place: String, val name: String, val colour: LudoColour)
 
-/** Someone the user can report: a player or a spectator. */
-data class ReportPersonUi(val userId: String, val name: String, val role: String)
 
 sealed interface RoyalLudoMatchIntent : UiIntent {
     data class Load(val matchId: String) : RoyalLudoMatchIntent

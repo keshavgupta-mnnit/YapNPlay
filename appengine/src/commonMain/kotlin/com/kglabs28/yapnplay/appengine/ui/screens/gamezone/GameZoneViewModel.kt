@@ -40,6 +40,8 @@ class GameZoneViewModel(
 ) : MviViewModel<GameZoneState, GameZoneIntent, GameZoneEffect>(GameZoneState(), dispatchers) {
 
     private var searchJob: Job? = null
+    /** The game being searched for (its table opens when a match is found). */
+    private var searchGameId = ""
     private var tickJob: Job? = null
 
     override suspend fun handleIntent(intent: GameZoneIntent) {
@@ -100,6 +102,7 @@ class GameZoneViewModel(
             return
         }
         setState { copy(searchMessage = null) }
+        searchGameId = game.id
         searchJob = scope.launch {
             findQuickPlayMatch(game.id).collect { status ->
                 when (status) {
@@ -143,7 +146,7 @@ class GameZoneViewModel(
         }
         delay(AppConstants.MATCH_FOUND_HOLD_MS)
         setState { copy(search = null) }
-        emitEffect(GameZoneEffect.OpenMatch(status.matchId))
+        emitEffect(GameZoneEffect.OpenMatch(searchGameId, status.matchId))
     }
 
     /** Refreshes the countdown every second between server updates. */

@@ -48,5 +48,5 @@ sealed interface GameZoneIntent : UiIntent {
 }
 
 sealed interface GameZoneEffect : UiEffect {
-    data class OpenMatch(val matchId: String) : GameZoneEffect
+    data class OpenMatch(val gameId: String, val matchId: String) : GameZoneEffect
 }

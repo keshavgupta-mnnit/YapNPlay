@@ -26,8 +26,8 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.board.LudoB
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.board.ludoDicePalette
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.LudoMyCard
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.LudoOpponentsColumn
-import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.LudoSpectatorMicButton
-import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.topbar.LudoMatchTopBar
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorMicButton
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableTopBar
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
@@ -83,7 +83,7 @@ fun RoyalLudoMatchScreen(
                 .revealWhen(state.loaded),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
         ) {
-            LudoMatchTopBar(
+            TableTopBar(
                 title = state.title,
                 subtitle = state.subtitle,
                 audience = state.audience,
@@ -154,7 +154,7 @@ fun RoyalLudoMatchScreen(
                 )
                 if (state.spectating) {
                     // Below the board's bottom corner, in the middle.
-                    LudoSpectatorMicButton(
+                    TableSpectatorMicButton(
                         micOn = state.micOn,
                         onToggle = { send(RoyalLudoMatchIntent.ToggleMic(micPermission.isGranted())) },
                         modifier = Modifier.align(Alignment.BottomCenter),

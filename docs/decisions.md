@@ -3,6 +3,37 @@
 `docs/project-report.md` is the original plan. These later decisions win
 where they disagree. Newest first. Every AI agent reads this file too.
 
+## 2026-10-17 — City Baazar v0.1 (built while the owner was away)
+
+- **New game:** City Baazar (`city-baazar`), our Indian city-trading board
+  game. The rules are in `docs/city-baazar-rules.md`. The spec it came from
+  was checked rule by rule; its **"Changed from the spec"** table lists 15
+  decisions that need review (groups, prices, jail, doubles, end of match,
+  timeouts, and more).
+- **Code layout**, the same as Royal Ludo:
+  - `engine`: pure, with its bot and a cautious bot for timed-out turns.
+  - `utils`: board, cards, constants and rupee formatting.
+  - `domain` and `data`: models, the fake server, client and repository.
+  - `ui`: the board painter and projection, cards, dialogs, mappers, and
+    the screen's contract, view model and screen.
+- **Shared table UI:** the top bar, metal title, match clock, audience
+  strip, glass button, frosted glass, turn-timer border, card avatar,
+  mute button and spectator mic moved from Royal Ludo to
+  `ui/components/table`, so every game's table uses the same pieces.
+  `ReportPersonUi` moved to `ui/components/moderation`.
+- **Routing:** opening a match now carries the game id (Game Zone and room
+  lobby), and `NavController.openMatch` picks the game's screen.
+- **Fake server:** Quick Play seats 4 (you plus 3 CPU players); a room
+  match seats 6 with one spectator. CPU players are the bot; your
+  timed-out decisions use the cautious bot.
+- **Not in v0.1:**
+  - Trading (the button says "coming soon").
+  - Seat handover, the idle check and spectating flows (Royal Ludo has
+    them; City Baazar gives a left seat to the bot).
+  - Room house-rule toggles reaching the engine.
+  - Game-specific sounds (it reuses dice, hop, capture and win).
+  - Real art: the catalog uses a glyph; the board is drawn in code.
+
 ## 2026-10-17 — seat handover (every game, room matches only)
 
 - **Pausing:** play pauses only while someone decides on a seat for

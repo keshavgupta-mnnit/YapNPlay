@@ -34,3 +34,13 @@ actual fun FriendZoneArtwork(modifier: Modifier, contentDescription: String?) {
 actual fun HomeBackgroundArtwork(modifier: Modifier, contentDescription: String?) {
     FallbackArtwork(modifier)
 }
+
+@Composable
+actual fun RoyalLudoArtwork(modifier: Modifier, contentDescription: String?) {
+    FallbackArtwork(modifier)
+}
+
+@Composable
+actual fun CityBaazarArtwork(modifier: Modifier, contentDescription: String?) {
+    FallbackArtwork(modifier)
+}

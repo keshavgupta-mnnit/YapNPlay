@@ -11,7 +11,7 @@ object CityBazaarEconomy {
 
     /** How many tiles of [tile]'s colour [seat] owns. */
     fun colourCount(s: CityBazaarState, seat: Int, tile: Int): Int {
-        val group = CityBazaarBoard.tile(tile).group ?: return 0
+        val group = CityBazaarBoard.tile(tile).group?.takeIf { it.isColourSet } ?: return 0
         return CityBazaarBoard.groupTiles(group).count { s.owners[it] == seat }
     }
 
@@ -23,11 +23,15 @@ object CityBazaarEconomy {
     fun buildAllowed(s: CityBazaarState, seat: Int, tile: Int): Boolean =
         CityBazaarBoard.tile(tile).kind == TileKind.CITY && s.owners[tile] == seat && s.level(tile) < HOTEL_LEVEL
 
-    /** Rent for landing on [tile] now: its tier's rent, doubled with 3 of a colour, halved while the owner sits it out in jail. */
+    /**
+     * Rent for landing on [tile] now: its tier's rent (a company's pair rent
+     * when the owner has its partner too), doubled with 3 of a colour,
+     * halved while the owner sits it out in jail.
+     */
     fun rent(s: CityBazaarState, tile: Int): Int {
         val owner = s.owners[tile] ?: return 0
         val spec = CityBazaarBoard.tile(tile)
-        val base = spec.rents.getOrElse(if (spec.kind == TileKind.CITY) s.level(tile) else 0) { 0 }
+        val base = spec.rents.getOrElse(CityBazaarBoard.tier(tile, s.level(tile)) { s.owners[it] }) { 0 }
         val withColour = if (doubled(s, owner, tile)) base * 2 else base
         return if (owner in s.halfRent) withColour / 2 else withColour
     }

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -136,13 +135,15 @@ fun CityBazaarMatchScreen(
                     GlassDice(state = die1, palette = palette, modifier = left.then(tap))
                     GlassDice(state = die2, palette = palette, modifier = right.then(tap))
                 }
-                // Every other player on the left.
-                CityBazaarCardColumn(
-                    cards = state.leftCards,
-                    onToggleHear = { send(CityBazaarMatchIntent.ToggleHear(it)) },
-                    onCardClick = { send(CityBazaarMatchIntent.PlayerClicked(it)) },
-                    modifier = Modifier.align(Alignment.CenterStart).width(side),
-                )
+                // Every other player on the left (hidden while the info panel takes their place).
+                if (state.panel == null) {
+                    CityBazaarCardColumn(
+                        cards = state.leftCards,
+                        onToggleHear = { send(CityBazaarMatchIntent.ToggleHear(it)) },
+                        onCardClick = { send(CityBazaarMatchIntent.PlayerClicked(it)) },
+                        modifier = Modifier.align(Alignment.CenterStart).width(side),
+                    )
+                }
                 // The user on the right: their pod, their cities by colour, then My Cities and Trade.
                 Column(
                     modifier = Modifier.align(Alignment.CenterEnd).width(side).fillMaxHeight(),
@@ -210,7 +211,7 @@ fun CityBazaarMatchScreen(
                     CityBazaarSidePanel(
                         panel = panel,
                         onPropertyClick = { send(CityBazaarMatchIntent.PanelPropertyClicked(it)) },
-                        modifier = Modifier.align(Alignment.TopStart).heightIn(max = maxHeight),
+                        modifier = Modifier.align(Alignment.CenterStart).width(side).fillMaxHeight(),
                     )
                 }
                 state.toast?.let { CbMoneyToast(toast = it, modifier = Modifier.align(Alignment.TopCenter)) }

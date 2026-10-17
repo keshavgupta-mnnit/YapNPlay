@@ -154,7 +154,7 @@ private fun DrawScope.drawTile(p: CityBazaarIsoProjection, tile: CbTileUi, colou
             val name = fitText(measurer, tileLines(spec.name), TextStyle(color = colours.text, fontSize = (cell * NAME_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), along, across * NAME_SHARE)
             val priceText = when {
                 spec.buyable && tile.ownerColour == null -> Strings.cbRupees(RupeeFormat.digits(spec.price))
-                spec.kind == TileKind.TAX && spec.tax > 0 -> Strings.cbRupees(RupeeFormat.digits(spec.tax))
+                spec.kind == TileKind.TAX && spec.taxPerProperty > 0 -> Strings.cbPerProperty(RupeeFormat.digits(spec.taxPerProperty))
                 spec.kind == TileKind.TAX -> Strings.cbPerBuilding(RupeeFormat.digits(spec.taxPerBuilding))
                 else -> null
             }
@@ -304,8 +304,10 @@ private fun DrawScope.drawDeck(
     }
     val top = quad(p, centre.x - DECK_HALF, centre.y - DECK_HALF, centre.x + DECK_HALF, centre.y + DECK_HALF)
     drawPath(top, tint.copy(alpha = DECK_GLOW_ALPHA * glow), style = Stroke(cell * DECK_GLOW))
-    val glyphLayout = measurer.measure(glyph, TextStyle(color = tint, fontSize = (cell * DECK_GLYPH).toSp(), fontWeight = FontWeight.Bold))
-    val labelLayout = measurer.measure(label, TextStyle(color = tint, fontSize = (cell * DECK_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center))
+    // Symbol and name (two words on two lines) kept inside the pile's top.
+    val room = cell * DECK_HALF * DECK_TEXT_ROOM
+    val glyphLayout = fitText(measurer, glyph, TextStyle(color = tint, fontSize = (cell * DECK_GLYPH).toSp(), fontWeight = FontWeight.Bold), room, room * DECK_GLYPH_SHARE, maxLines = 1)
+    val labelLayout = fitText(measurer, tileLines(label), TextStyle(color = tint, fontSize = (cell * DECK_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), room, room * DECK_LABEL_SHARE)
     drawUpright(p.project(centre), listOf(glyphLayout, labelLayout))
 }
 
@@ -364,8 +366,11 @@ private const val DECK_EDGE = 0.04f
 private const val DECK_EDGE_ALPHA = 0.7f
 private const val DECK_GLOW = 0.25f
 private const val DECK_GLOW_ALPHA = 0.35f
-private const val DECK_GLYPH = 0.8f
-private const val DECK_TEXT = 0.3f
+private const val DECK_GLYPH = 0.55f
+private const val DECK_TEXT = 0.22f
+private const val DECK_TEXT_ROOM = 1.1f
+private const val DECK_GLYPH_SHARE = 0.45f
+private const val DECK_LABEL_SHARE = 0.5f
 private const val PAWN_BASE = 0.2f
 private const val PAWN_HEIGHT = 0.5f
 private const val PAWN_HEAD = 0.13f

@@ -83,12 +83,12 @@ internal class CityBazaarTurn(private var s: CityBazaarState, private val random
                 events += RestTaken(seat)
             }
             TileKind.TAX -> {
-                val bill = spec.tax + spec.taxPerBuilding * CityBazaarEconomy.buildings(s, seat)
+                val bill = spec.taxPerProperty * CityBazaarEconomy.properties(s, seat) + spec.taxPerBuilding * CityBazaarEconomy.buildings(s, seat)
                 if (bill > 0) charge(seat, bill, emptyMap(), MoneyReason.TAX, tile)
             }
             TileKind.LUCK -> drawCard(seat, CardDeck.LUCK)
             TileKind.CHEST -> drawCard(seat, CardDeck.CHEST)
-            TileKind.CITY, TileKind.TRANSIT, TileKind.UTILITY -> {
+            TileKind.CITY, TileKind.COMPANY -> {
                 val owner = s.owners[tile]
                 when {
                     // Can't afford it: no offer, the move just goes on.

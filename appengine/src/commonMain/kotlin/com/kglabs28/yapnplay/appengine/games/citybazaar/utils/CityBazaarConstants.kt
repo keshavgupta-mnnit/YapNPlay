@@ -41,7 +41,7 @@ const val START_TILE = 0
 const val JAIL_TILE = 9
 const val CLUB_TILE = 18
 const val REST_HOUSE_TILE = 27
-const val MUMBAI_TILE = 35
+const val MUMBAI_TILE = 1
 /** Building level of a hotel (after 3 houses). */
 const val HOTEL_LEVEL = 4
 const val DICE_FACES = 6

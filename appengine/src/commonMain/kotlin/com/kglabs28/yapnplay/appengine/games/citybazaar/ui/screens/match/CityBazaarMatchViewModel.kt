@@ -28,6 +28,7 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CITY_BAZAAR_TURN_S
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CardDeck
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CityBazaarBoard
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CityBazaarCards
+import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CityGroup
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.MoneyReason
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TileKind
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TILE_COUNT
@@ -75,9 +76,12 @@ class CityBazaarMatchViewModel(
     private var die2 = 1
     private var diceSeat: Int? = null
     private var userModal: CbModal? = null
-    /** What the side panel shows: a tile's card, or a player. */
+    /** What the side panel shows: a tile's card, a player, a pile's table, or the user's cities (of [panelGroup], or all). */
     private var panelTile: Int? = null
     private var panelSeat: Int? = null
+    private var panelDeck: CardDeck? = null
+    private var panelCities = false
+    private var panelGroup: CityGroup? = null
     private var vote: ReportVoteRequest? = null
     private var penalty: Penalty? = null
     private var saleSelection: Set<String> = emptySet()
@@ -129,20 +133,20 @@ class CityBazaarMatchViewModel(
             CityBazaarMatchIntent.DeclareBankruptcy -> send(CityBazaarCommand.DeclareBankruptcy)
             is CityBazaarMatchIntent.TileClicked -> match?.let { m ->
                 if (state.value.modal != null) return@let
-                // Luck / Shagun Chest tiles show their 2–12 table; others their card in the side panel.
+                // In the side panel: Luck / Shagun Chest tiles their 2–12 table, others their card.
                 when (CityBazaarBoard.tile(intent.tile).kind) {
-                    TileKind.LUCK -> showModal(CityBazaarUiMapper.cardTable(CardDeck.LUCK))
-                    TileKind.CHEST -> showModal(CityBazaarUiMapper.cardTable(CardDeck.CHEST))
+                    TileKind.LUCK -> showPanel(deck = CardDeck.LUCK)
+                    TileKind.CHEST -> showPanel(deck = CardDeck.CHEST)
                     else -> if (CityBazaarUiMapper.tileInfo(m, intent.tile) != null) showPanel(tile = intent.tile, seat = null)
                 }
             }
-            is CityBazaarMatchIntent.OpenStack -> match?.let { m -> CityBazaarUiMapper.properties(m, intent.group)?.let { showModal(it) } }
-            is CityBazaarMatchIntent.OpenDeck -> showModal(CityBazaarUiMapper.cardTable(intent.deck))
+            is CityBazaarMatchIntent.OpenStack -> showPanel(cities = true, group = intent.group)
+            is CityBazaarMatchIntent.OpenDeck -> showPanel(deck = intent.deck)
             is CityBazaarMatchIntent.PlayerClicked -> showPanel(tile = null, seat = intent.seat)
             is CityBazaarMatchIntent.PanelPropertyClicked -> showPanel(tile = intent.tile, seat = null)
             CityBazaarMatchIntent.DismissPanel -> showPanel(tile = null, seat = null)
             CityBazaarMatchIntent.ToggleView -> setState { copy(threeD = !threeD) }
-            CityBazaarMatchIntent.OpenMyCities -> match?.let { m -> CityBazaarUiMapper.properties(m, null)?.let { showModal(it) } }
+            CityBazaarMatchIntent.OpenMyCities -> showPanel(cities = true)
             CityBazaarMatchIntent.Trade -> showToast(CityBazaarUiMapper.noteToast(Strings.cbTrade, Strings.cbTradeHint))
             CityBazaarMatchIntent.ToggleAutoplay -> send(CityBazaarCommand.SetAutoplay(!state.value.autoplay))
             is CityBazaarMatchIntent.ToggleMic -> when {
@@ -418,6 +422,8 @@ class CityBazaarMatchViewModel(
         val modal = vote?.let { CityBazaarModerationUiMapper.vote(it, now) } ?: auction ?: decision ?: userModal
         val panel = panelTile?.let { CityBazaarUiMapper.tileInfo(m, it) }
             ?: panelSeat?.let { CityBazaarUiMapper.playerPanel(m, it, shownCash[it] ?: 0) }
+            ?: panelDeck?.let { CityBazaarUiMapper.cardTable(it) }
+            ?: if (panelCities) CityBazaarUiMapper.properties(m, panelGroup) else null
         setState {
             copy(
                 loaded = true,
@@ -431,13 +437,14 @@ class CityBazaarMatchViewModel(
                 tiles = CityBazaarUiMapper.tiles(shownOwners, shownLevels, colourOf),
                 tokens = CityBazaarUiMapper.tokens(m, shownPositions),
                 highlight = when (modal) {
-                    is CbModal.Properties -> modal.cards.map { it.tile }.toSet()
                     is CbModal.Buy -> setOf(modal.tile)
                     is CbModal.Build -> setOf(modal.tile)
                     is CbModal.Auction -> setOf(modal.tile)
                     else -> when (panel) {
                         is CbPanel.Property -> setOf(panel.card.tile)
                         is CbPanel.Player -> panel.cities.map { it.tile }.toSet()
+                        is CbPanel.Cities -> panel.cards.map { it.tile }.toSet()
+                        is CbPanel.Deck -> CityBazaarBoard.tilesOf(if (panel.deck == CardDeck.LUCK) TileKind.LUCK else TileKind.CHEST).toSet()
                         null -> emptySet()
                     }
                 },
@@ -470,9 +477,12 @@ class CityBazaarMatchViewModel(
         render()
     }
 
-    private fun showPanel(tile: Int?, seat: Int?) {
+    private fun showPanel(tile: Int? = null, seat: Int? = null, deck: CardDeck? = null, cities: Boolean = false, group: CityGroup? = null) {
         panelTile = tile
         panelSeat = seat
+        panelDeck = deck
+        panelCities = cities
+        panelGroup = group
         render()
     }
 

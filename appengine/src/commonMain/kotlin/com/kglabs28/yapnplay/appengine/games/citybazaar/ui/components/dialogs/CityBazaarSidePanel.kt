@@ -1,31 +1,41 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbPanel
 
-/** The info panel over the other players: a tile's card, or a player and their properties. Taps on it stay on it. */
+/**
+ * The info panel in the left column, in place of the other players: a
+ * tile's card, a player, a Luck / Shagun Chest table, or the user's cities.
+ * It fills the column; taps on it stay on it.
+ */
 @Composable
 fun CityBazaarSidePanel(
     panel: CbPanel,
     onPropertyClick: (tile: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .widthIn(max = YapNPlayTheme.dimens.cbPanelWidth)
-            .clickable(interactionSource = null, indication = null) {}
-            .verticalScroll(rememberScrollState()),
-    ) {
+    Box(modifier = modifier.clickable(interactionSource = null, indication = null) {}) {
+        val fill = Modifier.fillMaxSize()
         when (panel) {
-            is CbPanel.Property -> CbPropertyCard(card = panel.card)
-            is CbPanel.Player -> CbPlayerPanel(panel = panel, onPropertyClick = onPropertyClick)
+            is CbPanel.Property -> CbPropertyCard(card = panel.card, modifier = fill, fillHeight = true)
+            is CbPanel.Player -> CbPlayerPanel(panel = panel, onPropertyClick = onPropertyClick, modifier = fill)
+            is CbPanel.Deck -> CbDeckPanel(panel = panel, modifier = fill)
+            is CbPanel.Cities -> Column(
+                modifier = fill.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+            ) {
+                panel.cards.forEach { CbPropertyCard(card = it, modifier = Modifier.fillMaxWidth()) }
+            }
         }
     }
 }

@@ -125,8 +125,7 @@ object CityBazaarUiMapper {
         CityGroup.BLUE -> Strings.cbGroupBlue
         CityGroup.GREEN -> Strings.cbGroupGreen
         CityGroup.YELLOW -> Strings.cbGroupYellow
-        CityGroup.PURPLE -> Strings.cbGroupPurple
-        CityGroup.ORANGE -> Strings.cbGroupOrange
+        CityGroup.GREY -> Strings.cbGroupGrey
     }
 
     // ---------------- cards ----------------
@@ -138,18 +137,27 @@ object CityBazaarUiMapper {
             TileKind.CITY -> listOf(CbRateRowUi(Strings.cbRentLand, rupees(spec.rents[0]), current == 0)) +
                 (1 until HOTEL_LEVEL).map { CbRateRowUi(Strings.cbRentHouses(it), rupees(spec.rents[it]), current == it) } +
                 CbRateRowUi(Strings.cbRentHotel, rupees(spec.rents[HOTEL_LEVEL]), current == HOTEL_LEVEL)
-            TileKind.TRANSIT, TileKind.UTILITY -> listOf(
+            TileKind.COMPANY -> listOf(
                 CbRateRowUi(Strings.cbRentLand, rupees(spec.rents[0]), current == 0),
-                CbRateRowUi(Strings.cbRentColourDouble, rupees(spec.rents[0] * 2), false),
+                CbRateRowUi(Strings.cbRentWithPartner(partnerName(tile)), rupees(spec.rents[1]), current == 1),
             )
-            TileKind.TAX -> listOf(CbRateRowUi(Strings.cbTax, rupees(spec.tax), true))
+            TileKind.TAX -> listOf(
+                CbRateRowUi(
+                    Strings.cbTax,
+                    if (spec.taxPerProperty > 0) Strings.cbPerProperty(RupeeFormat.digits(spec.taxPerProperty)) else Strings.cbPerBuilding(RupeeFormat.digits(spec.taxPerBuilding)),
+                    true,
+                ),
+            )
             else -> emptyList()
         }
     }
 
-    /** How many of [tile]'s colour [seat] owns. */
+    /** The company [tile] pairs with (empty for others). */
+    fun partnerName(tile: Int): String = CityBazaarBoard.tile(tile).partner?.let { CityBazaarBoard.tile(it).name }.orEmpty()
+
+    /** How many of [tile]'s colour [seat] owns (companies aren't a colour set). */
     fun colourCount(match: CityBazaarMatch, seat: Int, tile: Int): Int {
-        val group = CityBazaarBoard.tile(tile).group ?: return 0
+        val group = CityBazaarBoard.tile(tile).group?.takeIf { it.isColourSet } ?: return 0
         return CityBazaarBoard.groupTiles(group).count { match.owners[it] == seat }
     }
 
@@ -158,12 +166,10 @@ object CityBazaarUiMapper {
         val spec = CityBazaarBoard.tile(tile)
         val owner = match.owners[tile]?.let { match.player(it) }
         val level = match.levels[tile] ?: 0
-        val tierIndex = if (spec.kind == TileKind.CITY) level else 0
+        val tierIndex = CityBazaarBoard.tier(tile, level) { match.owners[it] }
         val income = owner?.let { o ->
-            val base = spec.rents.getOrElse(tierIndex) { 0 }
             val doubled = colourCount(match, o.seat, tile) >= SET_FOR_DOUBLE
-            val now = (if (doubled) base * 2 else base).let { if (o.halfRent) it / 2 else it }
-            Strings.cbRentNow(rupees(now)) + (if (doubled) Strings.cbDoubleTag else "") + (if (o.halfRent) Strings.cbHalfTag else "")
+            Strings.cbRentNow(rupees(rentNow(match, tile) ?: 0)) + (if (doubled) Strings.cbDoubleTag else "") + (if (o.halfRent) Strings.cbHalfTag else "")
         }
         val sale = owner?.let {
             if (level >= HOTEL_LEVEL) Strings.cbSellHotelLine(plus(spec.buildCost / RESALE_DIVISOR))
@@ -205,25 +211,28 @@ object CityBazaarUiMapper {
         }
     }
 
-    fun properties(match: CityBazaarMatch, group: CityGroup?): CbModal.Properties? {
+    fun properties(match: CityBazaarMatch, group: CityGroup?): CbPanel.Cities? {
         val me = match.me ?: return null
         val tiles = match.owners.filter { it.value == me.seat }.keys
             .filter { group == null || CityBazaarBoard.tile(it).group == group }
             .sorted()
         if (tiles.isEmpty()) return null
-        return CbModal.Properties(
+        return CbPanel.Cities(
             title = group?.let { Strings.cbYourColour(groupName(it)) } ?: Strings.cbYourCities,
             cards = tiles.map { propertyCard(match, it) },
         )
     }
 
     /** Luck or Shagun Chest: the result of each dice total. */
-    fun cardTable(deck: CardDeck): CbModal.CardTable {
+    fun cardTable(deck: CardDeck): CbPanel.Deck {
         val luck = deck == CardDeck.LUCK
-        return CbModal.CardTable(
+        return CbPanel.Deck(
+            deck = deck,
             title = if (luck) Strings.cbCardTableTitle(Strings.cbLuckLabel, Strings.cbLuckGlyph) else Strings.cbCardTableTitle(Strings.cbChestLabel, Strings.cbChestGlyph),
-            group = null,
-            rows = CityBazaarCards.deck(deck).map { CbRateRowUi(Strings.cbRollRow(it.roll, it.text), cardAmount(it.effect), false) },
+            body = if (luck) Strings.cbLuckTableBody else Strings.cbChestTableBody,
+            rows = CityBazaarCards.deck(deck).map {
+                CbRateRowUi(Strings.cbRollRow(it.roll, it.text), cardAmount(it.effect), false, gain = CityBazaarCards.isGain(deck, it.roll))
+            },
         )
     }
 
@@ -239,7 +248,7 @@ object CityBazaarUiMapper {
     fun rentNow(match: CityBazaarMatch, tile: Int): Int? {
         val spec = CityBazaarBoard.tile(tile)
         val owner = match.owners[tile]?.let { match.player(it) } ?: return null
-        val tier = if (spec.kind == TileKind.CITY) match.levels[tile] ?: 0 else 0
+        val tier = CityBazaarBoard.tier(tile, match.levels[tile] ?: 0) { match.owners[it] }
         val base = spec.rents.getOrElse(tier) { 0 }
         val doubled = colourCount(match, owner.seat, tile) >= SET_FOR_DOUBLE
         return (if (doubled) base * 2 else base).let { if (owner.halfRent) it / 2 else it }
@@ -301,7 +310,7 @@ object CityBazaarUiMapper {
             kind = spec.kind,
             rates = rates(tile, null),
             sheet = sheet(me.cash, Strings.cbPropertyCost, spec.price, gain = false),
-            note = if (spec.kind == TileKind.CITY) Strings.cbBuyNote(rupees(spec.rents[0]), rupees(spec.rents[1])) else Strings.cbFixedRentNote,
+            note = if (spec.kind == TileKind.CITY) Strings.cbBuyNote(rupees(spec.rents[0]), rupees(spec.rents[1])) else Strings.cbPairNote(partnerName(tile)),
             canAfford = me.cash >= spec.price,
             countdown = countdown,
         )
@@ -369,7 +378,8 @@ object CityBazaarUiMapper {
         val spec = CityBazaarBoard.tile(auction.tile)
         val seller = match.player(auction.sellerSeat)?.name.orEmpty()
         val isSeller = viewer.seat == auction.sellerSeat
-        val colourLines = spec.group?.let { group ->
+        val pairLine = spec.partner?.let { p -> listOf(Strings.cbPairLine(CityBazaarBoard.tile(p).name, match.owners[p]?.let { match.player(it)?.name })) }
+        val colourLines = pairLine ?: spec.group?.takeIf { it.isColourSet }?.let { group ->
             val others = CityBazaarBoard.groupTiles(group).filter { it != auction.tile }
             val byOwner = others.mapNotNull { t -> match.owners[t]?.let { it to t } }.groupBy({ it.first }, { it.second })
             buildList {

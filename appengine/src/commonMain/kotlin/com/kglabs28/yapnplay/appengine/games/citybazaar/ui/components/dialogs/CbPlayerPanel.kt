@@ -7,7 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -45,7 +46,6 @@ fun CbPlayerPanel(
     val tint = panel.colour.tint()
     Column(
         modifier = modifier
-            .width(dimens.cbPanelWidth)
             .background(colors.Background, shape)
             .tableFrostedGlass(tint = colors.AvatarRingSilver, shape = shape, radius = dimens.cbRowRadius, glow = dimens.zero)
             .clip(shape),
@@ -57,7 +57,7 @@ fun CbPlayerPanel(
             modifier = Modifier.fillMaxWidth().background(tint).padding(vertical = Spacing.Xxs),
         )
         Column(
-            modifier = Modifier.padding(horizontal = Spacing.Xs).padding(bottom = Spacing.Xs),
+            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Spacing.Xs).padding(bottom = Spacing.Xs),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
             CbSheetTable(rows = panel.sheet)

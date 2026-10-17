@@ -18,7 +18,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbRateRowUi
 
-/** The rate card: rent per tier; the highlighted tier glows green. */
+/** The rate card: rent per tier; the highlighted tier glows green. Luck / Chest rows are filled green (pays) or red (costs). */
 @Composable
 fun CbRateTable(rows: List<CbRateRowUi>, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
@@ -30,17 +30,26 @@ fun CbRateTable(rows: List<CbRateRowUi>, modifier: Modifier = Modifier) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(if (row.highlighted) colors.CbGain.copy(alpha = GLOW_ALPHA) else Color.Transparent, shape)
+                    .background(
+                        when {
+                            row.gain == true -> colors.CbGain.copy(alpha = FILL_ALPHA)
+                            row.gain == false -> colors.CbLoss.copy(alpha = FILL_ALPHA)
+                            row.highlighted -> colors.CbGain.copy(alpha = GLOW_ALPHA)
+                            else -> Color.Transparent
+                        },
+                        shape,
+                    )
                     .border(dimens.hairline, if (row.highlighted) colors.CbGain else Color.Transparent, shape)
                     .padding(horizontal = Spacing.Xs, vertical = Spacing.Xxxs),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
             ) {
-                BasicText(text = row.label, style = typography.label.copy(color = colors.TextSecondary), modifier = Modifier.weight(1f))
-                BasicText(text = row.rent, style = typography.label.copy(color = if (row.highlighted) colors.CbGain else colors.TextPrimary, fontWeight = FontWeight.Bold))
+                BasicText(text = row.label, style = typography.label.copy(color = if (row.gain != null) colors.TextPrimary else colors.TextSecondary), modifier = Modifier.weight(1f))
+                BasicText(text = row.rent, style = typography.label.copy(color = if (row.highlighted && row.gain == null) colors.CbGain else colors.TextPrimary, fontWeight = FontWeight.Bold))
             }
         }
     }
 }
 
 private const val GLOW_ALPHA = 0.15f
+private const val FILL_ALPHA = 0.35f

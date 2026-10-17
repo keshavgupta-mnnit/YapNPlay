@@ -158,23 +158,6 @@ fun CityBazaarModalContent(
                 }
             }
         }
-        // The cards themselves, no frame around them; a tap outside closes them.
-        is CbModal.Properties -> Row(
-            modifier = modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
-            verticalAlignment = Alignment.Top,
-        ) {
-            modal.cards.forEach { CbPropertyCard(card = it) }
-        }
-        is CbModal.CardTable -> CbDialogFrame(
-            title = modal.title,
-            accent = colors.CbLuck,
-            modifier = modifier,
-            buttons = { CbGlassAction(text = Strings.cbClose, onClick = actions.onDismiss, primary = false, modifier = Modifier.weight(1f)) },
-        ) {
-            CbDialogNote(text = Strings.cbCardTableBody)
-            CbRateTable(rows = modal.rows)
-        }
         is CbModal.Result -> CbDialogFrame(
             title = Strings.ludoResultTitle,
             accent = colors.Gold,

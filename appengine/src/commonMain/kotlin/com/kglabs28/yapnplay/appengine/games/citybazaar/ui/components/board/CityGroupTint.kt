@@ -6,7 +6,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CityGroup
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TileKind
 
-/** A colour group's header colour (the original game's colours). */
+/** A colour group's header colour (the original game's colours; companies grey). */
 @Composable
 fun CityGroup.tint(): Color {
     val c = YapNPlayTheme.colors
@@ -15,8 +15,7 @@ fun CityGroup.tint(): Color {
         CityGroup.BLUE -> c.PlayerBlue
         CityGroup.GREEN -> c.PlayerGreen
         CityGroup.YELLOW -> c.PlayerYellow
-        CityGroup.PURPLE -> c.PlayerPurple
-        CityGroup.ORANGE -> c.PlayerOrange
+        CityGroup.GREY -> c.AvatarRingSilver
     }
 }
 

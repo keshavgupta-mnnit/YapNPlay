@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -31,7 +33,7 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbPrope
  * bold bar of their colour.
  */
 @Composable
-fun CbPropertyCard(card: CbPropertyCardUi, modifier: Modifier = Modifier) {
+fun CbPropertyCard(card: CbPropertyCardUi, modifier: Modifier = Modifier, fillHeight: Boolean = false) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
@@ -53,7 +55,9 @@ fun CbPropertyCard(card: CbPropertyCardUi, modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        Column(modifier = Modifier.padding(horizontal = Spacing.Xs).padding(bottom = Spacing.Xs), verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
+        // Filling a given height: the rows scroll and the owner bar stays at the bottom.
+        val body = if (fillHeight) Modifier.weight(1f).verticalScroll(rememberScrollState()) else Modifier
+        Column(modifier = body.padding(horizontal = Spacing.Xs).padding(bottom = Spacing.Xs), verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
             CbRateTable(rows = card.rows)
             card.income?.let { BasicText(text = it, style = typography.label.copy(color = colors.CbCash, fontWeight = FontWeight.Bold)) }
             card.sale?.let {

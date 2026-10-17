@@ -149,7 +149,7 @@ private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colo
             val name = fitText(measurer, tileLines(spec.name), TextStyle(color = colours.text, fontSize = (u * NAME_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), along, across * NAME_SHARE)
             val priceText = when {
                 spec.buyable && tile.ownerColour == null -> Strings.cbRupees(RupeeFormat.digits(spec.price))
-                spec.kind == TileKind.TAX && spec.tax > 0 -> Strings.cbRupees(RupeeFormat.digits(spec.tax))
+                spec.kind == TileKind.TAX && spec.taxPerProperty > 0 -> Strings.cbPerProperty(RupeeFormat.digits(spec.taxPerProperty))
                 spec.kind == TileKind.TAX -> Strings.cbPerBuilding(RupeeFormat.digits(spec.taxPerBuilding))
                 else -> null
             }
@@ -247,8 +247,10 @@ private fun DrawScope.drawDeck(
         drawRoundRect(tint.copy(alpha = if (layer == 0) 1f else DECK_EDGE_ALPHA), o, Size(half * 2, half * 2), radius, style = Stroke(u * DECK_EDGE))
     }
     drawRoundRect(tint.copy(alpha = DECK_GLOW_ALPHA * glow), Offset(centre.x - half, centre.y - half), Size(half * 2, half * 2), radius, style = Stroke(u * DECK_GLOW))
-    val glyphLayout = measurer.measure(glyph, TextStyle(color = tint, fontSize = (u * DECK_GLYPH).toSp(), fontWeight = FontWeight.Bold))
-    val labelLayout = measurer.measure(label, TextStyle(color = tint, fontSize = (u * DECK_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center))
+    // Symbol and name (two words on two lines) kept inside the pile.
+    val room = half * 2 * DECK_TEXT_ROOM
+    val glyphLayout = fitText(measurer, glyph, TextStyle(color = tint, fontSize = (u * DECK_GLYPH).toSp(), fontWeight = FontWeight.Bold), room, room * DECK_GLYPH_SHARE, maxLines = 1)
+    val labelLayout = fitText(measurer, tileLines(label), TextStyle(color = tint, fontSize = (u * DECK_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), room, room * DECK_LABEL_SHARE)
     drawLines(centre, 0f, listOf(glyphLayout, labelLayout))
 }
 
@@ -296,8 +298,11 @@ private const val DECK_EDGE = 0.04f
 private const val DECK_EDGE_ALPHA = 0.7f
 private const val DECK_GLOW = 0.2f
 private const val DECK_GLOW_ALPHA = 0.35f
-private const val DECK_GLYPH = 0.7f
-private const val DECK_TEXT = 0.24f
+private const val DECK_GLYPH = 0.55f
+private const val DECK_TEXT = 0.22f
+private const val DECK_TEXT_ROOM = 0.8f
+private const val DECK_GLYPH_SHARE = 0.45f
+private const val DECK_LABEL_SHARE = 0.45f
 private const val PAWN_BASE = 0.2f
 private const val PAWN_HEIGHT = 0.42f
 private const val PAWN_HEAD = 0.12f

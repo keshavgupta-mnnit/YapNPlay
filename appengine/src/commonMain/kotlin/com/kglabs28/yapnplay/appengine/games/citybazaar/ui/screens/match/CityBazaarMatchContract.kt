@@ -42,7 +42,7 @@ data class CityBazaarMatchState(
     /** A short balance-sheet note at the top (rent, tax, cards); goes by itself. */
     val toast: CbToastUi? = null,
     val modal: CbModal? = null,
-    /** Info over the left column (a tapped tile or player); any touch elsewhere closes it. */
+    /** Info in the left column (a tapped tile, player, pile or stack); any touch elsewhere closes it. */
     val panel: CbPanel? = null,
 ) : UiState
 
@@ -80,8 +80,11 @@ data class CbSheetRowUi(val label: String, val amount: String, val kind: CbRowKi
 
 enum class CbRowKind { NORMAL, MINUS, PLUS, TOTAL }
 
-/** One line of a rate card; [highlighted] glows (the current tier, or the next). */
-data class CbRateRowUi(val label: String, val rent: String, val highlighted: Boolean)
+/**
+ * One line of a rate card; [highlighted] glows (the current tier, or the
+ * next). [gain]: a Luck / Shagun Chest row that pays (true) or costs (false).
+ */
+data class CbRateRowUi(val label: String, val rent: String, val highlighted: Boolean, val gain: Boolean? = null)
 
 /**
  * A city's card: rent per tier (the current one highlighted), what it earns
@@ -101,8 +104,16 @@ data class CbPropertyCardUi(
     val ownerColour: CityBazaarColour?,
 )
 
-/** The info panel over the left column: a tapped tile's card, or a tapped player. */
+/**
+ * The info panel in the left column (in place of the other players): a
+ * tapped tile's card, a player, a Luck / Shagun Chest table, or the
+ * user's cities.
+ */
 sealed interface CbPanel {
+    /** Luck or Shagun Chest: what each dice total (2–12) does. */
+    data class Deck(val deck: CardDeck, val title: String, val body: String, val rows: List<CbRateRowUi>) : CbPanel
+    /** The user's cities (a colour stack, or all of them). */
+    data class Cities(val title: String, val cards: List<CbPropertyCardUi>) : CbPanel
     data class Property(val card: CbPropertyCardUi) : CbPanel
     /** A player's balance and worth, and each of their properties with the rent it earns now. */
     data class Player(val name: String, val colour: CityBazaarColour, val sheet: List<CbSheetRowUi>, val cities: List<CbOwnedRowUi>) : CbPanel
@@ -180,12 +191,6 @@ sealed interface CbModal {
         val canBid: Boolean,
         val countdown: String,
     ) : CbModal
-
-    /** Cards of the user's cities (a colour stack, or all of them). */
-    data class Properties(val title: String, val cards: List<CbPropertyCardUi>) : CbModal
-
-    /** Luck or Shagun Chest: what each dice total (2–12) does. */
-    data class CardTable(val title: String, val group: CityGroup?, val rows: List<CbRateRowUi>) : CbModal
 
     data class Result(val rows: List<CbResultRowUi>) : CbModal
     data object LeaveConfirm : CbModal

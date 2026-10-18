@@ -2,7 +2,6 @@ package com.kglabs28.yapnplay.appengine.di
 
 import com.kglabs28.yapnplay.appengine.features.profile.data.ProfileRepositoryImpl
 import com.kglabs28.yapnplay.appengine.features.profile.data.local.ProfileLocalManager
-import com.kglabs28.yapnplay.appengine.features.profile.data.remote.FakeProfileServer
 import com.kglabs28.yapnplay.appengine.features.profile.data.remote.ProfileApi
 import com.kglabs28.yapnplay.appengine.features.profile.data.remote.ProfileApiClient
 import com.kglabs28.yapnplay.appengine.features.profile.data.remote.ProfileRemoteManager
@@ -24,8 +23,7 @@ import org.koin.dsl.module
  * swapping one line. Managers and repository stay untouched.
  */
 val profileModule = module {
-    single { FakeProfileServer(get()) }
-    single<ProfileApi> { ProfileApiClient(get(), get()) }
+    single<ProfileApi> { ProfileApiClient(get()) }
     single { ProfileRemoteManager(get()) }
     single { ProfileLocalManager() }
     single<ProfileRepository> { ProfileRepositoryImpl(get(), get()) }

@@ -1,7 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.data.PlayRoomLobbyRepositoryImpl
-import com.kglabs28.yapnplay.appengine.features.playroomlobby.data.remote.FakeLobbyServer
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.data.remote.LobbyRealtimeClient
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.data.remote.LobbyRealtimeClientImpl
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.repository.PlayRoomLobbyRepository
@@ -13,8 +12,7 @@ import org.koin.dsl.module
 
 /** Play-room lobby: fake server today, WebSocket room channel later. */
 val playRoomLobbyModule = module {
-    single { FakeLobbyServer(get(), get(), get()) }
-    single<LobbyRealtimeClient> { LobbyRealtimeClientImpl(get()) }
+    single<LobbyRealtimeClient> { LobbyRealtimeClientImpl(get(), get(), get(), get()) }
     single<PlayRoomLobbyRepository> { PlayRoomLobbyRepositoryImpl(get(), get(), get()) }
     factory { ObservePlayRoomLobbyUseCase(get(), get(), get()) }
     factory { SendLobbyCommandUseCase(get()) }

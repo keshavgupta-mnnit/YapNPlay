@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Debug builds only: allow plain http/ws to a backend on the laptop
+    (10.0.2.2 from the emulator, or the laptop's Wi-Fi address from a phone).
+    Release builds keep Android's default: encrypted (https/wss) only.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -1,56 +1,39 @@
 package com.kglabs28.yapnplay.appengine.features.playrooms.data.remote
 
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
-import com.kglabs28.yapnplay.appengine.core.common.FakeDataProvider
-import com.kglabs28.yapnplay.appengine.protocol.MyRooms
+import com.kglabs28.yapnplay.appengine.core.network.BackendPaths
+import com.kglabs28.yapnplay.appengine.core.network.RealtimeConnection
+import com.kglabs28.yapnplay.appengine.protocol.CreateRoom
+import com.kglabs28.yapnplay.appengine.protocol.JoinRoom
 import com.kglabs28.yapnplay.appengine.protocol.JoinRoomResult
+import com.kglabs28.yapnplay.appengine.protocol.MyRooms
 import com.kglabs28.yapnplay.appengine.protocol.RoomPreview
-import com.kglabs28.yapnplay.appengine.protocol.RoomSummary
+import com.kglabs28.yapnplay.appengine.protocol.RoomSnapshot
+import com.kglabs28.yapnplay.appengine.protocol.transport.Channel
+import com.kglabs28.yapnplay.appengine.protocol.transport.MessageType
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import kotlinx.coroutines.delay
 
 /**
- * Play-rooms client. TODAY: serves from [FakeDataProvider] with a
- * network-like delay so the UI behaves exactly as it will in production.
- *
- * LATER (backend ready): uncomment the real calls below, delete the fake
- * `delay + return` lines. The interface stays, so remote manager,
- * repository, view model and screen are untouched.
+ * Play rooms: the list and previews over HTTP; joining and creating over
+ * the WebSocket ROOM channel (they change who is present where).
  */
 class PlayRoomsApiClient(
     private val client: HttpClient,
+    private val realtime: RealtimeConnection,
 ) : PlayRoomsApi {
 
-    override suspend fun getMyRooms(): MyRooms {
-        // --- production path (uncomment when backend is live) ---
-        // return client.get(AppConstants.SERVER_BASE_URL + "/rooms/mine").body()
+    override suspend fun getMyRooms(): MyRooms = client.get(BackendPaths.MY_ROOMS).body()
 
-        // --- fake path (delete when switching to production) ---
-        delay(FakeDataProvider.NETWORK_DELAY_MS)
-        return FakeDataProvider.PlayRooms.myRooms
-    }
-
-    override suspend fun previewRoom(code: String): RoomPreview {
-        // --- production path (uncomment when backend is live) ---
-        // return client.get(AppConstants.SERVER_BASE_URL + "/rooms/preview/" + code).body()
-
-        // --- fake path (delete when switching to production) ---
-        delay(FakeDataProvider.NETWORK_DELAY_MS)
-        return FakeDataProvider.PlayRooms.preview(code)
-    }
+    override suspend fun previewRoom(code: String): RoomPreview = client.get(BackendPaths.roomPreview(code)).body()
 
     override suspend fun joinRoom(code: String): JoinRoomResult {
-        // --- production path (needs the WebSocket connection manager, Phase 12) ---
-        // return realtime.request<JoinRoomResult>(
-        //     channel = Channel.ROOM,
-        //     type = MessageType.JOIN_ROOM,
-        //     payload = JoinRoom(code = code),
-        // )
+        val reply = realtime.request(Channel.ROOM, MessageType.JOIN_ROOM, JoinRoom.serializer(), JoinRoom(code))
+        return realtime.decode(reply, JoinRoomResult.serializer())
+    }
 
-        // --- fake path (delete when switching to production) ---
-        delay(FakeDataProvider.NETWORK_DELAY_MS)
-        return FakeDataProvider.PlayRooms.joinResult(code)
+    override suspend fun createRoom(name: String?): String {
+        val reply = realtime.request(Channel.ROOM, MessageType.CREATE_ROOM, CreateRoom.serializer(), CreateRoom(name))
+        return realtime.decode(reply, RoomSnapshot.serializer()).room.id
     }
 }

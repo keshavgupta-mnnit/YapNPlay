@@ -10,6 +10,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.layoutTierFor
 import com.kglabs28.yapnplay.appengine.navigation.YapNPlayNavHost
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlayHost
+import com.kglabs28.yapnplay.appengine.ui.components.common.ConnectionGate
 import com.kglabs28.yapnplay.appengine.ui.components.common.RequestStartupPermissions
 
 /**
@@ -38,11 +39,14 @@ fun YapNPlayRoot(
             // Mic + notifications, asked once per launch for anything not yet granted.
             RequestStartupPermissions()
             BlockingOverlayHost {
-                YapNPlayNavHost(
-                    modifier = Modifier.fillMaxSize(),
-                    deepLink = deepLink,
-                    onDeepLinkHandled = onDeepLinkHandled,
-                )
+                // Screens open only once the backend answers (no empty pages).
+                ConnectionGate {
+                    YapNPlayNavHost(
+                        modifier = Modifier.fillMaxSize(),
+                        deepLink = deepLink,
+                        onDeepLinkHandled = onDeepLinkHandled,
+                    )
+                }
             }
         }
     }

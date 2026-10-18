@@ -2,6 +2,7 @@ package com.kglabs28.yapnplay.appengine.ui.screens.main
 
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
+import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.GetActiveMatchUseCase
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.common.TextUtils
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
@@ -24,6 +25,7 @@ class MainViewModel(
     observeMyProfile: ObserveMyProfileUseCase,
     observeNotifications: ObserveNotificationsUseCase,
     private val markNotificationsRead: MarkNotificationsReadUseCase,
+    private val getActiveMatch: GetActiveMatchUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MainState, MainIntent, MainEffect>(MainState(), dispatchers) {
@@ -50,7 +52,15 @@ class MainViewModel(
     override suspend fun handleIntent(intent: MainIntent) {
         when (intent) {
             is MainIntent.SelectTab -> setState { copy(selectedTab = intent.tab) }
-            MainIntent.LoadProfile -> load()
+            MainIntent.LoadProfile -> {
+                load()
+                checkActiveMatch()
+            }
+            MainIntent.Rejoin -> state.value.rejoin?.let {
+                setState { copy(rejoin = null) }
+                emitEffect(MainEffect.OpenMatch(it.gameId, it.matchId))
+            }
+            MainIntent.DismissRejoin -> setState { copy(rejoin = null) }
             MainIntent.OpenSettings -> emitEffect(MainEffect.OpenSettingsDialog)
             MainIntent.ToggleNotifications ->
                 if (state.value.notificationsOpen) closeNotifications() else openNotifications()
@@ -91,6 +101,12 @@ class MainViewModel(
                 unreadNotifications = history.count { !it.read },
             )
         }
+    }
+
+    /** Back on the dashboard with a match still running for the user: offer to rejoin. */
+    private suspend fun checkActiveMatch() {
+        val match = (getActiveMatch() as? AppResult.Success)?.data
+        setState { copy(rejoin = match?.let { RejoinUi(it.matchId, it.gameId, it.title) }) }
     }
 
     private suspend fun load() {

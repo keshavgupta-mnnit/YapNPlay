@@ -12,4 +12,7 @@ enum class Channel {
 
     /** Public Quick Play search (JoinQueue, QueueStatus, MatchFound). */
     MATCHMAKING,
+
+    /** Voice-chat reports and votes (ReportPlayer, CastReportVote, …). */
+    MODERATION,
 }

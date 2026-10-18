@@ -70,6 +70,8 @@ data class CbPlayerCardUi(
     val timerFraction: Float,
     val status: String?,
     val mutedForMe: Boolean,
+    /** False for a CPU: no voice wave and no mute button (it never talks). */
+    val canSpeak: Boolean = true,
     val out: Boolean,
 )
 

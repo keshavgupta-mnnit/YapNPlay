@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.core.network.MatchGoneException
 import com.kglabs28.yapnplay.appengine.core.audio.GameAudio
 import com.kglabs28.yapnplay.appengine.core.audio.GameSound
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
@@ -180,7 +181,7 @@ class CityBazaarMatchViewModel(
                 if (match?.me != null) send(CityBazaarCommand.Leave)
                 emitEffect(CityBazaarMatchEffect.Close)
             }
-            CityBazaarMatchIntent.DismissModal -> showModal(null)
+            CityBazaarMatchIntent.DismissModal -> if (matchGone) emitEffect(CityBazaarMatchEffect.Close) else showModal(null)
             CityBazaarMatchIntent.OpenSettings -> showSettings()
             CityBazaarMatchIntent.ToggleEffects -> {
                 audio.setEffectsOn(!audio.settings.value.effectsOn)
@@ -204,12 +205,23 @@ class CityBazaarMatchViewModel(
         }
     }
 
+    /** The backend no longer has this match; closing the message closes the table. */
+    private var matchGone = false
+
     private fun load(id: String) {
         if (matchId == id) return
         matchId = id
         jobs.forEach { it.cancel() }
         jobs = listOf(
-            scope.launch { observeMatch(id).collect { queue.send(it) } },
+            scope.launch {
+                try {
+                    observeMatch(id).collect { queue.send(it) }
+                } catch (e: MatchGoneException) {
+                    // The server lost the match (e.g. it restarted): say so, then close the table.
+                    matchGone = true
+                    showModal(CbModal.ReportOutcome(Strings.matchGoneTitle, Strings.matchGoneBody))
+                }
+            },
             scope.launch { for (update in queue) play(update) },
             scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
             scope.launch { observeMySpeaking().collect { mySpeaking = it; render() } },

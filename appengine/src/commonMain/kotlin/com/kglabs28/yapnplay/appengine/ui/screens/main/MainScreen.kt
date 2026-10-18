@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
+import com.kglabs28.yapnplay.appengine.ui.components.common.RejoinMatchCard
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
@@ -53,8 +55,18 @@ fun MainScreen(
         viewModel?.effects?.collect { effect ->
             when (effect) {
                 is MainEffect.OpenRoom -> onOpenRoom(effect.roomId)
+                is MainEffect.OpenMatch -> onOpenMatch(effect.gameId, effect.matchId)
                 MainEffect.OpenSettingsDialog -> Unit
             }
+        }
+    }
+    state.rejoin?.let { rejoin ->
+        BlockingOverlay(visible = true, onDismiss = { viewModel?.onIntent(MainIntent.DismissRejoin) }) {
+            RejoinMatchCard(
+                title = rejoin.title,
+                onRejoin = { viewModel?.onIntent(MainIntent.Rejoin) },
+                onDismiss = { viewModel?.onIntent(MainIntent.DismissRejoin) },
+            )
         }
     }
     // An invite link was opened: show the Rooms tab, which asks to join.

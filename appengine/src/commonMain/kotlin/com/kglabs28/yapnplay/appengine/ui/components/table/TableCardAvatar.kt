@@ -30,7 +30,8 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.PresetAvatarArtwork
 /**
  * The player-card avatar from the design: their preset avatar in a rounded
  * square framed in the player's [tint], and their [level] in a small badge across the bottom
- * edge. (Talking shows as the card's voice wave, not on the avatar.)
+ * edge (no badge when [level] is blank, e.g. a CPU). (Talking shows as the
+ * card's voice wave, not on the avatar.)
  */
 @Composable
 fun TableCardAvatar(
@@ -62,7 +63,7 @@ fun TableCardAvatar(
                 AppIcon(imageVector = Icons.Rounded.Person, tint = colors.IconMuted, size = size * ICON_SHARE)
             }
         }
-        BasicText(
+        if (level.isNotBlank()) BasicText(
             text = level,
             style = YapNPlayTheme.typography.micro.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
             maxLines = 1,

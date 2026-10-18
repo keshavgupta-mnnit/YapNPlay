@@ -1,17 +1,16 @@
 package com.kglabs28.yapnplay.appengine.protocol.transport
 
 /**
- * The contract version. Any change to a contract module bumps this
- * and is announced to all development chats.
+ * The contract version. Any change bumps this, is written in
+ * docs/backend-api-contract.md, and the golden files change with it.
  *
- * Current: 0.3.0 — Quick Play matchmaking channel (JoinQueue, LeaveQueue,
- * QueueStatus, MatchFound, QueueCancelled), SelectGame, SetBotFill +
- * RoomInfo.botFill, lobby (adminId, description, houseRules, member
- * watching/micOn/speakerOn/isFriend/onlineSince, SetHouseRule,
- * SetWatching, SetVoiceState, TransferLeader, TransferAdmin, NOT_ADMIN),
- * GameDescriptor.houseRuleOptions/fixedRules, CPU seats, MatchmakingConfig.seats,
- * GameDescriptor.matchmaking/showcase, optional Me progression fields,
- * RoomSummary leader/icon, Friends, OnlineStats, new error codes.
- * Previous: 0.2.0 — app-engine restructure.
+ * 0.4.0 — matches on the server: MatchSnapshot gains gameId, title,
+ * roomId, startedAt, spectators, seatOffer, events; SeatInfo gains
+ * displayName, level, micOn, presence; TurnInfo.deadline nullable; Colour
+ * PURPLE/ORANGE; GameAction, SetAutoplay, SetMic; Royal Ludo and City
+ * Bazaar public state / events / actions; MODERATION channel; join
+ * approval (ApproveJoin, DeclineJoin, RoomInfo.waitingList, JoinApproved);
+ * error codes BLOCKED, SEAT_TAKEN, VOICE_UNAVAILABLE; JoinRoomResult reply type.
+ * 0.3.0 — Quick Play matchmaking, lobby, CPU seats.
  */
-const val CONTRACT_VERSION: String = "0.3.1"
+const val CONTRACT_VERSION: String = "0.4.0"

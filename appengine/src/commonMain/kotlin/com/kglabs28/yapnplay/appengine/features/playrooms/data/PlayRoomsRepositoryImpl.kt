@@ -45,4 +45,7 @@ class PlayRoomsRepositoryImpl(
                 if (joined != null) local.addRoom(joined.room)
             }
         }
+
+    override suspend fun createRoom(name: String?): AppResult<String> =
+        withContext(dispatchers.io) { remote.createRoom(name) }
 }

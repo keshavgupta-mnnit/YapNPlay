@@ -91,6 +91,8 @@ data class LudoPlayerCardUi(
     val placeLabel: String?,
     /** The user muted this player for themselves only. */
     val mutedForMe: Boolean,
+    /** False for a CPU: no voice wave and no mute button (it never talks). */
+    val canSpeak: Boolean = true,
     /** "Offered" while their seat changes hands, "Away" or "Bot" while the server plays for them; null otherwise. */
     val statusLabel: String? = null,
 )

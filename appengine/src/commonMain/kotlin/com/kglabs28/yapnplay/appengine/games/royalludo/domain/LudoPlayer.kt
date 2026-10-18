@@ -15,4 +15,6 @@ data class LudoPlayer(
     /** At the table, away (the server plays for them) or handed to the bot. */
     val presence: LudoPresence = LudoPresence.PLAYING,
     val avatarId: String = "",
+    /** A CPU filling an empty Quick Play seat (no level shown). */
+    val isCpu: Boolean = false,
 )

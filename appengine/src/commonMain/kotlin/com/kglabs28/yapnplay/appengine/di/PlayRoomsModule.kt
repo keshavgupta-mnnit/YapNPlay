@@ -6,6 +6,7 @@ import com.kglabs28.yapnplay.appengine.features.playrooms.data.remote.PlayRoomsA
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.remote.PlayRoomsApiClient
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.remote.PlayRoomsRemoteManager
 import com.kglabs28.yapnplay.appengine.features.playrooms.repository.PlayRoomsRepository
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.CreatePlayRoomUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.GetPlayRoomsScreenDataUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.JoinPlayRoomByCodeUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.PreviewPlayRoomUseCase
@@ -16,11 +17,12 @@ import org.koin.dsl.module
  * uncommenting the client calls. Managers and repository stay untouched.
  */
 val playRoomsModule = module {
-    single<PlayRoomsApi> { PlayRoomsApiClient(get()) }
+    single<PlayRoomsApi> { PlayRoomsApiClient(get(), get()) }
     single { PlayRoomsRemoteManager(get()) }
     single { PlayRoomsLocalManager() }
     single<PlayRoomsRepository> { PlayRoomsRepositoryImpl(get(), get(), get()) }
     factory { GetPlayRoomsScreenDataUseCase(get(), get()) }
     factory { JoinPlayRoomByCodeUseCase(get(), get()) }
     factory { PreviewPlayRoomUseCase(get()) }
+    factory { CreatePlayRoomUseCase(get()) }
 }

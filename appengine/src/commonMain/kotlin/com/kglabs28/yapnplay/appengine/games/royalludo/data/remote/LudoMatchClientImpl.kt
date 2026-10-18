@@ -1,57 +1,61 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.data.remote
 
+import com.kglabs28.yapnplay.appengine.core.common.AppClock
+import com.kglabs28.yapnplay.appengine.core.network.BackendSession
+import com.kglabs28.yapnplay.appengine.core.network.MatchChannel
+import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceClient
+import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceTarget
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoCommand
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoUpdate
+import com.kglabs28.yapnplay.appengine.protocol.transport.MessageType
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 /**
- * Match client. TODAY: every call goes to [FakeLudoMatchServer], which
- * runs the real engine on the device.
- *
- * LATER (backend ready): uncomment the production paths (WebSocket
- * connection manager, report Phase 12; voice client, Phase 13), map
- * `MatchSnapshot` + `MatchEvent` to [LudoUpdate] with the game's public
- * state, and delete the fake lines. Nothing above changes.
+ * Royal Ludo over the MATCH channel: snapshots in, one message per
+ * command out. Who is talking comes from the
+ * table's LiveKit voice room, joined while the match is open.
  */
 class LudoMatchClientImpl(
-    private val fakeServer: FakeLudoMatchServer,
+    private val match: MatchChannel,
+    private val mapper: LudoSnapshotMapper,
+    private val session: BackendSession,
+    private val clock: AppClock,
+    private val voice: VoiceClient,
 ) : LudoMatchClient {
 
-    override fun observeMatch(matchId: String): Flow<LudoUpdate> {
-        // --- production path ---
-        // return realtime.stream(Channel.MATCH)
-        //     .onStart { realtime.send(Channel.MATCH, MessageType.MATCH_REQUEST_SNAPSHOT, MatchRequestSnapshot(matchId, lastVersion = 0)) }
-        //     .filter { it.type == MessageType.MATCH_SNAPSHOT }
-        //     .map { it.decode<MatchSnapshot>().toLudoUpdate(myUserId) }
+    override fun observeMatch(matchId: String): Flow<LudoUpdate> =
+        match.snapshots(matchId).map { mapper.map(it, session.currentUserId().orEmpty(), clock.now()) }
 
-        // --- fake path ---
-        return fakeServer.match(matchId)
-    }
-
-    override fun observeSpeaking(matchId: String): Flow<Set<String>> {
-        // --- production path ---
-        // return voiceClient.activeSpeakers
-
-        // --- fake path ---
-        return fakeServer.speaking()
-    }
+    override fun observeSpeaking(matchId: String): Flow<Set<String>> = voice.speakers(VoiceTarget.Match(matchId))
 
     override suspend fun send(matchId: String, command: LudoCommand) {
-        // --- production path: one match-channel message per command ---
-        // when (command) {
-        //     LudoCommand.Roll -> realtime.request(Channel.MATCH, MessageType.ROLL_DICE, RollDiceRequest(matchId))
-        //     is LudoCommand.Move -> realtime.request(Channel.MATCH, MessageType.MOVE_PIECE, MovePieceRequest(matchId, command.piece.toString()))
-        //     is LudoCommand.SetAutoplay -> realtime.request(Channel.MATCH, MessageType.SET_AUTOPLAY, SetAutoplay(matchId, command.enabled))
-        //     is LudoCommand.SetMic -> voiceClient.setMicEnabled(command.on)
-        //     is LudoCommand.Leave -> realtime.request(Channel.MATCH, MessageType.LEAVE_SEAT, LeaveSeat(matchId, command.giveToUserId))
-        //     LudoCommand.StillHere -> realtime.request(Channel.MATCH, MessageType.CONFIRM_PRESENCE, ConfirmPresence(matchId))
-        //     is LudoCommand.AnswerSeatOffer -> realtime.request(Channel.MATCH, MessageType.ANSWER_SEAT_OFFER, AnswerSeatOffer(matchId, command.accept))
-        //     is LudoCommand.ChooseSeatTaker -> realtime.request(Channel.MATCH, MessageType.CHOOSE_SEAT_TAKER, ChooseSeatTaker(matchId, command.giveToUserId))
-        //     is LudoCommand.SetAway -> realtime.request(Channel.MATCH, MessageType.SET_PRESENCE, SetPresence(matchId, command.away))
-        //     is LudoCommand.TakeSeat -> realtime.request(Channel.MATCH, MessageType.TAKE_SEAT, TakeSeat(matchId, command.seat))
-        // }
+        when (command) {
+            LudoCommand.Roll -> match.request(MessageType.ROLL_DICE, JsonObject.serializer(), buildJsonObject { put(MATCH_ID, matchId) })
+            is LudoCommand.Move -> match.request(
+                MessageType.MOVE_PIECE,
+                JsonObject.serializer(),
+                buildJsonObject {
+                    put(MATCH_ID, matchId)
+                    put(PIECE_ID, command.piece.toString())
+                },
+            )
+            is LudoCommand.SetAutoplay -> match.setAutoplay(matchId, command.enabled)
+            is LudoCommand.SetMic -> match.setMic(matchId, command.on)
+            is LudoCommand.Leave -> match.leave(matchId, command.giveToUserId)
+            LudoCommand.StillHere -> match.stillHere(matchId)
+            is LudoCommand.AnswerSeatOffer -> match.answerSeatOffer(matchId, command.accept)
+            is LudoCommand.ChooseSeatTaker -> match.chooseSeatTaker(matchId, command.giveToUserId)
+            is LudoCommand.SetAway -> match.setAway(matchId, command.away)
+            is LudoCommand.TakeSeat -> match.takeSeat(matchId, command.seat)
+        }
+    }
 
-        // --- fake path ---
-        fakeServer.handle(command)
+    private companion object {
+        const val MATCH_ID = "matchId"
+        const val PIECE_ID = "pieceId"
     }
 }

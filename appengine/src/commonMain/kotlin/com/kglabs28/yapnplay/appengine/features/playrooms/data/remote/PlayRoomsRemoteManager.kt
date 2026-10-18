@@ -1,6 +1,10 @@
 package com.kglabs28.yapnplay.appengine.features.playrooms.data.remote
 
+import com.kglabs28.yapnplay.appengine.appmanager.AppManagerConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
+import com.kglabs28.yapnplay.appengine.core.network.RealtimeRejectedException
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.JoinPlayRoomByCodeUseCase
+import com.kglabs28.yapnplay.appengine.protocol.ErrorCode
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.toDomain
@@ -32,6 +36,26 @@ class PlayRoomsRemoteManager(private val api: PlayRoomsApi) {
         AppResult.Success(api.joinRoom(code).toDomain())
     } catch (e: Exception) {
         CrashReporter.record(e, "PlayRoomsRemoteManager.joinRoom")
-        AppResult.Failure(YapNPlayError.Network("room join failed"))
+        AppResult.Failure(e.toJoinError())
+    }
+
+    suspend fun createRoom(name: String?): AppResult<String> = try {
+        AppResult.Success(api.createRoom(name))
+    } catch (e: Exception) {
+        CrashReporter.record(e, "PlayRoomsRemoteManager.createRoom")
+        AppResult.Failure(e.toJoinError())
+    }
+
+    /** The backend's reasons become the errors the rooms screen already explains. */
+    private fun Exception.toJoinError(): YapNPlayError = when ((this as? RealtimeRejectedException)?.code) {
+        ErrorCode.INVALID_CODE -> YapNPlayError.Validation(JoinPlayRoomByCodeUseCase.FIELD_ROOM_CODE)
+        ErrorCode.NOT_FOUND -> YapNPlayError.NotFound(NOT_FOUND_ROOM)
+        ErrorCode.ROOM_LIMIT_REACHED -> YapNPlayError.LimitReached(AppManagerConstants.Default.MAX_ROOMS_PER_USER)
+        else -> YapNPlayError.Network(message ?: NETWORK_FAILED)
+    }
+
+    private companion object {
+        const val NOT_FOUND_ROOM = "room"
+        const val NETWORK_FAILED = "room request failed"
     }
 }

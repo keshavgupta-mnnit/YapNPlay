@@ -23,4 +23,10 @@ enum class ErrorCode {
     ROOM_LIMIT_REACHED,
     ALREADY_IN_QUEUE,
     GAME_UNAVAILABLE,
+    /** A penalty blocks new matches until PenaltyIssued.blockedUntil. */
+    BLOCKED,
+    /** Someone else took the open seat first. */
+    SEAT_TAKEN,
+    /** Voice is not set up on this server. */
+    VOICE_UNAVAILABLE,
 }

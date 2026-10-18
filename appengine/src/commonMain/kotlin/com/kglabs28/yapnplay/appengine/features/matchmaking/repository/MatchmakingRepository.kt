@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.matchmaking.repository
 
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
+import com.kglabs28.yapnplay.appengine.features.matchmaking.domain.ActiveMatchInfo
 import com.kglabs28.yapnplay.appengine.features.matchmaking.domain.MatchmakingStatus
 import kotlinx.coroutines.flow.Flow
 
@@ -12,4 +13,6 @@ interface MatchmakingRepository {
     fun findMatch(gameId: String): Flow<MatchmakingStatus>
     suspend fun leaveQueue()
     suspend fun onlinePlayerCount(): AppResult<Int>
+    /** The unfinished match the user can rejoin, or null. */
+    suspend fun activeMatch(): AppResult<ActiveMatchInfo?>
 }

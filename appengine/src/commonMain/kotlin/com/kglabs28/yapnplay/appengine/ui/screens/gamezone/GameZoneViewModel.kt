@@ -77,15 +77,16 @@ class GameZoneViewModel(
     private suspend fun load() {
         if (state.value.loaded) return
         val games = getGameCatalog()
-        val online = (getOnlinePlayerCount() as? AppResult.Success)?.data
+        // Games show at once; the online count follows when the backend answers.
         setState {
             copy(
                 games = games,
                 focusedIndex = focusedIndex.coerceIn(0, (games.size - 1).coerceAtLeast(0)),
-                onlineLabel = online?.let { Strings.gameZoneOnline(TextUtils.groupedThousands(it)) }.orEmpty(),
                 loaded = true,
             )
         }
+        val online = (getOnlinePlayerCount() as? AppResult.Success)?.data ?: return
+        setState { copy(onlineLabel = Strings.gameZoneOnline(TextUtils.groupedThousands(online))) }
     }
 
     private fun focus(index: Int) {

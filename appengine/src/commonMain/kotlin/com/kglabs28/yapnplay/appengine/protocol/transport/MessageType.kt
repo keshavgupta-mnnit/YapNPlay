@@ -22,16 +22,32 @@ object MessageType {
     const val TRANSFER_LEADER = "TransferLeader"
     const val TRANSFER_ADMIN = "TransferAdmin"
     const val REMOVE_MEMBER = "RemoveMember"
+    const val APPROVE_JOIN = "ApproveJoin"
+    const val DECLINE_JOIN = "DeclineJoin"
 
     // ── Room channel: server to client ────────────────────────────────────
     const val ACK = "Ack"
     const val REJECTED = "Rejected"
     const val ROOM_SNAPSHOT = "RoomSnapshot"
     const val MATCH_STARTING = "MatchStarting"
+    /** Reply to JoinRoom. */
+    const val JOIN_ROOM_RESULT = "JoinRoomResult"
+    /** Pushed to someone whose join request the admin approved. */
+    const val JOIN_APPROVED = "JoinApproved"
 
     // ── Match channel: client to server ───────────────────────────────────
     const val ROLL_DICE = "RollDice"
     const val MOVE_PIECE = "MovePiece"
+    const val GAME_ACTION = "GameAction"
+    const val MATCH_REQUEST_SNAPSHOT = "MatchRequestSnapshot"
+    const val SET_AUTOPLAY = "SetAutoplay"
+    const val SET_MIC = "SetMic"
+    const val SET_PRESENCE = "SetPresence"
+    const val CONFIRM_PRESENCE = "ConfirmPresence"
+    const val LEAVE_SEAT = "LeaveSeat"
+    const val ANSWER_SEAT_OFFER = "AnswerSeatOffer"
+    const val CHOOSE_SEAT_TAKER = "ChooseSeatTaker"
+    const val TAKE_SEAT = "TakeSeat"
 
     // ── Match channel: server to client ───────────────────────────────────
     const val MATCH_SNAPSHOT = "MatchSnapshot"

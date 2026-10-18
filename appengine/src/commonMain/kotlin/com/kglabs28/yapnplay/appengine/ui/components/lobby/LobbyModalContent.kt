@@ -23,12 +23,14 @@ import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.MemberMenuO
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
+import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.LobbyModal
+import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.WaitingRequestUi
 
 /**
  * What the lobby shows inside its blocking overlay: a member options
  * menu (and the confirmation before any member operation), the fixed
- * rule sheet, the leave confirmation, the match
+ * rule sheet, the admin's Waiting List, the leave confirmation, the match
  * countdown, or the mic-permission explanation. One place, so the screen just passes the current modal.
  */
 @Composable
@@ -43,6 +45,9 @@ fun LobbyModalContent(
     onOpenSettings: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    waitingList: List<WaitingRequestUi> = emptyList(),
+    onApproveJoin: (String) -> Unit = {},
+    onDeclineJoin: (String) -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
@@ -102,6 +107,27 @@ fun LobbyModalContent(
             BasicText(text = Strings.lobbyRuleSheetSubtitle, style = typography.micro.copy(color = colors.TextSecondary))
             fixedRules.forEach { rule ->
                 BasicText(text = "•  $rule", style = typography.label.copy(color = colors.TextPrimary))
+            }
+        }
+        LobbyModal.WaitingList -> ModalCard(
+            title = Strings.lobbyWaitingList,
+            subtitle = Strings.lobbyWaitingListSubtitle,
+            modifier = modifier,
+            onClose = onDismiss,
+        ) {
+            if (waitingList.isEmpty()) {
+                EmptyStateText(text = Strings.lobbyWaitingListEmpty, modifier = Modifier.fillMaxWidth())
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+                    waitingList.forEach { request ->
+                        WaitingRequestRow(
+                            name = request.name,
+                            onApprove = { onApproveJoin(request.userId) },
+                            onDecline = { onDeclineJoin(request.userId) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
             }
         }
         LobbyModal.LeaveConfirm -> ModalCard(

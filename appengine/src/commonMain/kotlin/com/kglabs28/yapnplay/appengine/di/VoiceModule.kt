@@ -3,6 +3,7 @@ package com.kglabs28.yapnplay.appengine.di
 import com.kglabs28.yapnplay.appengine.features.voice.data.VoiceRepositoryImpl
 import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceClient
 import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceClientImpl
+import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceTokenApi
 import com.kglabs28.yapnplay.appengine.features.voice.domain.VoiceRepository
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveLocallyMutedUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMicOnUseCase
@@ -14,7 +15,9 @@ import org.koin.dsl.module
 
 /** Voice controls shared by every game and room: local mute, and the user's own mic. */
 val voiceModule = module {
-    single<VoiceClient> { VoiceClientImpl(get()) }
+    single { VoiceTokenApi(get()) }
+    // VoiceEngine (LiveKit on Android) comes from platformAppManagerModule.
+    single<VoiceClient> { VoiceClientImpl(get(), get(), get(), get(), get(APP_SCOPE)) }
     single<VoiceRepository> { VoiceRepositoryImpl(get()) }
     factory { ObserveLocallyMutedUseCase(get()) }
     factory { SetLocallyMutedUseCase(get()) }

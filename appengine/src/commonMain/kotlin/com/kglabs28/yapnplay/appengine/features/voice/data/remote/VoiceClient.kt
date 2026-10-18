@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.voice.data.remote
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -21,6 +22,13 @@ interface VoiceClient {
     /** True while the user is speaking into their open mic. */
     val mySpeaking: StateFlow<Boolean>
 
-    /** Opens or closes the user's mic (today: just listens to its level). */
+    /** Opens (publishes to the voice room) or closes the user's mic. */
     fun setMicOpen(open: Boolean)
+
+    /**
+     * While collected, this device is in [target]'s voice room and the
+     * flow gives who else is speaking there. When the screen stops
+     * collecting, the device leaves (back to the screen underneath, if any).
+     */
+    fun speakers(target: VoiceTarget): Flow<Set<String>>
 }

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.core.network.MatchGoneException
 import com.kglabs28.yapnplay.appengine.core.audio.GameAudio
 import com.kglabs28.yapnplay.appengine.core.audio.GameSound
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
@@ -153,7 +154,7 @@ class RoyalLudoMatchViewModel(
                 seatPick = null
                 send(LudoCommand.Leave(giveTo))
             }
-            RoyalLudoMatchIntent.DismissModal -> showModal(null)
+            RoyalLudoMatchIntent.DismissModal -> if (matchGone) emitEffect(RoyalLudoMatchEffect.Close) else showModal(null)
             RoyalLudoMatchIntent.OpenSettings -> showSettings()
             RoyalLudoMatchIntent.ToggleEffects -> {
                 audio.setEffectsOn(!audio.settings.value.effectsOn)
@@ -185,12 +186,23 @@ class RoyalLudoMatchViewModel(
         }
     }
 
+    /** The backend no longer has this match; closing the message closes the table. */
+    private var matchGone = false
+
     private fun load(id: String) {
         if (matchId == id) return
         matchId = id
         jobs.forEach { it.cancel() }
         jobs = listOf(
-            scope.launch { observeMatch(id).collect { queue.send(it) } },
+            scope.launch {
+                try {
+                    observeMatch(id).collect { queue.send(it) }
+                } catch (e: MatchGoneException) {
+                    // The server lost the match (e.g. it restarted): say so, then close the table.
+                    matchGone = true
+                    showModal(LudoMatchModal.ReportOutcome(Strings.matchGoneTitle, Strings.matchGoneBody))
+                }
+            },
             scope.launch { for (update in queue) play(update) },
             scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
             scope.launch { observeMySpeaking().collect { mySpeaking = it; render() } },

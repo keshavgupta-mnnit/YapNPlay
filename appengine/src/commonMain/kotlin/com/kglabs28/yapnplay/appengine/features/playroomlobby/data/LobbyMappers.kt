@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.playroomlobby.data
 
+import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.JoinRequest
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.LobbyMember
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.LobbyRoom
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
@@ -38,4 +39,5 @@ fun RoomSnapshot.toLobbyRoom(now: Instant): LobbyRoom = LobbyRoom(
     botFill = room.botFill,
     countdownEndsAt = room.countdownDeadline?.let { now + (it - serverTime).milliseconds },
     matchInProgress = room.matchInProgress,
+    waitingList = room.waitingList.map { JoinRequest(it.userId, it.displayName, it.requestedAt) },
 )

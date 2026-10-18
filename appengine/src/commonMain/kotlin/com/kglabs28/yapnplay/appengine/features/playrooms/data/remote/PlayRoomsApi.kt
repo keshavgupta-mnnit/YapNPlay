@@ -22,4 +22,7 @@ interface PlayRoomsApi {
      * admin approves from the Waiting List), a member gets JOINED.
      */
     suspend fun joinRoom(code: String): JoinRoomResult
+
+    /** WebSocket `CreateRoom(name?)`: the new room's id (the user is its member, leader and admin). */
+    suspend fun createRoom(name: String?): String
 }

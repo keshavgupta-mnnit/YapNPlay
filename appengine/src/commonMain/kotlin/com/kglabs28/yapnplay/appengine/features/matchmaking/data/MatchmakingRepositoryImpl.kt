@@ -7,6 +7,7 @@ import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
 import com.kglabs28.yapnplay.appengine.features.matchmaking.data.remote.MatchmakingClient
 import com.kglabs28.yapnplay.appengine.features.matchmaking.data.remote.MatchmakingMessage
+import com.kglabs28.yapnplay.appengine.features.matchmaking.domain.ActiveMatchInfo
 import com.kglabs28.yapnplay.appengine.features.matchmaking.domain.MatchmakingCancelReason
 import com.kglabs28.yapnplay.appengine.features.matchmaking.domain.MatchmakingStatus
 import com.kglabs28.yapnplay.appengine.features.matchmaking.repository.MatchmakingRepository
@@ -53,6 +54,15 @@ class MatchmakingRepositoryImpl(
         } catch (e: Exception) {
             CrashReporter.record(e, "MatchmakingRepository.onlinePlayerCount")
             AppResult.Failure(YapNPlayError.Network("online stats failed"))
+        }
+    }
+
+    override suspend fun activeMatch(): AppResult<ActiveMatchInfo?> = withContext(dispatchers.io) {
+        try {
+            AppResult.Success(client.activeMatch()?.let { ActiveMatchInfo(it.matchId, it.gameId, it.title) })
+        } catch (e: Exception) {
+            CrashReporter.record(e, "MatchmakingRepository.activeMatch")
+            AppResult.Failure(YapNPlayError.Network("active match failed"))
         }
     }
 

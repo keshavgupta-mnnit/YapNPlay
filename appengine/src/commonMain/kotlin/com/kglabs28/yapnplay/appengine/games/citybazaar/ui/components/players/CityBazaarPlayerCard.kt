@@ -95,9 +95,9 @@ fun CityBazaarPlayerCard(
                     val cashStyle = if (compact) typography.micro else typography.label
                     BasicText(text = card.name, style = nameStyle.copy(color = tint), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     BasicText(text = Strings.cbRupees(RupeeFormat.digits(shownCash)), style = cashStyle.copy(color = cashColour, fontWeight = FontWeight.Bold), maxLines = 1)
-                    TableTalkWave(talking = card.talking)
+                    if (card.canSpeak) TableTalkWave(talking = card.talking)
                 }
-                if (!card.isMe) {
+                if (!card.isMe && card.canSpeak) {
                     TableMuteButton(
                         muted = card.mutedForMe,
                         description = Strings.ludoMuteFor(card.name),

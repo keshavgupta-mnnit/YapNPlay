@@ -33,9 +33,14 @@ data class PlayRoomLobbyState(
     val primary: LobbyPrimaryButtonUi = LobbyPrimaryButtonUi(),
     val micOn: Boolean = false,
     val speakerOn: Boolean = false,
+    /** People asking to join (admin only). */
+    val waitingList: List<WaitingRequestUi> = emptyList(),
     /** At most one modal at a time; null when none. */
     val modal: LobbyModal? = null,
 ) : UiState
+
+/** One Waiting List entry, ready to draw. */
+data class WaitingRequestUi(val userId: String, val name: String)
 
 /** One member card, ready to draw. */
 data class LobbyMemberUi(
@@ -76,6 +81,8 @@ sealed interface LobbyModal {
     /** "Make Neha the leader?" before any member operation is sent. */
     data class ConfirmMemberAction(val userId: String, val name: String, val option: MemberMenuOption) : LobbyModal
     data object RuleSheet : LobbyModal
+    /** The admin's Waiting List; its entries come from the state, so it stays live. */
+    data object WaitingList : LobbyModal
     data object LeaveConfirm : LobbyModal
     data class Countdown(val title: String, val canCancel: Boolean) : LobbyModal
     /** Mic permission was refused: explain and offer Settings. */
@@ -110,6 +117,8 @@ sealed interface PlayRoomLobbyIntent : UiIntent {
     data object DismissModal : PlayRoomLobbyIntent
     data object Back : PlayRoomLobbyIntent
     data object OpenWaitingList : PlayRoomLobbyIntent
+    data class ApproveJoin(val userId: String) : PlayRoomLobbyIntent
+    data class DeclineJoin(val userId: String) : PlayRoomLobbyIntent
     data object OpenLeaderboard : PlayRoomLobbyIntent
     data object ShareLink : PlayRoomLobbyIntent
 }

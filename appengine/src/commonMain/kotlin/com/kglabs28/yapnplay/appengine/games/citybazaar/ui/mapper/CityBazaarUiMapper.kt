@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper
 
+import com.kglabs28.yapnplay.appengine.ui.components.profile.AvatarPresets
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.table.AvatarRing
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableAvatarUi
@@ -67,11 +68,14 @@ object CityBazaarUiMapper {
             val isTurn = p.seat == match.currentSeat && !finished && !p.bankrupt
             val muted = p.userId in inputs.mutedForMe
             val place = match.ranking.indexOf(p.seat)
+            // A seat the CPU plays for someone who left looks just like a CPU seat.
+            val cpuPlays = p.isCpu || p.presence == CityBazaarPresence.BOT
             CbPlayerCardUi(
                 seat = p.seat,
-                name = p.name,
-                avatarId = p.avatarId,
-                level = p.level.toString(),
+                name = if (cpuPlays && !p.isCpu) Strings.seatBot else p.name,
+                avatarId = if (cpuPlays && !p.isCpu) AvatarPresets.CPU else p.avatarId,
+                // CPUs have no level.
+                level = if (cpuPlays) "" else p.level.toString(),
                 colour = p.colour,
                 cash = inputs.cash[p.seat] ?: p.cash,
                 isMe = p.isMe,
@@ -84,10 +88,10 @@ object CityBazaarUiMapper {
                     p.inJail && p.halfRent -> Strings.cbStatusHalf
                     p.inJail -> Strings.cbStatusJail
                     p.presence == CityBazaarPresence.AWAY -> Strings.cbStatusAway
-                    p.presence == CityBazaarPresence.BOT -> Strings.cbStatusBot
                     else -> null
                 },
                 mutedForMe = muted,
+                canSpeak = !cpuPlays,
                 out = p.bankrupt,
             )
         }

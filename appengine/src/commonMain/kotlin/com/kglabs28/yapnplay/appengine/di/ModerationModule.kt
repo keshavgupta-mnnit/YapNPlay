@@ -1,7 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
 import com.kglabs28.yapnplay.appengine.features.moderation.data.ModerationRepositoryImpl
-import com.kglabs28.yapnplay.appengine.features.moderation.data.remote.FakeModerationServer
 import com.kglabs28.yapnplay.appengine.features.moderation.data.remote.ModerationClient
 import com.kglabs28.yapnplay.appengine.features.moderation.data.remote.ModerationClientImpl
 import com.kglabs28.yapnplay.appengine.features.moderation.domain.ModerationRepository
@@ -16,8 +15,7 @@ import org.koin.dsl.module
 
 /** Voice-chat reports, votes and penalties — shared by every game and room. */
 val moderationModule = module {
-    single { FakeModerationServer(get(), get()) }
-    single<ModerationClient> { ModerationClientImpl(get()) }
+    single<ModerationClient> { ModerationClientImpl(get(), get()) }
     single<ModerationRepository> { ModerationRepositoryImpl(get(), get()) }
     factory { ReportPlayerUseCase(get()) }
     factory { ObserveReportVoteRequestsUseCase(get()) }

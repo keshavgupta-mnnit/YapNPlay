@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.matchmaking.data.remote
 
+import com.kglabs28.yapnplay.appengine.protocol.ActiveMatch
 import com.kglabs28.yapnplay.appengine.protocol.OnlineStats
 import kotlinx.coroutines.flow.Flow
 
@@ -16,4 +17,7 @@ interface MatchmakingClient {
 
     /** `GET /stats/online` */
     suspend fun onlineStats(): OnlineStats
+
+    /** `GET /matches/active`: null when the user has no match to rejoin (204). */
+    suspend fun activeMatch(): ActiveMatch?
 }

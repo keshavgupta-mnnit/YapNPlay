@@ -26,7 +26,12 @@ data class MainState(
     val notifications: List<NotificationUi> = emptyList(),
     val unreadNotifications: Int = 0,
     val notificationsOpen: Boolean = false,
+    /** A match the user still has a seat in: "Rejoin?" dialog; null when none. */
+    val rejoin: RejoinUi? = null,
 ) : UiState
+
+/** The "your game is still on" dialog. */
+data class RejoinUi(val matchId: String, val gameId: String, val title: String)
 
 /** One row of the bell's drop-down. */
 data class NotificationUi(
@@ -47,9 +52,12 @@ sealed interface MainIntent : UiIntent {
     /** Drop-down closed by tapping outside or back. */
     data object DismissNotifications : MainIntent
     data class NotificationClicked(val roomId: String) : MainIntent
+    data object Rejoin : MainIntent
+    data object DismissRejoin : MainIntent
 }
 
 sealed interface MainEffect : UiEffect {
     data object OpenSettingsDialog : MainEffect
     data class OpenRoom(val roomId: String) : MainEffect
+    data class OpenMatch(val gameId: String, val matchId: String) : MainEffect
 }

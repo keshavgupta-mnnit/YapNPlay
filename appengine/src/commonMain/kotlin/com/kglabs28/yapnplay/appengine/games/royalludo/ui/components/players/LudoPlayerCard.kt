@@ -78,9 +78,9 @@ fun LudoPlayerCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    TableTalkWave(talking = card.talking)
+                    if (card.canSpeak) TableTalkWave(talking = card.talking)
                 }
-                if (!card.isMe) {
+                if (!card.isMe && card.canSpeak) {
                     TableMuteButton(muted = card.mutedForMe, description = Strings.ludoMuteFor(card.name), onToggle = onToggleHear)
                 }
             }

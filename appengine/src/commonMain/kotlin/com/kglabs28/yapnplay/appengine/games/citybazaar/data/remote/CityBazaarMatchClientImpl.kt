@@ -1,42 +1,67 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.data.remote
 
+import com.kglabs28.yapnplay.appengine.core.common.AppClock
+import com.kglabs28.yapnplay.appengine.core.network.BackendSession
+import com.kglabs28.yapnplay.appengine.core.network.MatchChannel
+import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceClient
+import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceTarget
+import com.kglabs28.yapnplay.appengine.games.citybazaar.data.remote.wire.CityBazaarWireAction
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarCommand
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarUpdate
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 
 /**
- * Match client. TODAY: every call goes to [FakeCityBazaarServer], which
- * runs the real engine on the device. LATER: the production paths below
- * (same match channel as Royal Ludo, game-specific actions).
+ * City Bazaar over the MATCH channel: snapshots in; moves go out as
+ * `GameAction` with the game's own action types. Who is talking comes from the
+ * table's LiveKit voice room, joined while the match is open.
  */
 class CityBazaarMatchClientImpl(
-    private val fakeServer: FakeCityBazaarServer,
+    private val match: MatchChannel,
+    private val mapper: CityBazaarSnapshotMapper,
+    private val session: BackendSession,
+    private val clock: AppClock,
+    private val voice: VoiceClient,
+    private val json: Json,
 ) : CityBazaarMatchClient {
 
-    override fun observeMatch(matchId: String): Flow<CityBazaarUpdate> {
-        // --- production path ---
-        // return realtime.stream(Channel.MATCH)
-        //     .onStart { realtime.send(Channel.MATCH, MessageType.MATCH_REQUEST_SNAPSHOT, MatchRequestSnapshot(matchId, lastVersion = 0)) }
-        //     .filter { it.type == MessageType.MATCH_SNAPSHOT }
-        //     .map { it.decode<MatchSnapshot>().toCityBazaarUpdate(myUserId) }
+    override fun observeMatch(matchId: String): Flow<CityBazaarUpdate> =
+        match.snapshots(matchId).map { mapper.map(it, session.currentUserId().orEmpty(), clock.now()) }
 
-        // --- fake path ---
-        return fakeServer.match(matchId)
-    }
-
-    override fun observeSpeaking(matchId: String): Flow<Set<String>> {
-        // --- production path ---
-        // return voiceClient.activeSpeakers
-
-        // --- fake path ---
-        return fakeServer.speaking()
-    }
+    override fun observeSpeaking(matchId: String): Flow<Set<String>> = voice.speakers(VoiceTarget.Match(matchId))
 
     override suspend fun send(matchId: String, command: CityBazaarCommand) {
-        // --- production path: one match-channel message per command ---
-        // realtime.request(Channel.MATCH, MessageType.GAME_ACTION, GameAction(matchId, command.toWire()))
+        when (command) {
+            is CityBazaarCommand.SetAutoplay -> match.setAutoplay(matchId, command.enabled)
+            is CityBazaarCommand.SetMic -> match.setMic(matchId, command.on)
+            is CityBazaarCommand.SetAway -> match.setAway(matchId, command.away)
+            CityBazaarCommand.Leave -> match.leave(matchId, giveToUserId = null)
+            else -> play(matchId, command.toWire())
+        }
+    }
 
-        // --- fake path ---
-        fakeServer.handle(command)
+    private suspend fun play(matchId: String, action: CityBazaarWireAction) =
+        match.gameAction(matchId, json.encodeToJsonElement(CityBazaarWireAction.serializer(), action).jsonObject)
+
+    private fun CityBazaarCommand.toWire(): CityBazaarWireAction = when (this) {
+        CityBazaarCommand.Roll -> CityBazaarWireAction.Roll
+        CityBazaarCommand.Buy -> CityBazaarWireAction.Buy
+        CityBazaarCommand.Decline -> CityBazaarWireAction.Decline
+        is CityBazaarCommand.Build -> CityBazaarWireAction.Build(tile)
+        CityBazaarCommand.SkipBuild -> CityBazaarWireAction.SkipBuild
+        is CityBazaarCommand.SellBuilding -> CityBazaarWireAction.SellBuilding(tile)
+        is CityBazaarCommand.SellTile -> CityBazaarWireAction.SellTile(tile)
+        is CityBazaarCommand.StartAuction -> CityBazaarWireAction.StartAuction(tile)
+        CityBazaarCommand.Bid -> CityBazaarWireAction.Bid
+        CityBazaarCommand.PayJailFine -> CityBazaarWireAction.PayJailFine
+        CityBazaarCommand.StayInJail -> CityBazaarWireAction.StayInJail
+        CityBazaarCommand.DeclareBankruptcy -> CityBazaarWireAction.DeclareBankruptcy
+        is CityBazaarCommand.SetAutoplay,
+        is CityBazaarCommand.SetMic,
+        is CityBazaarCommand.SetAway,
+        CityBazaarCommand.Leave,
+        -> error("not a game move: $this")
     }
 }

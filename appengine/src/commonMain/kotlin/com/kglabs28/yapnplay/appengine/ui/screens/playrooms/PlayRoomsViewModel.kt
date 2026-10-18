@@ -8,6 +8,7 @@ import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.JoinOutcome
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.CreatePlayRoomUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.GetPlayRoomsScreenDataUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.JoinPlayRoomByCodeUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.PreviewPlayRoomUseCase
@@ -20,6 +21,7 @@ class PlayRoomsViewModel(
     private val getPlayRoomsScreenData: GetPlayRoomsScreenDataUseCase,
     private val joinPlayRoomByCode: JoinPlayRoomByCodeUseCase,
     private val previewPlayRoom: PreviewPlayRoomUseCase,
+    private val createPlayRoom: CreatePlayRoomUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<PlayRoomsState, PlayRoomsIntent, PlayRoomsEffect>(PlayRoomsState(), dispatchers) {
 
@@ -54,7 +56,7 @@ class PlayRoomsViewModel(
                 join(it.code)
             }
             PlayRoomsIntent.DismissJoinPrompt -> setState { copy(joinPrompt = null) }
-            PlayRoomsIntent.CreateRoom -> emitEffect(PlayRoomsEffect.OpenCreateRoom)
+            PlayRoomsIntent.CreateRoom -> create()
             is PlayRoomsIntent.OpenRoom -> emitEffect(PlayRoomsEffect.OpenRoom(intent.roomId))
             PlayRoomsIntent.SeeAllRooms -> emitEffect(PlayRoomsEffect.OpenAllRooms)
         }
@@ -71,6 +73,21 @@ class PlayRoomsViewModel(
      * Looks the code up and asks "Join this room?". A room you already
      * belong to just opens.
      */
+    /** Creates a room on the backend and opens its lobby. */
+    private suspend fun create() {
+        if (state.value.isJoining) return
+        setState { copy(isJoining = true, joinError = null) }
+        when (val result = createPlayRoom()) {
+            is AppResult.Success -> {
+                setState { copy(isJoining = false) }
+                emitEffect(PlayRoomsEffect.OpenRoom(result.data))
+            }
+            is AppResult.Failure -> setState {
+                copy(isJoining = false, joinError = if (result.error is YapNPlayError.LimitReached) errorMessage(result.error) else Strings.roomsCreateFailed)
+            }
+        }
+    }
+
     private suspend fun preview(code: String) {
         if (state.value.isJoining) return
         state.value.rooms.firstOrNull { it.code == code }?.let {

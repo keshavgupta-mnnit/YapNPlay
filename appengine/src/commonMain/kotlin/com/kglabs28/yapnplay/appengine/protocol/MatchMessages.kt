@@ -10,18 +10,46 @@ import kotlinx.serialization.json.JsonObject
 // games/elements/board/protocol — this file holds only generic messages.)
 // ══════════════════════════════════════════════════════════════════════════
 
-/** Request a match snapshot (used on reconnect). */
+/**
+ * Ask for the current snapshot: on opening the match screen, after a
+ * reconnect, or (a room member without a seat) to start watching.
+ */
 @Serializable
 data class MatchRequestSnapshot(
     val matchId: String,
     val lastVersion: Long,
 )
 
+/** A game-specific action; [action] carries `"type"` plus its fields (e.g. `{"type":"BuildOnTile","tile":7}`). */
+@Serializable
+data class GameAction(
+    val matchId: String,
+    val action: JsonObject,
+)
+
+/** The seat's owner turns Autoplay on (the server plays their turns) or off. */
+@Serializable
+data class SetAutoplay(
+    val matchId: String,
+    val enabled: Boolean,
+)
+
+/** The user's mic switch at this table (shown on their seat or spectator chip). */
+@Serializable
+data class SetMic(
+    val matchId: String,
+    val micOn: Boolean,
+)
+
 // ══════════════════════════════════════════════════════════════════════════
 // Match channel — server to client responses
 // ══════════════════════════════════════════════════════════════════════════
 
-/** Full match state snapshot, sent after every match change. */
+/**
+ * Full match state for one viewer, sent after every change. [events] are
+ * what happened since this viewer's previous snapshot, in order, so the
+ * table can animate them before showing the final state.
+ */
 @Serializable
 data class MatchSnapshot(
     val matchId: String,
@@ -31,11 +59,23 @@ data class MatchSnapshot(
     /** Who is viewing: player with seat, or spectator. */
     val viewer: ViewerInfo,
     val seats: List<SeatInfo>,
-    /** Game-specific public state as JSON (deserialized by the game module). */
+    /** Game-specific public state as JSON (`RoyalLudoState`, `CityBazaarState` wire shapes). */
     val publicState: JsonObject,
-    /** Legal moves for the acting seat. */
+    /** Legal moves for the viewer when it is their turn; empty otherwise. */
     val legalMoves: List<LegalMove>,
     val turn: TurnInfo,
+    val gameId: String = "",
+    /** Room name, or "Quick Play". */
+    val title: String = "",
+    /** The room this match belongs to; null for Quick Play (no spectators, no handover). */
+    val roomId: String? = null,
+    /** When the match began (epoch millis). */
+    val startedAt: Long = 0,
+    val spectators: List<SpectatorInfo> = emptyList(),
+    /** A seat changing hands; null when none. */
+    val seatOffer: SeatOfferInfo? = null,
+    /** Game-specific events (each with `"type"`), oldest first. */
+    val events: List<JsonObject> = emptyList(),
 )
 
 @Serializable
@@ -61,6 +101,12 @@ data class SeatInfo(
     val consecutiveMisses: Int,
     /** True when a CPU fills this seat (Quick Play fill); controllerUserId is then a cpu id. */
     val cpu: Boolean = false,
+    val displayName: String = "",
+    val level: Int = 1,
+    val micOn: Boolean = false,
+    val presence: SeatPresence = SeatPresence.PLAYING,
+    /** Preset avatar of whoever sits here (a CPU's robot avatar); "" = default icon. */
+    val avatarId: String = "",
 )
 
 enum class Colour {
@@ -68,11 +114,52 @@ enum class Colour {
     GREEN,
     YELLOW,
     BLUE,
+    PURPLE,
+    ORANGE,
+}
+
+/** At the table, away (the server plays their turns at once) or handed to the bot. */
+enum class SeatPresence {
+    PLAYING,
+    AWAY,
+    BOT,
 }
 
 enum class MatchSeatStatus {
     ACTIVE,
     REMOVED,
+}
+
+/** Someone watching a room match. */
+@Serializable
+data class SpectatorInfo(
+    val userId: String,
+    val displayName: String,
+    val micOn: Boolean = false,
+)
+
+/**
+ * A seat changing hands (see the contract's seat handover section).
+ * [userId]/[name] are the person the stage is about: the absent owner,
+ * the named spectator, or the deciding leader. [endsAt] epoch millis.
+ */
+@Serializable
+data class SeatOfferInfo(
+    val seat: Int,
+    val leaverName: String,
+    val stage: SeatOfferStageName,
+    val endsAt: Long,
+    val userId: String? = null,
+    val name: String? = null,
+    /** 1: the leaver's pick, 2: the leader's pick (TO_SPECTATOR only). */
+    val round: Int? = null,
+)
+
+enum class SeatOfferStageName {
+    CONFIRMING_ABSENCE,
+    TO_SPECTATOR,
+    LEADER_CHOOSING,
+    OPEN_TO_ALL,
 }
 
 /** A single game event with its version (for the event log). */
@@ -107,8 +194,6 @@ data class TurnInfo(
     val seat: Int,
     /** Game-specific phase (e.g., "ROLL" or "MOVE" for Royal Ludo). */
     val phase: String,
-    /** Absolute deadline in epoch milliseconds. */
-    val deadline: Long,
+    /** Absolute deadline in epoch milliseconds; null while play is on hold or finished. */
+    val deadline: Long?,
 )
-
-

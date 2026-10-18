@@ -17,4 +17,6 @@ data class CityBazaarPlayer(
     val halfRent: Boolean = false,
     val bankrupt: Boolean = false,
     val avatarId: String = "",
+    /** A CPU filling an empty Quick Play seat (no level shown). */
+    val isCpu: Boolean = false,
 )

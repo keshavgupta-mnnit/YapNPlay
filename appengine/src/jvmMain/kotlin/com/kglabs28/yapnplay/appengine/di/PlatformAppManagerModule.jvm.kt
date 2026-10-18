@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.core.network.CredentialStore
+import com.kglabs28.yapnplay.appengine.core.network.InMemoryCredentialStore
 import com.kglabs28.yapnplay.appengine.appmanager.AppConfigStore
 import com.kglabs28.yapnplay.appengine.appmanager.JvmConfigStore
 import com.kglabs28.yapnplay.appengine.features.notifications.data.local.InMemoryNotificationHistoryStore
@@ -8,12 +10,16 @@ import com.kglabs28.yapnplay.appengine.core.audio.GameAudio
 import com.kglabs28.yapnplay.appengine.core.audio.MicLevelMonitor
 import com.kglabs28.yapnplay.appengine.core.audio.SilentMicLevelMonitor
 import com.kglabs28.yapnplay.appengine.core.audio.SilentGameAudio
+import com.kglabs28.yapnplay.appengine.features.voice.SilentVoiceEngine
+import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceEngine
 import org.koin.dsl.module
 
 /** JVM local stores (in memory): appmanager config, notification history. */
 val platformAppManagerModule = module {
     single<AppConfigStore> { JvmConfigStore() }
     single<NotificationHistoryStore> { InMemoryNotificationHistoryStore() }
+    single<CredentialStore> { InMemoryCredentialStore() }
     single<GameAudio> { SilentGameAudio() }
     single<MicLevelMonitor> { SilentMicLevelMonitor() }
+    single<VoiceEngine> { SilentVoiceEngine() }
 }

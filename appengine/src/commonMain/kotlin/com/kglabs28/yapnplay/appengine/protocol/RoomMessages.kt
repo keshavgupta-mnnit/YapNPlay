@@ -91,6 +91,18 @@ data class RemoveMember(
     val userId: String,
 )
 
+/** Admin lets [userId] (from the Waiting List) into the room. */
+@Serializable
+data class ApproveJoin(
+    val userId: String,
+)
+
+/** Admin turns down [userId]'s join request. */
+@Serializable
+data class DeclineJoin(
+    val userId: String,
+)
+
 /** Set your ready status. */
 @Serializable
 data class SetReady(
@@ -162,6 +174,16 @@ data class RoomInfo(
     val countdownDeadline: Long? = null,
     /** Match ID if a match is in progress, or null. */
     val matchInProgress: String? = null,
+    /** People asking to join; filled only in the admin's snapshot. */
+    val waitingList: List<JoinRequestInfo> = emptyList(),
+)
+
+/** One join request in the admin's Waiting List. */
+@Serializable
+data class JoinRequestInfo(
+    val userId: String,
+    val displayName: String,
+    val requestedAt: Long,
 )
 
 @Serializable
@@ -186,6 +208,13 @@ enum class Presence {
     ONLINE,
     OFFLINE,
 }
+
+/** Tells a requester the admin let them in; they can open the room now. */
+@Serializable
+data class JoinApproved(
+    val roomId: String,
+    val roomName: String,
+)
 
 /** Tells clients a match is about to start. */
 @Serializable

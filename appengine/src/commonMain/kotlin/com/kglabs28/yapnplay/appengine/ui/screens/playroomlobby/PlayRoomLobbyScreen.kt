@@ -251,6 +251,9 @@ fun PlayRoomLobbyScreen(
                     onCancelCountdown = { send(PlayRoomLobbyIntent.CancelCountdown) },
                     onOpenSettings = { send(PlayRoomLobbyIntent.OpenAppSettings) },
                     onDismiss = { send(PlayRoomLobbyIntent.DismissModal) },
+                    waitingList = state.waitingList,
+                    onApproveJoin = { send(PlayRoomLobbyIntent.ApproveJoin(it)) },
+                    onDeclineJoin = { send(PlayRoomLobbyIntent.DeclineJoin(it)) },
                 )
             }
         }

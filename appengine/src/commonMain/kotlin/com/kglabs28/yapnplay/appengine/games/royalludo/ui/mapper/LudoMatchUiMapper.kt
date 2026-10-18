@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.mapper
 
+import com.kglabs28.yapnplay.appengine.ui.components.profile.AvatarPresets
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoColour
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoMatch
@@ -64,13 +65,15 @@ object LudoMatchUiMapper {
             val isTurn = player.seat == match.currentSeat && match.phase != LudoPhase.FINISHED && !player.removed
             val muted = player.userId in inputs.mutedForMe
             val place = match.finishedSeats.indexOf(player.seat)
+            // A seat the CPU plays for someone who left looks just like a CPU seat.
+            val cpuPlays = player.isCpu || player.presence == LudoPresence.BOT
             LudoPlayerCardUi(
                 seat = player.seat,
                 userId = player.userId,
-                // A seat the bot holds reads "Bot" instead of the player's name.
-                name = if (player.presence == LudoPresence.BOT) Strings.seatBot else player.name,
-                avatarId = player.avatarId,
-                level = player.level.toString(),
+                name = if (cpuPlays && !player.isCpu) Strings.seatBot else player.name,
+                avatarId = if (cpuPlays && !player.isCpu) AvatarPresets.CPU else player.avatarId,
+                // CPUs have no level.
+                level = if (cpuPlays) "" else player.level.toString(),
                 colour = player.colour,
                 corner = BoardCorner.entries[LudoBoardGeometry.cornerOf(player.colour.ordinal, inputs.rotation)],
                 isMe = player.isMe,
@@ -80,6 +83,7 @@ object LudoMatchUiMapper {
                 left = player.removed,
                 placeLabel = if (place >= 0) Strings.ludoPlace(place + 1) else null,
                 mutedForMe = muted,
+                canSpeak = !cpuPlays,
                 statusLabel = if (match.seatOffer?.seat == player.seat) seatStatus(match.seatOffer.stage) else when (player.presence) {
                     LudoPresence.AWAY -> Strings.ludoAway
                     LudoPresence.BOT -> null

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application>
+    <!-- Debug only: talk to the laptop backend over plain http/ws (see res/xml). -->
+    <application android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name="com.kglabs28.yapnplay.TestActivity"
             android:exported="true" />

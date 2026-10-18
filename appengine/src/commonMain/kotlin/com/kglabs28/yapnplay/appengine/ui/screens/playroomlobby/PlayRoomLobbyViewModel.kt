@@ -114,8 +114,10 @@ class PlayRoomLobbyViewModel(
             PlayRoomLobbyIntent.ShareLink -> data?.room?.let {
                 emitEffect(PlayRoomLobbyEffect.ShareText(Strings.roomInviteMessage(it.name, it.code, DeepLinks.inviteUrl(it.code))))
             }
-            // Screens for these arrive later.
-            PlayRoomLobbyIntent.OpenWaitingList,
+            PlayRoomLobbyIntent.OpenWaitingList -> showModal(LobbyModal.WaitingList)
+            is PlayRoomLobbyIntent.ApproveJoin -> send(LobbyCommand.ApproveJoin(intent.userId))
+            is PlayRoomLobbyIntent.DeclineJoin -> send(LobbyCommand.DeclineJoin(intent.userId))
+            // The leaderboard screen arrives later.
             PlayRoomLobbyIntent.OpenLeaderboard -> Unit
         }
     }
@@ -233,6 +235,7 @@ class PlayRoomLobbyViewModel(
                 primary = me?.let { primaryFor(room, it, game) } ?: LobbyPrimaryButtonUi(),
                 micOn = me?.micOn == true,
                 speakerOn = me?.speakerOn == true,
+                waitingList = room.waitingList.map { WaitingRequestUi(it.userId, it.name) },
                 modal = countdownModal(room, me) ?: userModal,
             )
         }

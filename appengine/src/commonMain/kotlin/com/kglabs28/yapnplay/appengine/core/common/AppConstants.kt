@@ -79,11 +79,12 @@ object AppConstants {
     const val CONTENT_MAX_WIDTH_DP = 1100
 
     /**
-     * Dev backend base URL (emulator loopback). The Retrofit client takes
-     * this as its default; flavors override it later. No screen or
-     * repository hardcodes a URL — they all read this.
+     * Dev backend base URL: the laptop's backend, reached from a phone or
+     * emulator through `adb reverse tcp:8080 tcp:8080`. The hosted address
+     * replaces it later. No screen or repository hardcodes a URL — they
+     * all read this.
      */
-    const val SERVER_BASE_URL = "http://10.0.2.2:8080"
+    const val SERVER_BASE_URL = "http://localhost:8080"
 
     /**
      * Invite links: https://INVITE_HOST/join/<code>. Must match the

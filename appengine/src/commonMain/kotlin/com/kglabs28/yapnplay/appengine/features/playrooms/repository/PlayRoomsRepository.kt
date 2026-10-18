@@ -14,4 +14,7 @@ interface PlayRoomsRepository {
     suspend fun getMyRooms(): AppResult<List<PlayRoom>>
     suspend fun previewRoom(code: String): AppResult<PlayRoomPreview>
     suspend fun joinRoom(code: String): AppResult<JoinOutcome>
+
+    /** Creates a room (default name from the server); the new room's id. */
+    suspend fun createRoom(name: String?): AppResult<String>
 }

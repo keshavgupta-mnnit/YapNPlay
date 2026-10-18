@@ -128,6 +128,15 @@ object YapNPlayColors {
     val Success = Color(0xFF72F597)
     val Warning = Color(0xFFF0A030)
     val Error = Color(0xFFD9344A)
+    /** The deep end of red (danger) buttons. */
+    val ErrorDeep = Color(0xFFA1203A)
+    /** Profile: the see-through shell around the user and their friends. */
+    val ProfileShell = Color(0xD91B2344)
+    /** Profile dialogs: frosted purple glass, lighter at the top. */
+    val GlassDialogTop = Color(0xB3402878)
+    val GlassDialogBottom = Color(0xB31B2344)
+    /** A person's row inside a list dialog. */
+    val ListRow = Color(0x99282E50)
 
     // Text & Content
     val TextPrimary = Color(0xFFF2F6FF)

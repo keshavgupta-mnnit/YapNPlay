@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.profile.data.remote
 
 import com.kglabs28.yapnplay.appengine.protocol.BlockUserBody
+import com.kglabs28.yapnplay.appengine.protocol.BlockedUsers
 import com.kglabs28.yapnplay.appengine.protocol.FriendRequests
 import com.kglabs28.yapnplay.appengine.protocol.Friends
 import com.kglabs28.yapnplay.appengine.protocol.Me
@@ -39,4 +40,10 @@ interface ProfileApi {
 
     /** `POST /blocks` */
     suspend fun blockUser(body: BlockUserBody)
+
+    /** `GET /blocks` */
+    suspend fun getBlockedUsers(): BlockedUsers
+
+    /** `DELETE /blocks/{userId}` */
+    suspend fun unblockUser(userId: String)
 }

@@ -36,7 +36,7 @@ Every bump is announced in `docs/decisions.md`.
 
 0.3.1 added: profile and friends — `Me`/`FriendSummary` fields `username`,
 `userCode`, `avatarId` (+ `Me.gamesPlayed`, `gamesWon`); `PATCH /me` takes
-`UpdateProfileBody`; friend requests, remove friend and block endpoints;
+`UpdateProfileBody`; friend requests, remove friend, block, block list and unblock endpoints;
 `RoomMember.avatarId` (match tables find players' avatars by user id).
 
 0.3.0 added: MATCHMAKING channel (`JoinQueue`, `LeaveQueue`,
@@ -66,6 +66,8 @@ progression fields, `RoomSummary.isLeader` + `icon`, `Friends`,
 | `POST /friends/requests/{requestId}/decline` | — | — | The sender isn't told. |
 | `DELETE /friends/{userId}` | — | — | Ends the friendship both ways. |
 | `POST /blocks` | `BlockUserBody(userId)` | — | Ends any friendship and pending request; the blocked person can't send the user friend requests or room invites. |
+| `GET /blocks` | — | `BlockedUsers(users: [BlockedUserSummary(userId, displayName, username, avatarId, blockedAt)])` | Newest first; `blockedAt` epoch millis. |
+| `DELETE /blocks/{userId}` | — | — | Unblock; no friendship comes back. |
 | `GET /health` | — | `{status, contractVersion}` | No auth. |
 
 ### `Me`

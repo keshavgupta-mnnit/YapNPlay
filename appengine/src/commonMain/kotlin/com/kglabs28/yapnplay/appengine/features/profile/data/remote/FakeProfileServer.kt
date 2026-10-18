@@ -1,7 +1,10 @@
 package com.kglabs28.yapnplay.appengine.features.profile.data.remote
 
+import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.FakeDataProvider
 import com.kglabs28.yapnplay.appengine.protocol.BlockUserBody
+import com.kglabs28.yapnplay.appengine.protocol.BlockedUserSummary
+import com.kglabs28.yapnplay.appengine.protocol.BlockedUsers
 import com.kglabs28.yapnplay.appengine.protocol.FriendRequestOutcomeCode
 import com.kglabs28.yapnplay.appengine.protocol.FriendRequests
 import com.kglabs28.yapnplay.appengine.protocol.Friends
@@ -18,7 +21,7 @@ import kotlinx.coroutines.sync.withLock
  * action on the Profile screen behaves as it will against the server.
  * ProfileApiClient's production calls replace it (Phase 12).
  */
-class FakeProfileServer {
+class FakeProfileServer(private val clock: AppClock) {
 
     private val mutex = Mutex()
     private var me: Me = FakeDataProvider.Profile.me
@@ -26,7 +29,7 @@ class FakeProfileServer {
     private var requests = FakeDataProvider.Profile.requests
     private val directory = FakeDataProvider.Profile.directory
     private val sentTo = mutableSetOf<String>()
-    private val blocked = mutableSetOf<String>()
+    private var blocked = FakeDataProvider.Profile.blocked
 
     suspend fun me(): Me = mutex.withLock { me }
 
@@ -52,7 +55,7 @@ class FakeProfileServer {
             code == me.userCode -> FriendRequestOutcomeCode.SELF
             friends.any { it.userCode == code } -> FriendRequestOutcomeCode.ALREADY_FRIENDS
             person == null -> FriendRequestOutcomeCode.NOT_FOUND
-            person.userId in blocked -> FriendRequestOutcomeCode.BLOCKED
+            blocked.any { it.userId == person.userId } -> FriendRequestOutcomeCode.BLOCKED
             theirs != null -> {
                 acceptLocked(theirs.requestId)
                 FriendRequestOutcomeCode.ACCEPTED
@@ -76,8 +79,17 @@ class FakeProfileServer {
         friends = friends.filterNot { it.userId == userId }
     }
 
+    suspend fun blocked(): BlockedUsers = mutex.withLock { BlockedUsers(blocked) }
+
+    suspend fun unblock(userId: String) = mutex.withLock {
+        blocked = blocked.filterNot { it.userId == userId }
+    }
+
     suspend fun block(body: BlockUserBody) = mutex.withLock {
-        blocked += body.userId
+        val person = (friends + requests.map { it.from } + directory).firstOrNull { it.userId == body.userId }
+        if (person != null && blocked.none { it.userId == person.userId }) {
+            blocked = listOf(BlockedUserSummary(person.userId, person.displayName, person.username, person.avatarId, clock.now().toEpochMilliseconds())) + blocked
+        }
         friends = friends.filterNot { it.userId == body.userId }
         requests = requests.filterNot { it.from.userId == body.userId }
     }

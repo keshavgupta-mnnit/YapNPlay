@@ -1,9 +1,11 @@
 package com.kglabs28.yapnplay.appengine.features.profile.data
 
+import com.kglabs28.yapnplay.appengine.features.profile.domain.BlockedUser
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequest
 import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequestOutcome
 import com.kglabs28.yapnplay.appengine.features.profile.domain.UserProfile
+import com.kglabs28.yapnplay.appengine.protocol.BlockedUserSummary
 import com.kglabs28.yapnplay.appengine.protocol.FriendRequestOutcomeCode
 import com.kglabs28.yapnplay.appengine.protocol.FriendRequestSummary
 import com.kglabs28.yapnplay.appengine.protocol.FriendSummary
@@ -44,3 +46,5 @@ fun FriendRequestOutcomeCode.toDomain(): FriendRequestOutcome = when (this) {
     FriendRequestOutcomeCode.BLOCKED -> FriendRequestOutcome.BLOCKED
     FriendRequestOutcomeCode.ACCEPTED -> FriendRequestOutcome.ACCEPTED
 }
+
+fun BlockedUserSummary.toDomain(): BlockedUser = BlockedUser(userId, displayName, username, avatarId, blockedAt)

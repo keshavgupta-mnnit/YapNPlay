@@ -2,6 +2,7 @@ package com.kglabs28.yapnplay.appengine.core.common
 
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.domain.GameCatalogItem
 import com.kglabs28.yapnplay.appengine.games.base.rules.HouseRuleOption
+import com.kglabs28.yapnplay.appengine.protocol.BlockedUserSummary
 import com.kglabs28.yapnplay.appengine.protocol.FriendRequestSummary
 import com.kglabs28.yapnplay.appengine.protocol.FriendSummary
 import com.kglabs28.yapnplay.appengine.protocol.Friends
@@ -67,6 +68,12 @@ object FakeDataProvider {
         val directory = listOf(
             person("user-kabir", "Kabir", online = true, "kabir.m", "K8BR4M", "a02"),
             person("user-tanya", "Tanya", online = false, "tanya_t", "T3NY6Q", "a10"),
+        )
+
+        /** People the user already blocked (10 and 6 Oct 2026). */
+        val blocked = listOf(
+            BlockedUserSummary("user-rohit-s", "Rohit Singh", "rohit", "a14", blockedAt = 1_791_590_400_000),
+            BlockedUserSummary("user-deepak", "Deepak Verma", "deepak", "a16", blockedAt = 1_791_244_800_000),
         )
 
         /** The user's avatar as last saved on the Profile screen (fake servers share it). */

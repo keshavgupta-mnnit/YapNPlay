@@ -5,4 +5,5 @@ data class ProfileScreenData(
     val profile: UserProfile,
     val friends: List<Friend>,
     val requests: List<FriendRequest>,
+    val blocked: List<BlockedUser> = emptyList(),
 )

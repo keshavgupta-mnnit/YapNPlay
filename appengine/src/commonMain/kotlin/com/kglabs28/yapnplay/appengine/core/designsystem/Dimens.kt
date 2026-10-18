@@ -227,12 +227,24 @@ class YapNPlayDimens {
     val cbRowRadius: Dp get() = 8.dp.scaled()
 
     // Profile screen.
-    val profileAvatar: Dp get() = 64.dp.scaled()
-    val profileEditBadge: Dp get() = 22.dp.scaled()
-    val personCardWidth: Dp get() = 200.dp.scaled()
-    val personCardAvatar: Dp get() = 56.dp.scaled()
-    val avatarPickerItem: Dp get() = 44.dp.scaled()
-    val friendsGridMaxHeight: Dp get() = 200.dp.scaled()
+    val profileAvatar: Dp get() = 56.dp.scaled()
+    val profileEditBadge: Dp get() = 18.dp.scaled()
+    val profileFriendAvatar: Dp get() = 42.dp.scaled()
+    val profileCardButtonWidth: Dp get() = 200.dp.scaled()
+    val friendKeyboardHeight: Dp get() = 176.dp.scaled()
+    val scrollbarWidth: Dp get() = 4.dp.scaled()
+    val fieldClearButton: Dp get() = 20.dp.scaled()
+    val profileTabHeight: Dp get() = 24.dp.scaled()
+    val profileBadge: Dp get() = 18.dp.scaled()
+    val personAvatar: Dp get() = 72.dp.scaled()
+    val personRowAvatar: Dp get() = 44.dp.scaled()
+    val avatarPickerPreview: Dp get() = 88.dp.scaled()
+    val avatarPickerItem: Dp get() = 56.dp.scaled()
+    val avatarPickerGridMaxHeight: Dp get() = 200.dp.scaled()
+    val avatarPickerWidth: Dp get() = 560.dp.scaled()
+    val profileWideDialogWidth: Dp get() = 420.dp.scaled()
+    val friendsGridMaxHeight: Dp get() = 210.dp.scaled()
+    val profileListMaxHeight: Dp get() = 190.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

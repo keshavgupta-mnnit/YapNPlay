@@ -97,6 +97,7 @@ fun PlayRoomsScreen(
                 keypadOpen = state.keypadOpen,
                 onOpenKeypad = { viewModel?.onIntent(PlayRoomsIntent.OpenKeypad) },
                 onJoin = { viewModel?.onIntent(PlayRoomsIntent.JoinRoom) },
+                onClearCode = { viewModel?.onIntent(PlayRoomsIntent.ClearCode) },
                 modifier = Modifier
                     .weight(AppConstants.ROOMS_JOIN_CARD_WEIGHT)
                     .fillMaxWidth()

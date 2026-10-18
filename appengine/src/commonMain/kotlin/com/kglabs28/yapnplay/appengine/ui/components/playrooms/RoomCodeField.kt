@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.runtime.Composable
+import com.kglabs28.yapnplay.appengine.ui.components.common.FieldClearButton
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +42,7 @@ fun RoomCodeField(
     active: Boolean,
     onActivate: () -> Unit,
     modifier: Modifier = Modifier,
+    onClear: () -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -85,6 +87,10 @@ fun RoomCodeField(
                         .background(colors.GameZoneAccent),
                 )
             }
+        }
+        // While the keypad is open: × empties the code.
+        if (active && code.isNotEmpty()) {
+            FieldClearButton(onClear = onClear, modifier = Modifier.padding(end = Spacing.Xs))
         }
         AppIcon(
             imageVector = Icons.Rounded.QrCodeScanner,

@@ -6,7 +6,7 @@ import com.kglabs28.yapnplay.appengine.features.profile.repository.ProfileReposi
 
 /**
  * Loads the Profile screen in one call. The profile is essential (its
- * failure fails the load); friends and requests are best-effort (empty
+ * failure fails the load); friends, requests and blocks are best-effort (empty
  * lists, never a broken screen).
  */
 class GetProfileScreenDataUseCase(private val repository: ProfileRepository) {
@@ -18,6 +18,7 @@ class GetProfileScreenDataUseCase(private val repository: ProfileRepository) {
         }
         val friends = (repository.getFriendList() as? AppResult.Success)?.data.orEmpty()
         val requests = (repository.getFriendRequests() as? AppResult.Success)?.data.orEmpty()
-        return AppResult.Success(ProfileScreenData(profile, friends, requests))
+        val blocked = (repository.getBlockedUsers() as? AppResult.Success)?.data.orEmpty()
+        return AppResult.Success(ProfileScreenData(profile, friends, requests, blocked))
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
@@ -27,6 +28,7 @@ fun FriendAvatarItem(
     friend: Friend,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    size: Dp = YapNPlayTheme.dimens.friendAvatar,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -37,7 +39,7 @@ fun FriendAvatarItem(
         verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs),
     ) {
         Box(contentAlignment = Alignment.BottomEnd) {
-            PresetAvatar(avatarId = friend.avatarId, size = dimens.friendAvatar, rimColor = colors.SocialZoneAccent)
+            PresetAvatar(avatarId = friend.avatarId, size = size, rimColor = colors.SocialZoneAccent)
             PresenceDot(
                 online = friend.online,
                 size = dimens.statusDotSmall,
@@ -52,7 +54,7 @@ fun FriendAvatarItem(
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.widthIn(max = dimens.friendAvatar * 2),
+            modifier = Modifier.widthIn(max = size * 2),
         )
     }
 }

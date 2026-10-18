@@ -179,3 +179,19 @@ enum class FriendRequestOutcomeCode { SENT, NOT_FOUND, SELF, ALREADY_FRIENDS, AL
 data class BlockUserBody(
     val userId: String,
 )
+
+/** `GET /blocks`: people the user blocked, newest first. Unblock with `DELETE /blocks/{userId}`. */
+@Serializable
+data class BlockedUsers(
+    val users: List<BlockedUserSummary>,
+)
+
+@Serializable
+data class BlockedUserSummary(
+    val userId: String,
+    val displayName: String,
+    val username: String = "",
+    val avatarId: String = "",
+    /** When the user blocked them (epoch millis). */
+    val blockedAt: Long,
+)

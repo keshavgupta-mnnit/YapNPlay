@@ -43,6 +43,7 @@ class PlayRoomsViewModel(
                 copy(roomCode = TextUtils.roomCode(roomCode + intent.digit, AppConstants.ROOM_CODE_LENGTH), joinError = null)
             }
             PlayRoomsIntent.KeypadBackspace -> setState { copy(roomCode = roomCode.dropLast(1), joinError = null) }
+            PlayRoomsIntent.ClearCode -> setState { copy(roomCode = "", joinError = null) }
             is PlayRoomsIntent.PreviewInvite -> {
                 val code = TextUtils.roomCode(intent.code, AppConstants.ROOM_CODE_LENGTH)
                 setState { copy(roomCode = code, joinError = null) }

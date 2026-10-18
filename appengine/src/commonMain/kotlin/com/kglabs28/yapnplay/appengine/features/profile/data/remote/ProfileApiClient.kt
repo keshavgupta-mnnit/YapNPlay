@@ -2,6 +2,7 @@ package com.kglabs28.yapnplay.appengine.features.profile.data.remote
 
 import com.kglabs28.yapnplay.appengine.core.common.FakeDataProvider
 import com.kglabs28.yapnplay.appengine.protocol.BlockUserBody
+import com.kglabs28.yapnplay.appengine.protocol.BlockedUsers
 import com.kglabs28.yapnplay.appengine.protocol.FriendRequests
 import com.kglabs28.yapnplay.appengine.protocol.Friends
 import com.kglabs28.yapnplay.appengine.protocol.Me
@@ -77,5 +78,17 @@ class ProfileApiClient(
         // client.post(AppConstants.SERVER_BASE_URL + "/blocks") { contentType(ContentType.Application.Json); setBody(body) }
         delay(FakeDataProvider.NETWORK_DELAY_MS)
         fake.block(body)
+    }
+
+    override suspend fun getBlockedUsers(): BlockedUsers {
+        // return client.get(AppConstants.SERVER_BASE_URL + "/blocks").body()
+        delay(FakeDataProvider.NETWORK_DELAY_MS)
+        return fake.blocked()
+    }
+
+    override suspend fun unblockUser(userId: String) {
+        // client.delete(AppConstants.SERVER_BASE_URL + "/blocks/$userId")
+        delay(FakeDataProvider.NETWORK_DELAY_MS)
+        fake.unblock(userId)
     }
 }

@@ -34,6 +34,7 @@ fun JoinRoomCard(
     onOpenKeypad: () -> Unit,
     onJoin: () -> Unit,
     modifier: Modifier = Modifier,
+    onClearCode: () -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -80,6 +81,7 @@ fun JoinRoomCard(
                 isError = errorMessage != null,
                 active = keypadOpen,
                 onActivate = onOpenKeypad,
+                onClear = onClearCode,
                 modifier = Modifier.weight(1f),
             )
             PillButton(

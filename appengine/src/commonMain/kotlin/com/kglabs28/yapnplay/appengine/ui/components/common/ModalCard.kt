@@ -14,6 +14,9 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.Brush
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
@@ -30,6 +33,10 @@ fun ModalCard(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     onClose: (() -> Unit)? = null,
+    /** The card's glass (default near-opaque dark; the profile uses a see-through glass). */
+    surface: Color = YapNPlayTheme.colors.Background.copy(alpha = DEFAULT_SURFACE_ALPHA),
+    /** A gradient glass instead of [surface] (the profile's frosted purple). */
+    surfaceBrush: Brush? = null,
     actions: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
@@ -42,7 +49,8 @@ fun ModalCard(
             .width(dimens.modalWidth)
             .glassPanel(
                 glowColor = colors.SocialZoneAccent,
-                surface = colors.Background.copy(alpha = 0.94f),
+                surface = surface,
+                surfaceBrush = surfaceBrush ?: SolidColor(surface),
             )
             .padding(Spacing.Lg),
         verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
@@ -82,3 +90,5 @@ fun ModalCard(
         )
     }
 }
+
+private const val DEFAULT_SURFACE_ALPHA = 0.94f

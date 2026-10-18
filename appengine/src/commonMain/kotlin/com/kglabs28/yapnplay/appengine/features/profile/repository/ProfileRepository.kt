@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.profile.repository
 
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
+import com.kglabs28.yapnplay.appengine.features.profile.domain.BlockedUser
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequest
 import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequestOutcome
@@ -24,4 +25,6 @@ interface ProfileRepository {
     suspend fun respondToFriendRequest(requestId: String, accept: Boolean): AppResult<Unit>
     suspend fun removeFriend(userId: String): AppResult<Unit>
     suspend fun blockUser(userId: String): AppResult<Unit>
+    suspend fun getBlockedUsers(): AppResult<List<BlockedUser>>
+    suspend fun unblockUser(userId: String): AppResult<Unit>
 }

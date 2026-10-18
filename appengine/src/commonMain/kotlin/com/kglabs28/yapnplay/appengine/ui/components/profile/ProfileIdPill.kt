@@ -1,0 +1,54 @@
+package com.kglabs28.yapnplay.appengine.ui.components.profile
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
+import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
+import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
+
+/** "YapNPlay ID  K7M2PX ⧉": the ID in a glass pill; a tap copies it ([copied] shows "Copied"). */
+@Composable
+fun ProfileIdPill(
+    code: String,
+    copied: Boolean,
+    onCopy: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = YapNPlayTheme.colors
+    val typography = YapNPlayTheme.typography
+    Row(
+        modifier = modifier
+            .height(YapNPlayTheme.dimens.smallButtonHeight)
+            .glassPill(glowColor = colors.IconMuted, surface = colors.RoomsInput)
+            .clickable(onClick = onCopy)
+            .padding(horizontal = Spacing.Xxs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+    ) {
+        BasicText(
+            text = Strings.profileYapId,
+            style = typography.micro.copy(color = colors.TextSecondary),
+            modifier = Modifier.clip(YapNPlayTheme.shapes.pill).background(colors.RoomsSmallButton).padding(horizontal = Spacing.Xs, vertical = Spacing.Xxxs),
+        )
+        BasicText(text = code, style = typography.sectionTitle.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
+        if (copied) {
+            BasicText(text = Strings.profileCopied, style = typography.micro.copy(color = colors.LiveGreen), modifier = Modifier.padding(end = Spacing.Xs))
+        } else {
+            AppIcon(imageVector = Icons.Rounded.ContentCopy, tint = colors.IconMuted, size = YapNPlayTheme.dimens.iconSmall, contentDescription = Strings.profileCopyCode, modifier = Modifier.padding(end = Spacing.Xs))
+        }
+    }
+}

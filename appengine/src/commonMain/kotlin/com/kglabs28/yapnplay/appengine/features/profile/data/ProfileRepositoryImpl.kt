@@ -3,6 +3,7 @@ package com.kglabs28.yapnplay.appengine.features.profile.data
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.features.profile.data.local.ProfileLocalManager
 import com.kglabs28.yapnplay.appengine.features.profile.data.remote.ProfileRemoteManager
+import com.kglabs28.yapnplay.appengine.features.profile.domain.BlockedUser
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequest
 import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequestOutcome
@@ -74,4 +75,10 @@ class ProfileRepositoryImpl(
         withContext(Dispatchers.IO) {
             remote.blockUser(userId).also { if (it is AppResult.Success) local.saveFriends(local.friends().filterNot { f -> f.userId == userId }) }
         }
+
+    override suspend fun getBlockedUsers(): AppResult<List<BlockedUser>> =
+        withContext(Dispatchers.IO) { remote.fetchBlockedUsers() }
+
+    override suspend fun unblockUser(userId: String): AppResult<Unit> =
+        withContext(Dispatchers.IO) { remote.unblockUser(userId) }
 }

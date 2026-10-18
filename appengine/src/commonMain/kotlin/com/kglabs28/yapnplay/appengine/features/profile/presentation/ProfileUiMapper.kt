@@ -2,13 +2,20 @@ package com.kglabs28.yapnplay.appengine.features.profile.presentation
 
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.features.profile.domain.BlockedUser
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequestOutcome
 import com.kglabs28.yapnplay.appengine.features.profile.domain.ProfileScreenData
+import com.kglabs28.yapnplay.appengine.ui.screens.profile.FriendsTab
+import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileBlockedUi
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfilePersonUi
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileRequestUi
+import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileStatKind
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileState
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileStatUi
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 /** Profile data to what the Profile screen draws. Pure functions. */
 object ProfileUiMapper {
@@ -23,28 +30,51 @@ object ProfileUiMapper {
             userCode = p.userCode,
             avatarId = p.avatarId,
             stats = listOf(
-                ProfileStatUi(p.gamesPlayed.toString(), Strings.profileStatGames),
-                ProfileStatUi(p.gamesWon.toString(), Strings.profileStatWins),
-                ProfileStatUi(friends.size.toString(), Strings.profileStatFriends),
+                ProfileStatUi(ProfileStatKind.GAMES, p.gamesPlayed.toString(), Strings.profileStatGames),
+                ProfileStatUi(ProfileStatKind.WINS, p.gamesWon.toString(), Strings.profileStatWins),
+                ProfileStatUi(ProfileStatKind.FRIENDS, friends.size.toString(), Strings.profileStatFriends),
+                ProfileStatUi(ProfileStatKind.LEVEL, p.level.toString(), Strings.profileStatLevel),
             ),
             friends = friends,
-            friendsSubtitle = Strings.profileFriendsSubtitle(friends.size, friends.count { it.online }),
+            onlineCount = friends.count { it.online },
+            offlineCount = friends.count { !it.online },
+            tabFriends = filter(friends, state.friendsTab),
+            allTabFriends = filter(friends, state.allFriendsTab),
             requests = data.requests.map { ProfileRequestUi(it.requestId, person(it.from)) },
             requestsLabel = Strings.profileRequestsPending(data.requests.size),
+            blocked = data.blocked.map { blocked(it) },
+            blockedLabel = Strings.profileBlockedLabel(data.blocked.size),
         )
+    }
+
+    fun filter(friends: List<Friend>, tab: FriendsTab): List<Friend> = when (tab) {
+        FriendsTab.ALL -> friends
+        FriendsTab.ONLINE -> friends.filter { it.online }
+        FriendsTab.OFFLINE -> friends.filterNot { it.online }
     }
 
     fun person(friend: Friend): ProfilePersonUi = ProfilePersonUi(
         userId = friend.userId,
         name = friend.name,
         username = Strings.profileUsername(friend.username),
-        userCode = Strings.profileUserCode(friend.userCode),
+        userCode = friend.userCode,
         avatarId = friend.avatarId,
         online = friend.online,
         status = if (friend.online) Strings.profileOnline else Strings.profileOffline,
     )
 
-    /** The line under "Add a friend" after sending, and whether it's an error. */
+    private fun blocked(user: BlockedUser): ProfileBlockedUi {
+        val date = Instant.fromEpochMilliseconds(user.blockedAt).toLocalDateTime(TimeZone.currentSystemDefault()).date
+        return ProfileBlockedUi(
+            userId = user.userId,
+            name = user.name,
+            username = Strings.profileUsername(user.username),
+            avatarId = user.avatarId,
+            blockedOn = Strings.profileBlockedOn(Strings.shortDate(date.dayOfMonth, date.monthNumber, date.year)),
+        )
+    }
+
+    /** The line under Add Friend after sending, and whether it's an error. */
     fun outcome(outcome: FriendRequestOutcome, code: String): Pair<String, Boolean> = when (outcome) {
         FriendRequestOutcome.SENT -> Strings.profileRequestSent(code) to false
         FriendRequestOutcome.ACCEPTED -> Strings.profileNowFriends to false

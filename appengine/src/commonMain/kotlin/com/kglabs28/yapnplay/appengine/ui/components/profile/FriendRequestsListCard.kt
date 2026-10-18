@@ -1,37 +1,57 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileRequestUi
 
-/** Everyone asking to be friends, each on a person card with Decline and a green Accept. */
+/** "Friend Requests (n)": each person with Decline and a green Accept; tap a row for their card. */
 @Composable
 fun FriendRequestsListCard(
     requests: List<ProfileRequestUi>,
+    onOpen: (requestId: String) -> Unit,
     onAccept: (requestId: String) -> Unit,
     onDecline: (requestId: String) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = YapNPlayTheme.colors
-    ModalCard(title = Strings.profileRequestsDialogTitle, onClose = onClose, modifier = modifier) {
-        Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
+    val listScroll = rememberScrollState()
+    val dimens = YapNPlayTheme.dimens
+    val rowShape = RoundedCornerShape(dimens.cbRowRadius)
+    ModalCard(
+        surfaceBrush = Brush.verticalGradient(listOf(YapNPlayTheme.colors.GlassDialogTop, YapNPlayTheme.colors.GlassDialogBottom)),title = Strings.profileRequestsDialogTitle(requests.size), onClose = onClose, modifier = modifier.width(dimens.profileWideDialogWidth)) {
+        Column(
+            modifier = Modifier.fillMaxWidth().heightIn(max = dimens.profileListMaxHeight).glassScrollbar(listScroll).verticalScroll(listScroll).padding(end = YapNPlayTheme.dimens.scrollbarWidth * 2),
+            verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
             requests.forEach { request ->
-                PersonCard(person = request.person) {
-                    TintedGlassButton(text = Strings.profileDecline, tint = colors.IconMuted, onClick = { onDecline(request.requestId) }, modifier = Modifier.weight(1f))
-                    TintedGlassButton(text = Strings.profileAccept, tint = colors.LiveGreen, onClick = { onAccept(request.requestId) }, modifier = Modifier.weight(1f))
+                val p = request.person
+                PersonRow(
+                    avatarId = p.avatarId,
+                    name = p.name,
+                    username = p.username,
+                    detail = Strings.profileYapId + "  " + p.userCode,
+                    modifier = Modifier.fillMaxWidth().clip(rowShape).background(YapNPlayTheme.colors.ListRow).clickable { onOpen(request.requestId) }.padding(Spacing.Xs),
+                ) {
+                    ProfileActionButton(text = Strings.profileDecline, kind = ProfileButtonKind.NEUTRAL, onClick = { onDecline(request.requestId) }, height = dimens.smallButtonHeight)
+                    ProfileActionButton(text = Strings.profileAccept, kind = ProfileButtonKind.CONFIRM, onClick = { onAccept(request.requestId) }, height = dimens.smallButtonHeight)
                 }
             }
         }

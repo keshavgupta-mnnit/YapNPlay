@@ -10,6 +10,13 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import com.kglabs28.yapnplay.appengine.ui.components.common.FieldClearButton
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +48,7 @@ fun AppTextField(
         isError -> colors.Error
         else -> colors.Cyan.copy(alpha = 0.6f)
     }
+    var focused by remember { mutableStateOf(false) }
     BasicTextField(
         value = value,
         onValueChange = { onValueChange(TextUtils.capLength(it, maxLength)) },
@@ -51,25 +59,29 @@ fun AppTextField(
         keyboardOptions = keyboardOptions,
         visualTransformation = visualTransformation,
         cursorBrush = SolidColor(colors.Cyan),
-        modifier = modifier
+        modifier = modifier.onFocusChanged { focused = it.isFocused }
             .clip(YapNPlayTheme.shapes.button)
             .background(if (enabled) colors.Panel else colors.Raised)
             .border(dimens.borderThin, border, YapNPlayTheme.shapes.button)
             .defaultMinSize(minHeight = dimens.buttonHeight),
         decorationBox = { inner ->
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = Spacing.Md),
-                contentAlignment = Alignment.CenterStart,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (value.isEmpty() && hint.isNotEmpty()) {
-                    BasicText(
-                        text = hint,
-                        style = YapNPlayTheme.typography.body.copy(color = colors.TextDisabled),
-                    )
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                    if (value.isEmpty() && hint.isNotEmpty()) {
+                        BasicText(
+                            text = hint,
+                            style = YapNPlayTheme.typography.body.copy(color = colors.TextDisabled),
+                        )
+                    }
+                    inner()
                 }
-                inner()
+                // While typing: × empties the field.
+                if (focused && enabled && value.isNotEmpty()) FieldClearButton(onClear = { onValueChange("") })
             }
         },
     )

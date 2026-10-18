@@ -2,22 +2,18 @@ package com.kglabs28.yapnplay.appengine.ui.components.profile
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
-import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileModal
-import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileRequestUi
+import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileState
 
-/** The dialog for [modal]: avatar picker, edit name / username, friends grid, a friend's card, requests, confirmations. */
+/** The dialog for [modal], as in the design. */
 @Composable
 fun ProfileModalContent(
     modal: ProfileModal,
-    friends: List<Friend>,
-    requests: List<ProfileRequestUi>,
+    state: ProfileState,
     actions: ProfileModalActions,
     modifier: Modifier = Modifier,
 ) {
-    val colors = YapNPlayTheme.colors
     when (modal) {
         is ProfileModal.AvatarPicker -> AvatarPickerCard(
             selected = modal.selected,
@@ -29,6 +25,7 @@ fun ProfileModalContent(
         )
         is ProfileModal.EditText -> ProfileEditCard(
             title = modal.title,
+            label = modal.label,
             value = modal.value,
             hint = modal.hint,
             maxLength = modal.maxLength,
@@ -39,44 +36,73 @@ fun ProfileModalContent(
             onClose = actions.onDismiss,
             modifier = modifier,
         )
-        ProfileModal.AllFriends -> AllFriendsCard(friends = friends, onFriendClick = actions.onFriendClick, onClose = actions.onDismiss, modifier = modifier)
-        is ProfileModal.Person -> PersonCard(person = modal.person, modifier = modifier) {
-            TintedGlassButton(text = Strings.profileBlock, tint = colors.IconMuted, onClick = { actions.onBlock(modal.person.userId) }, modifier = Modifier.weight(1f))
-            TintedGlassButton(text = Strings.profileRemove, tint = colors.Error, onClick = { actions.onRemove(modal.person.userId) }, modifier = Modifier.weight(1f))
-        }
+        ProfileModal.AllFriends -> AllFriendsCard(
+            friends = state.allTabFriends,
+            tab = state.allFriendsTab,
+            allCount = state.friends.size,
+            onlineCount = state.onlineCount,
+            offlineCount = state.offlineCount,
+            onSelectTab = actions.onSelectAllFriendsTab,
+            onFriendClick = actions.onFriendClick,
+            onClose = actions.onDismiss,
+            modifier = modifier,
+        )
+        is ProfileModal.Person -> FriendProfileCard(
+            person = modal.person,
+            onCopyCode = { actions.onCopyCode(modal.person.userCode) },
+            onRemove = { actions.onRemove(modal.person.userId) },
+            onBlock = { actions.onBlock(modal.person.userId) },
+            onClose = actions.onDismiss,
+            modifier = modifier,
+        )
         ProfileModal.Requests -> FriendRequestsListCard(
-            requests = requests,
+            requests = state.requests,
+            onOpen = actions.onOpenRequest,
             onAccept = actions.onAccept,
             onDecline = actions.onDecline,
             onClose = actions.onDismiss,
             modifier = modifier,
         )
-        is ProfileModal.ConfirmRemove -> ProfileConfirmCard(
-            title = Strings.profileRemoveTitle(modal.person.name),
+        is ProfileModal.RequestProfile -> RequestProfileCard(
+            request = modal.request,
+            onCopyCode = { actions.onCopyCode(modal.request.person.userCode) },
+            onAccept = { actions.onAccept(modal.request.requestId) },
+            onClose = actions.onDismiss,
+            modifier = modifier,
+        )
+        is ProfileModal.RequestAccepted -> RequestAcceptedCard(name = modal.name, onDone = actions.onDismiss, modifier = modifier)
+        is ProfileModal.ConfirmRemove -> ConfirmPersonCard(
+            title = Strings.profileRemoveDialogTitle,
+            avatarId = modal.person.avatarId,
+            question = Strings.profileRemoveQuestion(modal.person.name),
             body = Strings.profileRemoveBody,
             confirmLabel = Strings.profileRemove,
-            confirmTint = colors.Error,
             onConfirm = actions.onConfirm,
             onCancel = actions.onDismiss,
             modifier = modifier,
         )
-        is ProfileModal.ConfirmBlock -> ProfileConfirmCard(
-            title = Strings.profileBlockTitle(modal.person.name),
+        is ProfileModal.ConfirmBlock -> ConfirmPersonCard(
+            title = Strings.profileBlockDialogTitle,
+            avatarId = modal.person.avatarId,
+            question = Strings.profileBlockQuestion(modal.person.name),
             body = Strings.profileBlockBody,
             confirmLabel = Strings.profileBlock,
-            confirmTint = colors.Error,
             onConfirm = actions.onConfirm,
             onCancel = actions.onDismiss,
             modifier = modifier,
         )
-        ProfileModal.ConfirmLogout -> ProfileConfirmCard(
-            title = Strings.profileLogoutTitle,
-            body = Strings.profileLogoutBody,
-            confirmLabel = Strings.profileLogout,
-            confirmTint = colors.Error,
+        is ProfileModal.ConfirmUnblock -> ConfirmPersonCard(
+            title = Strings.profileUnblockDialogTitle,
+            avatarId = modal.user.avatarId,
+            question = Strings.profileUnblockQuestion(modal.user.name),
+            body = Strings.profileUnblockBody,
+            confirmLabel = Strings.profileUnblock,
             onConfirm = actions.onConfirm,
             onCancel = actions.onDismiss,
+            confirmKind = ProfileButtonKind.CONFIRM,
             modifier = modifier,
         )
+        ProfileModal.BlockList -> BlockListCard(blocked = state.blocked, onUnblock = actions.onUnblock, onClose = actions.onDismiss, modifier = modifier)
+        ProfileModal.ConfirmLogout -> LogoutConfirmCard(onConfirm = actions.onConfirm, onCancel = actions.onDismiss, modifier = modifier)
     }
 }

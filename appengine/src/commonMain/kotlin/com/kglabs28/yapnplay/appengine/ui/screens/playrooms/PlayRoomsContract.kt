@@ -51,6 +51,7 @@ sealed interface PlayRoomsIntent : UiIntent {
     data object DismissRequestSent : PlayRoomsIntent
     data class KeypadDigit(val digit: Char) : PlayRoomsIntent
     data object KeypadBackspace : PlayRoomsIntent
+    data object ClearCode : PlayRoomsIntent
     /** Opened from an invite link: same lookup and question. */
     data class PreviewInvite(val code: String) : PlayRoomsIntent
     data object ConfirmJoin : PlayRoomsIntent

@@ -14,6 +14,7 @@ import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveMyProfile
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.RemoveFriendUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.RespondToFriendRequestUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.SendFriendRequestUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.UnblockUserUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.UpdateProfileUseCase
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileViewModel
 import org.koin.dsl.module
@@ -23,7 +24,7 @@ import org.koin.dsl.module
  * swapping one line. Managers and repository stay untouched.
  */
 val profileModule = module {
-    single { FakeProfileServer() }
+    single { FakeProfileServer(get()) }
     single<ProfileApi> { ProfileApiClient(get(), get()) }
     single { ProfileRemoteManager(get()) }
     single { ProfileLocalManager() }
@@ -36,5 +37,6 @@ val profileModule = module {
     factory { RespondToFriendRequestUseCase(get()) }
     factory { RemoveFriendUseCase(get()) }
     factory { BlockUserUseCase(get()) }
-    factory { ProfileViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    factory { UnblockUserUseCase(get()) }
+    factory { ProfileViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
 }

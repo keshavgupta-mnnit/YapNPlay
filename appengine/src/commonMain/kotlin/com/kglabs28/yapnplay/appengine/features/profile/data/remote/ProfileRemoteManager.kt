@@ -4,6 +4,7 @@ import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
 import com.kglabs28.yapnplay.appengine.features.profile.data.toDomain
+import com.kglabs28.yapnplay.appengine.features.profile.domain.BlockedUser
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequest
 import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequestOutcome
@@ -39,6 +40,10 @@ class ProfileRemoteManager(private val api: ProfileApi) {
     suspend fun removeFriend(userId: String): AppResult<Unit> = call("removeFriend") { api.removeFriend(userId) }
 
     suspend fun blockUser(userId: String): AppResult<Unit> = call("blockUser") { api.blockUser(BlockUserBody(userId)) }
+
+    suspend fun fetchBlockedUsers(): AppResult<List<BlockedUser>> = call("fetchBlockedUsers") { api.getBlockedUsers().users.map { it.toDomain() } }
+
+    suspend fun unblockUser(userId: String): AppResult<Unit> = call("unblockUser") { api.unblockUser(userId) }
 
     private suspend fun <T> call(what: String, block: suspend () -> T): AppResult<T> = try {
         AppResult.Success(block())

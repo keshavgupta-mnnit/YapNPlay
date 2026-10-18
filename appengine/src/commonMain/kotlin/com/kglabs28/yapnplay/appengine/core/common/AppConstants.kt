@@ -176,4 +176,19 @@ object AppConstants {
 
     /** Friends the online-friends arrows scroll by per tap. */
     const val FRIENDS_SCROLL_STEP = 3
+
+    /** A user's ID that friends type to add them: 6 characters, no look-alikes (0/O, 1/I). */
+    const val USER_CODE_LENGTH = 6
+    const val USER_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    /** Usernames (not unique): this long, from these characters. */
+    const val MIN_USERNAME_LENGTH = 3
+    const val MAX_USERNAME_LENGTH = 20
+    const val USERNAME_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_."
+    /** Profile screen: identity column vs friends column, and friends panel vs the two cards under it. */
+    const val PROFILE_LEFT_COLUMN_WEIGHT = 0.36f
+    const val PROFILE_RIGHT_COLUMN_WEIGHT = 0.64f
+    const val PROFILE_FRIENDS_PANEL_WEIGHT = 0.52f
+    const val PROFILE_ACTIONS_ROW_WEIGHT = 0.48f
+    /** How long "Copied" shows after copying the user's ID. */
+    const val PROFILE_COPIED_MS = 1_500L
 }

@@ -12,6 +12,10 @@ data object Main
 @Serializable
 data object About
 
+/** The user's profile and friends (from the Home avatar). */
+@Serializable
+data object Profile
+
 /** A play room's lobby (members, game choice, house rules, start). */
 @Serializable
 data class RoomLobby(val roomId: String)

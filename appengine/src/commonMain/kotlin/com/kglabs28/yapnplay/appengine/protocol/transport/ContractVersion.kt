@@ -14,4 +14,4 @@ package com.kglabs28.yapnplay.appengine.protocol.transport
  * RoomSummary leader/icon, Friends, OnlineStats, new error codes.
  * Previous: 0.2.0 — app-engine restructure.
  */
-const val CONTRACT_VERSION: String = "0.3.0"
+const val CONTRACT_VERSION: String = "0.3.1"

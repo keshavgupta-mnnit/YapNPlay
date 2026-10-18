@@ -69,3 +69,24 @@ actual fun CityBazaarArtwork(modifier: Modifier, contentDescription: String?) {
         contentScale = ContentScale.Crop,
     )
 }
+
+/** The avatar set, in AvatarPresets order. */
+private val avatarDrawables = listOf(
+    R.drawable.ic_avatar_01, R.drawable.ic_avatar_02, R.drawable.ic_avatar_03,
+    R.drawable.ic_avatar_04, R.drawable.ic_avatar_05, R.drawable.ic_avatar_06,
+    R.drawable.ic_avatar_07, R.drawable.ic_avatar_08, R.drawable.ic_avatar_09,
+    R.drawable.ic_avatar_10, R.drawable.ic_avatar_11, R.drawable.ic_avatar_12,
+    R.drawable.ic_avatar_13, R.drawable.ic_avatar_14, R.drawable.ic_avatar_15,
+    R.drawable.ic_avatar_16, R.drawable.ic_avatar_17, R.drawable.ic_avatar_18,
+)
+
+@Composable
+actual fun PresetAvatarArtwork(index: Int, modifier: Modifier, contentDescription: String?) {
+    Image(
+        painter = painterResource(id = avatarDrawables[index % avatarDrawables.size]),
+        contentDescription = contentDescription,
+        modifier = modifier,
+        // Portrait on a transparent square: fill the circle.
+        contentScale = ContentScale.Crop,
+    )
+}

@@ -76,6 +76,7 @@ data class LudoPlayerCardUi(
     val seat: Int,
     val userId: String,
     val name: String,
+    val avatarId: String = "",
     /** Level number, on the avatar's badge. */
     val level: String,
     val colour: LudoColour,

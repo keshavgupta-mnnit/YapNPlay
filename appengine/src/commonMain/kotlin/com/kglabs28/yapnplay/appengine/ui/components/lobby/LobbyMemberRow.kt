@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MicOff
-import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,6 +34,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.PresenceDot
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.IconCircle
 import com.kglabs28.yapnplay.appengine.ui.components.common.VoiceWave
+import com.kglabs28.yapnplay.appengine.ui.components.profile.PresetAvatar
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.LobbyMemberUi
 
 /**
@@ -141,12 +141,9 @@ private fun MemberAvatar(
 
     Box(modifier = modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
         Box(contentAlignment = Alignment.BottomEnd) {
-            IconCircle(
-                imageVector = Icons.Rounded.Person,
-                fill = colors.RoomsSmallButton,
-                tint = colors.IconMuted,
+            PresetAvatar(
+                avatarId = member.avatarId,
                 size = dimens.lobbyAvatar,
-                iconSize = dimens.iconMedium,
                 rimColor = if (member.isAdmin) colors.Gold else colors.AvatarRingSilver,
             )
             PresenceDot(online = member.online, size = dimens.statusDotSmall, onlineColor = colors.LiveGreen)

@@ -2,6 +2,7 @@ package com.kglabs28.yapnplay.appengine.core.common
 
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.domain.GameCatalogItem
 import com.kglabs28.yapnplay.appengine.games.base.rules.HouseRuleOption
+import com.kglabs28.yapnplay.appengine.protocol.FriendRequestSummary
 import com.kglabs28.yapnplay.appengine.protocol.FriendSummary
 import com.kglabs28.yapnplay.appengine.protocol.Friends
 import com.kglabs28.yapnplay.appengine.protocol.Me
@@ -35,21 +36,49 @@ object FakeDataProvider {
             level = 12,
             coins = 4250,
             gems = 120,
+            username = "keshav_28",
+            userCode = "K7Q2M9",
+            avatarId = "a03",
+            gamesPlayed = 128,
+            gamesWon = 47,
         )
 
         val friends = Friends(
             friends = listOf(
-                FriendSummary(userId = "user-neha", displayName = "Neha", online = true),
-                FriendSummary(userId = "user-arjun", displayName = "Arjun", online = true),
-                FriendSummary(userId = "user-riya", displayName = "Riya", online = true),
-                FriendSummary(userId = "user-karan", displayName = "Karan", online = true),
-                FriendSummary(userId = "user-sneha", displayName = "Sneha", online = true),
-                FriendSummary(userId = "user-vikram", displayName = "Vikram", online = true),
-                FriendSummary(userId = "user-rohan", displayName = "Rohan", online = true),
-                FriendSummary(userId = "user-meera", displayName = "Meera", online = false),
-                FriendSummary(userId = "user-dev", displayName = "Dev", online = false),
+                person("user-neha", "Neha", online = true, "neha.s", "N4HX2P", "a07"),
+                person("user-arjun", "Arjun", online = true, "arjun_r", "A9RJ3K", "a02"),
+                person("user-riya", "Riya", online = true, "riya", "R2YQ8M", "a10"),
+                person("user-karan", "Karan", online = true, "karan.k", "K3RN7W", "a05"),
+                person("user-sneha", "Sneha", online = true, "sneha_11", "S8NH4T", "a11"),
+                person("user-vikram", "Vikram", online = true, "vikram", "V6KR2M", "a01"),
+                person("user-rohan", "Rohan", online = true, "rohan.c", "R7HN5C", "a04"),
+                person("user-meera", "Meera", online = false, "meera", "M3ER9D", "a08"),
+                person("user-dev", "Dev", online = false, "dev_x", "D5VX2Q", "a12"),
             ),
         )
+
+        /** Friend requests waiting for the user. */
+        val requests = listOf(
+            FriendRequestSummary("req-aarav", person("user-aarav", "Aarav", online = true, "aarav_k", "A2RV7K", "a06")),
+            FriendRequestSummary("req-ishita", person("user-ishita", "Ishita", online = false, "ishita", "I5ST8H", "a13")),
+        )
+
+        /** Other people the user can find by ID (not friends yet). Try K8BR4M or T3NY6Q. */
+        val directory = listOf(
+            person("user-kabir", "Kabir", online = true, "kabir.m", "K8BR4M", "a02"),
+            person("user-tanya", "Tanya", online = false, "tanya_t", "T3NY6Q", "a10"),
+        )
+
+        /** The user's avatar as last saved on the Profile screen (fake servers share it). */
+        var myAvatarId: String = me.avatarId
+
+        /** Anyone's avatar by user id (the user, friends, requests, people found by ID); "" if unknown. */
+        fun avatarOf(userId: String): String =
+            if (userId == me.userId) myAvatarId
+            else (friends.friends + requests.map { it.from } + directory).firstOrNull { it.userId == userId }?.avatarId.orEmpty()
+
+        private fun person(userId: String, name: String, online: Boolean, username: String, code: String, avatarId: String) =
+            FriendSummary(userId = userId, displayName = name, online = online, username = username, userCode = code, avatarId = avatarId)
     }
 
     object PlayRooms {
@@ -265,6 +294,7 @@ object FakeDataProvider {
                     speakerOn = speaker,
                     isFriend = friend,
                     onlineSince = if (online) now - minutes * 60_000 else null,
+                    avatarId = Profile.avatarOf(id),
                 )
             return listOf(
                 member(myId, Profile.me.displayName, true, false, false, false, false, 30),

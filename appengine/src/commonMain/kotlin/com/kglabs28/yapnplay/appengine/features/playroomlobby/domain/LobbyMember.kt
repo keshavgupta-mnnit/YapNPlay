@@ -15,4 +15,5 @@ data class LobbyMember(
     val isFriend: Boolean,
     val isLeader: Boolean,
     val isAdmin: Boolean,
+    val avatarId: String = "",
 )

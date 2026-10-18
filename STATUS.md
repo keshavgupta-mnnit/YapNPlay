@@ -1,4 +1,4 @@
-# STATUS — 2026-10-17
+# STATUS — 2026-10-18
 
 Read first: `docs/project-report.md` (the plan), `docs/decisions.md`
 (later decisions that override it), `docs/ARCHITECTURE_RULES.md`,
@@ -8,21 +8,26 @@ Read first: `docs/project-report.md` (the plan), `docs/decisions.md`
 - `.\gradlew.bat :appengine:compileKotlinJvm :androidApp:compileDebugKotlin`
   compiles clean.
 - Tests are paused on purpose while the UI is being tuned; several
-  existing tests are expected to be out of date (profile/rooms/catalog
-  shapes, renamed use cases, `GameDescriptor` additions). Fix together
-  in one pass later.
+  existing tests are expected to be out of date. Fix together in one
+  pass later.
 
-## Progress against the report
+## Progress against the report (16 phases)
 | Phase | State |
 |---|---|
-| 1 Contracts | Done (single `:appengine` library instead of `:shared:*` modules); v0.3.0 |
+| 1 Contracts | Done (single `:appengine` library instead of `:shared:*` modules); v0.3.0 covers rooms, matchmaking, both games, seat handover, moderation |
 | 2–4 Design | Replaced by the user's neon/glass mockups |
 | 5 Ludo engine | Done |
 | 7 Android base | Done |
-| 8 Social screens (fake data) | Partial: Home, Rooms tab, Game Zone. Missing: Welcome/name, create-room flow, **Lobby**, settings, dialogs |
-| 9 Ludo screens (local engine) | Not started |
-| 6, 10, 11, 14 Backend | Not started |
-| 12, 13, 15 Connectivity, voice, online match | Not started |
+| 8 Social screens (fake data) | Mostly done: Home, Rooms tab (join by code, invites), Game Zone, room lobby (members, roles, ready, countdown, game picker, voice, notifications). Missing: welcome/name entry, create-room screen (goes to a placeholder), "see all rooms", settings dialog |
+| 9 Game screens (local engine) | Done, beyond scope: Royal Ludo and City Bazaar on fake servers, spectating, seat handover, autoplay/CPU, moderation |
+| 6 Server, identity, rooms | Not started (no server module yet) |
+| 10 Match service | Not started |
+| 11 Voice tokens | Not started |
+| 14 Hosting | Not started (parked: no hosting files in the repo for now) |
+| 12 Android connectivity | Not started (every client has its production call written as a comment; fakes in use) |
+| 13 Android voice client | Not started (only the local mic level monitor and the app-wide mic switch exist) |
+| 15 Android online match | Not started |
+| 16 End-to-end and family test | Not started |
 
 ## Done in this session
 - Top bar, Home cards, Rooms tab (60:40), Game Zone (carousel + grid +

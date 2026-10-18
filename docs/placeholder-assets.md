@@ -3,6 +3,12 @@
 Every entry below is a single-letter glyph standing in for real art.
 Replace the glyph with an Icon/Avatar composable; delete the row here.
 
+## Avatars — done
+The 18 preset avatars (`a01`…`a18`, `androidMain/res/drawable/ic_avatar_NN.webp`)
+are real art and show everywhere a user's avatar is drawn: Home top bar,
+Profile, friend rows, friend and request cards, the lobby member list
+and the game player cards. The spectator tray still uses the person glyph.
+
 ## HomeScreen (`ui/screens/home/`)
 | # | File / Component | Meaning | Real art needed |
 |---|---|---|---|
@@ -22,7 +28,6 @@ Replace the glyph with an Icon/Avatar composable; delete the row here.
 | # | File / Component | Meaning | Real art needed |
 |---|---|---|---|
 | 1 | `CreateRoomGraphic.kt` | Create-room hero art | Arcade machine with crown, dice and stars |
-| 2 | `FriendAvatarItem.kt` | Friend avatars | Real friend avatar images |
 | 3 | `RoomListItem.kt` | Room badges | Per-room icon art (group, dice, family, gamepad) |
 
 ## GalleryScreen (`ui/screens/gallery/`)

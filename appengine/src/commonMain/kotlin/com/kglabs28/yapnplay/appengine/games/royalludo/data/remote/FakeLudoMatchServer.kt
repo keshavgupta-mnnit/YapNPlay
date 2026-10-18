@@ -190,10 +190,10 @@ class FakeLudoMatchServer(
         players = (1..ROYAL_LUDO_PLAYERS).map { seat ->
             val colour = LudoColour.entries[state.colourForSeat(seat)]
             if (seated == null && seat == MY_SEAT) {
-                LudoPlayer(seat, meProfile.userId, meProfile.displayName, meProfile.level, colour, isMe = true, micOn = false, autoplay = false, removed = false)
+                LudoPlayer(seat, meProfile.userId, meProfile.displayName, meProfile.level, colour, isMe = true, micOn = false, autoplay = false, removed = false, avatarId = FakeDataProvider.Profile.avatarOf(meProfile.userId))
             } else {
                 val o = seated?.get(seat - 1) ?: fake.opponents[seat - 2]
-                LudoPlayer(seat, o.userId, o.name, o.level, colour, isMe = false, micOn = o.micOn, autoplay = false, removed = false)
+                LudoPlayer(seat, o.userId, o.name, o.level, colour, isMe = false, micOn = o.micOn, autoplay = false, removed = false, avatarId = FakeDataProvider.Profile.avatarOf(o.userId))
             }
         }
         if (watchingMatch) {
@@ -481,7 +481,7 @@ class FakeLudoMatchServer(
         players = players.map {
             if (it.seat == seat) {
                 // If it was the user's seat, they now watch as a spectator.
-                it.copy(userId = joiner.userId, name = joiner.name, level = joiner.level, isMe = joiner.userId == myUserId, micOn = joiner.micOn, autoplay = false, presence = LudoPresence.PLAYING)
+                it.copy(userId = joiner.userId, name = joiner.name, level = joiner.level, isMe = joiner.userId == myUserId, micOn = joiner.micOn, autoplay = false, presence = LudoPresence.PLAYING, avatarId = FakeDataProvider.Profile.avatarOf(joiner.userId))
             } else {
                 it
             }

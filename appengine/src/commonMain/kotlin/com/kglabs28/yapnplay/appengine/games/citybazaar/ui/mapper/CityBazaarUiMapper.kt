@@ -70,6 +70,7 @@ object CityBazaarUiMapper {
             CbPlayerCardUi(
                 seat = p.seat,
                 name = p.name,
+                avatarId = p.avatarId,
                 level = p.level.toString(),
                 colour = p.colour,
                 cash = inputs.cash[p.seat] ?: p.cash,

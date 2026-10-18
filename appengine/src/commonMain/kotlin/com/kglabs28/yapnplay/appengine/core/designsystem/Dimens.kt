@@ -225,6 +225,14 @@ class YapNPlayDimens {
     val cbActionButtonHeight: Dp get() = 46.dp.scaled()
     val cbControlHeight: Dp get() = 34.dp.scaled()
     val cbRowRadius: Dp get() = 8.dp.scaled()
+
+    // Profile screen.
+    val profileAvatar: Dp get() = 64.dp.scaled()
+    val profileEditBadge: Dp get() = 22.dp.scaled()
+    val personCardWidth: Dp get() = 200.dp.scaled()
+    val personCardAvatar: Dp get() = 56.dp.scaled()
+    val avatarPickerItem: Dp get() = 44.dp.scaled()
+    val friendsGridMaxHeight: Dp get() = 200.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

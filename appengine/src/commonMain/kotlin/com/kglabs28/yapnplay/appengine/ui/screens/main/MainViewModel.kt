@@ -10,6 +10,7 @@ import com.kglabs28.yapnplay.appengine.features.notifications.domain.AppNotifica
 import com.kglabs28.yapnplay.appengine.features.notifications.usecase.MarkNotificationsReadUseCase
 import com.kglabs28.yapnplay.appengine.features.notifications.usecase.ObserveNotificationsUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetHomeScreenDataUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveMyProfileUseCase
 import kotlinx.coroutines.launch
 
 /**
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
  */
 class MainViewModel(
     private val getHomeScreenData: GetHomeScreenDataUseCase,
+    observeMyProfile: ObserveMyProfileUseCase,
     observeNotifications: ObserveNotificationsUseCase,
     private val markNotificationsRead: MarkNotificationsReadUseCase,
     private val clock: AppClock,
@@ -29,6 +31,12 @@ class MainViewModel(
     private var history: List<AppNotification> = emptyList()
 
     init {
+        // Name and avatar follow edits made on the Profile screen.
+        scope.launch {
+            observeMyProfile().collect { profile ->
+                if (profile != null) setState { copy(userName = profile.name, avatarId = profile.avatarId) }
+            }
+        }
         // Pushes land in the history from the push service; the bell
         // follows it live.
         scope.launch {

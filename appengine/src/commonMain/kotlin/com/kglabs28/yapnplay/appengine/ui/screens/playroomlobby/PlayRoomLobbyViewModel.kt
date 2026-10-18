@@ -243,6 +243,7 @@ class PlayRoomLobbyViewModel(
         val talking = online && micOn && if (userId == d.myUserId) micOpen && mySpeaking else userId in d.speakingUserIds
         return LobbyMemberUi(
             userId = userId,
+            avatarId = avatarId,
             name = name,
             online = online,
             isMe = userId == d.myUserId,

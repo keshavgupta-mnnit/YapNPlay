@@ -27,6 +27,14 @@ data class Me(
     val coins: Int = 0,
     /** Provisional: economy not designed yet. */
     val gems: Int = 0,
+    /** Shown as "@username"; anyone may pick any (not unique). */
+    val username: String = "",
+    /** The user's 6-character ID that friends type to add them (unique). */
+    val userCode: String = "",
+    /** One of the app's preset avatars ("" = default). */
+    val avatarId: String = "",
+    val gamesPlayed: Int = 0,
+    val gamesWon: Int = 0,
 )
 
 /** Provisional (post-POC friends): the user's friends, online first. */
@@ -40,6 +48,9 @@ data class FriendSummary(
     val userId: String,
     val displayName: String,
     val online: Boolean,
+    val username: String = "",
+    val userCode: String = "",
+    val avatarId: String = "",
 )
 
 /**
@@ -122,4 +133,49 @@ data class JoinRoomResult(
     val status: JoinStatus,
     val roomName: String,
     val room: RoomSummary? = null,
+)
+
+/** `PATCH /me`: change the user's name, username or avatar (null = keep as is). */
+@Serializable
+data class UpdateProfileBody(
+    val displayName: String? = null,
+    val username: String? = null,
+    val avatarId: String? = null,
+)
+
+/** `GET /friends/requests`: friend requests other people sent the user, newest first. */
+@Serializable
+data class FriendRequests(
+    val requests: List<FriendRequestSummary>,
+)
+
+@Serializable
+data class FriendRequestSummary(
+    val requestId: String,
+    val from: FriendSummary,
+)
+
+/** `POST /friends/requests`: ask the person whose ID is [userCode] to be friends. */
+@Serializable
+data class SendFriendRequestBody(
+    val userCode: String,
+)
+
+@Serializable
+data class SendFriendRequestReply(
+    val outcome: FriendRequestOutcomeCode,
+)
+
+/**
+ * What became of a friend request: sent; nobody has that ID; it's the
+ * user's own ID; already friends; already asked; the user blocked them;
+ * or they had already asked the user, so now they're friends.
+ */
+@Serializable
+enum class FriendRequestOutcomeCode { SENT, NOT_FOUND, SELF, ALREADY_FRIENDS, ALREADY_REQUESTED, BLOCKED, ACCEPTED }
+
+/** `POST /blocks`: block a person (also ends any friendship and pending request). */
+@Serializable
+data class BlockUserBody(
+    val userId: String,
 )

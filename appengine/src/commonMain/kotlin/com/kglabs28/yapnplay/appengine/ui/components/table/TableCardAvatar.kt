@@ -3,6 +3,7 @@ package com.kglabs28.yapnplay.appengine.ui.components.table
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,10 +24,12 @@ import androidx.compose.ui.unit.Dp
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
+import com.kglabs28.yapnplay.appengine.ui.components.profile.AvatarPresets
+import com.kglabs28.yapnplay.appengine.ui.placeholders.PresetAvatarArtwork
 
 /**
- * The player-card avatar from the design: a rounded square framed in the
- * player's [tint], and their [level] in a small badge across the bottom
+ * The player-card avatar from the design: their preset avatar in a rounded
+ * square framed in the player's [tint], and their [level] in a small badge across the bottom
  * edge. (Talking shows as the card's voice wave, not on the avatar.)
  */
 @Composable
@@ -35,6 +38,8 @@ fun TableCardAvatar(
     level: String,
     modifier: Modifier = Modifier,
     size: Dp = YapNPlayTheme.dimens.ludoCardAvatar,
+    /** The player's preset avatar ("" = person icon). */
+    avatarId: String = "",
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -45,10 +50,17 @@ fun TableCardAvatar(
                 .size(size)
                 .clip(shape)
                 .background(Brush.verticalGradient(listOf(colors.RoomsSmallButton, colors.Background)))
-                .border(dimens.ludoAvatarRing, tint, shape),
+                .border(dimens.ludoAvatarRing, tint, shape)
+                // The art sits inside the frame, not over it.
+                .padding(dimens.ludoAvatarRing),
             contentAlignment = Alignment.Center,
         ) {
-            AppIcon(imageVector = Icons.Rounded.Person, tint = colors.IconMuted, size = size * ICON_SHARE)
+            val preset = AvatarPresets.index(avatarId)
+            if (preset >= 0) {
+                PresetAvatarArtwork(index = preset, modifier = Modifier.fillMaxSize().clip(shape))
+            } else {
+                AppIcon(imageVector = Icons.Rounded.Person, tint = colors.IconMuted, size = size * ICON_SHARE)
+            }
         }
         BasicText(
             text = level,

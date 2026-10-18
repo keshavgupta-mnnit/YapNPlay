@@ -1,4 +1,4 @@
-# YapNPlay — Backend API contract (v0.3.0)
+# YapNPlay — Backend API contract (v0.3.1)
 
 What the Android app expects from the Ktor server. The Kotlin types are
 the source of truth: `appengine/.../protocol/` (wire messages, bodies)
@@ -30,9 +30,14 @@ decisions that win).
 ## Versioning
 
 `CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
-**0.3.0**. Patch: optional field / new message. Minor: new required
+**0.3.1**. Patch: optional field / new message. Minor: new required
 field, channel or game-interface member. Major: breaking change.
 Every bump is announced in `docs/decisions.md`.
+
+0.3.1 added: profile and friends — `Me`/`FriendSummary` fields `username`,
+`userCode`, `avatarId` (+ `Me.gamesPlayed`, `gamesWon`); `PATCH /me` takes
+`UpdateProfileBody`; friend requests, remove friend and block endpoints;
+`RoomMember.avatarId` (match tables find players' avatars by user id).
 
 0.3.0 added: MATCHMAKING channel (`JoinQueue`, `LeaveQueue`,
 `QueueStatus`, `MatchFound`, `QueueCancelled`), `SelectGame`,
@@ -48,19 +53,32 @@ progression fields, `RoomSummary.isLeader` + `icon`, `Friends`,
 |---|---|---|---|
 | `POST /auth/guest` | — | `GuestCreated(userId, secret)` | No auth. Rate-limited per address. Server picks a name like `Player-4821`. |
 | `GET /me` | — | `Me` | See below. |
-| `PATCH /me` | `UpdateName(displayName)` | `Me` | Trim, 1–24 chars, no control chars, duplicates allowed. |
+| `PATCH /me` | `UpdateProfileBody(displayName?, username?, avatarId?)` | `Me` | Only the fields sent change. Name: trim, 1–24 chars, no control chars. Username: 3–20 of `A–Z a–z 0–9 _ .`. Neither is unique. `avatarId` ∈ `a01`…`a18` (preset avatars). Same JSON as the old `UpdateName` when only the name changes. |
 | `GET /rooms/mine` | — | `MyRooms(rooms: [RoomSummary])` | Rooms the user belongs to. |
 | `POST /rooms/{roomId}/voice-token` | — | `VoiceToken(url, token, expiresAt)` | Members only (`NOT_MEMBER`); LiveKit, 10-minute TTL. |
 | `GET /rooms/preview/{code}` | — | `RoomPreview(roomId, code, name, description?, memberCount, onlineCount, isMember)` | Before joining: "Join this room?". `isMember` from the connection's user; the app opens the room directly when true. `NOT_FOUND` / `INVALID_CODE`. |
 | `POST /devices` | `RegisterDevice(token, platform)` | — | FCM token for pushes; upsert per user+token, re-sent when the token changes. |
 | `GET /stats/online` | — | `OnlineStats(online)` | Connected users right now (Game Zone pill). |
-| `GET /friends` | — | `Friends(friends: [FriendSummary])` | **Provisional**, post-POC friends; online first. |
+| `GET /friends` | — | `Friends(friends: [FriendSummary])` | The user's friends. |
+| `GET /friends/requests` | — | `FriendRequests(requests: [FriendRequestSummary(requestId, from: FriendSummary)])` | Requests other people sent the user, newest first. |
+| `POST /friends/requests` | `SendFriendRequestBody(userCode)` | `SendFriendRequestReply(outcome)` | `outcome` ∈ `SENT`, `NOT_FOUND`, `SELF`, `ALREADY_FRIENDS`, `ALREADY_REQUESTED`, `BLOCKED` (the user blocked them), `ACCEPTED` (they had already asked the user: now friends). A person who blocked the user gets `NOT_FOUND`. |
+| `POST /friends/requests/{requestId}/accept` | — | — | Becomes friends both ways. |
+| `POST /friends/requests/{requestId}/decline` | — | — | The sender isn't told. |
+| `DELETE /friends/{userId}` | — | — | Ends the friendship both ways. |
+| `POST /blocks` | `BlockUserBody(userId)` | — | Ends any friendship and pending request; the blocked person can't send the user friend requests or room invites. |
 | `GET /health` | — | `{status, contractVersion}` | No auth. |
 
 ### `Me`
 ```json
-{ "userId": "user-keshav", "displayName": "Keshav", "xp": 2450, "level": 12, "coins": 4250, "gems": 120 }
+{ "userId": "user-keshav", "displayName": "Keshav", "xp": 2450, "level": 12, "coins": 4250, "gems": 120,
+  "username": "keshav_28", "userCode": "K7Q2M9", "avatarId": "a03", "gamesPlayed": 128, "gamesWon": 47 }
 ```
+- `userCode`: the user's **unique** 6-character ID that friends type to add
+  them, from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (no 0/O or 1/I). Assigned
+  by the server at sign-up, never changes. `username` and `displayName`
+  are not unique.
+- `gamesPlayed`, `gamesWon`: counted by the server over all matches.
+- `FriendSummary` carries the same `username`, `userCode` and `avatarId`.
 - `xp`: computed by the server from the user's match results — Quick Play
   and room matches alike (formula to be designed; e.g. points by finishing
   place). `level` derives from `xp`.

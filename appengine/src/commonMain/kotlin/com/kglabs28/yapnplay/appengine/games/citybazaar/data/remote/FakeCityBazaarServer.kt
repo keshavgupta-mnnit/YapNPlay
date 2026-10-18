@@ -189,10 +189,10 @@ class FakeCityBazaarServer(
         players = (1..others.size + 1).map { seat ->
             val colour = CityBazaarColour.entries[seat - 1]
             if (seat == MY_SEAT) {
-                CityBazaarPlayer(seat, meProfile.userId, meProfile.displayName, meProfile.level, colour, isMe = true, micOn = false, autoplay = false)
+                CityBazaarPlayer(seat, meProfile.userId, meProfile.displayName, meProfile.level, colour, isMe = true, micOn = false, autoplay = false, avatarId = FakeDataProvider.Profile.avatarOf(meProfile.userId))
             } else {
                 val o = others[seat - 2]
-                CityBazaarPlayer(seat, o.userId, o.name, o.level, colour, isMe = false, micOn = o.micOn, autoplay = false)
+                CityBazaarPlayer(seat, o.userId, o.name, o.level, colour, isMe = false, micOn = o.micOn, autoplay = false, avatarId = FakeDataProvider.Profile.avatarOf(o.userId))
             }
         }
         pauseMs = 0

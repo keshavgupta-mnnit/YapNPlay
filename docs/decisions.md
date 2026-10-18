@@ -3,6 +3,42 @@
 `docs/project-report.md` is the original plan. These later decisions win
 where they disagree. Newest first. Every AI agent reads this file too.
 
+## 2026-10-18 — profile and friends (contract 0.3.1)
+
+- **Friends are in scope** (the report listed them as post-POC). The
+  Profile screen opens from the Home avatar: avatar, name, @username,
+  the user's ID, stats, friends, add a friend, friend requests.
+- **Names and usernames are not unique.** Each user has a unique
+  6-character ID (`userCode`, no look-alike characters) and friends are
+  added **only by that ID**.
+- **Avatars are presets** (`a01`…), never photos, so nothing to store or
+  moderate. The user's own webp set replaces the placeholder icons.
+- **Block** sits on a friend's card next to Remove: it ends the
+  friendship and stops their friend requests and room invites. A blocked-
+  users list and request privacy go under Settings later.
+- **Stats:** games played, games won, friends (server-counted).
+- **Logout is hidden** while accounts are guest-only (logging out would
+  lose the account); its confirmation dialog is built and switches on
+  with sign-in.
+
+## 2026-10-18 — backend: separate repo, free hosting, no shared code
+
+- **The backend lives in its own repository** (`MyDocs\BP\YapNPlay`), not in
+  this Android repo (the report planned a `server` module here). This repo
+  keeps only app code and stays a single `:appengine` library.
+- **App and server share no code.** Only JSON crosses the network, so each
+  side has its own message classes. `docs/backend-api-contract.md` is the
+  contract; the server keeps one golden JSON file per message and tests
+  against them, and the app will do the same when its tests resume.
+- **The server owns the game rules.** The engines in `games/*/engine` here
+  only drive the fake servers; they go away as each fake is replaced by the
+  real server (Phases 12 and 15). The app draws what the server sends.
+- **Everything stays free** until the app is live and outgrows free tiers.
+  The server never runs on the owner's laptop for testing; it must work
+  while the laptop is off. Hosting: Oracle Cloud Always Free if signup
+  succeeds, otherwise Render + Neon (+ an uptime ping). Voice: LiveKit
+  Cloud free plan.
+
 ## 2026-10-17 — City Bazaar v0.2 rules (owner's answers)
 
 The full rules are in `docs/city-bazaar-rules.md` and replace v0.1's

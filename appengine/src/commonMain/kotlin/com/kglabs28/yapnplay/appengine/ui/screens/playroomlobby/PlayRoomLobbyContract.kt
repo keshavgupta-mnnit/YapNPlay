@@ -49,6 +49,7 @@ data class LobbyMemberUi(
     /** Small crossed mic on the card when their mic is off. */
     val micOff: Boolean,
     val status: LobbyMemberStatus,
+    val avatarId: String = "",
 )
 
 enum class LobbyMemberStatus { READY, NOT_READY, WATCHING, OFFLINE, NONE }

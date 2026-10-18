@@ -16,4 +16,5 @@ data class CityBazaarPlayer(
     val inJail: Boolean = false,
     val halfRent: Boolean = false,
     val bankrupt: Boolean = false,
+    val avatarId: String = "",
 )

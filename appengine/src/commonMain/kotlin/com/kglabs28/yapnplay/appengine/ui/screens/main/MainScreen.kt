@@ -38,6 +38,7 @@ fun MainScreen(
     onOpenRoom: (String) -> Unit,
     onCreateRoom: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenProfile: () -> Unit = {},
     pendingInviteCode: String? = null,
     onInviteConsumed: () -> Unit = {},
     viewModel: MainViewModel? = null,
@@ -75,6 +76,8 @@ fun MainScreen(
             AppTopBar(
                 online = state.online,
                 profileLoaded = state.profileLoaded,
+                avatarId = state.avatarId,
+                onOpenProfile = onOpenProfile,
                 coinBalance = state.coinBalance,
                 diamondBalance = state.diamondBalance,
                 selectedTab = state.selectedTab,

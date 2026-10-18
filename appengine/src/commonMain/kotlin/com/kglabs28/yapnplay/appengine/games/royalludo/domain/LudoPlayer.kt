@@ -14,4 +14,5 @@ data class LudoPlayer(
     val removed: Boolean,
     /** At the table, away (the server plays for them) or handed to the bot. */
     val presence: LudoPresence = LudoPresence.PLAYING,
+    val avatarId: String = "",
 )

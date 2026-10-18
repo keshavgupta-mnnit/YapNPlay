@@ -39,6 +39,14 @@ expect fun RoyalLudoArtwork(
     contentDescription: String? = null,
 )
 
+/** Preset avatar number [index] (0-based, see AvatarPresets), filling [modifier]. */
+@Composable
+expect fun PresetAvatarArtwork(
+    index: Int,
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+)
+
 /** City Bazaar's game art (carousel, lobby, every game picker). */
 @Composable
 expect fun CityBazaarArtwork(

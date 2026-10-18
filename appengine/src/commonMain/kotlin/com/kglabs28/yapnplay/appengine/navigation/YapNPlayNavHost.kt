@@ -19,6 +19,7 @@ import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.PlayRoomLobbyScr
 import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainScreen
+import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsViewModel
 
@@ -68,11 +69,18 @@ fun YapNPlayNavHost(
                 onOpenMatch = { gameId, matchId -> navController.openMatch(gameId, matchId) },
                 onOpenRoom = { roomId -> navController.navigate(RoomLobby(roomId)) },
                 onCreateRoom = { navController.navigate(RoomPlaceholder) },
+                onOpenProfile = { navController.navigate(Profile) },
                 pendingInviteCode = pendingInviteCode,
                 onInviteConsumed = { pendingInviteCode = null },
                 viewModel = mainViewModel,
                 gameZoneViewModel = gameZoneViewModel,
                 playRoomsViewModel = playRoomsViewModel,
+            )
+        }
+        composable<Profile> { entry ->
+            ProfileScreen(
+                onBack = { navController.popBackStack() },
+                viewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<About> { entry ->

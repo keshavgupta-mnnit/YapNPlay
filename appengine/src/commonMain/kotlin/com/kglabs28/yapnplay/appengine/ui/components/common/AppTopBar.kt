@@ -42,6 +42,8 @@ fun AppTopBar(
     notificationsOpen: Boolean = false,
     onDismissNotifications: () -> Unit = {},
     onNotificationClick: (roomId: String) -> Unit = {},
+    avatarId: String = "",
+    onOpenProfile: () -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -102,6 +104,8 @@ fun AppTopBar(
                 online = online,
                 statusVisible = profileLoaded,
                 modifier = Modifier.padding(start = Spacing.Xxs),
+                avatarId = avatarId,
+                onClick = onOpenProfile,
             )
         }
     }

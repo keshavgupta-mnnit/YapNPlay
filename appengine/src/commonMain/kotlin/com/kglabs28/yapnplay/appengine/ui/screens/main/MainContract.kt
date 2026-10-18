@@ -12,6 +12,8 @@ import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
  */
 data class MainState(
     val userName: String = "",
+    /** The user's preset avatar (the top bar shows it; follows profile edits). */
+    val avatarId: String = "",
     val level: String = "",
     val online: Boolean = false,
     /** False until the first profile load lands; the top bar keeps its

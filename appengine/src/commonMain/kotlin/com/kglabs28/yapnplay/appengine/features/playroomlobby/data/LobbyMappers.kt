@@ -30,6 +30,7 @@ fun RoomSnapshot.toLobbyRoom(now: Instant): LobbyRoom = LobbyRoom(
             isFriend = member.isFriend,
             isLeader = member.userId == room.leaderId,
             isAdmin = member.userId == room.adminId,
+            avatarId = member.avatarId,
         )
     },
     selectedGameId = room.selectedGame,

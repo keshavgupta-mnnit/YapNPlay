@@ -59,6 +59,7 @@ data class CbDiceUi(val die1: Int = 1, val die2: Int = 1, val rollId: Int = 0, v
 data class CbPlayerCardUi(
     val seat: Int,
     val name: String,
+    val avatarId: String = "",
     val level: String,
     val colour: CityBazaarColour,
     /** Balance (₹); the card counts to it when it changes. */

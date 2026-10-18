@@ -88,7 +88,7 @@ fun CityBazaarPlayerCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
-                TableCardAvatar(tint = tint, level = card.level, size = avatarSize)
+                TableCardAvatar(tint = tint, level = card.level, size = avatarSize, avatarId = card.avatarId)
                 // Middle column: name, balance and the voice wave.
                 Column(modifier = Modifier.weight(1f)) {
                     val nameStyle = if (compact) typography.micro.copy(fontWeight = FontWeight.Bold) else typography.cardTitle

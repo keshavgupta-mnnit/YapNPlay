@@ -69,6 +69,7 @@ object LudoMatchUiMapper {
                 userId = player.userId,
                 // A seat the bot holds reads "Bot" instead of the player's name.
                 name = if (player.presence == LudoPresence.BOT) Strings.seatBot else player.name,
+                avatarId = player.avatarId,
                 level = player.level.toString(),
                 colour = player.colour,
                 corner = BoardCorner.entries[LudoBoardGeometry.cornerOf(player.colour.ordinal, inputs.rotation)],

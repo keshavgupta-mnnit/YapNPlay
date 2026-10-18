@@ -69,7 +69,7 @@ fun LudoPlayerCard(
             verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-                TableCardAvatar(tint = tint, level = card.level)
+                TableCardAvatar(tint = tint, level = card.level, avatarId = card.avatarId)
                 // Name, and the voice wave under it.
                 Column(modifier = Modifier.weight(1f)) {
                     BasicText(

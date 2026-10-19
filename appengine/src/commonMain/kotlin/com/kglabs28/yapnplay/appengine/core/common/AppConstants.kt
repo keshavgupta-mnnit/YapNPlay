@@ -79,12 +79,18 @@ object AppConstants {
     const val CONTENT_MAX_WIDTH_DP = 1100
 
     /**
-     * Dev backend base URL: the laptop's backend, reached from a phone or
-     * emulator through `adb reverse tcp:8080 tcp:8080`. The hosted address
-     * replaces it later. No screen or repository hardcodes a URL — they
-     * all read this.
+     * The hosted backend: the built-in default for AppManager's
+     * `server_base_url` Remote Config key, so moving servers (e.g. Render →
+     * Oracle) needs no app release. No screen or repository hardcodes a URL.
      */
-    const val SERVER_BASE_URL = "http://localhost:8080"
+    const val SERVER_BASE_URL = "https://yapnplay-backend.onrender.com"
+
+    /**
+     * The laptop's backend, for testing a local server: reached from a phone
+     * or emulator through `adb reverse tcp:8080 tcp:8080`. Use it by setting
+     * `server_base_url` to this value (debug builds allow plain http).
+     */
+    const val LOCAL_SERVER_BASE_URL = "http://localhost:8080"
 
     /**
      * Invite links: https://INVITE_HOST/join/<code>. Must match the

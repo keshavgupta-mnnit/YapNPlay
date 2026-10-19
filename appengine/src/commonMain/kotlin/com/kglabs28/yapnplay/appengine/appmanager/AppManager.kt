@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.appmanager
 
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,6 +86,16 @@ class AppManager(private val store: AppConfigStore) {
     fun cityBazaarTimeLimitMinutes(): Int =
         getInt(AppManagerConstants.Key.CITY_BAZAAR_TIME_LIMIT_MINUTES, AppManagerConstants.Default.CITY_BAZAAR_TIME_LIMIT_MINUTES)
 
+    /**
+     * Where the backend lives. Remote Config can move every app to a new
+     * server; anything that is not an http(s) address falls back to the
+     * built-in one.
+     */
+    fun serverBaseUrl(): String =
+        getString(AppManagerConstants.Key.SERVER_BASE_URL).trim().trimEnd('/')
+            .takeIf { it.startsWith(HTTPS) || it.startsWith(HTTP) }
+            ?: AppConstants.SERVER_BASE_URL
+
     // ── Typed getters ────────────────────────────────────────────────────
 
     fun getString(key: String, default: String = ""): String = try {
@@ -127,5 +138,10 @@ class AppManager(private val store: AppConfigStore) {
     } catch (e: Exception) {
         CrashReporter.record(e, "AppManager.getDouble:$key")
         default
+    }
+
+    private companion object {
+        const val HTTPS = "https://"
+        const val HTTP = "http://"
     }
 }

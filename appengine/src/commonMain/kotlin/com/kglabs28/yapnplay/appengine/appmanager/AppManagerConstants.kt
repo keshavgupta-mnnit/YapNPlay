@@ -19,6 +19,8 @@ object AppManagerConstants {
         const val CITY_BAZAAR_STARTING_CASH = "city_bazaar_starting_cash"
         const val CITY_BAZAAR_ROUND_LIMIT = "city_bazaar_round_limit"
         const val CITY_BAZAAR_TIME_LIMIT_MINUTES = "city_bazaar_time_limit_minutes"
+        /** Backend address, e.g. https://yapnplay-backend.onrender.com (no trailing slash). */
+        const val SERVER_BASE_URL = "server_base_url"
 
         /** Per-game kill switch key, e.g. game_enabled_card_clash. */
         fun gameEnabled(gameId: String) = "game_enabled_" + gameId.replace('-', '_')

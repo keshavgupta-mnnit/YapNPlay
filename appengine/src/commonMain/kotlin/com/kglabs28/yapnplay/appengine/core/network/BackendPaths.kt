@@ -1,6 +1,5 @@
 package com.kglabs28.yapnplay.appengine.core.network
 
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 
 /** Every backend path (docs/backend-api-contract.md). Clients never type a URL. */
 object BackendPaths {
@@ -24,8 +23,8 @@ object BackendPaths {
     fun roomVoiceToken(roomId: String) = "/rooms/$roomId/voice-token"
     fun matchVoiceToken(matchId: String) = "/matches/$matchId/voice-token"
 
-    /** ws:// (or wss://) form of the backend address, for the WebSocket. */
-    fun webSocketUrl(): String = AppConstants.SERVER_BASE_URL
+    /** ws:// (or wss://) form of the backend address [baseUrl], for the WebSocket. */
+    fun webSocketUrl(baseUrl: String): String = baseUrl
         .replaceFirst(HTTPS, WSS)
         .replaceFirst(HTTP, WS) + WEB_SOCKET
 

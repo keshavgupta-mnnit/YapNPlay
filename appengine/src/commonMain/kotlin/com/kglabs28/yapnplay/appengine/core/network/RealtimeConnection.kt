@@ -48,6 +48,8 @@ class RealtimeConnection(
     private val session: BackendSession,
     private val json: Json,
     private val scope: CoroutineScope,
+    /** The backend address, read on every connect (AppManager can change it). */
+    private val baseUrl: () -> String,
 ) {
     private val incoming = MutableSharedFlow<Envelope>(extraBufferCapacity = INCOMING_BUFFER)
     private val outbox = Outbox<String>(Outbox.UNLIMITED)
@@ -113,7 +115,7 @@ class RealtimeConnection(
         while (scope.isActive) {
             try {
                 val token = session.credentials().bearerToken
-                http.webSocket(urlString = BackendPaths.webSocketUrl(), request = { header(HttpHeaders.Authorization, BEARER + token) }) {
+                http.webSocket(urlString = BackendPaths.webSocketUrl(baseUrl()), request = { header(HttpHeaders.Authorization, BEARER + token) }) {
                     attempt = 0
                     _connected.value = true
                     _status.value = ConnectionStatus.ONLINE

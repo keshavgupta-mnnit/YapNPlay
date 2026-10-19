@@ -1,7 +1,7 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.appmanager.AppManager
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.DefaultDispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.common.SystemAppClock
@@ -49,10 +49,12 @@ val coreModule = module {
     }
     single<CoroutineScope>(APP_SCOPE) { CoroutineScope(SupervisorJob() + get<DispatcherProvider>().io) }
     single {
+        val appManager = get<AppManager>()
         HttpClient(createHttpClientEngine()) {
             expectSuccess = true
             install(ContentNegotiation) { json(get<Json>()) }
-            install(DefaultRequest) { url(AppConstants.SERVER_BASE_URL) }
+            // Read per request: Remote Config (AppManager) can move the backend.
+            install(DefaultRequest) { url(appManager.serverBaseUrl()) }
             // An unreachable backend fails fast instead of leaving screens empty.
             install(HttpTimeout) { connectTimeoutMillis = CONNECT_TIMEOUT_MS }
             install(WebSockets)
@@ -68,7 +70,10 @@ val coreModule = module {
         }
     }
     single { BackendSession(get(), get()) }
-    single { RealtimeConnection(get(), get(), get(), get(APP_SCOPE)) }
+    single {
+        val appManager = get<AppManager>()
+        RealtimeConnection(get(), get(), get(), get(APP_SCOPE)) { appManager.serverBaseUrl() }
+    }
     single { MatchChannel(get()) }
 }
 

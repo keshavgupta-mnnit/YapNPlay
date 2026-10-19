@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.appmanager
 
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 
 /**
@@ -15,6 +18,11 @@ import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
  */
 class AppManager(private val store: AppConfigStore) {
 
+    private val _revision = MutableStateFlow(0)
+
+    /** Goes up each time remote values arrive, so screens can re-read them. */
+    val revision: StateFlow<Int> = _revision.asStateFlow()
+
     private var configMap: Map<String, String> = try {
         store.getAll()
     } catch (e: Exception) {
@@ -29,6 +37,7 @@ class AppManager(private val store: AppConfigStore) {
     fun syncWithRemote(remote: Map<String, String>) {
         if (remote.isEmpty()) return
         configMap = configMap + remote
+        _revision.value += 1
         try {
             store.saveAll(configMap)
         } catch (e: Exception) {
@@ -47,6 +56,7 @@ class AppManager(private val store: AppConfigStore) {
     fun isPartyChatEnabled(): Boolean =
         getBoolean(AppManagerConstants.Key.PARTY_CHAT_ENABLED, AppManagerConstants.Default.PARTY_CHAT_ENABLED)
 
+    /** Force-update rule as JSON (see UpdateRule); "" = none. */
     fun updateConfig(): String =
         getString(AppManagerConstants.Key.UPDATE_CONFIG, AppManagerConstants.Default.UPDATE_CONFIG)
 

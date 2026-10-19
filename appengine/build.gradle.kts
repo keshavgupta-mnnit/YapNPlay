@@ -74,6 +74,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.play.services)
             // Live voice: joins the LiveKit room the backend issues a token for.
             implementation(libs.livekit.android)
+            implementation(libs.play.app.update)
         }
     }
 }

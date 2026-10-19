@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.UpdateGate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,13 +40,16 @@ fun YapNPlayRoot(
             // Mic + notifications, asked once per launch for anything not yet granted.
             RequestStartupPermissions()
             BlockingOverlayHost {
-                // Screens open only once the backend answers (no empty pages).
-                ConnectionGate {
-                    YapNPlayNavHost(
-                        modifier = Modifier.fillMaxSize(),
-                        deepLink = deepLink,
-                        onDeepLinkHandled = onDeepLinkHandled,
-                    )
+                // An outdated app is stopped first (works offline too), then
+                // screens open only once the backend answers (no empty pages).
+                UpdateGate {
+                    ConnectionGate {
+                        YapNPlayNavHost(
+                            modifier = Modifier.fillMaxSize(),
+                            deepLink = deepLink,
+                            onDeepLinkHandled = onDeepLinkHandled,
+                        )
+                    }
                 }
             }
         }

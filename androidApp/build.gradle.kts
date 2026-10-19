@@ -21,13 +21,28 @@ android {
         manifestPlaceholders["appScheme"] = "yapnplay"
     }
 
+    
+    signingConfigs {
+        create("release") {
+            storeFile = file(System.getenv("KEYSTORE_FILE") ?: "release.jks")
+            storePassword = System.getenv("KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("KEY_ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD")
+        }
+    }
     buildTypes {
         release {
             // R8: shrinks and obfuscates the release APK (harder to read, smaller).
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
+        
+            signingConfigs.getByName("release").let {
+                if (System.getenv("KEYSTORE_PASSWORD") != null) signingConfig = it
+            }
+            ndk {
+                debugSymbolLevel = "FULL"
+            }}
     }
     testOptions {
         unitTests {

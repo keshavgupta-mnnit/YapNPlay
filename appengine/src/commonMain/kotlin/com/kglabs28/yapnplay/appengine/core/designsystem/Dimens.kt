@@ -213,6 +213,23 @@ class YapNPlayDimens {
     val tableTalkWaveHeight: Dp get() = 14.dp.scaled()
     /** A compact city card in the My Properties list. */
     val cbCityCardHeight: Dp get() = 56.dp.scaled()
+    // MONO (cards are 2:3 portrait everywhere they appear).
+    /** A card in the local player's hand. */
+    val monoHandCardWidth: Dp get() = 46.dp.scaled()
+    /** A card on the centre pile, or an opponent's face-down card. */
+    val monoPileCardWidth: Dp get() = 38.dp.scaled()
+    /** The centre medallion inside a card face. */
+    val monoCardMedallion: Dp get() = 20.dp.scaled()
+    /** Padding inside a card face. */
+    val monoCardPad: Dp get() = 4.dp.scaled()
+    /** An opponent's pod on the table edge. */
+    val monoOpponentWidth: Dp get() = 76.dp.scaled()
+    /** One colour choice in the Prism picker. */
+    val monoColourChip: Dp get() = 44.dp.scaled()
+    /** The felt the MONO piles are played on. */
+    val monoTableHeight: Dp get() = 260.dp.scaled()
+    /** How far a selected card rises out of the hand. */
+    val monoCardLift: Dp get() = 10.dp.scaled()
     val cbRollBadge: Dp get() = 22.dp.scaled()
     /** Pods get compact (tighter padding, smaller text) when each has less height than this. */
     val cbCardCompactBelow: Dp get() = 80.dp.scaled()

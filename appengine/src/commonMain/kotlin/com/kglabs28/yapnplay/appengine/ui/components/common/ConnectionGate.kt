@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.network.ConnectionStatus
-import com.kglabs28.yapnplay.appengine.core.network.RealtimeConnection
+import com.kglabs28.yapnplay.appengine.core.network.RealtimeGateway
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import kotlinx.coroutines.delay
 import org.koin.compose.koinInject
@@ -35,7 +35,7 @@ import org.koin.compose.koinInject
 @Composable
 fun ConnectionGate(
     modifier: Modifier = Modifier,
-    realtime: RealtimeConnection = koinInject(),
+    realtime: RealtimeGateway = koinInject(),
     content: @Composable () -> Unit,
 ) {
     LaunchedEffect(Unit) { realtime.connect() }

@@ -46,6 +46,8 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.okhttp)
+            // Local (no-backend) mode only: answers the app's HTTP calls in-process.
+            implementation(libs.ktor.client.mock)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.client.websockets)
             implementation(libs.ktor.serialization.kotlinx.json)
@@ -101,4 +103,28 @@ tasks.register("guidelineCheck", Test::class) {
     filter {
         include("com.kglabs28.yapnplay.appengine.guards.*")
     }
+}
+
+// Local (no-backend) mode check: drives the in-process match host the
+// way the app does and prints each table. Not a test — a console run.
+tasks.register<JavaExec>("localHostCheck") {
+    group = "verification"
+    description = "Drives the local match host and prints each MONO table."
+    mainClass.set("com.kglabs28.yapnplay.appengine.harness.LocalHostHarness")
+    classpath = files(
+        tasks.named("compileKotlinJvm").map { it.outputs.files },
+        configurations.named("jvmRuntimeClasspath"),
+    )
+}
+
+// Resolves the real Koin graph, the chain a match screen builds. A
+// missing binding crashes on open, so it is checked from the console.
+tasks.register<JavaExec>("diCheck") {
+    group = "verification"
+    description = "Resolves every binding the match screens need."
+    mainClass.set("com.kglabs28.yapnplay.appengine.harness.DiCheckHarness")
+    classpath = files(
+        tasks.named("compileKotlinJvm").map { it.outputs.files },
+        configurations.named("jvmRuntimeClasspath"),
+    )
 }

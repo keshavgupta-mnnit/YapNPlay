@@ -19,6 +19,8 @@ import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.PlayRoomLobbyScr
 import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainScreen
+import com.kglabs28.yapnplay.appengine.ui.screens.mono.MatchMonoChaosScreen
+import com.kglabs28.yapnplay.appengine.ui.screens.mono.MatchMonoScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsViewModel
@@ -110,6 +112,20 @@ fun YapNPlayNavHost(
         composable<RoyalLudoMatch> { entry ->
             RoyalLudoMatchScreen(
                 matchId = entry.toRoute<RoyalLudoMatch>().matchId,
+                onClose = { navController.popBackStack() },
+                viewModel = entry.rememberScreenViewModel(),
+            )
+        }
+        composable<MonoMatchRoute> { entry ->
+            MatchMonoScreen(
+                matchId = entry.toRoute<MonoMatchRoute>().matchId,
+                onClose = { navController.popBackStack() },
+                viewModel = entry.rememberScreenViewModel(),
+            )
+        }
+        composable<MonoChaosMatchRoute> { entry ->
+            MatchMonoChaosScreen(
+                matchId = entry.toRoute<MonoChaosMatchRoute>().matchId,
                 onClose = { navController.popBackStack() },
                 viewModel = entry.rememberScreenViewModel(),
             )

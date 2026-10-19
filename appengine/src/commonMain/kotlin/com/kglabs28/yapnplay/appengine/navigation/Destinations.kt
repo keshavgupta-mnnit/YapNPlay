@@ -30,3 +30,11 @@ data class RoyalLudoMatch(val matchId: String)
 /** A City Bazaar table. */
 @Serializable
 data class CityBazaarMatch(val matchId: String)
+
+/** A Standard MONO match. */
+@Serializable
+data class MonoMatchRoute(val matchId: String)
+
+/** A MONO: Complete Chaos match. */
+@Serializable
+data class MonoChaosMatchRoute(val matchId: String)

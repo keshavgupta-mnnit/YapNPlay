@@ -1,7 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.moderation.data.remote
 
 import com.kglabs28.yapnplay.appengine.core.network.BackendPaths
-import com.kglabs28.yapnplay.appengine.core.network.RealtimeConnection
+import com.kglabs28.yapnplay.appengine.core.network.RealtimeGateway
 import com.kglabs28.yapnplay.appengine.protocol.CastReportVote
 import com.kglabs28.yapnplay.appengine.protocol.PenaltyIssued
 import com.kglabs28.yapnplay.appengine.protocol.ReportPlayer
@@ -25,7 +25,7 @@ import kotlinx.serialization.KSerializer
  * itself, so [report]'s name and voter count are not sent.
  */
 class ModerationClientImpl(
-    private val realtime: RealtimeConnection,
+    private val realtime: RealtimeGateway,
     private val client: HttpClient,
 ) : ModerationClient {
 

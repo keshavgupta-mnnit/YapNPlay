@@ -1,7 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.data.remote
 
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
-import com.kglabs28.yapnplay.appengine.core.network.BackendSession
+import com.kglabs28.yapnplay.appengine.core.network.SessionProvider
 import com.kglabs28.yapnplay.appengine.core.network.MatchChannel
 import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceClient
 import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceTarget
@@ -21,7 +21,7 @@ import kotlinx.serialization.json.jsonObject
 class CityBazaarMatchClientImpl(
     private val match: MatchChannel,
     private val mapper: CityBazaarSnapshotMapper,
-    private val session: BackendSession,
+    private val session: SessionProvider,
     private val clock: AppClock,
     private val voice: VoiceClient,
     private val json: Json,

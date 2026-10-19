@@ -1,7 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.playroomlobby.data.remote
 
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
-import com.kglabs28.yapnplay.appengine.core.network.RealtimeConnection
+import com.kglabs28.yapnplay.appengine.core.network.RealtimeGateway
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.LobbyCommand
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.remote.PlayRoomsApi
 import com.kglabs28.yapnplay.appengine.features.profile.data.remote.ProfileApi
@@ -43,7 +43,7 @@ import kotlinx.serialization.KSerializer
  * the lobby is open.
  */
 class LobbyRealtimeClientImpl(
-    private val realtime: RealtimeConnection,
+    private val realtime: RealtimeGateway,
     private val rooms: PlayRoomsApi,
     private val profile: ProfileApi,
     private val voice: VoiceClient,

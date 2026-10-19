@@ -87,6 +87,17 @@ object AppConstants {
     const val SERVER_BASE_URL = "http://localhost:8080"
 
     /**
+     * Local (no-backend) mode. When on, the app answers itself: HTTP calls
+     * and the WebSocket are served in-process by `fake/`, so the real
+     * engines can be played against bots with no server running. The
+     * backend is only bypassed at the transport layer — every repository,
+     * use case, view model and screen above it is the real one.
+     *
+     * Set to false once the backend hosts the MONO games.
+     */
+    const val LOCAL_MODE = true
+
+    /**
      * Invite links: https://INVITE_HOST/join/<code>. Must match the
      * `inviteHost` manifest placeholder in androidApp/build.gradle.kts, and
      * the server must host /.well-known/assetlinks.json on this domain so

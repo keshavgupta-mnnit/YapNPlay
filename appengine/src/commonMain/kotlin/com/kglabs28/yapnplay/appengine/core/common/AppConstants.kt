@@ -5,7 +5,6 @@ package com.kglabs28.yapnplay.appengine.core.common
  * Values already declared in games/base contracts are re-exported, not duplicated.
  */
 object AppConstants {
-    const val APP_VERSION = "1.0.0-phase7"
 
     /** Length of a room join code. */
     const val ROOM_CODE_LENGTH = 6

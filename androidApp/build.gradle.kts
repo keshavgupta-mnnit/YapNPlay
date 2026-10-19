@@ -14,7 +14,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0.0-phase7"
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Must match AppConstants.INVITE_HOST / APP_SCHEME (invite + room links).
         manifestPlaceholders["inviteHost"] = "kglabs28-yapnplay.web.app"

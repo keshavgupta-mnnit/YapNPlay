@@ -1,17 +1,18 @@
 package com.kglabs28.yapnplay.appengine.features.about.data
 
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.common.AppVersionProvider
 import com.kglabs28.yapnplay.appengine.features.about.domain.AppInfo
 import com.kglabs28.yapnplay.appengine.protocol.transport.CONTRACT_VERSION
 
 /**
- * Static app metadata source. Later phases add remote config and storage
+ * App metadata: the installed version (from the platform) and the contract
+ * version. Later phases add remote config and storage
  * behind this same seam; callers never change.
  */
-class StaticAppInfoSource {
+class StaticAppInfoSource(private val versions: AppVersionProvider) {
     fun load(): AppInfo = AppInfo(
         appName = "YapNPlay",
-        version = AppConstants.APP_VERSION,
+        version = versions.versionName(),
         contractVersion = CONTRACT_VERSION,
     )
 }

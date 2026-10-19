@@ -9,7 +9,7 @@ import org.koin.dsl.module
 
 /** About sample feature: source → repository → use case → view model. */
 val aboutModule = module {
-    single { StaticAppInfoSource() }
+    single { StaticAppInfoSource(get()) }
     single<AboutRepository> { AboutRepositoryImpl(get()) }
     factory { GetAppInfoUseCase(get()) }
     factory { AboutViewModel(get(), get()) }

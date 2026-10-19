@@ -7,6 +7,8 @@ import com.kglabs28.yapnplay.appengine.appmanager.AppConfigStore
 import com.kglabs28.yapnplay.appengine.features.notifications.data.local.AndroidNotificationHistoryStore
 import com.kglabs28.yapnplay.appengine.features.notifications.data.local.NotificationHistoryStore
 import com.kglabs28.yapnplay.appengine.core.audio.AndroidGameAudio
+import com.kglabs28.yapnplay.appengine.core.common.AndroidAppVersionProvider
+import com.kglabs28.yapnplay.appengine.core.common.AppVersionProvider
 import com.kglabs28.yapnplay.appengine.core.audio.AndroidMicLevelMonitor
 import com.kglabs28.yapnplay.appengine.core.audio.MicLevelMonitor
 import com.kglabs28.yapnplay.appengine.core.audio.GameAudio
@@ -21,6 +23,7 @@ val platformAppManagerModule = module {
     single<NotificationHistoryStore> { AndroidNotificationHistoryStore(androidContext()) }
     single<CredentialStore> { AndroidCredentialStore(androidContext()) }
     single<GameAudio> { AndroidGameAudio(androidContext()) }
+    single<AppVersionProvider> { AndroidAppVersionProvider(androidContext()) }
     single<MicLevelMonitor> { AndroidMicLevelMonitor(androidContext()) }
     single<VoiceEngine> { LiveKitVoiceEngine(androidContext()) }
 }

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.core.common.InMemoryTablePreferences
+import com.kglabs28.yapnplay.appengine.core.common.TablePreferences
 import com.kglabs28.yapnplay.appengine.core.network.CredentialStore
 import com.kglabs28.yapnplay.appengine.core.network.InMemoryCredentialStore
 import com.kglabs28.yapnplay.appengine.appmanager.AppConfigStore
@@ -22,6 +24,7 @@ val platformAppManagerModule = module {
     single<NotificationHistoryStore> { InMemoryNotificationHistoryStore() }
     single<CredentialStore> { InMemoryCredentialStore() }
     single<GameAudio> { SilentGameAudio() }
+    single<TablePreferences> { InMemoryTablePreferences() }
     single<AppVersionProvider> { JvmAppVersionProvider() }
     single<MicLevelMonitor> { SilentMicLevelMonitor() }
     single<VoiceEngine> { SilentVoiceEngine() }

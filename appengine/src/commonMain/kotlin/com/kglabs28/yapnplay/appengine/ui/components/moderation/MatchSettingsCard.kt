@@ -24,6 +24,9 @@ fun MatchSettingsCard(
     musicOn: Boolean,
     onToggleEffects: () -> Unit,
     onToggleMusic: () -> Unit,
+    /** City Bazaar: money popups on/off; null hides the row. */
+    moneyPopupsOn: Boolean? = null,
+    onToggleMoneyPopups: () -> Unit = {},
     /** Null hides Report (games without voice reports). */
     onReport: (() -> Unit)? = null,
     onClose: () -> Unit,
@@ -33,6 +36,7 @@ fun MatchSettingsCard(
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
             SettingRow(Strings.ludoSoundEffects, effectsOn, onToggleEffects)
             SettingRow(Strings.ludoMusic, musicOn, onToggleMusic)
+            moneyPopupsOn?.let { SettingRow(Strings.tableTransactionPopups, it, onToggleMoneyPopups) }
             onReport?.let {
                 GlassPillButton(
                     text = Strings.ludoReport,

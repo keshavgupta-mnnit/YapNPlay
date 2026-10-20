@@ -12,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.rounded.Mail
+import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
@@ -34,6 +36,8 @@ fun YourRoomsPanel(
     onOpenRoom: (String) -> Unit,
     onSeeAll: () -> Unit,
     modifier: Modifier = Modifier,
+    invitesCount: Int = 0,
+    onInvites: () -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -53,11 +57,20 @@ fun YourRoomsPanel(
             subtitle = Strings.roomsYourRoomsSubtitle,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            GlassPillButton(
-                text = Strings.roomsSeeAll,
-                onClick = onSeeAll,
-                trailingIcon = Icons.Rounded.ChevronRight,
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+                // Group invites waiting: red glow while there are any.
+                GlassPillButton(
+                    text = Strings.roomsInvites(invitesCount),
+                    onClick = onInvites,
+                    leadingIcon = Icons.Rounded.Mail,
+                    accent = if (invitesCount > 0) colors.Error else colors.SocialZoneAccent,
+                )
+                GlassPillButton(
+                    text = Strings.roomsSeeAll,
+                    onClick = onSeeAll,
+                    trailingIcon = Icons.Rounded.ChevronRight,
+                )
+            }
         }
         Box(
             modifier = Modifier

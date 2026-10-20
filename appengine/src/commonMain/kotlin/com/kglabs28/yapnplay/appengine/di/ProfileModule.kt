@@ -7,6 +7,12 @@ import com.kglabs28.yapnplay.appengine.features.profile.data.remote.ProfileApiCl
 import com.kglabs28.yapnplay.appengine.features.profile.data.remote.ProfileRemoteManager
 import com.kglabs28.yapnplay.appengine.features.profile.repository.ProfileRepository
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.BlockUserUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetFriendIdsUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.SignInWithPlayGamesUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveSignInNeededUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetFriendsUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.PlayerFriendUseCases
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.TogglePlayerFriendUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetHomeScreenDataUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetProfileScreenDataUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveMyProfileUseCase
@@ -36,5 +42,11 @@ val profileModule = module {
     factory { RemoveFriendUseCase(get()) }
     factory { BlockUserUseCase(get()) }
     factory { UnblockUserUseCase(get()) }
-    factory { ProfileViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { GetFriendsUseCase(get()) }
+    factory { GetFriendIdsUseCase(get()) }
+    factory { SignInWithPlayGamesUseCase(get()) }
+    factory { ObserveSignInNeededUseCase(get()) }
+    factory { TogglePlayerFriendUseCase(get()) }
+    factory { PlayerFriendUseCases(get(), get()) }
+    factory { ProfileViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

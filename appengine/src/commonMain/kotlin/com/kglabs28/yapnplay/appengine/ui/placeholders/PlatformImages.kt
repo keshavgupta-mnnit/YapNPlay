@@ -26,6 +26,13 @@ expect fun FriendZoneArtwork(
     contentDescription: String? = null,
 )
 
+/** The leaderboard's celebration background (boards, confetti, sparks). */
+@Composable
+expect fun LeaderboardArtwork(
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+)
+
 @Composable
 expect fun HomeBackgroundArtwork(
     modifier: Modifier = Modifier,

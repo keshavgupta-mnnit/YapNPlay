@@ -17,5 +17,7 @@ sealed interface YapNPlayError {
     data class Unauthorized(val reason: String) : YapNPlayError
     /** A count limit was hit (e.g. max rooms per user); [limit] is the cap. */
     data class LimitReached(val limit: Int) : YapNPlayError
+    /** Something like it is already there ([name]: e.g. the existing group's name). */
+    data class AlreadyExists(val name: String) : YapNPlayError
     data class Unknown(val cause: String) : YapNPlayError
 }

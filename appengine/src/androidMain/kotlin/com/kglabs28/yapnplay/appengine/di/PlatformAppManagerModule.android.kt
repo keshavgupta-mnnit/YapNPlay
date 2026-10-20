@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.core.common.AndroidTablePreferences
+import com.kglabs28.yapnplay.appengine.core.common.TablePreferences
 import com.kglabs28.yapnplay.appengine.core.network.CredentialStore
 import com.kglabs28.yapnplay.appengine.core.network.AndroidCredentialStore
 import com.kglabs28.yapnplay.appengine.appmanager.AndroidConfigStore
@@ -23,6 +25,7 @@ val platformAppManagerModule = module {
     single<NotificationHistoryStore> { AndroidNotificationHistoryStore(androidContext()) }
     single<CredentialStore> { AndroidCredentialStore(androidContext()) }
     single<GameAudio> { AndroidGameAudio(androidContext()) }
+    single<TablePreferences> { AndroidTablePreferences(androidContext()) }
     single<AppVersionProvider> { AndroidAppVersionProvider(androidContext()) }
     single<MicLevelMonitor> { AndroidMicLevelMonitor(androidContext()) }
     single<VoiceEngine> { LiveKitVoiceEngine(androidContext()) }

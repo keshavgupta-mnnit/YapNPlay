@@ -73,19 +73,30 @@ fun ProfileFriendsSection(
                 onSelect = onSelectTab,
             )
             Spacer(Modifier.weight(1f))
-            GlassPillButton(text = Strings.profileSeeAll, onClick = onSeeAll, trailingIcon = Icons.Rounded.ChevronRight, enabled = hasFriends)
+            // See All and the arrows are as small as the tabs.
+            GlassPillButton(
+                text = Strings.profileSeeAll,
+                onClick = onSeeAll,
+                trailingIcon = Icons.Rounded.ChevronRight,
+                enabled = hasFriends,
+                height = dimens.profileTabHeight,
+                iconSize = dimens.iconTiny,
+                textStyle = YapNPlayTheme.typography.micro,
+            )
             GlassIconButton(
                 imageVector = Icons.Rounded.ChevronLeft,
                 contentDescription = Strings.profilePreviousFriends,
                 onClick = { scope.launch { listState.animateScrollToItem((listState.firstVisibleItemIndex - AppConstants.FRIENDS_SCROLL_STEP).coerceAtLeast(0)) } },
-                size = dimens.smallButtonHeight,
+                size = dimens.profileTabHeight,
+                iconSize = dimens.iconSmall,
                 surface = colors.RoomsSmallButton,
             )
             GlassIconButton(
                 imageVector = Icons.Rounded.ChevronRight,
                 contentDescription = Strings.profileNextFriends,
                 onClick = { scope.launch { listState.animateScrollToItem(listState.firstVisibleItemIndex + AppConstants.FRIENDS_SCROLL_STEP) } },
-                size = dimens.smallButtonHeight,
+                size = dimens.profileTabHeight,
+                iconSize = dimens.iconSmall,
                 surface = colors.RoomsSmallButton,
             )
         }

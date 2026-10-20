@@ -35,6 +35,9 @@ class AndroidGameAudio(private val context: Context) : GameAudio {
         GameSound.HOP to pool.load(context, R.raw.piece_hop, 1),
         GameSound.CAPTURE to pool.load(context, R.raw.piece_capture, 1),
         GameSound.WIN to pool.load(context, R.raw.winner, 1),
+        GameSound.YOUR_TURN to pool.load(context, R.raw.your_turn, 1),
+        GameSound.TICK to pool.load(context, R.raw.clock_tick, 1),
+        GameSound.HURRY_TICK to pool.load(context, R.raw.hurry_tick, 1),
     )
     private var music: MediaPlayer? = null
     private var musicWanted = false

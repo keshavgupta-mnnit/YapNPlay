@@ -63,6 +63,9 @@ class ProfileRepositoryImpl(
     override suspend fun sendFriendRequest(userCode: String): AppResult<FriendRequestOutcome> =
         withContext(Dispatchers.IO) { remote.sendFriendRequest(userCode) }
 
+    override suspend fun sendFriendRequestToUser(userId: String): AppResult<FriendRequestOutcome> =
+        withContext(Dispatchers.IO) { remote.sendFriendRequestToUser(userId) }
+
     override suspend fun respondToFriendRequest(requestId: String, accept: Boolean): AppResult<Unit> =
         withContext(Dispatchers.IO) { remote.respondToFriendRequest(requestId, accept) }
 

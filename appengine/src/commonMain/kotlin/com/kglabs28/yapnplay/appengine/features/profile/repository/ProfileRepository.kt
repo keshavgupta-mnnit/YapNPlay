@@ -22,6 +22,8 @@ interface ProfileRepository {
     suspend fun getFriendList(): AppResult<List<Friend>>
     suspend fun getFriendRequests(): AppResult<List<FriendRequest>>
     suspend fun sendFriendRequest(userCode: String): AppResult<FriendRequestOutcome>
+    /** Same, by user id (a player card in a game). */
+    suspend fun sendFriendRequestToUser(userId: String): AppResult<FriendRequestOutcome>
     suspend fun respondToFriendRequest(requestId: String, accept: Boolean): AppResult<Unit>
     suspend fun removeFriend(userId: String): AppResult<Unit>
     suspend fun blockUser(userId: String): AppResult<Unit>

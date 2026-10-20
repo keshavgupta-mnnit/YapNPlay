@@ -52,6 +52,14 @@ fun ProfileModalContent(
             onCopyCode = { actions.onCopyCode(modal.person.userCode) },
             onRemove = { actions.onRemove(modal.person.userId) },
             onBlock = { actions.onBlock(modal.person.userId) },
+            onInviteToGroup = { actions.onInviteToGroup(modal.person.userId) },
+            onClose = actions.onDismiss,
+            modifier = modifier,
+        )
+        is ProfileModal.InviteToGroup -> InviteToGroupCard(
+            modal = modal,
+            onInvite = actions.onInviteToRoom,
+            onNewGroup = actions.onNewGroup,
             onClose = actions.onDismiss,
             modifier = modifier,
         )

@@ -53,6 +53,7 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel? = null,
     onOpenSettings: () -> Unit = {},
+    onCreateGroupWith: (userId: String) -> Unit = {},
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: ProfileState()
     val send: (ProfileIntent) -> Unit = { viewModel?.onIntent(it) }
@@ -63,6 +64,7 @@ fun ProfileScreen(
             when (effect) {
                 ProfileEffect.Close -> onBack()
                 ProfileEffect.OpenSettings -> onOpenSettings()
+                is ProfileEffect.OpenCreateGroup -> onCreateGroupWith(effect.userId)
             }
         }
     }
@@ -128,7 +130,8 @@ fun ProfileScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    ProfileFriendsSection(
+                    // No friends yet: the section is hidden.
+                    if (state.friends.isNotEmpty()) ProfileFriendsSection(
                         friends = state.tabFriends,
                         hasFriends = state.friends.isNotEmpty(),
                         tab = state.friendsTab,
@@ -211,6 +214,9 @@ fun ProfileScreen(
                     onDecline = { send(ProfileIntent.DeclineRequest(it)) },
                     onUnblock = { send(ProfileIntent.Unblock(it)) },
                     onCopyCode = { clipboard.setText(AnnotatedString(it)) },
+                    onInviteToGroup = { send(ProfileIntent.InviteToGroup(it)) },
+                    onInviteToRoom = { send(ProfileIntent.InviteToRoom(it)) },
+                    onNewGroup = { send(ProfileIntent.NewGroupWithFriend) },
                 ),
             )
         }

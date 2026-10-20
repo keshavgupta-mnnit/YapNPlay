@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbOwnedRowUi
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbSheetRowUi
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,13 +26,16 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.Cb
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbPanel
 
 /**
- * A player at a glance, on frosted white: their name on a band of their
- * colour, balance and worth, then each property on a row of its group's
+ * A player (or the bank) at a glance, on frosted white: the name on a band
+ * of their colour, balance and worth, then each property on a row of its group's
  * colour with the rent it earns now (a tap opens its card).
  */
 @Composable
 fun CbPlayerPanel(
-    panel: CbPanel.Player,
+    name: String,
+    band: Color,
+    sheet: List<CbSheetRowUi>,
+    cities: List<CbOwnedRowUi>,
     onPropertyClick: (tile: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -37,7 +43,6 @@ fun CbPlayerPanel(
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
     val shape = RoundedCornerShape(dimens.cbRowRadius)
-    val tint = panel.colour.tint()
     Column(
         modifier = modifier
             .background(colors.Background, shape)
@@ -46,20 +51,20 @@ fun CbPlayerPanel(
         verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
         BasicText(
-            text = panel.name,
+            text = name,
             style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
-            modifier = Modifier.fillMaxWidth().background(tint).padding(vertical = Spacing.Xxs),
+            modifier = Modifier.fillMaxWidth().background(band).padding(vertical = Spacing.Xxs),
         )
         Column(
             modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Spacing.Xs).padding(bottom = Spacing.Xs),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
-            CbSheetTable(rows = panel.sheet)
-            if (panel.cities.isEmpty()) {
+            CbSheetTable(rows = sheet)
+            if (cities.isEmpty()) {
                 CbDialogNote(text = Strings.cbNoProperties)
             } else {
                 // Grouped by colour, most valuable first; a tap opens the full card.
-                panel.cities.forEach { CbCityCard(city = it, onClick = { onPropertyClick(it.tile) }) }
+                cities.forEach { CbCityCard(city = it, onClick = { onPropertyClick(it.tile) }) }
             }
         }
     }

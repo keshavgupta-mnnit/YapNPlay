@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
+import com.kglabs28.yapnplay.appengine.ui.components.table.TablePlayerCardUi
+import com.kglabs28.yapnplay.appengine.ui.components.table.PlayerFriendActionUi
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
@@ -48,6 +51,10 @@ data class RoyalLudoMatchState(
     val autoplay: Boolean = false,
     val micOn: Boolean = false,
     val modal: LudoMatchModal? = null,
+    /** The match is over: the full-screen leaderboard. */
+    val leaderboard: LeaderboardUi? = null,
+    /** Long-press add / remove friend, while its confirm is open. */
+    val friendAction: PlayerFriendActionUi? = null,
 ) : UiState
 
 /**
@@ -73,29 +80,29 @@ enum class BoardCorner { TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT }
 
 /** A player's card. */
 data class LudoPlayerCardUi(
-    val seat: Int,
+    override val seat: Int,
     val userId: String,
-    val name: String,
-    val avatarId: String = "",
+    override val name: String,
+    override val avatarId: String = "",
     /** Level number, on the avatar's badge. */
-    val level: String,
+    override val level: String,
     val colour: LudoColour,
     val corner: BoardCorner,
-    val isMe: Boolean,
-    val isTurn: Boolean,
-    val talking: Boolean,
+    override val isMe: Boolean,
+    override val isTurn: Boolean,
+    override val talking: Boolean,
     /** 1 → 0 while it is this player's turn. */
-    val timerFraction: Float,
+    override val timerFraction: Float,
     val left: Boolean,
     /** "1st", "2nd"… once they have finished; null while playing. */
     val placeLabel: String?,
     /** The user muted this player for themselves only. */
-    val mutedForMe: Boolean,
+    override val mutedForMe: Boolean,
     /** False for a CPU: no voice wave and no mute button (it never talks). */
-    val canSpeak: Boolean = true,
+    override val canSpeak: Boolean = true,
     /** "Offered" while their seat changes hands, "Away" or "Bot" while the server plays for them; null otherwise. */
     val statusLabel: String? = null,
-)
+) : TablePlayerCardUi
 
 
 /**
@@ -146,7 +153,12 @@ sealed interface RoyalLudoMatchIntent : UiIntent {
     data object OpenAppSettings : RoyalLudoMatchIntent
     /** Mute or unmute this player for the user only. */
     data class ToggleHear(val seat: Int) : RoyalLudoMatchIntent
+    /** Long press on a player card: add or remove them as a friend. */
+    data class PlayerLongPressed(val seat: Int) : RoyalLudoMatchIntent
+    data object ConfirmFriendAction : RoyalLudoMatchIntent
+    data object DismissFriendAction : RoyalLudoMatchIntent
     data object ExitClicked : RoyalLudoMatchIntent
+    data object ShareResult : RoyalLudoMatchIntent
     data object ConfirmLeave : RoyalLudoMatchIntent
     data object DismissModal : RoyalLudoMatchIntent
     data object OpenSettings : RoyalLudoMatchIntent
@@ -179,4 +191,5 @@ sealed interface RoyalLudoMatchEffect : UiEffect {
     data object Close : RoyalLudoMatchEffect
     data object RequestMicPermission : RoyalLudoMatchEffect
     data object OpenAppSettings : RoyalLudoMatchEffect
+    data class ShareText(val text: String) : RoyalLudoMatchEffect
 }

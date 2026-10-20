@@ -76,6 +76,30 @@ data class MatchSnapshot(
     val seatOffer: SeatOfferInfo? = null,
     /** Game-specific events (each with `"type"`), oldest first. */
     val events: List<JsonObject> = emptyList(),
+    /** A round or time limit is reached: the keep-playing vote; null when none. */
+    val extensionVote: ExtensionVoteInfo? = null,
+)
+
+/**
+ * The keep-playing vote: [voters] (humans still in) decide by [endsAt]
+ * whether to play on; exactly one of [extraRounds] / [extraMinutes] is set,
+ * by which limit was hit. Continue iff yes × 2 ≥ voters.
+ */
+@Serializable
+data class ExtensionVoteInfo(
+    val endsAt: Long,
+    val voters: List<Int>,
+    val yes: List<Int> = emptyList(),
+    val no: List<Int> = emptyList(),
+    val extraRounds: Int? = null,
+    val extraMinutes: Int? = null,
+)
+
+/** MATCH `VoteExtension`: keep playing (true) or end (false). Reply Ack; Rejected ILLEGAL_MOVE / NOT_MEMBER. */
+@Serializable
+data class VoteExtension(
+    val matchId: String,
+    val keepPlaying: Boolean,
 )
 
 @Serializable

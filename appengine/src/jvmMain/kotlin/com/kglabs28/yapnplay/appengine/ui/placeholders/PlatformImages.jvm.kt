@@ -31,6 +31,11 @@ actual fun FriendZoneArtwork(modifier: Modifier, contentDescription: String?) {
 }
 
 @Composable
+actual fun LeaderboardArtwork(modifier: Modifier, contentDescription: String?) {
+    FallbackArtwork(modifier)
+}
+
+@Composable
 actual fun HomeBackgroundArtwork(modifier: Modifier, contentDescription: String?) {
     FallbackArtwork(modifier)
 }

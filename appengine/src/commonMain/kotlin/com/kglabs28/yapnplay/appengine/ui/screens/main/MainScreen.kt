@@ -43,6 +43,8 @@ fun MainScreen(
     onOpenProfile: () -> Unit = {},
     pendingInviteCode: String? = null,
     onInviteConsumed: () -> Unit = {},
+    pendingCreateGroupWith: String? = null,
+    onCreateGroupConsumed: () -> Unit = {},
     viewModel: MainViewModel? = null,
     gameZoneViewModel: GameZoneViewModel? = null,
     playRoomsViewModel: PlayRoomsViewModel? = null,
@@ -72,6 +74,10 @@ fun MainScreen(
     // An invite link was opened: show the Rooms tab, which asks to join.
     LaunchedEffect(pendingInviteCode) {
         if (pendingInviteCode != null) viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
+    }
+    // "New Group" on a friend's card: show the Rooms tab, which opens Create New Group.
+    LaunchedEffect(pendingCreateGroupWith) {
+        if (pendingCreateGroupWith != null) viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
     }
 
     CozyHomeBackground(
@@ -151,6 +157,8 @@ fun MainScreen(
                         viewModel = playRoomsViewModel,
                         inviteCode = pendingInviteCode,
                         onInviteConsumed = onInviteConsumed,
+                        createGroupWith = pendingCreateGroupWith,
+                        onCreateGroupConsumed = onCreateGroupConsumed,
                     )
                 }
             }

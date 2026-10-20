@@ -36,6 +36,10 @@ data class CityBazaarMatch(
     val ranking: List<Int>,
     val roomId: String? = null,
     val viewerUserId: String = "",
+    /** Tile → all the rent it has earned so far. */
+    val rentCollected: Map<Int, Int> = emptyMap(),
+    val extensionVote: CityBazaarExtensionVoteInfo? = null,
+    val bank: CityBazaarBankInfo? = null,
 ) {
     val me: CityBazaarPlayer? get() = players.firstOrNull { it.isMe }
     val current: CityBazaarPlayer? get() = players.firstOrNull { it.seat == currentSeat }

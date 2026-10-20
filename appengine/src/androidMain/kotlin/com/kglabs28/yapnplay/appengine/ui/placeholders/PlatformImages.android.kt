@@ -40,6 +40,16 @@ actual fun FriendZoneArtwork(modifier: Modifier, contentDescription: String?) {
 }
 
 @Composable
+actual fun LeaderboardArtwork(modifier: Modifier, contentDescription: String?) {
+    Image(
+        painter = painterResource(id = R.drawable.bg_leader_board),
+        contentDescription = contentDescription,
+        modifier = modifier,
+        contentScale = ContentScale.FillBounds,
+    )
+}
+
+@Composable
 actual fun HomeBackgroundArtwork(modifier: Modifier, contentDescription: String?) {
     Image(
         painter = painterResource(id = R.drawable.bg_home_main),

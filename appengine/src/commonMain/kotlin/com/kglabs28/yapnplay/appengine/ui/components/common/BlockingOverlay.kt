@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -26,14 +26,30 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.MotionTokens
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
 /**
- * Holds the one blocking modal currently shown (or none). Screens never
- * touch it directly; they call [BlockingOverlay].
+ * The blocking modals asking to be shown, newest on top; only the top one
+ * is drawn. Each modal adds and removes only its own entry, so one closing
+ * never hides another that is still up (e.g. the end-of-match leaderboard).
+ * Screens never touch it directly; they call [BlockingOverlay].
  */
 class BlockingOverlayState {
-    var content: (@Composable () -> Unit)? by mutableStateOf(null)
+    private class Entry(val token: Any, val content: @Composable () -> Unit, val onDismiss: (() -> Unit)?)
+
+    private val entries = mutableStateListOf<Entry>()
+
+    val content: (@Composable () -> Unit)? get() = entries.lastOrNull()?.content
 
     /** Set for dismissable modals: tap outside or Back closes them. */
-    var onDismiss: (() -> Unit)? by mutableStateOf(null)
+    val onDismiss: (() -> Unit)? get() = entries.lastOrNull()?.onDismiss
+
+    fun show(token: Any, content: @Composable () -> Unit, onDismiss: (() -> Unit)?) {
+        val index = entries.indexOfFirst { it.token === token }
+        val entry = Entry(token, content, onDismiss)
+        if (index >= 0) entries[index] = entry else entries.add(entry)
+    }
+
+    fun hide(token: Any) {
+        entries.removeAll { it.token === token }
+    }
 }
 
 val LocalBlockingOverlay = staticCompositionLocalOf { BlockingOverlayState() }
@@ -118,12 +134,9 @@ fun BlockingOverlay(
     val latest by rememberUpdatedState(content)
     val latestDismiss by rememberUpdatedState(onDismiss)
     val dismissable = onDismiss != null
-    DisposableEffect(visible, host) {
-        if (visible) host.content = { latest() }
-        onDispose { if (visible) host.content = null }
-    }
+    val token = remember { Any() }
     DisposableEffect(visible, dismissable, host) {
-        if (visible) host.onDismiss = if (dismissable) ({ latestDismiss?.invoke() }) else null
-        onDispose { if (visible) host.onDismiss = null }
+        if (visible) host.show(token, { latest() }, if (dismissable) ({ latestDismiss?.invoke() }) else null)
+        onDispose { host.hide(token) }
     }
 }

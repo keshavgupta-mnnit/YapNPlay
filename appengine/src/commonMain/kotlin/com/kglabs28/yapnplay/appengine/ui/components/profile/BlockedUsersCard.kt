@@ -21,6 +21,6 @@ fun BlockedUsersCard(count: Int, label: String, onSeeList: () -> Unit, modifier:
         modifier = modifier,
     ) {
         Spacer(Modifier.weight(1f))
-        GlassPillButton(text = Strings.profileSeeList, onClick = onSeeList, accent = YapNPlayTheme.colors.SocialZoneAccent)
+        GlassPillButton(text = Strings.profileSeeList, onClick = onSeeList, enabled = count > 0, accent = YapNPlayTheme.colors.SocialZoneAccent)
     }
 }

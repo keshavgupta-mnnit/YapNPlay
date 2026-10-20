@@ -33,6 +33,9 @@ class ProfileRemoteManager(private val api: ProfileApi) {
     suspend fun sendFriendRequest(userCode: String): AppResult<FriendRequestOutcome> =
         call("sendFriendRequest") { api.sendFriendRequest(SendFriendRequestBody(userCode)).outcome.toDomain() }
 
+    suspend fun sendFriendRequestToUser(userId: String): AppResult<FriendRequestOutcome> =
+        call("sendFriendRequestToUser") { api.sendFriendRequest(SendFriendRequestBody(userId = userId)).outcome.toDomain() }
+
     suspend fun respondToFriendRequest(requestId: String, accept: Boolean): AppResult<Unit> = call("respondToFriendRequest") {
         if (accept) api.acceptFriendRequest(requestId) else api.declineFriendRequest(requestId)
     }

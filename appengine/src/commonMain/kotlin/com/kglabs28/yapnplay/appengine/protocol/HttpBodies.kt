@@ -211,3 +211,53 @@ data class ActiveMatch(
     val title: String,
     val roomId: String? = null,
 )
+
+/** `POST /rooms/{roomId}/invites`: invite friends into a room the caller belongs to. */
+@Serializable
+data class InviteToRoomBody(
+    val userIds: List<String>,
+)
+
+/** Who got an invite, and who was skipped (not a friend, blocked, already a member or invited, room full). */
+@Serializable
+data class InviteToRoomReply(
+    val invited: List<String>,
+    val skipped: List<String> = emptyList(),
+)
+
+/** `GET /rooms/invites`: room invites waiting for the user, newest first. */
+@Serializable
+data class RoomInvites(
+    val invites: List<RoomInviteSummary>,
+)
+
+@Serializable
+data class RoomInviteSummary(
+    val inviteId: String,
+    val roomId: String,
+    val roomName: String,
+    /** Room badge key, same as RoomSummary.icon. */
+    val roomIcon: String = "group",
+    val memberCount: Int,
+    val invitedBy: FriendSummary,
+    /** Epoch millis. */
+    val invitedAt: Long,
+)
+
+/** `POST /auth/play-games`: the one-time code from Google Play Games (sent with the current guest's bearer). */
+@Serializable
+data class PlayGamesSignInBody(
+    val serverAuthCode: String,
+)
+
+/**
+ * The account to use from now on. [restored]: this Play Games player was
+ * already linked to another account (a new phone or a reinstall), which is
+ * returned instead of the current guest.
+ */
+@Serializable
+data class PlayGamesSignedIn(
+    val userId: String,
+    val secret: String,
+    val restored: Boolean = false,
+)

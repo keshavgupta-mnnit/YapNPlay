@@ -1,5 +1,28 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.placeholders.CityBazaarArtwork
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarColour
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.CbMoneyFlight
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateMapOf
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CbBankButton
+import com.kglabs28.yapnplay.appengine.ui.components.common.rememberShareSheet
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.MatchLeaderboard
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbTransactionNotice
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableHistoryDialog
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedSnackbar
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CbCashLine
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableCardDensity
+import com.kglabs28.yapnplay.appengine.ui.components.table.TablePlayerCard
+import com.kglabs28.yapnplay.appengine.ui.components.table.PlayerFriendDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -29,6 +52,7 @@ import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.GlassDice
 import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.rememberGlassDiceState
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
+import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableGlassButton
@@ -44,7 +68,6 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.Ci
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityBazaarCardColumn
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityBazaarMyControls
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityBazaarOwnedStacks
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityBazaarPlayerCard
 import kotlinx.coroutines.launch
 
 /**
@@ -65,10 +88,19 @@ fun CityBazaarMatchScreen(
     viewModel: CityBazaarMatchViewModel? = null,
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: CityBazaarMatchState()
+    // Where each card (and the bank) is, for the coin animation when money popups are off.
+    val anchors = remember { mutableStateMapOf<Int, Offset>() }
+    // Player colours for the coloured names in the snackbar and history.
+    val playerTints = CityBazaarColour.entries.map { it.tint() }
+    var boardOrigin by remember { mutableStateOf(Offset.Zero) }
     val send: (CityBazaarMatchIntent) -> Unit = { viewModel?.onIntent(it) }
     val micPermission = rememberPermissionRequester(AppPermission.MICROPHONE)
     val die1 = rememberGlassDiceState()
+    val share = rememberShareSheet()
     val die2 = rememberGlassDiceState()
+
+    // Back at the table is the same as the exit button (asks first).
+    BlockBackPress(enabled = true, onBack = { send(CityBazaarMatchIntent.ExitClicked) })
     LaunchedEffect(viewModel, matchId) {
         viewModel?.onIntent(CityBazaarMatchIntent.Load(matchId))
         viewModel?.effects?.collect { effect ->
@@ -77,6 +109,7 @@ fun CityBazaarMatchScreen(
                 CityBazaarMatchEffect.RequestMicPermission ->
                     micPermission.request { send(CityBazaarMatchIntent.MicPermissionResult(it)) }
                 CityBazaarMatchEffect.OpenAppSettings -> micPermission.openSettings()
+                is CityBazaarMatchEffect.ShareText -> share(effect.text)
             }
         }
     }
@@ -113,12 +146,14 @@ fun CityBazaarMatchScreen(
                 // The view to switch to.
                 switchLabel = if (state.threeD) Strings.cbView2d else Strings.cbView3d,
                 onSwitch = { send(CityBazaarMatchIntent.ToggleView) },
+                onHistory = { send(CityBazaarMatchIntent.OpenHistory) },
                 // As wide as the player cards below.
                 titleWidthFraction = AppConstants.CB_SIDE_COLUMN_WEIGHT,
             )
             val panelOpen = state.panel != null
             BoxWithConstraints(
                 modifier = Modifier
+                    .onGloballyPositioned { boardOrigin = it.positionInRoot() }
                     .weight(1f)
                     .fillMaxWidth()
                     // A touch outside the info panel closes it, and still does what it touched (Trade, a tile…).
@@ -159,6 +194,8 @@ fun CityBazaarMatchScreen(
                         cards = state.leftCards,
                         onToggleHear = { send(CityBazaarMatchIntent.ToggleHear(it)) },
                         onCardClick = { send(CityBazaarMatchIntent.PlayerClicked(it)) },
+                        onCardLongPress = { send(CityBazaarMatchIntent.PlayerLongPressed(it)) },
+                        cardModifier = { seat -> Modifier.onGloballyPositioned { anchors[seat] = it.boundsInRoot().center } },
                         modifier = Modifier.align(Alignment.CenterStart).width(side),
                     )
                 }
@@ -168,18 +205,33 @@ fun CityBazaarMatchScreen(
                     verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
                 ) {
                     state.rightCards.forEach { card ->
-                        CityBazaarPlayerCard(
+                        TablePlayerCard(
                             card = card,
+                            tint = card.colour.tint(),
+                            faded = card.out,
+                            badge = card.status,
+                            avatarSize = YapNPlayTheme.dimens.cbCardAvatar,
+                            density = TableCardDensity.DENSE,
+                            details = { CbCashLine(cash = card.cash, compact = false) },
                             onToggleHear = { send(CityBazaarMatchIntent.ToggleHear(card.seat)) },
                             onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
-                            modifier = Modifier.fillMaxWidth(),
+                            onLongPress = { send(CityBazaarMatchIntent.PlayerLongPressed(card.seat)) },
+                            modifier = Modifier.fillMaxWidth().onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
                         )
                     }
+                    // The bank: above the user's own card: its money and every property nobody owns.
+                    CbBankButton(onClick = { send(CityBazaarMatchIntent.OpenBank) }, modifier = buttonSize.onGloballyPositioned { anchors[BANK_ANCHOR] = it.boundsInRoot().center })
                     state.myCard?.let { card ->
-                        CityBazaarPlayerCard(
+                        TablePlayerCard(
                             card = card,
+                            tint = card.colour.tint(),
+                            faded = card.out,
+                            badge = card.status,
+                            avatarSize = YapNPlayTheme.dimens.cbCardAvatar,
+                            density = TableCardDensity.DENSE,
+                            details = { CbCashLine(cash = card.cash, compact = false) },
                             onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
                         ) {
                             CityBazaarMyControls(
                                 canRoll = state.canRoll,
@@ -223,6 +275,41 @@ fun CityBazaarMatchScreen(
                     )
                 }
                 state.toast?.let { CbMoneyToast(toast = it, modifier = Modifier.align(Alignment.TopCenter)) }
+                state.transaction?.let { CbTransactionNotice(tx = it, modifier = Modifier.align(Alignment.Center)) }
+                state.moneyFlight?.let { flight ->
+                    val from = anchors[flight.fromSeat ?: BANK_ANCHOR]
+                    val to = anchors[flight.toSeat ?: BANK_ANCHOR]
+                    if (from != null && to != null) CbMoneyFlight(flight = flight, from = from - boardOrigin, to = to - boardOrigin)
+                }
+                state.feedSnack?.let { TableFeedSnackbar(line = it, playerTints = playerTints, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = Spacing.Sm)) }
+            }
+        }
+
+        val board = state.leaderboard
+        BlockingOverlay(visible = board != null) {
+            if (board != null) {
+                MatchLeaderboard(
+                    board = board,
+                    gameArt = { CityBazaarArtwork(modifier = it) },
+                    onPlayAgain = { send(CityBazaarMatchIntent.Done) },
+                )
+            }
+        }
+
+        BlockingOverlay(visible = state.historyOpen, onDismiss = { send(CityBazaarMatchIntent.DismissHistory) }) {
+            if (state.historyOpen) {
+                TableHistoryDialog(title = Strings.tableHistoryTitle, lines = state.history, playerTints = playerTints, onClose = { send(CityBazaarMatchIntent.DismissHistory) })
+            }
+        }
+
+        val friendAction = state.friendAction
+        BlockingOverlay(visible = friendAction != null, onDismiss = { send(CityBazaarMatchIntent.DismissFriendAction) }) {
+            if (friendAction != null) {
+                PlayerFriendDialog(
+                    action = friendAction,
+                    onConfirm = { send(CityBazaarMatchIntent.ConfirmFriendAction) },
+                    onCancel = { send(CityBazaarMatchIntent.DismissFriendAction) },
+                )
             }
         }
 
@@ -243,6 +330,7 @@ fun CityBazaarMatchScreen(
                         onSkipBuild = { send(CityBazaarMatchIntent.SkipBuild) },
                         onRoll = { send(CityBazaarMatchIntent.Roll) },
                         onPayJailFine = { send(CityBazaarMatchIntent.PayJailFine) },
+                        onVoteExtension = { send(CityBazaarMatchIntent.VoteExtension(it)) },
                         onStayInJail = { send(CityBazaarMatchIntent.StayInJail) },
                         onToggleSale = { send(CityBazaarMatchIntent.ToggleSale(it)) },
                         onConfirmSale = { send(CityBazaarMatchIntent.ConfirmSale) },
@@ -255,6 +343,7 @@ fun CityBazaarMatchScreen(
                         onOpenAppSettings = { send(CityBazaarMatchIntent.OpenAppSettings) },
                         onToggleEffects = { send(CityBazaarMatchIntent.ToggleEffects) },
                         onToggleMusic = { send(CityBazaarMatchIntent.ToggleMusic) },
+                        onToggleMoneyPopups = { send(CityBazaarMatchIntent.ToggleMoneyPopups) },
                         onOpenReport = { send(CityBazaarMatchIntent.OpenReport) },
                         onSelectReportPerson = { send(CityBazaarMatchIntent.SelectReportPerson(it)) },
                         onSubmitReport = { send(CityBazaarMatchIntent.SubmitReport) },
@@ -266,3 +355,6 @@ fun CityBazaarMatchScreen(
         }
     }
 }
+
+/** The bank's key among the card positions. */
+private const val BANK_ANCHOR = -1

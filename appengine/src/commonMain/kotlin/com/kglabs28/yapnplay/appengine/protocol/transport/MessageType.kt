@@ -41,6 +41,7 @@ object MessageType {
     const val GAME_ACTION = "GameAction"
     const val MATCH_REQUEST_SNAPSHOT = "MatchRequestSnapshot"
     const val SET_AUTOPLAY = "SetAutoplay"
+    const val VOTE_EXTENSION = "VoteExtension"
     const val SET_MIC = "SetMic"
     const val SET_PRESENCE = "SetPresence"
     const val CONFIRM_PRESENCE = "ConfirmPresence"

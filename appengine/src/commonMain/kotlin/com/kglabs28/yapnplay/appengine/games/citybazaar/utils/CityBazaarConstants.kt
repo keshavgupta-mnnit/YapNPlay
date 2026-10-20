@@ -13,7 +13,7 @@ const val CITY_BAZAAR_MAX_PLAYERS = 6
 const val CITY_BAZAAR_QUICK_PLAY_SEATS = 4
 const val CITY_BAZAAR_SEARCH_SECONDS = 30L
 /** Seconds per decision before the turn plays itself. */
-const val CITY_BAZAAR_TURN_SECONDS = 20L
+const val CITY_BAZAAR_TURN_SECONDS = 10L
 
 // Money (₹). Starting cash and the limits are AppManager values; these are the defaults.
 const val STARTING_CASH = 20_000

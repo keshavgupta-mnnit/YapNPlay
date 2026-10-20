@@ -9,4 +9,6 @@ import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 data class PlayRoomsData(
     val rooms: List<PlayRoom>,
     val onlineFriends: List<Friend>,
+    /** Group invites waiting for the user. */
+    val invites: List<PlayRoomInvite> = emptyList(),
 )

@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
+import com.kglabs28.yapnplay.appengine.core.audio.TurnAlarm
+import com.kglabs28.yapnplay.appengine.ui.components.table.PlayerFriendActionUi
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.PlayerFriendUseCases
 import com.kglabs28.yapnplay.appengine.core.network.MatchGoneException
 import com.kglabs28.yapnplay.appengine.core.audio.GameAudio
 import com.kglabs28.yapnplay.appengine.core.audio.GameSound
@@ -66,6 +70,7 @@ class RoyalLudoMatchViewModel(
     private val observeMicOn: ObserveMicOnUseCase,
     private val setMicOn: SetMicOnUseCase,
     private val moderation: ModerationUseCases,
+    private val playerFriends: PlayerFriendUseCases,
     private val audio: GameAudio,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
@@ -92,6 +97,8 @@ class RoyalLudoMatchViewModel(
     private var vote: ReportVoteRequest? = null
     private var penalty: Penalty? = null
     private var foreground = true
+    private var leaderboard: LeaderboardUi? = null
+    private val turnAlarm = TurnAlarm { if (foreground) audio.play(it) }
     private var awayJob: Job? = null
     private var markedAway = false
     private var declinedSeat: Int? = null
@@ -109,7 +116,7 @@ class RoyalLudoMatchViewModel(
                 if (state.value.pieces.any { it.seat == intent.seat && it.piece == intent.piece && it.selectable }) {
                     send(LudoCommand.Move(intent.piece))
                 }
-            RoyalLudoMatchIntent.ToggleAutoplay -> send(LudoCommand.SetAutoplay(!state.value.autoplay))
+            RoyalLudoMatchIntent.ToggleAutoplay -> toggleAutoplay((match?.me?.let { it.autoplay || it.presence == LudoPresence.BOT } == true)) { send(LudoCommand.SetAutoplay(it)) }
             // The mic switch is the user's, everywhere: this table follows it.
             is RoyalLudoMatchIntent.ToggleMic -> when {
                 micSwitch -> setMicOn(false)
@@ -125,6 +132,12 @@ class RoyalLudoMatchViewModel(
             is RoyalLudoMatchIntent.ToggleHear -> match?.players?.firstOrNull { it.seat == intent.seat }?.let {
                 setMuted(it.userId, it.userId !in mutedForMe)
             }
+            // Not the user, a CPU or a seat the CPU plays for someone who left.
+            is RoyalLudoMatchIntent.PlayerLongPressed -> match?.players?.firstOrNull { it.seat == intent.seat }
+                ?.takeIf { !it.isMe && !it.isCpu && it.presence != LudoPresence.BOT }
+                ?.let { openFriendAction(it.userId, it.name, it.avatarId) }
+            RoyalLudoMatchIntent.ConfirmFriendAction -> confirmFriendAction()
+            RoyalLudoMatchIntent.DismissFriendAction -> setState { copy(friendAction = null) }
             RoyalLudoMatchIntent.ExitClicked -> match?.let { m ->
                 // Closes by itself if no choice is made in time.
                 leaveDeadline = clock.now() + AppConstants.EXIT_DIALOG_SECONDS.seconds
@@ -183,6 +196,7 @@ class RoyalLudoMatchViewModel(
                 render()
             }
             RoyalLudoMatchIntent.Done -> emitEffect(RoyalLudoMatchEffect.Close)
+            RoyalLudoMatchIntent.ShareResult -> leaderboard?.let { emitEffect(RoyalLudoMatchEffect.ShareText(Strings.leaderboardShareText(it.game, it.myPlace))) }
         }
     }
 
@@ -359,8 +373,8 @@ class RoyalLudoMatchViewModel(
         // automatic move, or a six's move); back for the next roll.
         diceVisible = newMatch.phase == LudoPhase.ROLL
         if (newlyFinished) sound(GameSound.WIN)
-        if (newMatch.phase == LudoPhase.FINISHED && userModal == null) {
-            userModal = LudoMatchModal.Result(LudoMatchUiMapper.resultRows(newMatch))
+        if (newMatch.phase == LudoPhase.FINISHED && leaderboard == null) {
+            leaderboard = LudoMatchUiMapper.leaderboard(newMatch, LudoMatchUiMapper.elapsed(clock.now() - newMatch.startedAt))
         }
         render()
     }
@@ -420,6 +434,7 @@ class RoyalLudoMatchViewModel(
     private fun render() {
         val m = match ?: return
         val me = m.me
+        if (autoplayWanted != null && autoplayWanted == (me?.let { it.autoplay || it.presence == LudoPresence.BOT } == true)) autoplayWanted = null
         // The mic listens only while it's on at the table and the app is in front.
         val wantMic = foreground && (me?.micOn ?: m.spectators.firstOrNull { it.userId == m.viewerUserId }?.micOn ?: false)
         if (wantMic != micOpen) {
@@ -431,12 +446,15 @@ class RoyalLudoMatchViewModel(
         val rotation = me?.let { LudoBoardGeometry.rotationFor(it.colour.ordinal) } ?: 0
         val myTurn = me != null && !playing && !m.onHold && m.currentSeat == me.seat && !me.autoplay
         val remainingMs = m.turnEndsAt?.let { (it - clock.now()).inWholeMilliseconds.coerceAtLeast(0) } ?: 0L
+        turnAlarm.update(myTurn, remainingMs)
         val cards = LudoMatchUiMapper.cards(
             m,
             LudoMatchUiMapper.CardInputs(rotation, talkers, mutedForMe, if (playing || m.onHold) null else remainingMs, ROYAL_LUDO_TURN_SECONDS),
         )
         setState {
             copy(
+                // The view model's own value (inside copy, a bare name would be the old state's).
+                leaderboard = this@RoyalLudoMatchViewModel.leaderboard,
                 loaded = true,
                 title = Strings.ludoTitle,
                 subtitle = m.title,
@@ -459,9 +477,11 @@ class RoyalLudoMatchViewModel(
                 roomMatch = m.isRoomMatch,
                 moveHint = m.lastRoll?.takeIf { myTurn && m.phase == LudoPhase.MOVE }?.let { Strings.ludoMove(it) },
                 // On when the bot holds the seat too; turning it off takes the seat back.
-                autoplay = me?.autoplay == true || me?.presence == LudoPresence.BOT,
+                // What the user just set wins until the server agrees (no waiting on the round trip).
+                autoplay = autoplayWanted ?: (me?.autoplay == true || me?.presence == LudoPresence.BOT),
                 // A spectator's mic is on their spectator entry.
-                micOn = me?.micOn ?: m.spectators.firstOrNull { it.userId == m.viewerUserId }?.micOn ?: false,
+                // The app-wide mic switch, at once (the server catches up).
+                micOn = micSwitch,
                 // A vote or a seat decision is timed, so it comes before the user's own dialogs.
                 modal = vote?.let { LudoModerationUiMapper.vote(it, clock.now()) }
                     ?: LudoMatchUiMapper.seatModal(m, clock.now(), declinedSeat, seatPick)
@@ -473,5 +493,38 @@ class RoyalLudoMatchViewModel(
     private suspend fun send(command: LudoCommand) {
         val id = matchId ?: return
         sendCommand(id, command)
+    }
+
+    /** Long press on [player]'s card: confirm adding them (or removing them if already a friend). */
+    private suspend fun openFriendAction(userId: String, name: String, avatarId: String) {
+        val isFriend = userId in playerFriends.friendIds()
+        setState { copy(friendAction = PlayerFriendActionUi(userId, name, avatarId, isFriend)) }
+    }
+
+    private suspend fun confirmFriendAction() {
+        val action = state.value.friendAction ?: return
+        if (action.busy) return
+        setState { copy(friendAction = action.copy(busy = true, error = null)) }
+        when (playerFriends.toggle(action.userId, action.isFriend)) {
+            is AppResult.Success -> setState { copy(friendAction = null) }
+            is AppResult.Failure -> setState { copy(friendAction = action.copy(busy = false, error = Strings.playerFriendFailed)) }
+        }
+    }
+
+    /** Autoplay as the user just set it, shown at once until the server agrees (or gives up after a few seconds). */
+    private var autoplayWanted: Boolean? = null
+    private var autoplayJob: Job? = null
+
+    private suspend fun toggleAutoplay(serverValue: Boolean, send: suspend (Boolean) -> Unit) {
+        val next = !(autoplayWanted ?: serverValue)
+        autoplayWanted = next
+        autoplayJob?.cancel()
+        autoplayJob = scope.launch {
+            delay(AppConstants.TOGGLE_CONFIRM_MS)
+            autoplayWanted = null
+            render()
+        }
+        render()
+        send(next)
     }
 }

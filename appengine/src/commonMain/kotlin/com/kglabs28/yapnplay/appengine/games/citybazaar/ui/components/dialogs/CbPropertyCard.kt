@@ -60,6 +60,7 @@ fun CbPropertyCard(card: CbPropertyCardUi, modifier: Modifier = Modifier, fillHe
         Column(modifier = body.padding(horizontal = Spacing.Xs).padding(bottom = Spacing.Xs), verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
             CbRateTable(rows = card.rows)
             card.income?.let { BasicText(text = it, style = typography.label.copy(color = colors.CbCash, fontWeight = FontWeight.Bold)) }
+            card.collected?.let { BasicText(text = it, style = typography.label.copy(color = colors.TextSecondary)) }
             card.sale?.let {
                 BasicText(
                     text = it,

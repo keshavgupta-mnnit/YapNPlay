@@ -19,5 +19,5 @@ val cityBazaarModule = module {
     factory { ObserveCityBazaarMatchUseCase(get()) }
     factory { ObserveCityBazaarSpeakingUseCase(get()) }
     factory { SendCityBazaarCommandUseCase(get()) }
-    factory { CityBazaarMatchViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { CityBazaarMatchViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

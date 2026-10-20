@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.mapper
 
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import androidx.compose.ui.graphics.Color
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardEntryUi
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
 import com.kglabs28.yapnplay.appengine.ui.components.profile.AvatarPresets
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoColour
@@ -180,6 +184,28 @@ object LudoMatchUiMapper {
     fun audience(match: LudoMatch, speaking: Set<String>, mutedForMe: Set<String>): List<TableAvatarUi> =
         match.spectators.map { TableAvatarUi(it.userId, it.name, ring(it.userId in speaking && it.userId !in mutedForMe, it.micOn)) }
 
+    /** The end-of-match leaderboard: finishing order, a title, points and EXP for each place. */
+    fun leaderboard(match: LudoMatch, duration: String): LeaderboardUi {
+        val count = match.ranking.size
+        val entries = match.ranking.mapIndexedNotNull { index, seat ->
+            match.players.firstOrNull { it.seat == seat }?.let { p ->
+                LeaderboardEntryUi(
+                    place = index + 1,
+                    placeLabel = Strings.ludoPlace(index + 1),
+                    name = p.name,
+                    avatarId = p.avatarId,
+                    title = Strings.ludoPlaceTitles[index.coerceAtMost(Strings.ludoPlaceTitles.lastIndex)],
+                    score = Strings.leaderboardPts(AppConstants.PLACE_EXP[index.coerceAtMost(AppConstants.PLACE_EXP.lastIndex)]),
+                    exp = Strings.leaderboardExp(AppConstants.PLACE_EXP[index.coerceAtMost(AppConstants.PLACE_EXP.lastIndex)]),
+                    micOn = p.micOn,
+                    tint = Color.Unspecified,
+                    isMe = p.isMe,
+                )
+            }
+        }
+        return LeaderboardUi(Strings.ludoTitle, duration, entries, entries.firstOrNull { it.isMe }?.placeLabel.orEmpty(), myExp = entries.firstOrNull { it.isMe }?.let { e -> "+" + AppConstants.PLACE_EXP[(e.place - 1).coerceAtMost(AppConstants.PLACE_EXP.lastIndex)] }.orEmpty())
+    }
+
     fun resultRows(match: LudoMatch): List<LudoResultRowUi> = match.ranking.mapIndexedNotNull { index, seat ->
         match.players.firstOrNull { it.seat == seat }?.let { LudoResultRowUi(Strings.ludoPlace(index + 1), it.name, it.colour) }
     }
@@ -192,5 +218,6 @@ object LudoMatchUiMapper {
 
     private const val MILLIS = 1_000L
     private const val CORNERS = 4
+    private const val POINTS_PER_PLACE = 100
     private const val SECONDS_PER_MINUTE = 60L
 }

@@ -1,5 +1,14 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper
 
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbNoticeArt
+import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.MoneyReason
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarEvent
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarExtensionVoteInfo
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import androidx.compose.ui.graphics.Color
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardEntryUi
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbTransactionUi
 import com.kglabs28.yapnplay.appengine.ui.components.profile.AvatarPresets
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.table.AvatarRing
@@ -78,6 +87,7 @@ object CityBazaarUiMapper {
                 level = if (cpuPlays) "" else p.level.toString(),
                 colour = p.colour,
                 cash = inputs.cash[p.seat] ?: p.cash,
+                rentCollected = p.rentCollected,
                 isMe = p.isMe,
                 isTurn = isTurn,
                 talking = p.userId in inputs.speaking && p.micOn && !muted,
@@ -196,6 +206,7 @@ object CityBazaarUiMapper {
             kind = spec.kind,
             rows = rates(tile, if (owner != null) tierIndex else null),
             income = income,
+            collected = if (spec.buyable) Strings.cbRentCollected(rupees(match.rentCollected[tile] ?: 0)) else null,
             sale = sale,
             costs = if (spec.buyable) costs else emptyList(),
             owner = when {
@@ -274,6 +285,50 @@ object CityBazaarUiMapper {
         return (if (doubled) base * 2 else base).let { if (owner.halfRent) it / 2 else it }
     }
 
+    /** The continue-or-end vote as the user sees it: buttons if they may vote and haven't yet. */
+    fun extensionVote(match: CityBazaarMatch, vote: CityBazaarExtensionVoteInfo, countdown: String): CbModal.ExtensionVote {
+        val seat = match.me?.seat
+        val eligible = seat != null && seat in vote.voters
+        val votedYes = seat != null && seat in vote.yes
+        val votedNo = seat != null && seat in vote.no
+        return CbModal.ExtensionVote(
+            body = Strings.cbExtendBody(extraLabel(vote)),
+            tally = Strings.cbExtendTally(vote.yes.size, vote.voters.size),
+            status = when {
+                !eligible -> Strings.cbExtendWatching
+                votedYes || votedNo -> Strings.cbExtendYouVoted(votedYes)
+                else -> null
+            },
+            canVote = eligible && !votedYes && !votedNo,
+            countdown = countdown,
+        )
+    }
+
+    /** "30 rounds" or "15 minutes", by which limit was hit. */
+    fun extraLabel(vote: CityBazaarExtensionVoteInfo?): String = when {
+        vote?.extraMinutes != null -> Strings.cbExtraMinutes(vote.extraMinutes)
+        else -> Strings.cbExtraRounds(vote?.extraRounds ?: DEFAULT_EXTRA_ROUNDS)
+    }
+
+    /** The bank: its money and every property nobody owns, cheapest rent first within each colour. */
+    fun bankPanel(match: CityBazaarMatch): CbPanel.Bank {
+        val free = CityBazaarBoard.tiles.filter { it.buyable && it.index !in match.owners }.map { it.index }
+        val bank = match.bank
+        val money = { amount: Long? -> amount?.let { Strings.cbRupees(RupeeFormat.digits(it)) } ?: Strings.cbBankUnknown }
+        return CbPanel.Bank(
+            name = Strings.cbBank,
+            sheet = listOf(
+                CbSheetRowUi(Strings.cbBankBalance, money(bank?.cash), CbRowKind.TOTAL),
+                CbSheetRowUi(Strings.cbBankProperties, free.size.toString(), CbRowKind.NORMAL),
+            ),
+            cities = free.sortedWith(compareBy<Int> { CityBazaarBoard.tile(it).group?.ordinal ?: Int.MAX_VALUE }.thenBy { CityBazaarBoard.tile(it).price })
+                .map { tile ->
+                    val spec = CityBazaarBoard.tile(tile)
+                    CbOwnedRowUi(tile, spec.name, spec.group, spec.kind, rupees(spec.rents.firstOrNull() ?: 0), rupees(spec.price))
+                },
+        )
+    }
+
     /** A player's balance, worth and buildings, and each property with the rent it earns now. */
     fun playerPanel(match: CityBazaarMatch, seat: Int, cash: Int): CbPanel.Player? {
         val player = match.player(seat) ?: return null
@@ -287,6 +342,7 @@ object CityBazaarUiMapper {
                 CbSheetRowUi(Strings.cbProperties, tiles.size.toString(), CbRowKind.NORMAL),
                 CbSheetRowUi(Strings.cbHouses, levels.sumOf { if (it in 1 until HOTEL_LEVEL) it else 0 }.toString(), CbRowKind.NORMAL),
                 CbSheetRowUi(Strings.cbHotels, levels.count { it >= HOTEL_LEVEL }.toString(), CbRowKind.NORMAL),
+                CbSheetRowUi(Strings.cbRentCollectedLabel, rupees(player.rentCollected), CbRowKind.NORMAL),
                 CbSheetRowUi(Strings.cbNetWorth, rupees(match.netWorth[seat] ?: cash), CbRowKind.TOTAL),
             ),
             cities = ownedRows(match, tiles),
@@ -322,12 +378,19 @@ object CityBazaarUiMapper {
         val spec = CityBazaarBoard.tile(tile)
         return CbModal.Buy(
             tile = tile,
-            title = Strings.cbBuyTitle(spec.name),
+            name = spec.name,
             group = spec.group,
             kind = spec.kind,
-            rates = rates(tile, null),
-            sheet = sheet(me.cash, Strings.cbPropertyCost, spec.price, gain = false),
-            note = if (spec.kind == TileKind.CITY) Strings.cbBuyNote(rupees(spec.rents[0]), rupees(spec.rents[1])) else Strings.cbPairNote(partnerName(tile)),
+            headline = if (spec.kind == TileKind.CITY) Strings.cbBuyHeadline(rupees(spec.rents[0]), rupees(spec.rents[1])) else Strings.cbPairNote(partnerName(tile)),
+            rentLand = if (spec.kind == TileKind.CITY) rupees(spec.rents[0]) else null,
+            rentHouse = if (spec.kind == TileKind.CITY) rupees(spec.rents[1]) else null,
+            price = rupees(spec.price),
+            // The rents that matter when buying: land and with 1 house (a company: alone).
+            rates = rates(tile, null).mapIndexed { i, row -> row.copy(highlighted = i <= if (spec.kind == TileKind.CITY) 1 else 0) },
+            costs = costRows(tile),
+            cash = rupees(me.cash),
+            cost = minus(spec.price),
+            remaining = rupees(me.cash - spec.price),
             canAfford = me.cash >= spec.price,
             countdown = countdown,
         )
@@ -336,21 +399,132 @@ object CityBazaarUiMapper {
     fun build(match: CityBazaarMatch, me: CityBazaarPlayer, tile: Int, countdown: String): CbModal.Build {
         val spec = CityBazaarBoard.tile(tile)
         val level = match.levels[tile] ?: 0
-        val next = level + 1
+        val next = (level + 1).coerceAtMost(HOTEL_LEVEL)
         return CbModal.Build(
             tile = tile,
-            title = Strings.cbBuildTitle(if (next >= HOTEL_LEVEL) Strings.cbBuildHotel else Strings.cbBuildHouse(next), spec.name),
+            name = spec.name,
             group = spec.group,
-            rates = rates(tile, null).mapIndexed { i, row -> row.copy(highlighted = i == next) }.filterIndexed { i, _ -> i == level || i == next },
-            sheet = sheet(me.cash, Strings.cbUpgradeCost(levelName(next)), spec.buildCost, gain = false),
-            note = Strings.cbBuildNote(plus(spec.rents[next] - spec.rents[level])),
+            price = rupees(spec.price),
+            rates = rates(tile, next),
+            costs = costRows(tile),
+            what = Strings.cbFeedLevel(next),
+            cost = minus(spec.buildCost),
+            newRent = Strings.cbNewRent(rupees(spec.rents.getOrElse(next) { 0 })),
+            cash = rupees(me.cash),
+            remaining = rupees(me.cash - spec.buildCost),
             canAfford = me.cash >= spec.buildCost,
             countdown = countdown,
         )
     }
 
-    fun jailRoll(match: CityBazaarMatch, countdown: String): CbModal.JailRoll =
-        CbModal.JailRoll(Strings.cbJailRollBody(match.jailTriesLeft), countdown)
+    /** The user's popup for something without money (a card, jail, Rest House, out of jail, bankrupt); null otherwise. */
+    fun notice(match: CityBazaarMatch, event: CityBazaarEvent): CbTransactionUi? {
+        fun of(seat: Int, title: String, line: String, art: CbNoticeArt): CbTransactionUi {
+            val player = match.player(seat)
+            return CbTransactionUi(
+                id = 0, title = title, line = line, status = "", fromAvatarId = player?.avatarId, toAvatarId = null, amount = null,
+                cash = "", changeLabel = "", change = "", remaining = "", gain = false, art = art,
+            )
+        }
+        return when (event) {
+            is CityBazaarEvent.Card -> CityBazaarCards.find(event.cardId)?.let { spec ->
+                val luck = spec.deck == CardDeck.LUCK
+                of(event.seat, if (luck) Strings.cbLuckLabel else Strings.cbChestLabel, Strings.cbYouDrew(spec.text), if (luck) CbNoticeArt.LUCK else CbNoticeArt.CHEST)
+            }
+            is CityBazaarEvent.Jailed -> of(event.seat, Strings.cbTitleJail, Strings.cbYouJail, CbNoticeArt.JAIL)
+            is CityBazaarEvent.Rested -> of(event.seat, Strings.cbTitleRest, Strings.cbYouRest, CbNoticeArt.REST)
+            is CityBazaarEvent.Freed -> of(event.seat, Strings.cbTitleFreed, Strings.cbYouFreed, CbNoticeArt.FREED)
+            is CityBazaarEvent.Bankrupt -> of(event.seat, Strings.cbTitleBankrupt, Strings.cbYouBankrupt, CbNoticeArt.BANKRUPT)
+            else -> null
+        }
+    }
+
+    /** Property price, and for a city the house and hotel cost (as on its card). */
+    private fun costRows(tile: Int): List<CbSheetRowUi> {
+        val spec = CityBazaarBoard.tile(tile)
+        return buildList {
+            add(CbSheetRowUi(Strings.cbPrice, rupees(spec.price), CbRowKind.NORMAL))
+            if (spec.kind == TileKind.CITY) {
+                add(CbSheetRowUi(Strings.cbHouseCost, rupees(spec.buildCost), CbRowKind.NORMAL))
+                add(CbSheetRowUi(Strings.cbHotelCost, rupees(spec.buildCost), CbRowKind.NORMAL))
+            }
+        }
+    }
+
+    /**
+     * A money event as the transaction popup. [cashBefore] is the shown
+     * balance of [seat] (the user if it's theirs, else the payer, else the
+     * receiver) before the move; null [seat]: no balance strip values.
+     */
+    fun transaction(match: CityBazaarMatch, event: CityBazaarEvent.Money, seat: Int?, cashBefore: Int, line: String?, deck: String?, cardText: String?): CbTransactionUi? {
+        val tile = event.tile?.let { CityBazaarBoard.tile(it).name }.orEmpty()
+        val payer = event.from?.let { match.player(it) }
+        val payee = event.to?.let { match.player(it) }
+        val amount = rupees(event.amount)
+        val me = match.me?.seat
+        val other = (if (event.from == me) payee else payer)?.name.orEmpty()
+        val paying = event.from == me
+        val title = when (event.reason) {
+            MoneyReason.RENT -> Strings.cbYouRentTitle(tile)
+            MoneyReason.TAX -> tile.uppercase()
+            MoneyReason.CLUB -> Strings.cbTitleClub
+            MoneyReason.START -> Strings.cbTitleStart
+            MoneyReason.JAIL_FINE -> Strings.cbTitleJailFine
+            MoneyReason.LATE_ROLL -> Strings.cbTitleLate
+            MoneyReason.CARD -> deck ?: Strings.cbTxPayment
+            MoneyReason.BUY -> Strings.cbTitleBought(tile)
+            MoneyReason.BUILD -> Strings.cbTitleBuilt(tile)
+            MoneyReason.SELL -> Strings.cbTitleSold(tile)
+            MoneyReason.AUCTION -> Strings.cbTitleAuction(tile)
+            MoneyReason.BANKRUPTCY -> return null
+        }
+        val what = cardText ?: deck.orEmpty()
+        val youLine = when (event.reason) {
+            MoneyReason.RENT -> if (paying) Strings.cbYouPaidRent(other, amount) else Strings.cbYouGotRent(other, amount)
+            MoneyReason.START -> Strings.cbYouStart(amount)
+            MoneyReason.TAX -> Strings.cbYouTax(amount, tile)
+            MoneyReason.JAIL_FINE -> Strings.cbYouJailFine(amount)
+            MoneyReason.LATE_ROLL -> Strings.cbYouLate(amount)
+            MoneyReason.CLUB -> if (paying) Strings.cbYouClubPaid(amount) else Strings.cbYouClubGot(amount)
+            MoneyReason.CARD -> when {
+                payer == null -> Strings.cbYouWon(amount, what)
+                payee == null -> Strings.cbYouPaidFor(amount, what)
+                paying -> Strings.cbYouPaidTo(other, amount)
+                else -> Strings.cbYouGotFrom(other, amount)
+            }
+            MoneyReason.BUY -> Strings.cbYouBought(tile, amount)
+            MoneyReason.BUILD -> Strings.cbYouBuilt(tile, amount)
+            MoneyReason.SELL -> Strings.cbYouSold(tile, amount)
+            MoneyReason.AUCTION -> if (paying) Strings.cbYouAuctionPaid(amount) else Strings.cbYouAuctionGot(amount)
+            MoneyReason.BANKRUPTCY -> return null
+        }
+        val gain = seat != null && event.to == seat
+        return CbTransactionUi(
+            id = 0,
+            title = title,
+            line = youLine,
+            status = when {
+                me != null && event.from == me -> Strings.cbTxDeducting
+                me != null && event.to == me -> Strings.cbTxCrediting
+                else -> Strings.cbTxTransferring
+            },
+            fromAvatarId = payer?.avatarId,
+            toAvatarId = payee?.avatarId,
+            amount = amount,
+            cash = rupees(cashBefore),
+            changeLabel = when {
+                !gain && event.reason == MoneyReason.RENT -> Strings.cbRentPaidLabel
+                gain -> Strings.cbTxReceivedLabel
+                else -> Strings.cbTxPaidLabel
+            },
+            change = if (gain) plus(event.amount) else minus(event.amount),
+            remaining = rupees(if (gain) cashBefore + event.amount else cashBefore - event.amount),
+            gain = gain,
+        )
+    }
+
+    fun jailRoll(match: CityBazaarMatch, me: CityBazaarPlayer, countdown: String): CbModal.JailRoll =
+        CbModal.JailRoll(Strings.cbJailRollBody(match.jailTriesLeft), me.cash >= JAIL_FINE, countdown)
 
     fun jailChoice(me: CityBazaarPlayer, countdown: String): CbModal.JailChoice = CbModal.JailChoice(me.cash >= JAIL_FINE, countdown)
 
@@ -431,6 +605,28 @@ object CityBazaarUiMapper {
         )
     }
 
+    /** The end-of-match leaderboard: by net worth, a title and EXP for each place. */
+    fun leaderboard(match: CityBazaarMatch, duration: String): LeaderboardUi {
+        val entries = match.ranking.mapIndexedNotNull { index, seat ->
+            match.player(seat)?.let { p ->
+                LeaderboardEntryUi(
+                    place = index + 1,
+                    placeLabel = Strings.ludoPlace(index + 1),
+                    name = p.name,
+                    avatarId = p.avatarId,
+                    title = Strings.cbPlaceTitles[index.coerceAtMost(Strings.cbPlaceTitles.lastIndex)],
+                    score = Strings.leaderboardPts(AppConstants.PLACE_EXP[index.coerceAtMost(AppConstants.PLACE_EXP.lastIndex)]),
+                    exp = Strings.leaderboardExp(AppConstants.PLACE_EXP[index.coerceAtMost(AppConstants.PLACE_EXP.lastIndex)]),
+                    micOn = p.micOn,
+                    tint = Color.Unspecified,
+                    isMe = p.isMe,
+                )
+            }
+        }
+        val mine = entries.firstOrNull { it.isMe }?.placeLabel.orEmpty()
+        return LeaderboardUi(Strings.cbTitle, duration, entries, mine, myExp = entries.firstOrNull { it.isMe }?.let { e -> "+" + AppConstants.PLACE_EXP[(e.place - 1).coerceAtMost(AppConstants.PLACE_EXP.lastIndex)] }.orEmpty())
+    }
+
     fun result(match: CityBazaarMatch): CbModal.Result = CbModal.Result(
         match.ranking.mapIndexedNotNull { index, seat ->
             match.player(seat)?.let { CbResultRowUi(Strings.ludoPlace(index + 1), it.name, it.colour, rupees(match.netWorth[seat] ?: 0)) }
@@ -444,6 +640,7 @@ object CityBazaarUiMapper {
         CbToastUi(0, title, listOf(CbSheetRowUi(line, "", CbRowKind.NORMAL)), gain)
 
     private const val MILLIS = 1_000L
+    private const val DEFAULT_EXTRA_ROUNDS = 30
     private const val SECONDS_PER_MINUTE = 60L
     private const val BUILDING = "b"
     private const val TILE = "t"

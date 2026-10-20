@@ -229,13 +229,20 @@ class RoyalLudoEngine : Game {
         if (extraTurn) events.add(ExtraTurn(s.currentSeat, when { captured -> "CAPTURE"; finished -> "HOME"; else -> "SIX" }))
 
         val allFinished = newPieces[s.currentSeat]!!.all { it == PROGRESS_FINISH }
-        val newFinishingOrder = if (allFinished && s.currentSeat !in s.finishingOrder) {
+        var newFinishingOrder = if (allFinished && s.currentSeat !in s.finishingOrder) {
             events.add(SeatFinished(s.currentSeat, s.finishingOrder.size + 1))
             s.finishingOrder + s.currentSeat
         } else s.finishingOrder
 
-        val activeSeats = s.seats.map { it.value }.filter { it !in newFinishingOrder }
-        val matchOver = activeSeats.size <= 1 && activeSeats.none { it !in s.removalOrder }
+        val activeSeats = s.seats.map { it.value }.filter { it !in newFinishingOrder && it !in s.removalOrder }
+        val matchOver = activeSeats.size <= 1
+        if (matchOver && activeSeats.isNotEmpty()) {
+            val lastSeat = activeSeats.first()
+            if (lastSeat !in newFinishingOrder) {
+                newFinishingOrder = newFinishingOrder + lastSeat
+                events.add(SeatFinished(lastSeat, newFinishingOrder.size))
+            }
+        }
 
         val nextSeat = if (!extraTurn && !matchOver) nextActiveSeat(s, newFinishingOrder) else s.currentSeat
         val newState = s.copy(

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import io.ktor.http.HttpStatusCode
 import com.kglabs28.yapnplay.appengine.appmanager.AppManager
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.DefaultDispatcherProvider
@@ -65,7 +66,12 @@ val coreModule = module {
                 if (!path.endsWith(BackendPaths.GUEST) && request.headers[HttpHeaders.Authorization] == null) {
                     request.header(HttpHeaders.Authorization, BEARER + get<BackendSession>().credentials().bearerToken)
                 }
-                execute(request)
+                execute(request).also { call ->
+                    // The saved account was refused (restored on another phone): sign in with Play Games again.
+                    if (call.response.status == HttpStatusCode.Unauthorized && !path.endsWith(BackendPaths.PLAY_GAMES)) {
+                        get<BackendSession>().markRejected()
+                    }
+                }
             }
         }
     }

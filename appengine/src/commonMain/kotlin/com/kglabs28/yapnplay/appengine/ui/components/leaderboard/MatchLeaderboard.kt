@@ -1,0 +1,216 @@
+package com.kglabs28.yapnplay.appengine.ui.components.leaderboard
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
+import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
+import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
+import com.kglabs28.yapnplay.appengine.ui.components.common.rememberImageShare
+import com.kglabs28.yapnplay.appengine.ui.placeholders.HomeLogoArtwork
+import com.kglabs28.yapnplay.appengine.ui.placeholders.LeaderboardArtwork
+import kotlinx.coroutines.launch
+
+/**
+ * The end of a match, as in the design: the celebration art fills the
+ * screen; the app logo top left; the podium (2nd, 1st with a crown, 3rd);
+ * the LEADERBOARD panel with 4th place onwards on the right; a bottom bar
+ * with the game's art, SHARE THIS (a screenshot of this screen plus the
+ * app link), match duration and EXP, and PLAY AGAIN.
+ */
+@Composable
+fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Unit, onPlayAgain: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = YapNPlayTheme.colors
+    val dimens = YapNPlayTheme.dimens
+    val typography = YapNPlayTheme.typography
+    val podium = board.entries.take(PODIUM)
+    val rest = board.entries.drop(PODIUM)
+    val layer = rememberGraphicsLayer()
+    val scope = rememberCoroutineScope()
+    val share = rememberImageShare()
+    val shareText = Strings.leaderboardShareWithLink(Strings.leaderboardShareText(board.game, board.myPlace), AppConstants.PLAY_STORE_URL)
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            // Recorded so SHARE THIS can send this very screen as a picture.
+            .drawWithContent {
+                layer.record { this@drawWithContent.drawContent() }
+                drawLayer(layer)
+            },
+    ) {
+        LeaderboardArtwork(modifier = Modifier.fillMaxSize())
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(colors.Background.copy(alpha = SHADE_TOP), colors.Background.copy(alpha = SHADE_BOTTOM)))))
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(modifier = Modifier.weight(1f).fillMaxWidth().padding(start = Spacing.Lg, end = Spacing.Lg, top = Spacing.Sm)) {
+                // Logo, then the podium.
+                Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                    Column {
+                        HomeLogoArtwork(modifier = Modifier.height(dimens.boardLogoHeight))
+                        BasicText(text = Strings.homeLogoTagline, style = typography.micro.copy(color = Color.White))
+                    }
+                    Row(
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterHorizontally),
+                    ) {
+                        podium.getOrNull(1)?.let { PodiumSpot(entry = it, medal = colors.AvatarRingSilver, avatarSize = dimens.boardAvatar, baseHeight = dimens.boardBaseSecond) }
+                        podium.getOrNull(0)?.let { PodiumSpot(entry = it, medal = colors.Gold, avatarSize = dimens.boardAvatarFirst, baseHeight = dimens.boardBaseFirst) }
+                        podium.getOrNull(2)?.let { PodiumSpot(entry = it, medal = colors.Warning, avatarSize = dimens.boardAvatar, baseHeight = dimens.boardBaseThird) }
+                    }
+                }
+                // LEADERBOARD panel: 4th onwards.
+                if (rest.isNotEmpty()) {
+                    val panelShape = RoundedCornerShape(dimens.cardRadius)
+                    Column(
+                        modifier = Modifier
+                            .width(dimens.boardPanelWidth)
+                            .fillMaxHeight()
+                            .padding(vertical = Spacing.Sm)
+                            .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = PANEL_TOP), Color.White.copy(alpha = PANEL_BOTTOM))), panelShape)
+                            .border(dimens.hairline, Color.White.copy(alpha = PANEL_RIM), panelShape)
+                            .padding(Spacing.Sm),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                    ) {
+                        BasicText(text = Strings.leaderboardTitle, style = typography.headline.copy(color = Color.White, fontWeight = FontWeight.Black))
+                        val scroll = rememberScrollState()
+                        Column(
+                            modifier = Modifier.weight(1f).fillMaxWidth().glassScrollbar(scroll).verticalScroll(scroll).padding(end = dimens.scrollbarWidth * 2),
+                            verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                        ) {
+                            rest.forEach { LeaderboardRow(entry = it) }
+                        }
+                    }
+                }
+            }
+            // Bottom bar.
+            Box(modifier = Modifier.fillMaxWidth().height(dimens.boardBottomBar)) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(Brush.verticalGradient(listOf(BAR_TOP, BAR_BOTTOM)))
+                        .border(dimens.hairline, Color.White.copy(alpha = PANEL_RIM), RoundedCornerShape(topStart = dimens.cardRadius, topEnd = dimens.cardRadius)),
+                )
+                Row(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.Lg),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.Md),
+                ) {
+                    // The game's art, tilted and glowing, lifting out of the bar.
+                    Box(
+                        modifier = Modifier
+                            .offset(y = -dimens.boardGameArt / LIFT_DIVISOR)
+                            .size(dimens.boardGameArt)
+                            .rotate(ART_TILT)
+                            .shadow(elevation = dimens.promptGlow, shape = RoundedCornerShape(dimens.cardRadius), ambientColor = colors.SocialZoneAccent, spotColor = colors.SocialZoneAccent)
+                            .clip(RoundedCornerShape(dimens.cardRadius))
+                            .border(dimens.promptRim, Brush.linearGradient(listOf(colors.SocialZoneAccent, colors.Cyan)), RoundedCornerShape(dimens.cardRadius)),
+                    ) { gameArt(Modifier.fillMaxSize()) }
+                    // SHARE THIS: a picture of this screen with the app link.
+                    Row(
+                        modifier = Modifier
+                            .width(dimens.boardButtonWidth)
+                            .height(dimens.neonButtonHeight)
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = SHARE_FILL))
+                            .border(dimens.promptRim, colors.LiveGreen, CircleShape)
+                            .clickable(role = Role.Button) { scope.launch { share(layer.toImageBitmap(), shareText) } },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterHorizontally),
+                    ) {
+                        AppIcon(imageVector = Icons.Rounded.Share, tint = colors.LiveGreen, size = dimens.iconMedium)
+                        BasicText(text = Strings.leaderboardShare, style = typography.title.copy(color = colors.LiveGreen, fontWeight = FontWeight.Black))
+                    }
+                    Box(Modifier.weight(1f))
+                    Column(horizontalAlignment = Alignment.End) {
+                        BasicText(
+                            text = buildAnnotatedString {
+                                append(Strings.leaderboardMatchDuration)
+                                withStyle(SpanStyle(color = Color.White, fontWeight = FontWeight.Bold)) { append(board.duration) }
+                            },
+                            style = typography.label.copy(color = colors.TextSecondary),
+                        )
+                        if (board.myExp.isNotEmpty()) {
+                            BasicText(
+                                text = buildAnnotatedString {
+                                    append(Strings.leaderboardExpGained)
+                                    withStyle(SpanStyle(color = colors.LiveGreen, fontWeight = FontWeight.Bold)) { append(board.myExp) }
+                                },
+                                style = typography.label.copy(color = colors.TextSecondary),
+                            )
+                        }
+                    }
+                    Box(Modifier.width(dimens.hairline).height(dimens.neonButtonHeight).background(Color.White.copy(alpha = PANEL_RIM)))
+                    // PLAY AGAIN.
+                    Row(
+                        modifier = Modifier
+                            .width(dimens.boardButtonWidth)
+                            .height(dimens.neonButtonHeight)
+                            .shadow(elevation = dimens.neonButtonGlow, shape = CircleShape, ambientColor = colors.LiveGreen, spotColor = colors.LiveGreen)
+                            .clip(CircleShape)
+                            .background(Brush.horizontalGradient(listOf(colors.LiveGreen, colors.Cyan)))
+                            .clickable(role = Role.Button, onClick = onPlayAgain),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs, Alignment.CenterHorizontally),
+                    ) {
+                        BasicText(text = Strings.leaderboardPlayAgain, style = typography.title.copy(color = PLAY_TEXT, fontWeight = FontWeight.Black))
+                        AppIcon(imageVector = Icons.Rounded.ChevronRight, tint = PLAY_TEXT, size = dimens.iconMedium)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private const val PODIUM = 3
+private const val SHADE_TOP = 0.15f
+private const val SHADE_BOTTOM = 0.45f
+private const val PANEL_TOP = 0.12f
+private const val PANEL_BOTTOM = 0.05f
+private const val PANEL_RIM = 0.18f
+private const val SHARE_FILL = 0.45f
+private const val LIFT_DIVISOR = 4
+private const val ART_TILT = -6f
+private val BAR_TOP = Color(0xCC1E2235)
+private val BAR_BOTTOM = Color(0xEE0D0F18)
+private val PLAY_TEXT = Color(0xFF06291E)

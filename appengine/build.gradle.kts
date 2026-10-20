@@ -75,6 +75,8 @@ kotlin {
             // Live voice: joins the LiveKit room the backend issues a token for.
             implementation(libs.livekit.android)
             implementation(libs.play.app.update)
+            // Google Play Games sign-in (Clash of Clans style account restore).
+            implementation(libs.play.games.v2)
         }
     }
 }

@@ -38,6 +38,7 @@ class CityBazaarMatchClientImpl(
             is CityBazaarCommand.SetMic -> match.setMic(matchId, command.on)
             is CityBazaarCommand.SetAway -> match.setAway(matchId, command.away)
             CityBazaarCommand.Leave -> match.leave(matchId, giveToUserId = null)
+            is CityBazaarCommand.VoteExtension -> match.voteExtension(matchId, command.keepPlaying)
             else -> play(matchId, command.toWire())
         }
     }
@@ -62,6 +63,7 @@ class CityBazaarMatchClientImpl(
         is CityBazaarCommand.SetMic,
         is CityBazaarCommand.SetAway,
         CityBazaarCommand.Leave,
+        is CityBazaarCommand.VoteExtension,
         -> error("not a game move: $this")
     }
 }

@@ -11,5 +11,5 @@ import org.koin.dsl.module
 val mainModule = module {
     factory { MainViewModel(get(), get(), get(), get(), get(), get(), get()) }
     factory { GameZoneViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
-    factory { PlayRoomsViewModel(get(), get(), get(), get(), get()) }
+    factory { PlayRoomsViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

@@ -10,6 +10,7 @@ import com.kglabs28.yapnplay.appengine.protocol.LeaveSeat
 import com.kglabs28.yapnplay.appengine.protocol.MatchRequestSnapshot
 import com.kglabs28.yapnplay.appengine.protocol.MatchSnapshot
 import com.kglabs28.yapnplay.appengine.protocol.SetAutoplay
+import com.kglabs28.yapnplay.appengine.protocol.VoteExtension
 import com.kglabs28.yapnplay.appengine.protocol.SetMic
 import com.kglabs28.yapnplay.appengine.protocol.SetPresence
 import com.kglabs28.yapnplay.appengine.protocol.TakeSeat
@@ -68,6 +69,10 @@ class MatchChannel(private val realtime: RealtimeConnection) {
     /** A game-specific action: [action] carries `"type"` plus its fields. */
     suspend fun gameAction(matchId: String, action: JsonObject) =
         request(MessageType.GAME_ACTION, GameAction.serializer(), GameAction(matchId, action))
+
+    /** The keep-playing vote at a round or time limit. */
+    suspend fun voteExtension(matchId: String, keepPlaying: Boolean) =
+        request(MessageType.VOTE_EXTENSION, VoteExtension.serializer(), VoteExtension(matchId, keepPlaying))
 
     suspend fun setAutoplay(matchId: String, enabled: Boolean) =
         request(MessageType.SET_AUTOPLAY, SetAutoplay.serializer(), SetAutoplay(matchId, enabled))

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +30,8 @@ fun CityBazaarSidePanel(
         val fill = Modifier.fillMaxSize()
         when (panel) {
             is CbPanel.Property -> CbPropertyCard(card = panel.card, modifier = fill, fillHeight = true)
-            is CbPanel.Player -> CbPlayerPanel(panel = panel, onPropertyClick = onPropertyClick, modifier = fill)
+            is CbPanel.Player -> CbPlayerPanel(panel.name, panel.colour.tint(), panel.sheet, panel.cities, onPropertyClick = onPropertyClick, modifier = fill)
+            is CbPanel.Bank -> CbPlayerPanel(panel.name, YapNPlayTheme.colors.Gold, panel.sheet, panel.cities, onPropertyClick = onPropertyClick, modifier = fill)
             is CbPanel.Deck -> CbDeckPanel(panel = panel, modifier = fill)
             // Compact cards in the group colours, like the player pods; a tap opens that one's full card.
             is CbPanel.Cities -> Column(

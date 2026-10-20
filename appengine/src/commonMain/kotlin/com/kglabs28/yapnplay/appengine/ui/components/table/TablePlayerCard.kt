@@ -1,10 +1,10 @@
-package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players
+package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,85 +16,92 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.coerceAtMost
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableCardAvatar
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableMuteButton
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableTalkWave
-import com.kglabs28.yapnplay.appengine.ui.components.table.tableFrostedGlass
-import com.kglabs28.yapnplay.appengine.ui.components.table.turnTimerBorder
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbPlayerCardUi
-import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.RupeeFormat
 
 /**
- * A player's HUD pod (design): frosted glass, avatar framed in their colour
- * with the level badge, name in that colour and the live balance in gold.
- * A shrinking border in their colour runs round it during their turn; a
- * pill on the top edge says "In Jail", "Away", "Bankrupt" or their place.
- * Others' cards have the mute button; the user's adds [controls]. A tap
- * ([onClick]) opens everything about the player.
+ * A player's card at any game table: avatar with level, name in their
+ * colour ([tint]), [details] under it (e.g. a balance), the voice wave,
+ * and on others' cards the mute button. The turn timer runs round the
+ * border; [badge] ("1st", "Jail", "Away"…) sits on the top edge. A tap
+ * ([onClick]) and, on another person's card, a long press ([onLongPress],
+ * add / remove friend). The user's own card adds [controls] under it.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CityBazaarPlayerCard(
-    card: CbPlayerCardUi,
+fun TablePlayerCard(
+    card: TablePlayerCardUi,
+    tint: Color,
     modifier: Modifier = Modifier,
+    /** Out of the game (left, bankrupt): drawn faded. */
+    faded: Boolean = false,
+    badge: String? = null,
+    badgeTint: Color = tint,
     onToggleHear: () -> Unit = {},
-    onClick: () -> Unit = {},
-    avatarSize: Dp = YapNPlayTheme.dimens.cbCardAvatar,
-    /** Tighter padding and smaller text, for many players. */
-    compact: Boolean = false,
+    onClick: (() -> Unit)? = null,
+    onLongPress: () -> Unit = {},
+    avatarSize: Dp = YapNPlayTheme.dimens.ludoCardAvatar,
+    density: TableCardDensity = TableCardDensity.ROOMY,
+    details: @Composable ColumnScope.() -> Unit = {},
     controls: @Composable ColumnScope.() -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
-    val tint = card.colour.tint()
     val shape = RoundedCornerShape(dimens.ludoCardRadius)
-    // The balance counts to its new value: green going up, red going down.
-    val shownCash by animateIntAsState(card.cash, tween(AppConstants.CB_CASH_COUNT_MS))
-    val cashColour = when {
-        shownCash < card.cash -> colors.CbGain
-        shownCash > card.cash -> colors.CbLoss
-        else -> colors.CbCash
+    val compact = density == TableCardDensity.COMPACT
+    val gap = if (density == TableCardDensity.ROOMY) Spacing.Sm else Spacing.Xs
+    val padding = when (density) {
+        TableCardDensity.ROOMY -> Spacing.Sm
+        TableCardDensity.DENSE -> Spacing.Xs
+        TableCardDensity.COMPACT -> Spacing.Xxs
+    }
+    val press = when {
+        !card.isMe && card.canSpeak -> Modifier.combinedClickable(onClick = onClick ?: {}, onLongClick = onLongPress)
+        onClick != null -> Modifier.clickable(onClick = onClick)
+        else -> Modifier
     }
     Box(modifier = modifier, contentAlignment = Alignment.TopCenter) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = dimens.ludoPlaceBadgeHeight / 2)
-                .graphicsLayer { alpha = if (card.out) OUT_ALPHA else 1f }
+                .graphicsLayer { alpha = if (faded) FADED_ALPHA else 1f }
                 .tableFrostedGlass(tint = colors.AvatarRingSilver, shape = shape, radius = dimens.ludoCardRadius, glow = dimens.zero)
-                .clickable(onClick = onClick)
-                .turnTimerBorder(active = card.isTurn, fraction = card.timerFraction, tint = lerp(tint, colors.Background, TIMER_DARKEN), radius = dimens.ludoCardRadius, width = dimens.ludoTimerStroke)
-                .padding(if (compact) Spacing.Xxs else Spacing.Xs),
-            verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                .then(press)
+                .turnTimerBorder(
+                    active = card.isTurn,
+                    fraction = card.timerFraction,
+                    tint = lerp(tint, colors.Background, TIMER_DARKEN),
+                    radius = dimens.ludoCardRadius,
+                    width = dimens.ludoTimerStroke,
+                )
+                .padding(padding),
+            verticalArrangement = Arrangement.spacedBy(gap),
         ) {
-            // Room under the avatar for its level badge, clear of the turn border.
             Row(
-                modifier = Modifier.padding(bottom = dimens.ludoLevelBadgeHeight / 2),
+                // Dense cards leave room under the avatar for its level badge, clear of the turn border.
+                modifier = if (density == TableCardDensity.ROOMY) Modifier else Modifier.padding(bottom = dimens.ludoLevelBadgeHeight / 2),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                horizontalArrangement = Arrangement.spacedBy(gap),
             ) {
                 TableCardAvatar(tint = tint, level = card.level, size = avatarSize, avatarId = card.avatarId)
-                // Middle column: name, balance and the voice wave.
+                // Name, the game's details, and the voice wave.
                 Column(modifier = Modifier.weight(1f)) {
                     val nameStyle = if (compact) typography.micro.copy(fontWeight = FontWeight.Bold) else typography.cardTitle
-                    val cashStyle = if (compact) typography.micro else typography.label
                     BasicText(text = card.name, style = nameStyle.copy(color = tint), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    BasicText(text = Strings.cbRupees(RupeeFormat.digits(shownCash)), style = cashStyle.copy(color = cashColour, fontWeight = FontWeight.Bold), maxLines = 1)
+                    details()
                     if (card.canSpeak) TableTalkWave(talking = card.talking)
                 }
                 if (!card.isMe && card.canSpeak) {
@@ -108,20 +115,20 @@ fun CityBazaarPlayerCard(
             }
             controls()
         }
-        card.status?.let { status ->
+        badge?.let { label ->
             BasicText(
-                text = status,
+                text = label,
                 style = typography.label.copy(color = colors.TextPrimary),
                 modifier = Modifier
                     .clip(YapNPlayTheme.shapes.pill)
-                    .background(lerp(tint, colors.Background, BADGE_DARKEN))
-                    .border(dimens.hairline, tint, YapNPlayTheme.shapes.pill)
+                    .background(lerp(badgeTint, colors.Background, BADGE_DARKEN))
+                    .border(dimens.hairline, badgeTint, YapNPlayTheme.shapes.pill)
                     .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxxs),
             )
         }
     }
 }
 
-private const val OUT_ALPHA = 0.4f
+private const val FADED_ALPHA = 0.4f
 private const val TIMER_DARKEN = 0.3f
 private const val BADGE_DARKEN = 0.45f

@@ -7,6 +7,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import com.kglabs28.yapnplay.appengine.ui.components.groups.GroupInvitesDialog
+import com.kglabs28.yapnplay.appengine.ui.components.groups.GroupCreatedDialog
+import com.kglabs28.yapnplay.appengine.ui.components.groups.CreateGroupDialog
+import com.kglabs28.yapnplay.appengine.ui.components.common.rememberShareSheet
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalClipboardManager
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
@@ -42,6 +48,9 @@ fun PlayRoomsScreen(
     viewModel: PlayRoomsViewModel? = null,
     inviteCode: String? = null,
     onInviteConsumed: () -> Unit = {},
+    /** From a friend's profile card: open Create New Group with them picked. */
+    createGroupWith: String? = null,
+    onCreateGroupConsumed: () -> Unit = {},
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: PlayRoomsState()
     // An invite link was opened: ask "Join this room?" for its code, once.
@@ -51,6 +60,15 @@ fun PlayRoomsScreen(
             onInviteConsumed()
         }
     }
+    val share = rememberShareSheet()
+    val clipboard = LocalClipboardManager.current
+    // From a friend's profile card: Create New Group with them picked, once.
+    LaunchedEffect(createGroupWith, viewModel) {
+        if (createGroupWith != null && viewModel != null) {
+            viewModel.onIntent(PlayRoomsIntent.CreateGroupWith(createGroupWith))
+            onCreateGroupConsumed()
+        }
+    }
     LaunchedEffect(viewModel) {
         viewModel?.onIntent(PlayRoomsIntent.Load)
         viewModel?.effects?.collect { effect ->
@@ -58,6 +76,7 @@ fun PlayRoomsScreen(
                 is PlayRoomsEffect.OpenRoom -> onOpenRoom(effect.roomId)
                 PlayRoomsEffect.OpenCreateRoom -> onCreateRoom()
                 PlayRoomsEffect.OpenAllRooms -> Unit
+                is PlayRoomsEffect.ShareText -> share(effect.text)
             }
         }
     }
@@ -127,6 +146,8 @@ fun PlayRoomsScreen(
                 loaded = state.loaded,
                 onOpenRoom = { viewModel?.onIntent(PlayRoomsIntent.OpenRoom(it)) },
                 onSeeAll = { viewModel?.onIntent(PlayRoomsIntent.SeeAllRooms) },
+                invitesCount = state.invites.size,
+                onInvites = { viewModel?.onIntent(PlayRoomsIntent.OpenInvites) },
                 modifier = Modifier
                     .weight(AppConstants.ROOMS_LIST_PANEL_WEIGHT)
                     .fillMaxWidth(),
@@ -159,6 +180,46 @@ fun PlayRoomsScreen(
                         height = YapNPlayTheme.dimens.ctaHeight,
                     )
                 },
+            )
+        }
+    }
+
+    val form = state.createGroup
+    BlockingOverlay(visible = form != null) {
+        if (form != null) {
+            CreateGroupDialog(
+                form = form,
+                onNameChange = { viewModel?.onIntent(PlayRoomsIntent.GroupNameChanged(it)) },
+                onCycleIcon = { viewModel?.onIntent(PlayRoomsIntent.CycleGroupIcon) },
+                onToggleMember = { viewModel?.onIntent(PlayRoomsIntent.ToggleGroupMember(it)) },
+                onSearchChange = { viewModel?.onIntent(PlayRoomsIntent.GroupSearchChanged(it)) },
+                onCreate = { viewModel?.onIntent(PlayRoomsIntent.SubmitGroup) },
+                onClose = { viewModel?.onIntent(PlayRoomsIntent.DismissCreateGroup) },
+            )
+        }
+    }
+
+    val created = state.groupCreated
+    BlockingOverlay(visible = created != null) {
+        if (created != null) {
+            GroupCreatedDialog(
+                created = created,
+                onCopyLink = { clipboard.setText(AnnotatedString(created.link)) },
+                onShare = { viewModel?.onIntent(PlayRoomsIntent.ShareGroup) },
+                onOpen = { viewModel?.onIntent(PlayRoomsIntent.OpenCreatedGroup) },
+                onClose = { viewModel?.onIntent(PlayRoomsIntent.DismissGroupCreated) },
+            )
+        }
+    }
+
+    BlockingOverlay(visible = state.invitesOpen, onDismiss = { viewModel?.onIntent(PlayRoomsIntent.DismissInvites) }) {
+        if (state.invitesOpen) {
+            GroupInvitesDialog(
+                invites = state.invites,
+                error = state.inviteError,
+                onAccept = { viewModel?.onIntent(PlayRoomsIntent.AcceptInvite(it)) },
+                onDecline = { viewModel?.onIntent(PlayRoomsIntent.DeclineInvite(it)) },
+                onClose = { viewModel?.onIntent(PlayRoomsIntent.DismissInvites) },
             )
         }
     }

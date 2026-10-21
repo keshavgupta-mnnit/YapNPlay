@@ -9,6 +9,8 @@ import kotlinx.serialization.Serializable
 sealed class MonoEvent : GameEvent {
     data class CardPlayed(val seat: SeatNumber, val card: MonoCard, val color: MonoConstants.Color?) : MonoEvent()
     data class CardDrawn(val seat: SeatNumber, val card: MonoCard) : MonoEvent()
+    /** Another seat drew [count] cards (the cards themselves stay hidden). */
+    data class CardsDrawn(val seat: SeatNumber, val count: Int) : MonoEvent()
     data class ColorChosen(val seat: SeatNumber, val color: MonoConstants.Color) : MonoEvent()
     data class MonoCalled(val seat: SeatNumber) : MonoEvent()
     data class MonoMissed(val seat: SeatNumber, val penaltyCards: Int) : MonoEvent()

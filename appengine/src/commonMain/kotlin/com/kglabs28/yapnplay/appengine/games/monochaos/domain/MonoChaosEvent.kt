@@ -10,6 +10,8 @@ sealed class MonoChaosEvent : GameEvent {
     data class CardPlayed(val seat: SeatNumber, val card: MonoChaosCard, val color: MonoChaosConstants.Color?) : MonoChaosEvent()
     data class CardDrawn(val seat: SeatNumber, val card: MonoChaosCard) : MonoChaosEvent()
     data class CardsDrawn(val seat: SeatNumber, val count: Int) : MonoChaosEvent()
+    /** Discard All sent [count] more cards of its colour under it. */
+    data class CardsDiscarded(val seat: SeatNumber, val count: Int) : MonoChaosEvent()
     data class ColorChosen(val seat: SeatNumber, val color: MonoChaosConstants.Color) : MonoChaosEvent()
     data class RouletteColorChosen(val victim: SeatNumber, val color: MonoChaosConstants.Color) : MonoChaosEvent()
     data class StackDraw(val seat: SeatNumber, val card: MonoChaosCard, val newStackTotal: Int) : MonoChaosEvent()

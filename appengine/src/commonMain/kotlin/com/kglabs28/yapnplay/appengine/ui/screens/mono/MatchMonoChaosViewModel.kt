@@ -3,6 +3,7 @@ package com.kglabs28.yapnplay.appengine.ui.screens.mono
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
+import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosCommand
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosMatch
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosPhase
@@ -14,6 +15,7 @@ import com.kglabs28.yapnplay.appengine.games.monochaos.identity.MonoChaosConstan
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.ceil
 
 /**
  * MONO: Complete Chaos table. Same table as Standard MONO; the turn
@@ -39,13 +41,18 @@ class MatchMonoChaosViewModel(
             is MatchMonoChaosIntent.Load -> load(intent.matchId)
             is MatchMonoChaosIntent.TapCard -> tapCard(intent.index)
             MatchMonoChaosIntent.DrawUntilPlayable -> send(MonoChaosCommand.DrawUntilPlayable)
+            MatchMonoChaosIntent.Pass -> send(MonoChaosCommand.Pass)
+            is MatchMonoChaosIntent.ChooseSwapTarget -> {
+                send(MonoChaosCommand.ChooseSwapTarget(intent.seat))
+                setState { copy(awaitingSwapChoice = false) }
+            }
             is MatchMonoChaosIntent.ChooseColor -> {
                 send(MonoChaosCommand.ChooseColor(intent.color.name))
                 setState { copy(awaitingColorChoice = false, selectedCardIndex = null) }
             }
             is MatchMonoChaosIntent.ChooseRouletteColor -> {
                 send(MonoChaosCommand.ChooseRouletteColor(intent.color.name))
-                setState { copy(awaitingColorChoice = false, selectedCardIndex = null) }
+                setState { copy(awaitingRouletteChoice = false) }
             }
             MatchMonoChaosIntent.CallMono -> {
                 send(MonoChaosCommand.CallMono)
@@ -59,7 +66,11 @@ class MatchMonoChaosViewModel(
             is MatchMonoChaosIntent.SetAutoplay -> send(MonoChaosCommand.SetAutoplay(intent.enabled))
             is MatchMonoChaosIntent.SetMic -> send(MonoChaosCommand.SetMic(intent.on))
             MatchMonoChaosIntent.OpenSettings -> emitEffect(MatchMonoChaosEffect.OpenSettingsDialog)
-            MatchMonoChaosIntent.ExitClicked -> send(MonoChaosCommand.Leave(null))
+            // Leaving hands the seat to a bot (null), then closes the table.
+            MatchMonoChaosIntent.ExitClicked -> {
+                send(MonoChaosCommand.Leave(null))
+                emitEffect(MatchMonoChaosEffect.LeaveMatch)
+            }
             is MatchMonoChaosIntent.Leave -> {
                 send(MonoChaosCommand.Leave(intent.giveToUserId))
                 emitEffect(MatchMonoChaosEffect.LeaveMatch)
@@ -78,7 +89,7 @@ class MatchMonoChaosViewModel(
                 try {
                     observeMatch(id).collect { match = it.match; render() }
                 } catch (e: Exception) {
-                    setState { copy(loaded = true, error = e.message ?: DESCRIBE_FAILED) }
+                    setState { copy(loaded = true, error = e.message ?: MonoStrings.monoOpenFailed) }
                 }
             },
             scope.launch {
@@ -97,7 +108,7 @@ class MatchMonoChaosViewModel(
      */
     private suspend fun tapCard(index: Int) {
         if (!state.value.myTurn || index !in state.value.playableIndexes) return
-        val command = if (state.value.activeStackPenalty > 0) {
+        val command = if (state.value.canStack) {
             MonoChaosCommand.StackDraw(index)
         } else {
             MonoChaosCommand.PlayCard(index)
@@ -122,29 +133,50 @@ class MatchMonoChaosViewModel(
             ?: Long.MAX_VALUE
         val turnMillis = MonoChaosConstants.TURN_SECONDS * MILLIS
         val eliminated = m.eliminatedSeats.toSet()
+        val turnClock = MonoStrings.monoTurnClock(
+            if (remaining == Long.MAX_VALUE) {
+                MonoChaosConstants.TURN_SECONDS.toInt()
+            } else {
+                ceil(remaining / 1000.0).toInt().coerceAtLeast(0)
+            },
+        )
+        val stacking = waitingOnMe && m.phase == MonoChaosPhase.AWAITING_STACK_CHOICE.name
         setState {
             copy(
                 loaded = true,
                 error = null,
                 match = m,
-                myTurn = waitingOnMe && me != null && !me.autoplay,
+                myTurn = waitingOnMe && me?.autoplay != true,
                 // With a penalty on the table, stacking is the only legal
-                // move; otherwise it is the usual match rules.
+                // move; otherwise it is the usual match rules. After a
+                // draw, only the drawn card is in play.
                 playableIndexes = if (waitingOnMe) {
+                    m.drawnCardIndex?.let { setOf(it) }
+                        ?: me.hand.mapIndexedNotNull { index, card ->
+                            val legal = if (stacking) {
+                                card.canStackOnto(m.stackTopValue)
+                            } else {
+                                card.isPlayableOn(m.topCard, m.topCardColor)
+                            }
+                            index.takeIf { legal }
+                        }.toSet()
+                } else {
+                    emptySet()
+                },
+                stackableIndexes = if (waitingOnMe && stacking) {
                     me.hand.mapIndexedNotNull { index, card ->
-                        val legal = if (m.activeStackPenalty > 0) {
-                            card.canStackOnto(m.activeStackPenalty)
-                        } else {
-                            card.isPlayableOn(m.topCard, m.topCardColor)
-                        }
-                        index.takeIf { legal }
+                        index.takeIf { card.canStackOnto(m.stackTopValue) }
                     }.toSet()
                 } else {
                     emptySet()
                 },
+                canStack = stacking,
                 awaitingColorChoice = waitingOnMe && m.phase == MonoChaosPhase.AWAITING_COLOR_CHOICE.name,
+                awaitingSwapChoice = waitingOnMe && m.phase == MonoChaosPhase.AWAITING_SWAP_CHOICE.name,
+                awaitingRouletteChoice = waitingOnMe && m.phase == MonoChaosPhase.AWAITING_ROULETTE_COLOR.name,
                 activeStackPenalty = m.activeStackPenalty,
-                canCallMono = waitingOnMe && m.monoCallOpen(now),
+                canCallMono = m.monoCallOpen(now),
+                canPass = waitingOnMe && m.drawnCardIndex != null,
                 places = MonoUiMapper.chaosPlaces(m),
                 eliminated = eliminated,
                 winnerSeat = MonoUiMapper.chaosWinner(m),
@@ -154,10 +186,15 @@ class MatchMonoChaosViewModel(
                 } else {
                     (remaining.toFloat() / turnMillis).coerceIn(0f, 1f)
                 },
+                turnClock = turnClock,
+                topColour = m.topCardColor,
+                reversed = m.reversed,
                 elapsed = monoElapsed(m.startedAt, now),
                 title = m.title,
                 spectatorCount = m.spectatorCount,
                 audience = MonoUiMapper.chaosAudience(m),
+                micOn = me?.micOn == true,
+                autoplay = me?.autoplay == true,
                 selectedCardIndex = selectedCardIndex?.takeIf { it < (me?.hand?.size ?: 0) },
             )
         }
@@ -174,6 +211,5 @@ class MatchMonoChaosViewModel(
     private companion object {
         const val TICK_MS = 250L
         const val MILLIS = 1_000L
-        const val DESCRIBE_FAILED = "Could not open this match"
     }
 }

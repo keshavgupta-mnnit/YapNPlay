@@ -54,6 +54,8 @@ class MonoChaosMatchClientImpl(
         MonoChaosCommand.CallMono -> MonoChaosWireAction.CallMono
         is MonoChaosCommand.StackDraw -> MonoChaosWireAction.StackDraw(handIndex)
         MonoChaosCommand.AcceptStack -> MonoChaosWireAction.AcceptStack
+        MonoChaosCommand.Pass -> MonoChaosWireAction.Pass
+        is MonoChaosCommand.ChooseSwapTarget -> MonoChaosWireAction.ChooseSwapTarget(seat)
         is MonoChaosCommand.SetAutoplay,
         is MonoChaosCommand.SetMic,
         is MonoChaosCommand.SetAway,

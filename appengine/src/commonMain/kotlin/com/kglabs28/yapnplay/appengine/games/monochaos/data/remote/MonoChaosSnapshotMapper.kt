@@ -62,6 +62,12 @@ class MonoChaosSnapshotMapper(private val json: Json) {
             discardPileCount = state.discardPileCount,
             activeStackPenalty = state.activeStackPenalty,
             monoCallWindowExpiry = toLocal(state.monoCallWindowExpiry),
+            monoWindowSeat = state.monoWindowSeat,
+            monoCalledSeat = state.monoCalledSeat,
+            stackTopValue = state.stackTopValue,
+            reversed = state.reversed,
+            drawnCardIndex = state.drawnCardIndex,
+            pendingSwapSeat = state.pendingSwapSeat,
             eliminatedSeats = state.eliminatedSeats,
             finishedSeats = state.finishedSeats,
             turnEndsAt = snapshot.turn.deadline?.let(toLocal),
@@ -109,6 +115,7 @@ class MonoChaosSnapshotMapper(private val json: Json) {
         is MonoChaosWireEvent.CardPlayed -> MonoChaosEvent.CardPlayed(SeatNumber(seat), card.toDomain(), color.toColor())
         is MonoChaosWireEvent.CardDrawn -> MonoChaosEvent.CardDrawn(SeatNumber(seat), card.toDomain())
         is MonoChaosWireEvent.CardsDrawn -> MonoChaosEvent.CardsDrawn(SeatNumber(seat), count)
+        is MonoChaosWireEvent.CardsDiscarded -> MonoChaosEvent.CardsDiscarded(SeatNumber(seat), count)
         is MonoChaosWireEvent.ColorChosen -> MonoChaosEvent.ColorChosen(SeatNumber(seat), color.toColor() ?: FALLBACK_COLOUR)
         is MonoChaosWireEvent.RouletteColorChosen -> MonoChaosEvent.RouletteColorChosen(SeatNumber(victim), color.toColor() ?: FALLBACK_COLOUR)
         is MonoChaosWireEvent.StackDraw -> MonoChaosEvent.StackDraw(SeatNumber(seat), card.toDomain(), newStackTotal)

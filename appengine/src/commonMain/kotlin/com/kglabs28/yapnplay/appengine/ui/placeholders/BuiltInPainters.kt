@@ -27,6 +27,8 @@ import com.kglabs28.yapnplay.appengine.resources.ic_avatar_16
 import com.kglabs28.yapnplay.appengine.resources.ic_avatar_17
 import com.kglabs28.yapnplay.appengine.resources.ic_avatar_18
 import com.kglabs28.yapnplay.appengine.resources.ic_game_city_bazaar
+import com.kglabs28.yapnplay.appengine.resources.ic_game_mono
+import com.kglabs28.yapnplay.appengine.resources.ic_game_mono_chaos
 import com.kglabs28.yapnplay.appengine.resources.ic_game_royal_ludo
 import org.jetbrains.compose.resources.painterResource
 
@@ -41,6 +43,8 @@ fun builtInPainter(image: BuiltInImage): Painter = painterResource(
         BuiltInImage.LEADERBOARD_BACKGROUND -> Res.drawable.bg_leader_board
         BuiltInImage.ROYAL_LUDO_ART -> Res.drawable.ic_game_royal_ludo
         BuiltInImage.CITY_BAZAAR_ART -> Res.drawable.ic_game_city_bazaar
+        BuiltInImage.MONO_ART -> Res.drawable.ic_game_mono
+        BuiltInImage.MONO_CHAOS_ART -> Res.drawable.ic_game_mono_chaos
     },
 )
 

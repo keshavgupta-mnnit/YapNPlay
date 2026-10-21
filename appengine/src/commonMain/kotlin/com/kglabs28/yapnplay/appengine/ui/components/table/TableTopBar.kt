@@ -60,6 +60,13 @@ fun TableTopBar(
     onHistory: (() -> Unit)? = null,
     /** The title card's share of the bar's width (to line up with the side columns below); null: as wide as its text. */
     titleWidthFraction: Float? = null,
+    /**
+     * The current turn's countdown ("0:15"), shown as a pill before the
+     * match clock. Null hides it: only games with a turn clock show one.
+     */
+    turnLabel: String? = null,
+    /** True while the countdown is the local player's own turn. */
+    turnIsMine: Boolean = false,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -124,6 +131,13 @@ fun TableTopBar(
                 }
             } else {
                 Spacer(Modifier.weight(1f))
+            }
+            turnLabel?.let {
+                TableTurnPill(
+                    text = it,
+                    active = turnIsMine,
+                    modifier = Modifier.fillMaxHeight(),
+                )
             }
             TableMatchClock(elapsed = elapsed, modifier = Modifier.fillMaxHeight())
             switchLabel?.let { TableTextSquareButton(text = it, onClick = onSwitch) }

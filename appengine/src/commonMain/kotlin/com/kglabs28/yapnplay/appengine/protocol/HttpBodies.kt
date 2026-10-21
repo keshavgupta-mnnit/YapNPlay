@@ -279,6 +279,9 @@ data class CoinsReward(
     val coins: Int,
     val granted: Int,
     val adsLeftToday: Int,
+    val dailyLimit: Int = 0,
+    /** Epoch ms when the next ad can pay (≈ now + the gap, or tomorrow after the last one). */
+    val nextAdAt: Long? = null,
 )
 
 /** `GET /coins/leagues`: Quick Play leagues; [League.canEnter] is false when [coins] are short of the fee. */
@@ -293,4 +296,17 @@ data class League(
     val entryCoins: Int,
     val name: String,
     val canEnter: Boolean,
+)
+
+/**
+ * `GET /coins/ad-status`: the rewarded-ad limits. [nextAdAt] (epoch millis,
+ * server time) is when the next ad can pay; null when one can pay now.
+ */
+@Serializable
+data class AdRewardStatus(
+    val coinsPerAd: Int,
+    val dailyLimit: Int,
+    val adsLeftToday: Int,
+    val nextAdAt: Long? = null,
+    val serverTime: Long,
 )

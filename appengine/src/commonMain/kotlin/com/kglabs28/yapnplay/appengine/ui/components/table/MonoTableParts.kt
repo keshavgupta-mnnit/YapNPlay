@@ -1,12 +1,19 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -15,72 +22,102 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
+import kotlin.math.roundToInt
 
 /**
- * The shared MONO table furniture. Both MONO games render the same
- * table, so the piles, opponent pods and hand row live here once and
- * each game only supplies how a card of its own type is drawn.
- */
-
-/** One opponent's public row: their card count and whether it is their turn. */
-data class MonoOpponentUi(
-    val seat: Int,
-    val name: String,
-    val cardCount: Int,
-    val isActive: Boolean,
-)
-
-/**
- * The table centre: the face-down draw pile with its count, the discard
- * pile showing the face card in the colour in force, and any penalty
- * waiting to be stacked onto. [faceCard] draws the discard pile's card.
+ * The centre play arena. It holds exactly two large things — the
+ * face-down draw deck on the left and the face-up discard on the right —
+ * inside the directional light ring. When draw cards are stacked, the
+ * penalty counter floats above the discard.
+ *
+ * [faceCard] draws the top of the discard pile; [hue] is the colour in
+ * force and lights the ring.
  */
 @Composable
-fun MonoTableCentre(
+fun MonoTableArena(
+    hue: MonoHue?,
+    clockwise: Boolean,
     drawPileCount: Int,
     discardPileCount: Int,
     activeStackPenalty: Int,
-    faceCard: @Composable () -> Unit,
+    cardWidth: Dp,
     modifier: Modifier = Modifier,
+    faceCard: @Composable () -> Unit,
 ) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Md),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        MonoPile(
-            count = drawPileCount,
-            label = Strings.monoDrawPile,
-            modifier = Modifier.width(YapNPlayTheme.dimens.monoPileCardWidth),
-        ) { MonoCardFace(glyph = "", cardColor = prismFace, faceDown = true, modifier = Modifier.fillMaxWidth()) }
-        MonoPile(
-            count = discardPileCount,
-            label = Strings.monoDiscardPile,
-            modifier = Modifier.width(YapNPlayTheme.dimens.monoPileCardWidth),
-            content = faceCard,
+    val colors = YapNPlayTheme.colors
+
+    MonoTableSurface(modifier = modifier) {
+      // The piles (card and label) always fit inside the oval, however short the arena is.
+      BoxWithConstraints(contentAlignment = Alignment.Center) {
+        val cardWidth = minOf(cardWidth, maxHeight * PILE_OF_ARENA * CARD_W_PER_H)
+        MonoTurnRing(
+            hue = hue,
+            clockwise = clockwise,
+            modifier = Modifier.fillMaxSize(),
         )
-        if (activeStackPenalty > 0) {
-            BasicText(
-                text = "+$activeStackPenalty",
-                style = YapNPlayTheme.typography.headline.copy(
-                    color = YapNPlayTheme.colors.Error,
-                    fontWeight = FontWeight.Bold,
-                ),
-            )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Lg),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MonoPile(
+                label = MonoStrings.monoDrawPile,
+                count = drawPileCount,
+                cardWidth = cardWidth,
+            ) {
+                MonoCardFace(
+                    look = deckLook(hue),
+                    faceDown = true,
+                    modifier = Modifier.width(cardWidth),
+                )
+            }
+            Box {
+                MonoPile(
+                    label = MonoStrings.monoDiscardPile,
+                    count = discardPileCount,
+                    cardWidth = cardWidth,
+                ) {
+                    Box(modifier = Modifier.width(cardWidth)) { faceCard() }
+                }
+                if (activeStackPenalty > 0) {
+                    MonoStackCounter(
+                        penalty = activeStackPenalty,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset(y = -Spacing.Lg),
+                    )
+                }
+            }
         }
+      }
     }
 }
 
-/** One centre pile: [content] draws its card, under it the count and name. */
+/** The face-down look the draw deck wears. */
+@Composable
+private fun deckLook(hue: MonoHue?): MonoCardLook {
+    val colors = YapNPlayTheme.colors
+    return MonoCardLook(
+        fill = colors.MonoBackBase,
+        rim = hue.ring,
+    )
+}
+
+/** One pile: its card, then its count and name underneath. */
 @Composable
 private fun MonoPile(
-    count: Int,
     label: String,
+    count: Int,
+    cardWidth: Dp,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -90,104 +127,138 @@ private fun MonoPile(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(YapNPlayTheme.shapes.panel)
-                .background(colors.Panel)
-                .padding(Spacing.Xxs),
-            contentAlignment = Alignment.Center,
+        content()
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            content()
+            BasicText(
+                text = label,
+                style = YapNPlayTheme.typography.micro.copy(
+                    color = colors.TextSecondary,
+                    textAlign = TextAlign.Center,
+                ),
+                maxLines = 1,
+            )
+            BasicText(
+                text = count.toString(),
+                style = YapNPlayTheme.typography.label.copy(
+                    color = colors.TextPrimary,
+                    fontWeight = FontWeight.Black,
+                ),
+                maxLines = 1,
+                modifier = Modifier
+                    .clip(YapNPlayTheme.shapes.pill)
+                    .background(colors.Panel)
+                    .padding(horizontal = Spacing.Xs, vertical = Spacing.Xxxs),
+            )
         }
-        BasicText(
-            text = count.toString(),
-            style = YapNPlayTheme.typography.label.copy(
-                color = colors.TextPrimary,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            ),
-        )
-        BasicText(
-            text = label,
-            style = YapNPlayTheme.typography.micro.copy(
-                color = colors.TextSecondary,
-                textAlign = TextAlign.Center,
-            ),
-        )
     }
 }
 
-/**
- * The opponents' pods, in the order the table shows them so they do not
- * jump around between updates. The active seat's pod is lit.
- */
+/** The outline an empty discard pile shows before the first card lands. */
 @Composable
-fun MonoOpponentRow(
-    opponents: List<MonoOpponentUi>,
+fun MonoEmptyPile(modifier: Modifier = Modifier) {
+    val colors = YapNPlayTheme.colors
+    val shape = YapNPlayTheme.shapes.button
+    Box(
+        modifier = modifier
+            .aspectRatio(EMPTY_PILE_RATIO)
+            .clip(shape)
+            .background(colors.MonoTableFeltEdge)
+            .border(YapNPlayTheme.dimens.borderThin, colors.MonoTableRim, shape),
+    )
+}
+
+/** The floating penalty counter over the discard pile. */
+@Composable
+fun MonoStackCounter(
+    penalty: Int,
     modifier: Modifier = Modifier,
 ) {
-    if (opponents.isEmpty()) return
-    Row(
-        modifier = modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
-    ) {
-        opponents.forEach { MonoOpponentPod(it) }
-    }
-}
-
-/** One opponent: a face-down card, their name, and how many they hold. */
-@Composable
-private fun MonoOpponentPod(opponent: MonoOpponentUi) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
-    Column(
-        modifier = Modifier.width(dimens.monoOpponentWidth),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
-    ) {
-        MonoCardFace(
-            glyph = "",
-            cardColor = prismFace,
-            faceDown = true,
-            isSelected = opponent.isActive,
-            modifier = Modifier.width(dimens.monoPileCardWidth),
-        )
-        BasicText(
-            text = opponent.name,
-            style = YapNPlayTheme.typography.micro.copy(
-                color = if (opponent.isActive) colors.GameZoneAccent else colors.TextSecondary,
-                fontWeight = if (opponent.isActive) FontWeight.Bold else FontWeight.Normal,
-                textAlign = TextAlign.Center,
-            ),
-            maxLines = 1,
-        )
-        BasicText(
-            text = opponent.cardCount.toString(),
-            style = YapNPlayTheme.typography.micro.copy(
-                color = colors.TextPrimary,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            ),
-        )
-    }
+    BasicText(
+        text = MonoStrings.monoStack(penalty),
+        style = YapNPlayTheme.typography.label.copy(
+            color = colors.TextPrimary,
+            fontWeight = FontWeight.Black,
+        ),
+        maxLines = 1,
+        modifier = modifier
+            .clip(YapNPlayTheme.shapes.pill)
+            .background(colors.Error)
+            .border(dimens.hairline, colors.TextPrimary.copy(alpha = STACK_RIM_ALPHA), YapNPlayTheme.shapes.pill)
+            .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxxs),
+    )
 }
 
 /**
- * The local player's hand as a scrolling row. [card] draws one card at
- * its hand index, so the screen decides which one is selected.
+ * The local player's hand, fanned. Cards overlap as the hand grows so a
+ * big hand still shows every corner index; past the point where the
+ * overlap stops being readable the row scrolls. Exactly one card is
+ * drawn per hand index, so the screen decides selection and playability.
  */
 @Composable
 fun MonoHandRow(
     handSize: Int,
+    cardWidth: Dp,
     modifier: Modifier = Modifier,
     card: @Composable (Int) -> Unit,
 ) {
     if (handSize == 0) return
-    Row(
-        modifier = modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
-    ) {
-        repeat(handSize) { index -> card(index) }
+    val density = LocalDensity.current
+
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        // Room inside the scroller at both ends, so the tilted outer cards are never clipped.
+        val margin = cardWidth * FAN_MARGIN
+        val step = handStep(handSize = handSize, cardWidth = cardWidth, available = maxWidth - margin * 2)
+        Layout(
+            content = { repeat(handSize) { index -> card(index) } },
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+        ) { measurables, constraints ->
+            val widthPx = with(density) { cardWidth.roundToPx() }
+            val stepPx = with(density) { step.roundToPx() }
+            val placeables = measurables.map { measurable ->
+                measurable.measure(constraints.copy(minWidth = widthPx, maxWidth = widthPx))
+            }
+            val marginPx = with(density) { margin.roundToPx() }
+            val totalWidth = stepPx * (placeables.size - 1).coerceAtLeast(0) + widthPx + marginPx * 2
+            val cardHeight = placeables.maxOfOrNull { it.height } ?: 0
+            // Fanned like a held hand: each card tilts out from the middle and the ends dip.
+            val middle = (placeables.size - 1) / 2f
+            val spread = (FAN_DEGREES / placeables.size.coerceAtLeast(1)).coerceAtMost(FAN_STEP_MAX)
+            val dipPx = (cardHeight * FAN_DIP).roundToInt()
+            layout(totalWidth, cardHeight + dipPx) {
+                placeables.forEachIndexed { index, placeable ->
+                    val offCentre = (index - middle) / middle.coerceAtLeast(1f)
+                    placeable.placeWithLayer(marginPx + stepPx * index, (dipPx * offCentre * offCentre).roundToInt()) {
+                        rotationZ = (index - middle) * spread
+                        transformOrigin = TransformOrigin(0.5f, 1f)
+                    }
+                }
+            }
+        }
     }
 }
+
+/** How far apart the hand's cards sit: no overlap until it will not fit. */
+private fun handStep(handSize: Int, cardWidth: Dp, available: Dp): Dp {
+    if (handSize <= 1) return cardWidth
+    val fit = (available - cardWidth) / (handSize - 1).toFloat()
+    return fit.coerceIn(cardWidth * MIN_STEP, cardWidth)
+}
+
+private const val STACK_RIM_ALPHA = 0.6f
+/** Same as a card: width ÷ height. */
+private const val EMPTY_PILE_RATIO = 0.6f
+/** The whole hand's tilt, the most one card may tilt from its neighbour, and how far the ends dip (× card height). */
+private const val FAN_DEGREES = 40f
+private const val FAN_STEP_MAX = 5f
+private const val FAN_DIP = 0.08f
+private const val FAN_MARGIN = 0.6f
+/** A pile (card plus label) may take this much of the arena's height; a card is 0.6 as wide as tall. */
+private const val PILE_OF_ARENA = 0.62f
+private const val CARD_W_PER_H = 0.6f
+/** The tightest a fanned hand may get before it scrolls instead. */
+private const val MIN_STEP = 0.34f

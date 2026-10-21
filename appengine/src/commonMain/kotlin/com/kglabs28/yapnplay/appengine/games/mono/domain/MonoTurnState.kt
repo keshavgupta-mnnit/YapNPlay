@@ -11,4 +11,11 @@ data class MonoTurnState(
 ) : TurnState
 
 @Serializable
-enum class MonoPhase { AWAITING_PLAY, AWAITING_COLOR_CHOICE, AWAITING_STACK_CHOICE, FINISHED }
+enum class MonoPhase {
+    AWAITING_PLAY,
+    AWAITING_COLOR_CHOICE,
+    AWAITING_STACK_CHOICE,
+    /** The Rule of 7 is waiting for its player to pick a partner. */
+    AWAITING_SWAP_CHOICE,
+    FINISHED,
+}

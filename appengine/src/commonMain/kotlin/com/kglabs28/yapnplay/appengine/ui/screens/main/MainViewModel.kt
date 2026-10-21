@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.features.coins.usecase.GetAdLimitStatusUseCase
 import com.kglabs28.yapnplay.appengine.core.ads.LaunchCoinsOffer
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.AdsAppManagerHelper
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.CollectDailyBonusUseCase
@@ -40,6 +41,7 @@ class MainViewModel(
     private val observeDailyBonus: ObserveDailyBonusUseCase,
     private val adsConfig: AdsAppManagerHelper,
     private val launchCoinsOffer: LaunchCoinsOffer,
+    private val getAdLimitStatus: GetAdLimitStatusUseCase,
     private val collectDailyBonus: CollectDailyBonusUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
@@ -87,7 +89,7 @@ class MainViewModel(
                 emitEffect(MainEffect.OpenMatch(it.gameId, it.matchId))
             }
             MainIntent.DismissRejoin -> setState { copy(rejoin = null) }
-            MainIntent.OpenGetCoins -> setState { copy(coinsOffer = CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody)) }
+            MainIntent.OpenGetCoins -> setState { copy(coinsOffer = CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody)) }.also { refreshAdLimits() }
             MainIntent.CloseGetCoins -> setState { copy(coinsOffer = null) }
             MainIntent.WatchAdForCoins -> watchAd()
             MainIntent.OpenSettings -> emitEffect(MainEffect.OpenSettingsDialog)
@@ -142,10 +144,19 @@ class MainViewModel(
      * Once per app launch, after the daily bonus (if any) is collected: offer
      * free coins for a rewarded ad. The coins "+" offers the same any time.
      */
-    private fun offerCoinsOnLaunch() {
+    private suspend fun offerCoinsOnLaunch() {
         if (observeDailyBonus().value > 0 || state.value.coinsOffer != null || !state.value.profileLoaded) return
         if (!adsConfig.isLaunchOfferEnabled() || !launchCoinsOffer.takeIfDue()) return
-        setState { copy(coinsOffer = CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody)) }
+        // Only when an ad can pay now (no cooldown, ads left today); an older server without limits: always.
+        val status = (getAdLimitStatus() as? AppResult.Success)?.data
+        if (status != null && !status.canWatch(clock.now())) return
+        setState { copy(coinsOffer = CoinsUiMapper.withLimits(CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody), status, clock.now())) }
+    }
+
+    /** Puts today's ad limits on the open offer (and greys the button out when none can pay). */
+    private suspend fun refreshAdLimits() {
+        val status = (getAdLimitStatus() as? AppResult.Success)?.data ?: return
+        setState { copy(coinsOffer = coinsOffer?.let { CoinsUiMapper.withLimits(it, status, clock.now()) }) }
     }
 
     private suspend fun load() {
@@ -176,6 +187,8 @@ class MainViewModel(
                 coinBalance = (result as? AppResult.Success)?.let { TextUtils.groupedThousands(it.data.coins) } ?: coinBalance,
             )
         }
+        // Then: "next in 2h · 4 left today", or the daily limit, with the button off.
+        refreshAdLimits()
     }
 
     private fun levelProgress(xp: Int, levelXp: Int, nextLevelXp: Int): Float =

@@ -13,6 +13,10 @@ sealed interface MonoWireEvent {
     @Serializable @SerialName("CardDrawn")
     data class CardDrawn(val seat: Int, val card: MonoCardWire) : MonoWireEvent
 
+    /** What everyone else sees of a draw: only how many (consecutive draws merged). */
+    @Serializable @SerialName("CardsDrawn")
+    data class CardsDrawn(val seat: Int, val count: Int) : MonoWireEvent
+
     /** [color] is a MonoConstants.Color name. */
     @Serializable @SerialName("ColorChosen")
     data class ColorChosen(val seat: Int, val color: String) : MonoWireEvent

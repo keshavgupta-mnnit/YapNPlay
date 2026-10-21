@@ -16,9 +16,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
- * Where the app's bearer token comes from. The real one creates a guest
- * account over HTTP and caches it on the device; local mode hands out a
- * fixed account so the app runs with no server.
+ * Where the app's bearer token comes from: a guest account created over
+ * HTTP and cached on the device.
  */
 interface SessionProvider {
     /** The account to authenticate with, creating one first if needed. */

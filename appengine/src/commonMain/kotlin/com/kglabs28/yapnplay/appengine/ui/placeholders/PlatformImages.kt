@@ -51,6 +51,16 @@ fun CityBazaarArtwork(modifier: Modifier = Modifier, contentDescription: String?
     AppArtwork(BuiltInImage.CITY_BAZAAR_ART, urls.cityBazaarArt(), ContentScale.Crop, modifier, contentDescription)
 }
 
+@Composable
+fun MonoArtwork(modifier: Modifier = Modifier, contentDescription: String? = null, urls: BackgroundsAppManagerHelper = koinInject()) {
+    AppArtwork(BuiltInImage.MONO_ART, urls.cityBazaarArt(), ContentScale.Crop, modifier, contentDescription)
+}
+
+@Composable
+fun MonoChaosArtwork(modifier: Modifier = Modifier, contentDescription: String? = null, urls: BackgroundsAppManagerHelper = koinInject()) {
+    AppArtwork(BuiltInImage.MONO_CHAOS_ART, urls.cityBazaarArt(), ContentScale.Crop, modifier, contentDescription)
+}
+
 /** Preset avatar number [index] (0-based, see AvatarPresets), filling [modifier]. */
 @Composable
 fun PresetAvatarArtwork(index: Int, modifier: Modifier = Modifier, contentDescription: String? = null) {

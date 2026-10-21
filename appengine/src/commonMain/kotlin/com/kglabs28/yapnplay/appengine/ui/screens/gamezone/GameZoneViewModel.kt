@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.gamezone
 
+import com.kglabs28.yapnplay.appengine.features.coins.usecase.GetAdLimitStatusUseCase
 import com.kglabs28.yapnplay.appengine.ui.components.coins.LeaguePickerUi
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsUiMapper
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferUi
@@ -47,6 +48,7 @@ class GameZoneViewModel(
     private val clearPenaltyWithAd: ClearPenaltyWithAdUseCase,
     private val getCoinLeagues: GetCoinLeaguesUseCase,
     private val watchAdForCoins: WatchAdForCoinsUseCase,
+    private val getAdLimitStatus: GetAdLimitStatusUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<GameZoneState, GameZoneIntent, GameZoneEffect>(GameZoneState(), dispatchers) {
@@ -153,6 +155,7 @@ class GameZoneViewModel(
                     ),
                 )
             }
+            scope.launch { refreshAdLimits() }
             return
         }
         setState { copy(leagues = null) }
@@ -169,7 +172,14 @@ class GameZoneViewModel(
             reloadLeagues(message)
         } else {
             setState { copy(coinsOffer = coinsOffer?.copy(watchingAd = false, message = message)) }
+            refreshAdLimits()
         }
+    }
+
+    /** Puts today's ad limits on the open offer (and greys the button out when none can pay). */
+    private suspend fun refreshAdLimits() {
+        val status = (getAdLimitStatus() as? AppResult.Success)?.data ?: return
+        setState { copy(coinsOffer = coinsOffer?.let { CoinsUiMapper.withLimits(it, status, clock.now()) }) }
     }
 
     private fun startSearch(entryCoins: Int) {
@@ -186,6 +196,7 @@ class GameZoneViewModel(
                         tickJob?.cancel()
                         if (status.reason == MatchmakingCancelReason.NOT_ENOUGH_COINS) {
                             setState { copy(search = null, coinsOffer = CoinsOfferUi(CoinsStrings.notEnoughTitle, CoinsStrings.notEnoughBodyGeneric, offerFree = true)) }
+                            refreshAdLimits()
                         } else {
                             setState { copy(search = null, searchMessage = Strings.gameZoneNoMatch) }
                         }

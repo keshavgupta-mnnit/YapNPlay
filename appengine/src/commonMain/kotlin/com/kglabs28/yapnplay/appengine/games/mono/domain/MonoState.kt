@@ -12,8 +12,11 @@ import kotlinx.serialization.Serializable
 /**
  * A Standard MONO match. [hands] seat → that seat's cards, [drawPile] is
  * what is left to draw and [discardPile] the face-up pile whose last card
- * is the one to match. [activeStackPenalty] is a draw penalty waiting to
- * be stacked onto or taken.
+ * is the one to match.
+ *
+ * [reversed] is the direction of play: false is clockwise (seats in
+ * ascending order), true is counter-clockwise. [drawnCardIndex] is set
+ * while a player may only play the card they just drew.
  */
 @Serializable
 data class MonoState(
@@ -28,12 +31,25 @@ data class MonoState(
     val phase: MonoPhase,
     val topCardColor: MonoConstants.Color?,
     val turnCounter: Long = 0,
-    /** Deadline for the MONO! callout; 0 when the window is shut. */
+    /** Deadline for the MONO! callout; 0 when no window is open. */
     val monoCallWindowExpiry: Long = 0,
+    /** The seat whose MONO! callout window is open. */
+    val monoWindowSeat: Int? = null,
+    /** The seat holding the called MONO! shield. */
+    val monoCalledSeat: Int? = null,
     val lastActionSeat: Int? = null,
     val lastActionCard: MonoCard? = null,
     /** Penalty waiting to be stacked onto or taken; 0 when none. */
     val activeStackPenalty: Int = 0,
+    /** The value of the card that set the stack; a stacker must match it. */
+    val stackTopValue: Int = 0,
+    /** Direction of play; true means counter-clockwise. */
+    val reversed: Boolean = false,
+    /** After a draw, the only card the player may play. */
+    val drawnCardIndex: Int? = null,
+    /** The seat that played a 7 and must now choose a swap partner. */
+    val pendingSwapSeat: Int? = null,
+    /** Standard MONO never knocks anyone out; the field keeps the wire shape. */
     val eliminatedSeats: Set<Int> = emptySet(),
     /** Seats that left the table; kept so the final ranking can place them. */
     val removedSeats: Set<Int> = emptySet(),
@@ -46,7 +62,6 @@ data class MonoState(
 
     fun handForSeat(seat: Int): List<MonoCard> = hands[seat] ?: emptyList()
     fun cardCountForSeat(seat: Int): Int = hands[seat]?.size ?: 0
-    fun isEliminated(seat: Int): Boolean = seat in eliminatedSeats
 
     fun copy(
         rules: MonoRules = this._rules,
@@ -60,14 +75,22 @@ data class MonoState(
         topCardColor: MonoConstants.Color? = this.topCardColor,
         turnCounter: Long = this.turnCounter,
         monoCallWindowExpiry: Long = this.monoCallWindowExpiry,
+        monoWindowSeat: Int? = this.monoWindowSeat,
+        monoCalledSeat: Int? = this.monoCalledSeat,
         lastActionSeat: Int? = this.lastActionSeat,
         lastActionCard: MonoCard? = this.lastActionCard,
         activeStackPenalty: Int = this.activeStackPenalty,
+        stackTopValue: Int = this.stackTopValue,
+        reversed: Boolean = this.reversed,
+        drawnCardIndex: Int? = this.drawnCardIndex,
+        pendingSwapSeat: Int? = this.pendingSwapSeat,
         eliminatedSeats: Set<Int> = this.eliminatedSeats,
         removedSeats: Set<Int> = this.removedSeats,
     ): MonoState = MonoState(
         _gameId, _rules, _seats, _turn, hands, drawPile, discardPile,
         currentSeat, phase, topCardColor, turnCounter, monoCallWindowExpiry,
-        lastActionSeat, lastActionCard, activeStackPenalty, eliminatedSeats, removedSeats,
+        monoWindowSeat, monoCalledSeat, lastActionSeat, lastActionCard,
+        activeStackPenalty, stackTopValue, reversed, drawnCardIndex, pendingSwapSeat,
+        eliminatedSeats, removedSeats,
     )
 }

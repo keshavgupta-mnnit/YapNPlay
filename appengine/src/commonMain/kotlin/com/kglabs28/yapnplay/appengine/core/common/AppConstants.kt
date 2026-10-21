@@ -86,17 +86,6 @@ object AppConstants {
     const val SERVER_BASE_URL = "https://yapnplay-backend.onrender.com"
 
     /**
-     * Local (no-backend) mode. When on, the app answers itself: HTTP calls
-     * and the WebSocket are served in-process by `fake/`, so the real
-     * engines can be played against bots with no server running. The
-     * backend is only bypassed at the transport layer — every repository,
-     * use case, view model and screen above it is the real one.
-     *
-     * Set to false once the backend hosts the MONO games.
-     */
-    const val LOCAL_MODE = true
-
-    /**
      * Invite links: https://INVITE_HOST/join/<code>. Must match the
      * `inviteHost` manifest placeholder in androidApp/build.gradle.kts, and
      * the server must host /.well-known/assetlinks.json on this domain so
@@ -199,4 +188,7 @@ object AppConstants {
     const val AVATAR_PICKER_COLUMNS = 6
     /** How long "Copied" shows after copying the user's ID. */
     const val PROFILE_COPIED_MS = 1_500L
+
+    /** Remote Config re-fetch gap: changed values reach players within an hour. */
+    const val REMOTE_CONFIG_FETCH_SECONDS = 3_600L
 }

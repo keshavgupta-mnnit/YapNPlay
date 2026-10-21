@@ -12,4 +12,7 @@ sealed interface MonoWireAction {
     @Serializable @SerialName("ChooseColor") data class ChooseColor(val color: String) : MonoWireAction
     @Serializable @SerialName("CallMono") data object CallMono : MonoWireAction
     @Serializable @SerialName("AcceptStack") data object AcceptStack : MonoWireAction
+    @Serializable @SerialName("Pass") data object Pass : MonoWireAction
+    /** The Rule of 7: the seat whose hand to trade with. */
+    @Serializable @SerialName("ChooseSwapTarget") data class ChooseSwapTarget(val seat: Int) : MonoWireAction
 }

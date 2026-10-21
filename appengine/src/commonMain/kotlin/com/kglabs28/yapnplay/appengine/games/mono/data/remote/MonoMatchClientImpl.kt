@@ -52,6 +52,8 @@ class MonoMatchClientImpl(
         is MonoCommand.ChooseColor -> MonoWireAction.ChooseColor(color)
         MonoCommand.CallMono -> MonoWireAction.CallMono
         MonoCommand.AcceptStack -> MonoWireAction.AcceptStack
+        MonoCommand.Pass -> MonoWireAction.Pass
+        is MonoCommand.ChooseSwapTarget -> MonoWireAction.ChooseSwapTarget(seat)
         is MonoCommand.SetAutoplay,
         is MonoCommand.SetMic,
         is MonoCommand.SetAway,

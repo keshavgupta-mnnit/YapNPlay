@@ -35,7 +35,7 @@ fun CoinsOfferCard(
             PillButton(
                 text = if (offer.watchingAd) CoinsStrings.watchingAd else CoinsStrings.watchAd,
                 onClick = onWatchAd,
-                enabled = !offer.watchingAd,
+                enabled = offer.canWatch && !offer.watchingAd,
                 gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),
                 contentColor = colors.CtaGreenContent,
                 leadingIcon = Icons.Rounded.OndemandVideo,
@@ -46,6 +46,9 @@ fun CoinsOfferCard(
     ) {
         offer.message?.let {
             BasicText(text = it, style = YapNPlayTheme.typography.label.copy(color = colors.Gold, fontWeight = FontWeight.SemiBold))
+        }
+        offer.note?.let {
+            BasicText(text = it, style = YapNPlayTheme.typography.label.copy(color = if (offer.canWatch) colors.TextSecondary else colors.Warning))
         }
     }
 }

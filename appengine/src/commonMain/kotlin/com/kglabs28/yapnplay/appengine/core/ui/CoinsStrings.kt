@@ -17,6 +17,11 @@ object CoinsStrings {
     const val playFree = "PLAY STARTER"
     const val close = "CLOSE"
     fun adGranted(coins: String) = "+$coins coins added!"
-    const val adLimit = "No more free coins today. Come back tomorrow!"
+    /** Refused by the server (the 2-hour gap or the daily limit); the note under it says which and when. */
+    const val adLimit = "No free coins right now."
     const val adUnavailable = "No ad right now. Try again in a moment."
+    fun adsLeftToday(left: Int, limit: Int) = "$left of $limit free-coin ads left today"
+    fun adNextIn(wait: String, left: Int) = "Next free coins in $wait · $left left today"
+    fun adDailyDone(limit: Int) = "You've used all $limit free-coin ads today. Come back tomorrow!"
+    fun adWait(hours: Long, minutes: Long) = if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
 }

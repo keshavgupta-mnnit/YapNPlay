@@ -11,4 +11,14 @@ data class MonoChaosTurnState(
 ) : TurnState
 
 @Serializable
-enum class MonoChaosPhase { AWAITING_PLAY, AWAITING_COLOR_CHOICE, AWAITING_STACK_CHOICE, AWAITING_DRAW_UNTIL_PLAYABLE, FINISHED }
+enum class MonoChaosPhase {
+    AWAITING_PLAY,
+    AWAITING_COLOR_CHOICE,
+    AWAITING_STACK_CHOICE,
+    AWAITING_DRAW_UNTIL_PLAYABLE,
+    /** The Roulette victim is naming the colour they must draw to. */
+    AWAITING_ROULETTE_COLOR,
+    /** The Rule of 7 is waiting for its player to pick a partner. */
+    AWAITING_SWAP_CHOICE,
+    FINISHED,
+}

@@ -7,11 +7,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.KSerializer
 
 /**
- * The app's way to talk to the backend, whatever carries it: the real
- * WebSocket ([RealtimeConnection]) or the in-process local mode fake
- * ([com.kglabs28.yapnplay.appengine.fake.FakeRealtimeConnection]). Both
- * speak the same envelope protocol, so nothing above this interface
- * changes between them.
+ * The app's real-time link to the backend (the WebSocket,
+ * [RealtimeConnection]), speaking the envelope protocol.
  */
 interface RealtimeGateway {
     /** Goes up by one every time the socket (re)connects. */

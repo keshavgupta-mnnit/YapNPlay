@@ -1,9 +1,11 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,32 +17,38 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
 import com.kglabs28.yapnplay.appengine.games.mono.identity.MonoConstants
 import com.kglabs28.yapnplay.appengine.games.mono.ui.components.MonoCardView
-import com.kglabs28.yapnplay.appengine.ui.components.PrimaryButton
+import com.kglabs28.yapnplay.appengine.games.mono.ui.components.hue
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
+import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoColourPicker
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoEmptyPile
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoHandRow
-import com.kglabs28.yapnplay.appengine.ui.components.table.MonoTableCentre
-import com.kglabs28.yapnplay.appengine.ui.components.table.MonoTableGlow
-import com.kglabs28.yapnplay.appengine.ui.components.table.MonoTableSurface
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoLocalPod
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoPromptModal
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoPlayerPodUi
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoTableArena
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoTableShell
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableGlassButton
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableTopBar
-import com.kglabs28.yapnplay.appengine.ui.components.table.monoCardColour
+import com.kglabs28.yapnplay.appengine.ui.components.table.fill
+import com.kglabs28.yapnplay.appengine.ui.components.table.monoTableZones
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 
 /**
- * Standard MONO table: the players' cards across the top, the felt with
- * the draw and discard piles in the middle, the user's hand and actions
- * along the bottom. This file only assembles components — every rule
- * lives in the engine.
+ * Standard MONO table: the players' pods around the felt, the draw and
+ * discard piles in the middle, the user's pod, the MONO! callout, the
+ * hand and the draw button along the bottom. This file only assembles
+ * components — every rule lives in the engine.
  */
 @Composable
 fun MatchMonoScreen(
@@ -70,154 +78,183 @@ fun MatchMonoScreen(
     }
 
     CozyHomeBackground(modifier = modifier, frosted = true) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = Spacing.Md, vertical = Spacing.Xs),
-            verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
-        ) {
-            TableTopBar(
-                title = Strings.monoTitle,
-                subtitle = state.title,
-                audience = state.audience,
-                showAudience = state.audience.isNotEmpty(),
-                spectatorCount = state.spectatorCount.toString(),
-                spectatorLabel = Strings.ludoSpectators,
-                elapsed = state.elapsed,
-                onSettings = { send(MatchMonoIntent.OpenSettings) },
-                onExit = { send(MatchMonoIntent.ExitClicked) },
+        val match = state.match
+        val currentSeat = match?.currentSeat ?: 0
+        val pods = state.opponents.map { opponent ->
+            MonoUiMapper.card(
+                player = opponent,
+                currentSeat = currentSeat,
+                timerFraction = state.timerFraction,
+                places = state.places,
+                calledSeat = match?.monoCalledSeat,
             )
-            // Every seat's card, in turn order from the user's own.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
-            ) {
-                state.opponents.forEach { opponent ->
-                    MonoPlayerCard(
-                        card = MonoUiMapper.card(
-                            player = opponent,
-                            currentSeat = state.match?.currentSeat ?: 0,
+        }
+        val (leftPods, topPods, rightPods) = monoTableZones(pods)
+        val me = match?.me
+
+        MonoTableShell(
+            title = MonoStrings.monoTitle,
+            subtitle = state.title,
+            audience = state.audience,
+            showAudience = state.audience.isNotEmpty(),
+            spectatorCount = state.spectatorCount.toString(),
+            spectatorLabel = MonoStrings.monoSpectators,
+            elapsed = state.elapsed,
+            turnLabel = state.turnClock,
+            turnIsMine = state.myTurn,
+            onSettings = { send(MatchMonoIntent.OpenSettings) },
+            onExit = { send(MatchMonoIntent.ExitClicked) },
+            leftPods = leftPods,
+            topPods = topPods,
+            rightPods = rightPods,
+            arena = { MonoArena(state = state) },
+            localPod = {
+                MonoLocalPod(
+                    card = me?.let {
+                        MonoUiMapper.card(
+                            player = it,
+                            currentSeat = currentSeat,
                             timerFraction = state.timerFraction,
                             places = state.places,
-                        ),
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-            MonoCentre(state)
-            MonoHandSection(state = state, send = send)
-            if (state.awaitingColorChoice) MonoColourPrompt(send)
-            if (state.finished) MonoResultOverlay(state, onClose)
-            state.error?.let { MonoErrorOverlay(it) }
-        }
+                            calledSeat = match?.monoCalledSeat,
+                        )
+                    } ?: MonoPlayerPodUi(
+                        seat = 1,
+                        name = MonoStrings.monoYourTurn,
+                        level = "",
+                        tint = YapNPlayTheme.colors.TextPrimary,
+                        isMe = true,
+                        isTurn = state.myTurn,
+                        talking = false,
+                        cards = state.hand.size,
+                    ),
+                    micOn = state.micOn,
+                    autoplay = state.autoplay,
+                    onToggleMic = { send(MatchMonoIntent.SetMic(!state.micOn)) },
+                    onToggleAutoplay = { send(MatchMonoIntent.SetAutoplay(!state.autoplay)) },
+                )
+            },
+            callButton = { MonoCallButton(state = state, send = send) },
+            hand = { MonoHand(state = state, send = send) },
+            drawButton = { MonoDrawButton(state = state, send = send) },
+        )
+
+        if (state.awaitingColorChoice) MonoPromptModal(MonoStrings.monoChooseColour) { MonoColourPrompt(send) }
+        if (state.awaitingSwapChoice) MonoPromptModal(MonoStrings.monoSwapTitle) { MonoSwapPrompt(state = state, send = send) }
+        if (state.finished) MonoResultOverlay(state, onClose)
+        state.error?.let { MonoErrorOverlay(it) }
     }
 }
 
 /** The felt the piles sit on, with the draw and discard piles centred. */
 @Composable
-private fun ColumnScope.MonoCentre(state: MatchMonoState) {
+private fun MonoArena(state: MatchMonoState) {
     val match = state.match
-    MonoTableSurface(
+    val dimens = YapNPlayTheme.dimens
+    MonoTableArena(
+        hue = state.topColour?.hue(),
+        // The ring's arrows follow the direction of play.
+        clockwise = !state.reversed,
+        drawPileCount = match?.drawPileCount ?: 0,
+        discardPileCount = match?.discardPileCount ?: 0,
+        activeStackPenalty = state.activeStackPenalty,
+        cardWidth = dimens.monoPileCardWidth,
         modifier = Modifier
-            .weight(1f)
-            .fillMaxWidth()
+            .fillMaxSize()
             .padding(vertical = Spacing.Xs),
     ) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            MonoTableGlow(modifier = Modifier.fillMaxSize())
-            MonoTableCentre(
-                drawPileCount = match?.drawPileCount ?: 0,
-                discardPileCount = match?.discardPileCount ?: 0,
-                activeStackPenalty = state.activeStackPenalty,
-                faceCard = {
-                    val topCard = match?.topCard
-                    if (topCard == null) {
-                        BasicText(
-                            text = EMPTY_CARD,
-                            style = YapNPlayTheme.typography.title.copy(color = YapNPlayTheme.colors.TextDisabled),
-                        )
-                    } else {
-                        MonoCardView(
-                            card = topCard,
-                            shownColour = match.topCardColor,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                },
+        val topCard = match?.topCard
+        if (topCard == null) {
+            MonoEmptyPile(modifier = Modifier.fillMaxWidth())
+        } else {
+            MonoCardView(
+                card = topCard,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
 }
 
-/** The user's hand, with the actions the table currently allows. */
+/** The user's hand, fanned. */
 @Composable
-private fun MonoHandSection(state: MatchMonoState, send: (MatchMonoIntent) -> Unit) {
+private fun MonoHand(state: MatchMonoState, send: (MatchMonoIntent) -> Unit) {
+    val dimens = YapNPlayTheme.dimens
+    MonoHandRow(
+        handSize = state.hand.size,
+        cardWidth = dimens.monoHandCardWidth,
+        modifier = Modifier.fillMaxWidth(),
+    ) { index ->
+        MonoCardView(
+            card = state.hand[index],
+            isSelected = state.selectedCardIndex == index,
+            // A card the table would refuse is drawn pushed back.
+            isPlayable = index in state.playableIndexes,
+            onClick = { send(MatchMonoIntent.TapCard(index)) },
+            modifier = Modifier.width(dimens.monoHandCardWidth),
+        )
+    }
+}
+
+/** The MONO! callout, lit only while the window is open. */
+@Composable
+private fun MonoCallButton(state: MatchMonoState, send: (MatchMonoIntent) -> Unit) {
+    val colors = YapNPlayTheme.colors
+    val dimens = YapNPlayTheme.dimens
+    Column(
+        modifier = Modifier.width(dimens.monoCallWidth),
+        verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        // Always on the table, as in the design; it only lights up when a call is open.
+        PillButton(
+            text = MonoStrings.monoCallMono,
+            onClick = { send(MatchMonoIntent.CallMono) },
+            enabled = state.canCallMono,
+            trailingIcon = null,
+            gradient = listOf(colors.Error, colors.Warning),
+            contentColor = colors.TextPrimary,
+            height = dimens.monoCallHeight,
+            modifier = Modifier.width(dimens.monoCallWidth),
+        )
+        // A stack on the user (stacking house rule): take the penalty instead of stacking.
+        if (state.canStack) {
+            PillButton(
+                text = MonoStrings.monoTakePenalty(state.activeStackPenalty),
+                onClick = { send(MatchMonoIntent.AcceptStack) },
+                gradient = listOf(colors.Warning, colors.Error),
+                contentColor = colors.Background,
+                height = dimens.monoCallHeight,
+                modifier = Modifier.width(dimens.monoCallWidth),
+            )
+        }
+    }
+}
+
+/** The draw button; it is the only move when nothing can be played. */
+@Composable
+private fun MonoDrawButton(state: MatchMonoState, send: (MatchMonoIntent) -> Unit) {
     val colors = YapNPlayTheme.colors
     Column(
-        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
-    ) {
-        BasicText(
-            text = Strings.monoHandCount(state.hand.size),
-            style = YapNPlayTheme.typography.caption.copy(
-                color = colors.TextSecondary,
-                textAlign = TextAlign.Center,
-            ),
-        )
-        MonoHandRow(
-            handSize = state.hand.size,
-            modifier = Modifier.fillMaxWidth(),
-            card = { index ->
-                MonoCardView(
-                    card = state.hand[index],
-                    isSelected = state.selectedCardIndex == index,
-                    // A card the table would refuse is drawn pushed back.
-                    isPlayable = index in state.playableIndexes,
-                    onClick = { send(MatchMonoIntent.TapCard(index)) },
-                    modifier = Modifier.width(YapNPlayTheme.dimens.monoHandCardWidth),
-                )
-            },
-        )
-        MonoActions(state = state, send = send)
-    }
-}
-
-/** DRAW, TAKE (when a penalty is on the table) and the MONO! callout. */
-@Composable
-private fun MonoActions(state: MatchMonoState, send: (MatchMonoIntent) -> Unit) {
-    val colors = YapNPlayTheme.colors
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
+        verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
         TableGlassButton(
-            text = Strings.monoDraw,
+            text = MonoStrings.monoDrawCard,
             onClick = { send(MatchMonoIntent.DrawCard) },
-            fill = listOf(colors.Raised, colors.Panel),
+            fill = listOf(colors.Panel, colors.GlassSurface),
             textColor = colors.TextPrimary,
-            enabled = state.myTurn,
-            modifier = Modifier.weight(1f),
+            // Under a stack the only moves are stacking or taking the penalty.
+            enabled = state.myTurn && !state.canStack,
         )
-        if (state.activeStackPenalty > 0) {
+        // After a draw the player may decline the card they drew.
+        if (state.canPass) {
             TableGlassButton(
-                text = Strings.monoTakePenalty,
-                onClick = { send(MatchMonoIntent.AcceptStack) },
-                fill = listOf(colors.Warning, colors.Error),
-                textColor = colors.Background,
-                enabled = state.myTurn,
-                modifier = Modifier.weight(1f),
+                text = MonoStrings.monoPass,
+                onClick = { send(MatchMonoIntent.Pass) },
+                fill = listOf(colors.Panel, colors.GlassSurface),
+                textColor = colors.TextSecondary,
             )
         }
-    }
-    if (state.canCallMono) {
-        PrimaryButton(
-            text = Strings.monoCallMono,
-            onClick = { send(MatchMonoIntent.CallMono) },
-            modifier = Modifier.fillMaxWidth(),
-            containerColor = colors.Error,
-            contentColor = colors.TextPrimary,
-        )
     }
 }
 
@@ -230,18 +267,45 @@ private fun MonoColourPrompt(send: (MatchMonoIntent) -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
+        MonoColourPicker(
+            options = MonoConstants.Color.entries.map { it.name to it.hue().fill },
+            onPick = { index -> send(MatchMonoIntent.ChooseColor(MonoConstants.Color.entries[index])) },
+        )
+    }
+}
+
+/** The Rule of 7: pick the opponent whose hand to trade with. */
+@Composable
+private fun MonoSwapPrompt(state: MatchMonoState, send: (MatchMonoIntent) -> Unit) {
+    val colors = YapNPlayTheme.colors
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+    ) {
         BasicText(
-            text = Strings.monoChooseColour,
+            text = MonoStrings.monoSwapBody,
             style = YapNPlayTheme.typography.caption.copy(
                 color = colors.TextSecondary,
-                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
             ),
         )
-        MonoColourPicker(
-            options = MonoConstants.Color.entries.map { it.name to monoCardColour(it) },
-            onPick = { index -> send(MatchMonoIntent.ChooseColor(MonoConstants.Color.entries[index])) },
-        )
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
+            state.opponents.forEach { opponent ->
+                BasicText(
+                    text = opponent.name,
+                    style = YapNPlayTheme.typography.label.copy(color = colors.TextPrimary),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .clip(YapNPlayTheme.shapes.button)
+                        .background(colors.Panel)
+                        .border(YapNPlayTheme.dimens.borderThin, colors.GlassShine, YapNPlayTheme.shapes.button)
+                        .clickable { send(MatchMonoIntent.ChooseSwapTarget(opponent.seat)) }
+                        .padding(horizontal = Spacing.Md, vertical = Spacing.Sm),
+                )
+            }
+        }
     }
 }
 
@@ -252,10 +316,19 @@ private fun MonoResultOverlay(state: MatchMonoState, onClose: () -> Unit) {
     val won = winner != null && winner == state.match?.me?.seat
     BlockingOverlay(visible = true) {
         ModalCard(
-            title = if (won) Strings.monoYouWin() else Strings.monoWinner(state.match?.player(winner ?: -1)?.name.orEmpty()),
-            subtitle = Strings.monoLeaveWhenDone,
+            title = if (won) {
+                MonoStrings.monoYouWin
+            } else {
+                MonoStrings.monoWinner(state.match?.player(winner ?: -1)?.name.orEmpty())
+            },
+            subtitle = MonoStrings.monoLeaveWhenDone,
             actions = {
-                PrimaryButton(text = Strings.cbClose, onClick = onClose)
+                TableGlassButton(
+                    text = MonoStrings.monoClose,
+                    onClick = onClose,
+                    fill = listOf(YapNPlayTheme.colors.CtaGreenStart, YapNPlayTheme.colors.CtaGreenEnd),
+                    textColor = YapNPlayTheme.colors.CtaGreenContent,
+                )
             },
         )
     }
@@ -281,4 +354,3 @@ private fun MonoErrorOverlay(message: String) {
     }
 }
 
-private const val EMPTY_CARD = "–"

@@ -14,4 +14,7 @@ sealed interface MonoChaosWireAction {
     @Serializable @SerialName("CallMono") data object CallMono : MonoChaosWireAction
     @Serializable @SerialName("StackDraw") data class StackDraw(val handIndex: Int) : MonoChaosWireAction
     @Serializable @SerialName("AcceptStack") data object AcceptStack : MonoChaosWireAction
+    @Serializable @SerialName("Pass") data object Pass : MonoChaosWireAction
+    /** The Rule of 7: the seat whose hand to trade with. */
+    @Serializable @SerialName("ChooseSwapTarget") data class ChooseSwapTarget(val seat: Int) : MonoChaosWireAction
 }

@@ -14,9 +14,9 @@ class MonoChaosBot : GameBot {
         // If there's an active stack, try to stack or accept
         if (s.activeStackPenalty > 0) {
             val hand = s.handForSeat(seat.value)
-            // Try to stack with equal or higher penalty
+            // Stack any draw card worth at least the last one (colour does not matter)
             val stackable = hand.withIndex()
-                .filter { (_, card) -> card.penaltyValue() >= s.activeStackPenalty && card.penaltyValue() > 0 }
+                .filter { (_, card) -> card.penaltyValue() >= s.stackTopValue && card.penaltyValue() > 0 }
             if (stackable.isNotEmpty()) {
                 return MonoChaosAction.StackDraw(stackable.first().index)
             }

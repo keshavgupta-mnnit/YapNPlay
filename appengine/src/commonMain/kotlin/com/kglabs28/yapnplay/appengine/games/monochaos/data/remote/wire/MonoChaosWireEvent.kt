@@ -16,6 +16,10 @@ sealed interface MonoChaosWireEvent {
     @Serializable @SerialName("CardsDrawn")
     data class CardsDrawn(val seat: Int, val count: Int) : MonoChaosWireEvent
 
+    /** Discard All: [count] more cards of that colour went under it. */
+    @Serializable @SerialName("CardsDiscarded")
+    data class CardsDiscarded(val seat: Int, val count: Int) : MonoChaosWireEvent
+
     /** [color] is a MonoChaosConstants.Color name. */
     @Serializable @SerialName("ColorChosen")
     data class ColorChosen(val seat: Int, val color: String) : MonoChaosWireEvent

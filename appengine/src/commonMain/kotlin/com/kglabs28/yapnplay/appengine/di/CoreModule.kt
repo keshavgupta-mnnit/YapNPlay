@@ -3,7 +3,6 @@ package com.kglabs28.yapnplay.appengine.di
 import io.ktor.http.HttpStatusCode
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.AppManagerHelper
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.DefaultDispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.common.SystemAppClock
@@ -14,9 +13,6 @@ import com.kglabs28.yapnplay.appengine.core.network.SessionProvider
 import com.kglabs28.yapnplay.appengine.core.network.MatchChannel
 import com.kglabs28.yapnplay.appengine.core.network.RealtimeConnection
 import com.kglabs28.yapnplay.appengine.core.network.RealtimeGateway
-import com.kglabs28.yapnplay.appengine.fake.FakeRealtimeConnection
-import com.kglabs28.yapnplay.appengine.fake.LocalBackendSession
-import com.kglabs28.yapnplay.appengine.fake.fakeHttpEngine
 import com.kglabs28.yapnplay.appengine.games.base.play.DefaultGameRandom
 import com.kglabs28.yapnplay.appengine.games.base.play.GameRandom
 import io.ktor.client.HttpClient
@@ -57,19 +53,8 @@ val coreModule = module {
     single<CoroutineScope>(APP_SCOPE) { CoroutineScope(SupervisorJob() + get<DispatcherProvider>().io) }
 
     // ── The transport. The only place that knows a server exists. ─────────
-    // LOCAL_MODE (AppConstants) answers the app in-process, so the real
-    // MONO engines can be played with no backend. Set it to false once
-    // the backend hosts them and the real calls below are used again.
-
     // HTTP: the app's REST calls (profile, friends, rooms, online count).
     single {
-        if (AppConstants.LOCAL_MODE) {
-            HttpClient(fakeHttpEngine(get())) {
-                expectSuccess = true
-                install(ContentNegotiation) { json(get<Json>()) }
-                install(DefaultRequest) { url(AppConstants.SERVER_BASE_URL) }
-            }
-        } else {
         val config = get<AppManagerHelper>()
         HttpClient(createHttpClientEngine()) {
             expectSuccess = true
@@ -84,20 +69,28 @@ val coreModule = module {
             client.plugin(HttpSend).intercept { request ->
                 val path = request.url.buildString()
                 if (!path.endsWith(BackendPaths.GUEST) && request.headers[HttpHeaders.Authorization] == null) {
-                    request.header(HttpHeaders.Authorization, BEARER + get<BackendSession>().credentials().bearerToken)
+                    request.header(
+                        HttpHeaders.Authorization,
+                        BEARER + get<BackendSession>().credentials().bearerToken
+                    )
                 }
                 execute(request).also { call ->
                     // The saved account was refused (restored on another phone): sign in with Play Games again.
-                    if (call.response.status == HttpStatusCode.Unauthorized && !path.endsWith(BackendPaths.PLAY_GAMES)) {
+                    if (call.response.status == HttpStatusCode.Unauthorized && !path.endsWith(
+                            BackendPaths.PLAY_GAMES
+                        )
+                    ) {
                         get<BackendSession>().markRejected()
                     }
-                }
                 }
             }
         }
     }
     single { BackendSession(get(), get()) }
-    single {
+    // The account the app authenticates with.
+    single<SessionProvider> { get<BackendSession>() }
+    // The socket: the real-time match connection to the backend.
+    single<RealtimeGateway> {
         val config = get<AppManagerHelper>()
         RealtimeConnection(get(), get(), get(), get(APP_SCOPE)) { config.serverBaseUrl() }
     }

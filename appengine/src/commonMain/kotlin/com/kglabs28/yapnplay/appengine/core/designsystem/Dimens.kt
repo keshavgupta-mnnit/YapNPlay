@@ -191,19 +191,29 @@ class YapNPlayDimens {
     val cbCityCardHeight: Dp get() = 56.dp.scaled()
     // MONO (cards are 2:3 portrait everywhere they appear).
     /** A card in the local player's hand. */
-    val monoHandCardWidth: Dp get() = 46.dp.scaled()
+    val monoHandCardWidth: Dp get() = 62.dp.scaled()
     /** A card on the centre pile, or an opponent's face-down card. */
-    val monoPileCardWidth: Dp get() = 38.dp.scaled()
-    /** The centre medallion inside a card face. */
-    val monoCardMedallion: Dp get() = 20.dp.scaled()
-    /** Padding inside a card face. */
-    val monoCardPad: Dp get() = 4.dp.scaled()
-    /** An opponent's pod on the table edge. */
-    val monoOpponentWidth: Dp get() = 76.dp.scaled()
+    val monoPileCardWidth: Dp get() = 64.dp.scaled()
+    /** The mini card fan docked to a table pod. */
+    val monoPodFan: Dp get() = 26.dp.scaled()
+    val monoPodFanCompact: Dp get() = 20.dp.scaled()
+    /** The avatar inside a table pod (smaller in the side rails). */
+    val monoPodAvatar: Dp get() = 34.dp.scaled()
+    val monoPodAvatarCompact: Dp get() = 28.dp.scaled()
+    /** The wide frosted pod across the top of the table. */
+    val monoPodWidth: Dp get() = 150.dp.scaled()
+    val monoPodWidthCompact: Dp get() = 128.dp.scaled()
+    /** The local player's own pod at the bottom left. */
+    val monoLocalPodWidth: Dp get() = 190.dp.scaled()
+    /** The MONO! callout button beside the hand. */
+    val monoCallWidth: Dp get() = 92.dp.scaled()
+    val monoCallHeight: Dp get() = 44.dp.scaled()
+    /** The DRAW CARD button at the bottom right. */
+    val monoDrawWidth: Dp get() = 130.dp.scaled()
+    /** The small round switches in the local player's pod. */
+    val monoToggleSize: Dp get() = 26.dp.scaled()
     /** One colour choice in the Prism picker. */
     val monoColourChip: Dp get() = 44.dp.scaled()
-    /** The felt the MONO piles are played on. */
-    val monoTableHeight: Dp get() = 260.dp.scaled()
     /** How far a selected card rises out of the hand. */
     val monoCardLift: Dp get() = 10.dp.scaled()
     val cbRollBadge: Dp get() = 22.dp.scaled()

@@ -62,7 +62,13 @@ class MonoSnapshotMapper(private val json: Json) {
             drawPileCount = state.drawPileCount,
             discardPileCount = state.discardPileCount,
             activeStackPenalty = state.activeStackPenalty,
+            stackTopValue = state.stackTopValue,
             monoCallWindowExpiry = toLocal(state.monoCallWindowExpiry),
+            monoWindowSeat = state.monoWindowSeat,
+            monoCalledSeat = state.monoCalledSeat,
+            reversed = state.reversed,
+            drawnCardIndex = state.drawnCardIndex,
+            pendingSwapSeat = state.pendingSwapSeat,
             eliminatedSeats = state.eliminatedSeats,
             finishedSeats = state.finishedSeats,
             turnEndsAt = snapshot.turn.deadline?.let(toLocal),
@@ -102,6 +108,7 @@ class MonoSnapshotMapper(private val json: Json) {
     private fun MonoWireEvent.toDomain(): MonoEvent = when (this) {
         is MonoWireEvent.CardPlayed -> MonoEvent.CardPlayed(SeatNumber(seat), card.toDomain(), color.toColor())
         is MonoWireEvent.CardDrawn -> MonoEvent.CardDrawn(SeatNumber(seat), card.toDomain())
+        is MonoWireEvent.CardsDrawn -> MonoEvent.CardsDrawn(SeatNumber(seat), count)
         is MonoWireEvent.ColorChosen -> MonoEvent.ColorChosen(SeatNumber(seat), color.toColor() ?: MonoConstants.Color.RED)
         is MonoWireEvent.MonoCalled -> MonoEvent.MonoCalled(SeatNumber(seat))
         is MonoWireEvent.MonoMissed -> MonoEvent.MonoMissed(SeatNumber(seat), penaltyCards)

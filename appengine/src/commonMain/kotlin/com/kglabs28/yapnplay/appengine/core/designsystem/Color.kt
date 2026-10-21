@@ -197,6 +197,52 @@ object YapNPlayColors {
     val DiceDeep = Color(0xFFC4A877)
     val DicePip = Color(0xFF4A3316)
 
+    // ── MONO / MONO: Complete Chaos (dark jewel-tone glass card spec) ──
+    /** Smoked obsidian glass the card body is cut from (90% opacity). */
+    val MonoCardBase = Color(0xE6101218)
+    /** Metallic bevel around the card silhouette. */
+    val MonoCardBevel = Color(0xFF3A4155)
+
+    val MonoRedFill = Color(0xFF7A1224)
+    val MonoRedRim = Color(0xFFD92B4B)
+    val MonoGreenFill = Color(0xFF0F5232)
+    val MonoGreenRim = Color(0xFF25B86E)
+    val MonoBlueFill = Color(0xFF103466)
+    val MonoBlueRim = Color(0xFF2E77D0)
+    val MonoGoldFill = Color(0xFF6E4B0E)
+    val MonoGoldRim = Color(0xFFE09F24)
+
+    /** The dark glass behind a multi-colour card's quadrant split. */
+    val MonoPrismBase = Color(0xFF161A22)
+
+    /** Card back: base and the four converging metallic ribbons. */
+    val MonoBackBase = Color(0xFF0B0D13)
+    val MonoBackRibbonDark = Color(0xFF232937)
+    val MonoBackRibbonLight = Color(0xFF4C566B)
+    val MonoBackRim = Color(0xFF5E6A82)
+
+    /** The 3D silver of the MONO wordmark on the back. */
+    val MonoSilverTop = Color(0xFFF7FAFF)
+    val MonoSilverMid = Color(0xFFC3CDDE)
+    val MonoSilverBottom = Color(0xFF77839B)
+
+    /** The crimson sub-plate that reads COMPLETE CHAOS. */
+    val MonoChaosPlate = Color(0xFF5A0E18)
+    val MonoChaosPlateLight = Color(0xFF94202F)
+    /** Card metal (bevel frames, octagon rings) and the octagon's dark faceted glass. */
+    val MonoMetalLight = Color(0xFF8B94A8)
+    val MonoMetalDark = Color(0xFF1E2129)
+    val MonoOctagonCore = Color(0xFF1C1F27)
+    val MonoOctagonEdge = Color(0xFF0D0F14)
+    val MonoChaosPlateRim = Color(0xFF9B2233)
+
+    /** The matte table the piles sit on, and its rim. */
+    val MonoTableFelt = Color(0xFF11151F)
+    val MonoTableFeltEdge = Color(0xFF0A0C12)
+    val MonoTableRim = Color(0xFF2A3244)
+    /** The directional light ring around the centre piles. */
+    val MonoRingIdle = Color(0xFF2B3346)
+
     // Helpers
     val Transparent = Color.Transparent
 

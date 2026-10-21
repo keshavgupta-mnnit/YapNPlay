@@ -78,6 +78,46 @@ data class MatchSnapshot(
     val events: List<JsonObject> = emptyList(),
     /** A round or time limit is reached: the keep-playing vote; null when none. */
     val extensionVote: ExtensionVoteInfo? = null,
+    /** The coin pot (null for free games). */
+    val pot: MatchPot? = null,
+    /** The end-game vote while it runs (play is paused). */
+    val endVote: EndVoteInfo? = null,
+)
+
+/**
+ * The end-game vote: [proposerSeat] asked to end; [voters] (humans still
+ * in) decide by [endsAt]; the proposer counts as yes. More than half yes
+ * ends the match (ranked like the time limit); a missing vote counts as no.
+ * The result arrives as the event `{"type":"EndVoted","ended","yes","voters"}`.
+ */
+@Serializable
+data class EndVoteInfo(
+    val proposerSeat: Int,
+    val endsAt: Long,
+    val voters: List<Int>,
+    val yes: List<Int> = emptyList(),
+    val no: List<Int> = emptyList(),
+)
+
+/** MATCH `ProposeEndMatch`: ask everyone to end the match early. Rejected ILLEGAL_MOVE (not now) or RATE_LIMITED (cooldown). */
+@Serializable
+data class ProposeEndMatch(
+    val matchId: String,
+)
+
+/** MATCH `CastEndVote`: a vote on ending the match early. Once per voter. */
+@Serializable
+data class CastEndVote(
+    val matchId: String,
+    val agree: Boolean,
+)
+
+/** [total] = entryCoins x (paid players + CPU seats); [split] = % of the pot by place (1st first). */
+@Serializable
+data class MatchPot(
+    val entryCoins: Int,
+    val total: Int,
+    val split: List<Int>,
 )
 
 /**
@@ -206,6 +246,10 @@ data class RankedSeat(
     val status: MatchSeatStatus,
     /** 1-based finishing place. */
     val place: Int,
+    /** Coins won from the pot (0 for free games, CPUs and leavers). */
+    val coinsWon: Int = 0,
+    /** Coins for finishing the match (0 for CPUs, leavers, bot-held seats, short matches or past the daily cap). */
+    val completionCoins: Int = 0,
 )
 
 // ══════════════════════════════════════════════════════════════════════════

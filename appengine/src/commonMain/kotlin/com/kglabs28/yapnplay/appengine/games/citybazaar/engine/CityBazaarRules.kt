@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.engine
 
+import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CLUB_REST_EACH
 import com.kglabs28.yapnplay.appengine.games.base.rules.GameRules
 import com.kglabs28.yapnplay.appengine.games.base.rules.HouseRules
 import com.kglabs28.yapnplay.appengine.games.base.rules.MandatoryRules
@@ -21,8 +22,13 @@ data class CityBazaarMandatoryRules(
  */
 data class CityBazaarHouseRules(
     val setDoubleRent: Boolean = true,
+    /** Rest House on: every other player pays the lander [clubRestEach] (stored under its old name). */
     val restHouseSkips: Boolean = true,
+    /** Club on: the lander pays every other player [clubRestEach]. */
     val clubFee: Boolean = true,
+    val clubRestEach: Int = CLUB_REST_EACH,
+    /** In debt, selling a city puts it up for auction (no bids: the bank buys it at half). Off: straight to the bank. */
+    val debtAuction: Boolean = true,
     val roundLimit: Int? = ROUND_LIMIT,
     val timeLimitMinutes: Int? = TIME_LIMIT_MINUTES,
 ) : HouseRules

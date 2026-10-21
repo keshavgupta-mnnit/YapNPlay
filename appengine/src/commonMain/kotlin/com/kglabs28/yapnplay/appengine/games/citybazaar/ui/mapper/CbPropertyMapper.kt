@@ -215,6 +215,7 @@ object CbPropertyMapper {
                 CbSheetRowUi(CityBazaarStrings.cbHouses, levels.sumOf { if (it in 1 until HOTEL_LEVEL) it else 0 }.toString(), CbRowKind.NORMAL),
                 CbSheetRowUi(CityBazaarStrings.cbHotels, levels.count { it >= HOTEL_LEVEL }.toString(), CbRowKind.NORMAL),
                 CbSheetRowUi(CityBazaarStrings.cbRentCollectedLabel, CbFormat.rupees(player.rentCollected), CbRowKind.NORMAL),
+                CbSheetRowUi(CityBazaarStrings.cbRentPaidTotalLabel, CbFormat.rupees(player.rentPaid), CbRowKind.NORMAL),
                 CbSheetRowUi(CityBazaarStrings.cbNetWorth, CbFormat.rupees(match.netWorth[seat] ?: cash), CbRowKind.TOTAL),
             ),
             cities = ownedRows(match, tiles),

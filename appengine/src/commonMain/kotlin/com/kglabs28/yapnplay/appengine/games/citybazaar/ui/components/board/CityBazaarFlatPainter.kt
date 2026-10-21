@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board
 
+import androidx.compose.ui.graphics.painter.Painter
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -39,11 +40,13 @@ fun DrawScope.drawCityBazaarFlatBoard(
     tiles: List<CbTileUi>,
     measurer: TextMeasurer,
     highlight: Set<Int> = emptySet(),
+    /** Tile index → its icon (CbTileIcons). */
+    icons: Map<Int, Painter> = emptyMap(),
 ) {
     drawSlab(p, colours)
     drawDeck(p, CardDeck.CHEST, colours.chest, CityBazaarStrings.cbChestGlyph, CityBazaarStrings.cbChestLabel, colours, measurer)
     drawDeck(p, CardDeck.LUCK, colours.luck, CityBazaarStrings.cbLuckGlyph, CityBazaarStrings.cbLuckLabel, colours, measurer)
-    tiles.forEach { drawTile(p, it, colours, measurer, it.index in highlight) }
+    tiles.forEach { drawTile(p, it, colours, measurer, it.index in highlight, icons[it.index]) }
 }
 
 /** Tokens as pawn icons (a disc, a body and a glossy head), each lifted by its hop. */
@@ -83,7 +86,7 @@ private fun DrawScope.drawSlab(p: CityBazaarFlatProjection, colours: CityBazaarB
     rect(p, d, d, CityBazaarBoardGeometry.SIDE - d, CityBazaarBoardGeometry.SIDE - d).let { (o, s) -> drawRect(colours.field, o, s) }
 }
 
-private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colours: CityBazaarBoardColours, measurer: TextMeasurer, lit: Boolean) {
+private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colours: CityBazaarBoardColours, measurer: TextMeasurer, lit: Boolean, icon: Painter?) {
     val u = p.unit
     val spec = CityBazaarBoard.tile(tile.index)
     val r = CityBazaarBoardGeometry.rect(tile.index)
@@ -127,8 +130,15 @@ private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colo
                 else -> colours.text
             }
             val room = u * (depth - TEXT_MARGIN)
-            val layout = fitText(measurer, name, TextStyle(color = colour, fontSize = (u * CORNER_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), room, room)
-            drawLines(p.project(centre), 0f, listOf(layout))
+            val at = p.project(centre)
+            if (icon != null) {
+                drawBoardIcon(icon, at - Offset(0f, u * CORNER_ICON_LIFT), u * CORNER_ICON, colour)
+                val layout = fitText(measurer, name, TextStyle(color = colour, fontSize = (u * CORNER_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), room, room * CORNER_TEXT_SHARE)
+                drawLines(at + Offset(0f, u * CORNER_TEXT_DROP), 0f, listOf(layout))
+            } else {
+                val layout = fitText(measurer, name, TextStyle(color = colour, fontSize = (u * CORNER_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), room, room)
+                drawLines(at, 0f, listOf(layout))
+            }
         }
         TileKind.LUCK, TileKind.CHEST -> {
             val luck = spec.kind == TileKind.LUCK
@@ -153,6 +163,11 @@ private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colo
             val price = priceText?.let { fitText(measurer, it, TextStyle(color = colours.subText, fontSize = (u * PRICE_TEXT).toSp(), fontWeight = FontWeight.Medium), along, across * PRICE_SHARE, maxLines = 1) }
             drawLines(p.project(bodyCentre), angle, listOfNotNull(name, price))
             drawBuildings(p, tile, centre + inward * (depth / 2 - depth * HEADER / 2), ix, iy, colours)
+            icon?.let {
+                val (o, s) = band(p, x0, y0, x1, y1, ix, iy, depth * HEADER)
+                val tint = if (spec.group != null) colours.text else colours.subText
+                drawBoardIcon(it, o + Offset(s.width / 2, s.height / 2), minOf(s.width, s.height) * BAND_ICON, tint)
+            }
         }
     }
 }
@@ -235,18 +250,33 @@ private fun DrawScope.drawDeck(
 ) {
     val u = p.unit
     val centre = p.project(CityBazaarFlatProjection.deckCentre(deck))
-    val half = u * CityBazaarFlatProjection.DECK_HALF
+    val h = u * CityBazaarFlatProjection.DECK_HALF
+    val w = h * CbCardPile.ASPECT
     val radius = CornerRadius(u * DECK_RADIUS)
-    for (layer in DECK_LAYERS downTo 0) {
-        val o = Offset(centre.x - half + layer * u * DECK_STEP, centre.y - half + layer * u * DECK_STEP)
-        drawRoundRect(lerp(tint, colours.field, if (layer == 0) DECK_TOP_MIX else DECK_LAYER_MIX), o, Size(half * 2, half * 2), radius)
-        drawRoundRect(tint.copy(alpha = if (layer == 0) 1f else DECK_EDGE_ALPHA), o, Size(half * 2, half * 2), radius, style = Stroke(u * DECK_EDGE))
+    val card = Size(w * 2, h * 2)
+    // A pile of cards, a little untidy; a plain drop shadow under each, no glow.
+    CbCardPile.cards.forEachIndexed { i, c ->
+        val top = i == CbCardPile.cards.lastIndex
+        val o = Offset(centre.x - w + c.dx * u, centre.y - h + c.dy * u)
+        rotate(c.degrees, Offset(o.x + w, o.y + h)) {
+            drawRoundRect(colours.tileSide.copy(alpha = CARD_SHADOW_ALPHA), o + Offset(u * CARD_SHADOW, u * CARD_SHADOW), card, radius)
+            drawRoundRect(lerp(tint, colours.field, if (top) CARD_FACE_MIX else CARD_BACK_MIX), o, card, radius)
+            drawRoundRect(tint, o, card, radius, style = Stroke(u * DECK_EDGE))
+            if (top) {
+                val inset = u * CARD_INSET
+                drawRoundRect(tint.copy(alpha = CARD_INNER_ALPHA), o + Offset(inset, inset), Size(card.width - inset * 2, card.height - inset * 2), CornerRadius(u * DECK_RADIUS / 2), style = Stroke(u * DECK_EDGE / 2))
+            }
+        }
     }
-    // Symbol and name (two words on two lines) kept inside the pile.
-    val room = half * 2 * DECK_TEXT_ROOM
-    val glyphLayout = fitText(measurer, glyph, TextStyle(color = tint, fontSize = (u * DECK_GLYPH).toSp(), fontWeight = FontWeight.Bold), room, room * DECK_GLYPH_SHARE, maxLines = 1)
-    val labelLayout = fitText(measurer, tileLines(label), TextStyle(color = tint, fontSize = (u * DECK_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), room, room * DECK_LABEL_SHARE)
-    drawLines(centre, 0f, listOf(glyphLayout, labelLayout))
+    // The top card's face: the symbol in a disc, the name underneath.
+    val emblem = centre - Offset(0f, h * EMBLEM_LIFT)
+    val disc = w * EMBLEM_SIZE
+    drawCircle(tint, disc, emblem)
+    val glyphLayout = fitText(measurer, glyph, TextStyle(color = colours.field, fontSize = (u * DECK_GLYPH).toSp(), fontWeight = FontWeight.Bold), disc * 2, disc * 2, maxLines = 1)
+    drawLines(emblem, 0f, listOf(glyphLayout))
+    val room = w * 2 * DECK_TEXT_ROOM
+    val labelLayout = fitText(measurer, tileLines(label), TextStyle(color = tint, fontSize = (u * DECK_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), room, h * LABEL_ROOM)
+    drawLines(centre + Offset(0f, h * LABEL_DROP), 0f, listOf(labelLayout))
 }
 
 private const val VERTICAL = -90f
@@ -281,17 +311,26 @@ private const val WINDOW_ALPHA = 0.6f
 private const val BUILDING_SHADOW = 0.03f
 private const val BUILDING_SHADE = 0.45f
 private const val DECK_RADIUS = 0.15f
-private const val DECK_LAYERS = 3
+private const val CARD_SHADOW = 0.06f
+private const val CARD_SHADOW_ALPHA = 0.6f
+private const val CARD_FACE_MIX = 0.78f
+private const val CARD_BACK_MIX = 0.35f
+private const val CARD_INSET = 0.12f
+private const val CARD_INNER_ALPHA = 0.55f
+private const val EMBLEM_LIFT = 0.22f
+private const val EMBLEM_SIZE = 0.42f
+private const val LABEL_DROP = 0.55f
+private const val LABEL_ROOM = 0.6f
+private const val CORNER_ICON = 0.5f
+private const val CORNER_ICON_LIFT = 0.28f
+private const val CORNER_TEXT_DROP = 0.3f
+private const val CORNER_TEXT_SHARE = 0.45f
+private const val BAND_ICON = 0.8f
 private const val DECK_STEP = 0.05f
-private const val DECK_TOP_MIX = 0.72f
-private const val DECK_LAYER_MIX = 0.4f
 private const val DECK_EDGE = 0.04f
-private const val DECK_EDGE_ALPHA = 0.7f
 private const val DECK_GLYPH = 0.55f
 private const val DECK_TEXT = 0.22f
 private const val DECK_TEXT_ROOM = 0.8f
-private const val DECK_GLYPH_SHARE = 0.45f
-private const val DECK_LABEL_SHARE = 0.45f
 private const val PAWN_BASE = 0.2f
 private const val PAWN_HEIGHT = 0.42f
 private const val PAWN_HEAD = 0.12f

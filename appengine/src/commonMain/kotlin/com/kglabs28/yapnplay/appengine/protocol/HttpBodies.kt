@@ -266,3 +266,31 @@ data class PlayGamesSignedIn(
     val secret: String,
     val restored: Boolean = false,
 )
+
+/** `POST /coins/ad-reward` body: a unique id per ad view (a random UUID). */
+@Serializable
+data class AdRewardBody(
+    val adId: String,
+)
+
+/** `POST /coins/ad-reward`: after a fully watched rewarded ad. [coins] is the new balance. */
+@Serializable
+data class CoinsReward(
+    val coins: Int,
+    val granted: Int,
+    val adsLeftToday: Int,
+)
+
+/** `GET /coins/leagues`: Quick Play leagues; [League.canEnter] is false when [coins] are short of the fee. */
+@Serializable
+data class Leagues(
+    val coins: Int,
+    val leagues: List<League>,
+)
+
+@Serializable
+data class League(
+    val entryCoins: Int,
+    val name: String,
+    val canEnter: Boolean,
+)

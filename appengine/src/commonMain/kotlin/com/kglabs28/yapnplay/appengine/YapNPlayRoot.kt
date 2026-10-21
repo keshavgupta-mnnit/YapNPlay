@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.SlidingTextHost
 import com.kglabs28.yapnplay.appengine.ui.components.common.UpdateGate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -62,6 +63,7 @@ fun YapNPlayRoot(
                 observeSignInNeeded().collect { signIn() }
             }
             // The app's own keyboard sits over everything, dialogs included.
+            SlidingTextHost {
             AppKeyboardHost {
             BlockingOverlayHost {
                 // An outdated app is stopped first (works offline too), then
@@ -75,6 +77,7 @@ fun YapNPlayRoot(
                         )
                     }
                 }
+            }
             }
             }
         }

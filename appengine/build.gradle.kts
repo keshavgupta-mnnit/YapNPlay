@@ -82,6 +82,8 @@ kotlin {
             implementation(libs.play.app.update)
             // Google Play Games sign-in (Clash of Clans style account restore).
             implementation(libs.play.games.v2)
+            // Rewarded ads (coins, lifting a play block).
+            implementation(libs.play.services.ads)
         }
     }
 }

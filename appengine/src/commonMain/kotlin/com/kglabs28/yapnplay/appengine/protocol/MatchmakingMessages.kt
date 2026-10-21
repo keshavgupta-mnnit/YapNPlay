@@ -13,10 +13,11 @@ import kotlinx.serialization.Serializable
 // A user can be in at most one queue, room countdown or match at a time.
 // ══════════════════════════════════════════════════════════════════════════
 
-/** Ask to be matched into a public game of [gameId]. */
+/** Ask to be matched into a public game of [gameId], in the league whose fee is [entryCoins] (0 = Starter, free). */
 @Serializable
 data class JoinQueue(
     val gameId: String,
+    val entryCoins: Int,
 )
 
 /** Stop searching. Ignored if the match was already formed. */
@@ -35,6 +36,7 @@ data class QueueStatus(
     val playersNeeded: Int,
     val searchDeadline: Long,
     val serverTime: Long,
+    val entryCoins: Int = 0,
 )
 
 /** The match is formed; open it and wait for its MatchSnapshot. */
@@ -44,6 +46,7 @@ data class MatchFound(
     val gameId: String,
     val humanPlayers: Int,
     val cpuPlayers: Int,
+    val entryCoins: Int = 0,
 )
 
 /** Searching ended without a match (e.g. too few humans and no CPU fill). */

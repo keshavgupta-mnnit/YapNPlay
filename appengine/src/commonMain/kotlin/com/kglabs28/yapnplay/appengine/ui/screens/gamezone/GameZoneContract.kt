@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.gamezone
 
+import com.kglabs28.yapnplay.appengine.ui.components.coins.LeaguePickerUi
+import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferUi
 import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
@@ -23,6 +25,10 @@ data class GameZoneState(
     val searchMessage: String? = null,
     /** Play is blocked after a recorded incident; offers a rewarded ad. */
     val penalty: PenaltyUi? = null,
+    /** Non-null while the league picker is open (before Quick Play). */
+    val leagues: LeaguePickerUi? = null,
+    /** Short of a league's fee: watch an ad for coins or play Starter. */
+    val coinsOffer: CoinsOfferUi? = null,
 ) : UiState
 
 /** The user's play block, ready to show. */
@@ -40,11 +46,18 @@ sealed interface GameZoneIntent : UiIntent {
     data object Load : GameZoneIntent
     data class FocusGame(val index: Int) : GameZoneIntent
     data object ToggleViewMode : GameZoneIntent
-    /** Start Quick Play for the game at [index] (carousel button or grid tile). */
+    /** Quick Play for the game at [index] (carousel button or grid tile): opens the league picker. */
     data class PlayGame(val index: Int) : GameZoneIntent
     data object CancelSearch : GameZoneIntent
     data object WatchAd : GameZoneIntent
     data object DismissPenalty : GameZoneIntent
+    /** A league row tapped: search in it, or the coins offer when it's locked. */
+    data class PickLeague(val entryCoins: Int) : GameZoneIntent
+    data object CloseLeagues : GameZoneIntent
+    data object WatchAdForCoins : GameZoneIntent
+    /** From the coins offer: play the free Starter league. */
+    data object PlayFree : GameZoneIntent
+    data object CloseCoinsOffer : GameZoneIntent
 }
 
 sealed interface GameZoneEffect : UiEffect {

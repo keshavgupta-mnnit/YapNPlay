@@ -61,11 +61,7 @@ fun ModalCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
-                BasicText(
-                    text = title,
-                    style = typography.title.copy(color = colors.TextPrimary),
-                    modifier = Modifier.weight(1f),
-                )
+                FitText(text = title, style = typography.title.copy(color = colors.TextPrimary), modifier = Modifier.weight(1f))
                 onClose?.let {
                     GlassIconButton(
                         imageVector = Icons.Rounded.Close,

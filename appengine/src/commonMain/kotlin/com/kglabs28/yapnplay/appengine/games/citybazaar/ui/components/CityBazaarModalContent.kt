@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components
 
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbEndVotePrompt
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
@@ -58,6 +59,7 @@ fun CityBazaarModalContent(
         is CbModal.Buy -> CbBuyPrompt(modal = modal, onNo = actions.onDecline, onYes = actions.onBuy, modifier = modifier)
         is CbModal.Build -> CbBuildPrompt(modal = modal, onNo = actions.onSkipBuild, onYes = actions.onConfirmBuild, modifier = modifier)
         is CbModal.ExtensionVote -> CbExtensionVotePrompt(modal = modal, onVote = actions.onVoteExtension, modifier = modifier)
+        is CbModal.EndVote -> CbEndVotePrompt(modal = modal, onVote = actions.onVoteEnd, modifier = modifier)
         is CbModal.JailRoll -> CbDialogFrame(
             title = CityBazaarStrings.cbJailTitle,
             accent = colors.Warning,
@@ -187,6 +189,8 @@ fun CityBazaarModalContent(
             moneyPopupsOn = modal.moneyPopupsOn,
             onToggleMoneyPopups = actions.onToggleMoneyPopups,
             onReport = actions.onOpenReport,
+            onEndGame = if (modal.canProposeEnd) actions.onProposeEnd else null,
+            endGameLabel = CityBazaarStrings.cbEndGameButton,
             onClose = actions.onDismiss,
             modifier = modifier,
         )

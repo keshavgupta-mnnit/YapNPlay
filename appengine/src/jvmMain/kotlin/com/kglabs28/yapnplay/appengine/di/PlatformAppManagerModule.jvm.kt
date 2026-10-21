@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.core.ads.RewardedAds
+import com.kglabs28.yapnplay.appengine.core.ads.NoRewardedAds
 import com.kglabs28.yapnplay.appengine.appmanager.NoRemoteConfigSource
 import com.kglabs28.yapnplay.appengine.appmanager.RemoteConfigSource
 import com.kglabs28.yapnplay.appengine.core.common.InMemoryTablePreferences
@@ -31,4 +33,5 @@ val platformAppManagerModule = module {
     single<AppVersionProvider> { JvmAppVersionProvider() }
     single<MicLevelMonitor> { SilentMicLevelMonitor() }
     single<VoiceEngine> { SilentVoiceEngine() }
+    single<RewardedAds> { NoRewardedAds() }
 }

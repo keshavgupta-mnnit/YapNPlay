@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import org.koin.android.ext.koin.androidApplication
+import com.kglabs28.yapnplay.appengine.core.ads.RewardedAds
+import com.kglabs28.yapnplay.appengine.core.ads.AdMobRewardedAds
 import com.kglabs28.yapnplay.appengine.appmanager.FirebaseRemoteConfigSource
 import com.kglabs28.yapnplay.appengine.appmanager.RemoteConfigSource
 import com.kglabs28.yapnplay.appengine.core.common.AndroidTablePreferences
@@ -21,7 +24,7 @@ import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceEngine
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
-/** Android platform services: local stores (SharedPreferences), game audio, the mic level and live voice. */
+/** Android platform services: local stores (SharedPreferences), game audio, the mic level, live voice and rewarded ads. */
 val platformAppManagerModule = module {
     single<AppConfigStore> { AndroidConfigStore(androidContext()) }
     single<NotificationHistoryStore> { AndroidNotificationHistoryStore(androidContext()) }
@@ -32,4 +35,5 @@ val platformAppManagerModule = module {
     single<AppVersionProvider> { AndroidAppVersionProvider(androidContext()) }
     single<MicLevelMonitor> { AndroidMicLevelMonitor(androidContext()) }
     single<VoiceEngine> { LiveKitVoiceEngine(androidContext()) }
+    single<RewardedAds> { AdMobRewardedAds(androidApplication(), get()) }
 }

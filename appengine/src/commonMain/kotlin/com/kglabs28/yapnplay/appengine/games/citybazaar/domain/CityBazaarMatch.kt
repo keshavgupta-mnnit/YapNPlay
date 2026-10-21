@@ -31,14 +31,20 @@ data class CityBazaarMatch(
     val round: Int,
     /** Rounds before the match ends on net worth, or null (off). */
     val roundLimit: Int?,
+    /** In debt, a bare city goes up for auction (house rule on) instead of straight to the bank. */
+    val debtAuction: Boolean = true,
     val netWorth: Map<Int, Int>,
     /** Seats from first to last once the match is over. */
     val ranking: List<Int>,
+    /** The coin pot of a paid league (0 for free games). */
+    val pot: Int = 0,
     val roomId: String? = null,
     val viewerUserId: String = "",
     /** Tile → all the rent it has earned so far. */
     val rentCollected: Map<Int, Int> = emptyMap(),
     val extensionVote: CityBazaarExtensionVoteInfo? = null,
+    /** The end-game vote while it runs. */
+    val endVote: CityBazaarEndVoteInfo? = null,
     val bank: CityBazaarBankInfo? = null,
 ) {
     val me: CityBazaarPlayer? get() = players.firstOrNull { it.isMe }

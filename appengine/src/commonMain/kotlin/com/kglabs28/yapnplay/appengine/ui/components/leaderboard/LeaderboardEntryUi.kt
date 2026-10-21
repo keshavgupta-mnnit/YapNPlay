@@ -15,4 +15,7 @@ data class LeaderboardEntryUi(
     val tint: Color,
     val isMe: Boolean,
     val micOn: Boolean = false,
+    val seat: Int = 0,
+    /** "+350 coins" once the server paid them; empty before (or for 0). */
+    val coins: String = "",
 )

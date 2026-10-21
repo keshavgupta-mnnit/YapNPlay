@@ -21,4 +21,6 @@ data class CityBazaarPlayer(
     val isCpu: Boolean = false,
     /** All the rent this player has collected so far. */
     val rentCollected: Int = 0,
+    /** All the rent this player has paid so far. */
+    val rentPaid: Int = 0,
 )

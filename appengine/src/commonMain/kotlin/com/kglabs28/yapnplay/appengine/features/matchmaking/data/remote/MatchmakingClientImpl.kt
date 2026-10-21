@@ -34,7 +34,7 @@ class MatchmakingClientImpl(
     private val realtime: RealtimeConnection,
 ) : MatchmakingClient {
 
-    override fun queue(gameId: String): Flow<MatchmakingMessage> = channelFlow {
+    override fun queue(gameId: String, entryCoins: Int): Flow<MatchmakingMessage> = channelFlow {
         var finished = false
         try {
             // Listen first so the first QueueStatus (sent right after the Ack) is not missed.
@@ -52,7 +52,7 @@ class MatchmakingClientImpl(
                     .collect { send(it) }
                 finished = true
             }
-            realtime.request(Channel.MATCHMAKING, MessageType.JOIN_QUEUE, JoinQueue.serializer(), JoinQueue(gameId))
+            realtime.request(Channel.MATCHMAKING, MessageType.JOIN_QUEUE, JoinQueue.serializer(), JoinQueue(gameId, entryCoins))
             listener.join()
         } finally {
             if (!finished) withContext(NonCancellable) { runCatching { leaveQueue() } }

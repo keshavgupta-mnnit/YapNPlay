@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.data.remote
 
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarEndVoteInfo
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarBankInfo
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarExtensionVoteInfo
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
@@ -57,6 +58,7 @@ class CityBazaarSnapshotMapper(private val json: Json) {
                     halfRent = wallet?.halfRent == true,
                     bankrupt = wallet?.bankrupt == true,
                     rentCollected = wallet?.rentCollected ?: 0,
+                    rentPaid = wallet?.rentPaid ?: 0,
                     isCpu = seat.cpu,
                     avatarId = seat.avatarId,
                 )
@@ -80,11 +82,14 @@ class CityBazaarSnapshotMapper(private val json: Json) {
             timeEndsAt = state.timeEndsAt?.let(toLocal),
             round = state.round,
             roundLimit = state.roundLimit,
+            debtAuction = state.debtAuction,
             netWorth = state.netWorth,
             ranking = state.ranking,
+            pot = snapshot.pot?.total ?: 0,
             roomId = snapshot.roomId,
             viewerUserId = myUserId,
             rentCollected = state.rentCollected,
+            endVote = snapshot.endVote?.let { CityBazaarEndVoteInfo(it.proposerSeat, toLocal(it.endsAt), it.voters, it.yes, it.no) },
             extensionVote = snapshot.extensionVote?.let { CityBazaarExtensionVoteInfo(toLocal(it.endsAt), it.extraRounds, it.extraMinutes, it.voters, it.yes, it.no) },
             bank = state.bank?.let { CityBazaarBankInfo(it.cash, it.received, it.paid) },
         )
@@ -118,5 +123,6 @@ class CityBazaarSnapshotMapper(private val json: Json) {
         is CityBazaarWireEvent.TurnPassed -> CityBazaarEvent.TurnPassed(seat)
         is CityBazaarWireEvent.Rested -> CityBazaarEvent.Rested(seat)
         is CityBazaarWireEvent.ExtensionVoted -> CityBazaarEvent.ExtensionVoted(continued, yes, voters)
+        is CityBazaarWireEvent.EndVoted -> CityBazaarEvent.EndVoted(ended, yes, voters)
     }
 }

@@ -7,7 +7,7 @@ import com.kglabs28.yapnplay.appengine.games.base.identity.GameIds
  * controls — the one place to look before changing anything remotely.
  * Read them through the module's helper (AppManagerHelper,
  * GamesAppManagerHelper, CityBazaarAppManagerHelper,
- * BackgroundsAppManagerHelper), never by name in feature code.
+ * AdsAppManagerHelper, BackgroundsAppManagerHelper), never by name in feature code.
  */
 object AppManagerKeys {
 
@@ -50,11 +50,18 @@ object AppManagerKeys {
         val CITY_BAZAAR_ART = ConfigKey("art_city_bazaar_url", "", "City Bazaar game art (pickers, leaderboard).")
     }
 
+    /** Rewarded ads (AdMob). Defaults are Google's TEST unit: swap in the real one from Remote Config. */
+    object Ads {
+        val ENABLED = ConfigKey("ads_enabled", true, "Rewarded ads (coins, lifting a play block) offered at all.")
+        val REWARDED_UNIT_ID = ConfigKey("ad_rewarded_unit_id", "ca-app-pub-3940256099942544/5224354917", "AdMob rewarded ad unit id (default: Google's test unit).")
+    }
+
     /** Every key with its default, for Remote Config's in-app defaults. */
     val all: List<ConfigKey<*>> = listOf(
         App.SERVER_BASE_URL, App.UPDATE_CONFIG, App.VOICE_ENABLED, App.PARTY_CHAT_ENABLED, App.MAX_ROOMS_PER_USER, App.PLAY_STORE_URL,
         Games.ROYAL_LUDO_ENABLED, Games.CITY_BAZAAR_ENABLED, Games.TURN_HURRY_SECONDS,
         CityBazaar.MONEY_POPUPS_DEFAULT, CityBazaar.EVENT_BREATH_MS, CityBazaar.EVENT_BREATH_MAX_MS, CityBazaar.POPUP_MS, CityBazaar.SNACKBAR_MS,
+        Ads.ENABLED, Ads.REWARDED_UNIT_ID,
         Backgrounds.HOME, Backgrounds.LEADERBOARD, Backgrounds.GAME_ZONE_CARD, Backgrounds.FRIEND_ZONE_CARD, Backgrounds.ROYAL_LUDO_ART, Backgrounds.CITY_BAZAAR_ART,
     )
 

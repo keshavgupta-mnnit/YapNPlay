@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.home
 
+import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
@@ -17,6 +18,8 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.HomeLogoArtwork
 @Composable
 fun HomeCenterLogo(
     modifier: Modifier = Modifier,
+    logoWidth: Dp = YapNPlayTheme.dimens.logoWidth,
+    logoHeight: Dp = YapNPlayTheme.dimens.logoHeight,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -26,7 +29,7 @@ fun HomeCenterLogo(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         HomeLogoArtwork(
-            modifier = Modifier.size(width = dimens.logoWidth, height = dimens.logoHeight),
+            modifier = Modifier.size(width = logoWidth, height = logoHeight),
             contentDescription = Strings.homeLogoTitle,
         )
         BasicText(

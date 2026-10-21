@@ -15,6 +15,8 @@ object BackendPaths {
     const val ONLINE_STATS = "/stats/online"
     const val CLEAR_PENALTY_WITH_AD = "/penalties/clear-with-ad"
     const val ACTIVE_MATCH = "/matches/active"
+    const val AD_REWARD = "/coins/ad-reward"
+    const val LEAGUES = "/coins/leagues"
     const val WEB_SOCKET = "/ws"
 
     fun roomPreview(code: String) = "/rooms/preview/$code"

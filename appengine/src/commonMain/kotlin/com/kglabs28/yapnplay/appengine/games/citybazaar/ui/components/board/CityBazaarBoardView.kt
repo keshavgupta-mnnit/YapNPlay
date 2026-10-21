@@ -41,6 +41,7 @@ fun CityBazaarBoardView(
 ) {
     val colours = cityBazaarBoardColours()
     val measurer = rememberTextMeasurer()
+    val icons = rememberCbTileIcons()
     val spots = tokens.map { token ->
         key(token.seat) { animateTokenSpot(token.seat, token.tile, CityBazaarTokenLayout.target(token, tokens)) to (colours.players[token.colour] ?: colours.text) }
     }
@@ -53,7 +54,7 @@ fun CityBazaarBoardView(
                     .fillMaxSize()
                     .pointerInput(projection) { detectTapGestures { point -> projection.deckAt(point)?.let(onDeckClick) ?: projection.tileAt(point)?.let(onTileClick) } },
             ) {
-                drawCityBazaarIsoBoard(projection, colours, tiles, measurer, highlight)
+                drawCityBazaarIsoBoard(projection, colours, tiles, measurer, highlight, icons)
                 drawCityBazaarIsoTokens(projection, spots)
             }
             projection.diceRects()
@@ -64,7 +65,7 @@ fun CityBazaarBoardView(
                     .fillMaxSize()
                     .pointerInput(projection) { detectTapGestures { point -> projection.deckAt(point)?.let(onDeckClick) ?: projection.tileAt(point)?.let(onTileClick) } },
             ) {
-                drawCityBazaarFlatBoard(projection, colours, tiles, measurer, highlight)
+                drawCityBazaarFlatBoard(projection, colours, tiles, measurer, highlight, icons)
                 drawCityBazaarFlatTokens(projection, spots)
             }
             projection.diceRects()

@@ -61,8 +61,8 @@ fun RoyalLudoMatchScreen(
     val micPermission = rememberPermissionRequester(AppPermission.MICROPHONE)
     val dice = rememberGlassDiceState()
     val share = rememberShareSheet()
-    // Back at the table is the same as the exit button (asks first).
-    BlockBackPress(enabled = true, onBack = { send(RoyalLudoMatchIntent.ExitClicked) })
+    // Back at the table is the same as the exit button (asks first); once the leaderboard is up the match is over, so back just leaves.
+    BlockBackPress(enabled = true, onBack = { send(if (state.leaderboard != null) RoyalLudoMatchIntent.Done else RoyalLudoMatchIntent.ExitClicked) })
     LaunchedEffect(viewModel, matchId) {
         viewModel?.onIntent(RoyalLudoMatchIntent.Load(matchId))
         viewModel?.effects?.collect { effect ->

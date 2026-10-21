@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper
 
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarEndVoteInfo
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
@@ -70,6 +71,25 @@ object CbPromptMapper {
         )
     }
 
+    /** The end-game vote as the user sees it: buttons if they may vote and haven't yet. */
+    fun endVote(match: CityBazaarMatch, vote: CityBazaarEndVoteInfo, countdown: String): CbModal.EndVote {
+        val seat = match.me?.seat
+        val eligible = seat != null && seat in vote.voters
+        val votedYes = seat != null && seat in vote.yes
+        val votedNo = seat != null && seat in vote.no
+        return CbModal.EndVote(
+            body = CityBazaarStrings.cbEndVoteBody(match.player(vote.proposerSeat)?.name.orEmpty()),
+            tally = CityBazaarStrings.cbEndVoteTally(vote.yes.size, vote.voters.size),
+            status = when {
+                !eligible -> CityBazaarStrings.cbEndVoteWatching
+                votedYes || votedNo -> CityBazaarStrings.cbEndVoteYouVoted(votedYes)
+                else -> null
+            },
+            canVote = eligible && !votedYes && !votedNo,
+            countdown = countdown,
+        )
+    }
+
     /** "30 rounds" or "15 minutes", by which limit was hit. */
     fun extraLabel(vote: CityBazaarExtensionVoteInfo?): String = when {
         vote?.extraMinutes != null -> CityBazaarStrings.cbExtraMinutes(vote.extraMinutes)
@@ -95,8 +115,8 @@ object CbPromptMapper {
             rentLand = if (spec.kind == TileKind.CITY) CbFormat.rupees(spec.rents[0]) else null,
             rentHouse = if (spec.kind == TileKind.CITY) CbFormat.rupees(spec.rents[1]) else null,
             price = CbFormat.rupees(spec.price),
-            // The rents that matter when buying: land and with 1 house (a company: alone).
-            rates = CbPropertyMapper.rates(tile, null).mapIndexed { i, row -> row.copy(highlighted = i <= if (spec.kind == TileKind.CITY) 1 else 0) },
+            // One highlighted tier: the rent it earns right after buying (land; a company alone).
+            rates = CbPropertyMapper.rates(tile, 0),
             costs = costRows(tile),
             cash = CbFormat.rupees(me.cash),
             cost = CbFormat.minus(spec.price),
@@ -144,7 +164,13 @@ object CbPromptMapper {
 
     fun jailChoice(me: CityBazaarPlayer, countdown: String): CbModal.JailChoice = CbModal.JailChoice(me.cash >= JAIL_FINE, countdown)
 
-    /** What the user can sell: the top building of each built city (hotel first), or bare cities. */
+    /**
+     * What the user can sell to pay a debt, one step per city in reverse of
+     * building: a built city offers its top building to the bank (a hotel
+     * goes back to 3 houses, then house by house); a bare city offers itself
+     * (up for auction under the house rule, else to the bank). The user picks
+     * any city's step.
+     */
     fun assets(match: CityBazaarMatch, seat: Int): List<CbAssetUi> =
         match.owners.filter { it.value == seat }.keys.sorted().map { tile ->
             val spec = CityBazaarBoard.tile(tile)
@@ -152,7 +178,8 @@ object CbPromptMapper {
             if (level > 0) {
                 CbAssetUi(BUILDING + tile, tile, spec.name, spec.group, spec.kind, if (level >= HOTEL_LEVEL) CityBazaarStrings.cbSellHotel else CityBazaarStrings.cbSellHouse, CbFormat.plus(spec.buildCost / RESALE_DIVISOR))
             } else {
-                CbAssetUi(TILE + tile, tile, spec.name, spec.group, spec.kind, CityBazaarStrings.cbSellProperty, CbFormat.plus(spec.price / RESALE_DIVISOR))
+                val label = if (match.debtAuction) CityBazaarStrings.cbAuctionProperty else CityBazaarStrings.cbSellProperty
+                CbAssetUi(TILE + tile, tile, spec.name, spec.group, spec.kind, label, CbFormat.plus(spec.price / RESALE_DIVISOR))
             }
         }
 

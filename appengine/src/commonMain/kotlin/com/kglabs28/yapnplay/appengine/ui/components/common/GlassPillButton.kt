@@ -49,7 +49,7 @@ fun GlassPillButton(
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterHorizontally),
     ) {
         leadingIcon?.let { AppIcon(imageVector = it, tint = contentColor, size = iconSize) }
-        BasicText(text = text, style = textStyle.copy(color = contentColor), maxLines = 1)
+        FitText(text = text, style = textStyle.copy(color = contentColor), modifier = Modifier.weight(1f, fill = false))
         trailingIcon?.let { AppIcon(imageVector = it, tint = contentColor, size = iconSize) }
     }
 }

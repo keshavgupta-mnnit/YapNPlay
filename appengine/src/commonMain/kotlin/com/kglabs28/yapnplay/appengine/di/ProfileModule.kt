@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.CollectDailyBonusUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveDailyBonusUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.data.ProfileRepositoryImpl
 import com.kglabs28.yapnplay.appengine.features.profile.data.local.ProfileLocalManager
 import com.kglabs28.yapnplay.appengine.features.profile.data.remote.ProfileApi
@@ -36,6 +38,8 @@ val profileModule = module {
     factory { GetHomeScreenDataUseCase(get()) }
     factory { GetProfileScreenDataUseCase(get()) }
     factory { ObserveMyProfileUseCase(get()) }
+    factory { ObserveDailyBonusUseCase(get()) }
+    factory { CollectDailyBonusUseCase(get()) }
     factory { UpdateProfileUseCase(get()) }
     factory { SendFriendRequestUseCase(get()) }
     factory { RespondToFriendRequestUseCase(get()) }

@@ -78,8 +78,8 @@ object CbTableMapper {
             val cpuPlays = p.isCpu || p.presence == CityBazaarPresence.BOT
             CbPlayerCardUi(
                 seat = p.seat,
-                name = if (cpuPlays && !p.isCpu) TableStrings.seatBot else p.name,
-                avatarId = if (cpuPlays && !p.isCpu) AvatarPresets.CPU else p.avatarId,
+                name = if (cpuPlays && !p.isCpu && !p.isMe) TableStrings.seatBot else p.name,
+                avatarId = if (cpuPlays && !p.isCpu && !p.isMe) AvatarPresets.CPU else p.avatarId,
                 // CPUs have no level.
                 level = if (cpuPlays) "" else p.level.toString(),
                 colour = p.colour,

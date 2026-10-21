@@ -75,8 +75,8 @@ object LudoMatchUiMapper {
             LudoPlayerCardUi(
                 seat = player.seat,
                 userId = player.userId,
-                name = if (cpuPlays && !player.isCpu) TableStrings.seatBot else player.name,
-                avatarId = if (cpuPlays && !player.isCpu) AvatarPresets.CPU else player.avatarId,
+                name = if (cpuPlays && !player.isCpu && !player.isMe) TableStrings.seatBot else player.name,
+                avatarId = if (cpuPlays && !player.isCpu && !player.isMe) AvatarPresets.CPU else player.avatarId,
                 // CPUs have no level.
                 level = if (cpuPlays) "" else player.level.toString(),
                 colour = player.colour,
@@ -201,6 +201,7 @@ object LudoMatchUiMapper {
                     micOn = p.micOn,
                     tint = Color.Unspecified,
                     isMe = p.isMe,
+                    seat = seat,
                 )
             }
         }

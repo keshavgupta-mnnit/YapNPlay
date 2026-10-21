@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferUi
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
@@ -32,6 +33,8 @@ data class MainState(
     val notificationsOpen: Boolean = false,
     /** A match the user still has a seat in: "Rejoin?" dialog; null when none. */
     val rejoin: RejoinUi? = null,
+    /** The coins "+": watch an ad for free coins; null when closed. */
+    val coinsOffer: CoinsOfferUi? = null,
 ) : UiState
 
 /** The "your game is still on" dialog. */
@@ -59,6 +62,10 @@ sealed interface MainIntent : UiIntent {
     data class NotificationClicked(val roomId: String) : MainIntent
     data object Rejoin : MainIntent
     data object DismissRejoin : MainIntent
+    /** The coins "+" in the top bar. */
+    data object OpenGetCoins : MainIntent
+    data object WatchAdForCoins : MainIntent
+    data object CloseGetCoins : MainIntent
 }
 
 sealed interface MainEffect : UiEffect {

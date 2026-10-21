@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.leaderboard
 
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.platform.LocalDensity
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.background
@@ -31,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -84,15 +86,15 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
             Row(modifier = Modifier.weight(1f).fillMaxWidth().padding(start = Spacing.Md, end = Spacing.Md, top = Spacing.Xs)) {
                 // Logo, then the podium.
                 Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                    HomeCenterLogo()
+                    HomeCenterLogo(logoWidth = dimens.boardLogoWidth, logoHeight = dimens.boardLogoLogoHeight)
                     Row(
                         modifier = Modifier.weight(1f).fillMaxWidth().padding(start = dimens.boardGameArt, bottom = Spacing.Xs),
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterHorizontally),
                     ) {
-                        podium.getOrNull(1)?.let { PodiumSpot(entry = it, medal = colors.AvatarRingSilver, avatarSize = dimens.boardAvatar, baseHeight = dimens.boardBaseSecond) }
-                        podium.getOrNull(0)?.let { PodiumSpot(entry = it, medal = colors.Gold, avatarSize = dimens.boardAvatarFirst, baseHeight = dimens.boardBaseFirst) }
-                        podium.getOrNull(2)?.let { PodiumSpot(entry = it, medal = colors.Warning, avatarSize = dimens.boardAvatar, baseHeight = dimens.boardBaseThird) }
+                        podium.getOrNull(1)?.let { PodiumSpot(entry = it, medal = colors.MedalSilver, avatarSize = dimens.boardAvatar, baseHeight = dimens.boardBaseSecond) }
+                        podium.getOrNull(0)?.let { PodiumSpot(entry = it, medal = colors.MedalGold, avatarSize = dimens.boardAvatarFirst, baseHeight = dimens.boardBaseFirst) }
+                        podium.getOrNull(2)?.let { PodiumSpot(entry = it, medal = colors.MedalBronze, avatarSize = dimens.boardAvatar, baseHeight = dimens.boardBaseThird) }
                     }
                 }
                 // LEADERBOARD panel: 4th onwards.
@@ -134,21 +136,15 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.Md),
                 ) {
-                    // The game's art, tilted and glowing, lifting out of the bar.
-                    Box(
-                        modifier = Modifier
-                            .offset(y = -dimens.boardGameArt / LIFT_DIVISOR)
-                            .size(dimens.boardGameArt)
-                            .rotate(ART_TILT)
-                            .shadow(elevation = dimens.promptGlow, shape = RoundedCornerShape(dimens.cardRadius), ambientColor = colors.SocialZoneAccent, spotColor = colors.SocialZoneAccent)
-                            .clip(RoundedCornerShape(dimens.cardRadius))
-                            .border(dimens.promptRim, Brush.linearGradient(listOf(colors.SocialZoneAccent, colors.Cyan)), RoundedCornerShape(dimens.cardRadius)),
-                    ) { gameArt(Modifier.fillMaxSize()) }
-                    // SHARE THIS: a picture of this screen with the app link.
+                    // The game's logo, big and lifting out of the bar, with its name (as in the room).
+                    gameArt(Modifier.offset(y = -dimens.boardGameLogo / LIFT_DIVISOR).size(dimens.boardGameLogo))
+                    GameNameTitle(name = board.game)
+                    // SHARE THIS: a picture of this screen with the app link; glowing green.
                     Row(
                         modifier = Modifier
                             .width(dimens.boardButtonWidth)
                             .height(dimens.neonButtonHeight)
+                            .shadow(elevation = dimens.neonButtonGlow, shape = CircleShape, ambientColor = colors.LiveGreen, spotColor = colors.LiveGreen)
                             .clip(CircleShape)
                             .background(Color.Black.copy(alpha = SHARE_FILL))
                             .border(dimens.promptRim, colors.LiveGreen, CircleShape)
@@ -168,6 +164,15 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                             },
                             style = typography.label.copy(color = colors.TextSecondary),
                         )
+                        if (board.myCoins.isNotEmpty()) {
+                            BasicText(
+                                text = buildAnnotatedString {
+                                    append(TableStrings.leaderboardCoinsGained)
+                                    withStyle(SpanStyle(color = colors.Gold, fontWeight = FontWeight.Bold)) { append(board.myCoins) }
+                                },
+                                style = typography.label.copy(color = colors.TextSecondary),
+                            )
+                        }
                         if (board.myExp.isNotEmpty()) {
                             BasicText(
                                 text = buildAnnotatedString {
@@ -208,5 +213,20 @@ private const val PANEL_TOP = 0.10f
 private const val PANEL_BOTTOM = 0.05f
 private const val PANEL_RIM = 0.18f
 private const val SHARE_FILL = 0.45f
-private const val LIFT_DIVISOR = 6
-private const val ART_TILT = -6f
+private const val LIFT_DIVISOR = 5
+
+/** The game's name: white over a glowing accent outline, like the room's game title. */
+@Composable
+private fun GameNameTitle(name: String, modifier: Modifier = Modifier) {
+    val colors = YapNPlayTheme.colors
+    val style = YapNPlayTheme.typography.title
+    val outlinePx = with(LocalDensity.current) { YapNPlayTheme.dimens.titleOutline.toPx() }
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        BasicText(
+            text = name,
+            style = style.copy(color = colors.StageAccent, fontWeight = FontWeight.Black, drawStyle = Stroke(width = outlinePx), shadow = Shadow(color = colors.StageAccent, blurRadius = style.fontSize.value)),
+            maxLines = 1,
+        )
+        BasicText(text = name, style = style.copy(color = colors.TextPrimary, fontWeight = FontWeight.Black), maxLines = 1)
+    }
+}

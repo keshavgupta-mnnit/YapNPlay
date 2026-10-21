@@ -46,6 +46,8 @@ fun AppTopBar(
     onNotificationClick: (roomId: String) -> Unit = {},
     avatarId: String = "",
     onOpenProfile: () -> Unit = {},
+    /** The coins "+": free coins for an ad. */
+    onAddCoins: () -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -89,6 +91,7 @@ fun AppTopBar(
                 levelProgress = levelProgress,
                 xpLabel = xpLabel,
                 balancesVisible = profileLoaded,
+                onAddCoins = onAddCoins,
                 modifier = Modifier.padding(end = Spacing.Xxs),
             )
             NotificationsBell(

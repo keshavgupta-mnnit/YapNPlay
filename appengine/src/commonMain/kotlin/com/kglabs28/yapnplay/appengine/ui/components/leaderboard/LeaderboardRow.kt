@@ -40,6 +40,7 @@ fun LeaderboardRow(entry: LeaderboardEntryUi, modifier: Modifier = Modifier) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
             BasicText(text = entry.name.uppercase(), style = typography.label.copy(color = if (entry.isMe) colors.Cyan else Color.White, fontWeight = FontWeight.Black), maxLines = 1, overflow = TextOverflow.Ellipsis)
             BasicText(text = entry.score, style = typography.label.copy(color = colors.Cyan, fontWeight = FontWeight.Bold))
+            if (entry.coins.isNotEmpty()) BasicText(text = entry.coins, style = typography.label.copy(color = colors.Gold, fontWeight = FontWeight.Bold))
             LeaderboardTitleChip(title = entry.title, place = entry.place)
         }
     }

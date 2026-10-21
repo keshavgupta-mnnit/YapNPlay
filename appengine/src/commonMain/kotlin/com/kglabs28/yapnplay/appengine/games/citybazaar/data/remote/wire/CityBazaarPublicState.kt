@@ -22,6 +22,8 @@ data class CityBazaarPublicState(
     /** When the match time limit ends; null when off. */
     val timeEndsAt: Long? = null,
     val round: Int,
+    /** House rule debt_auction: in debt, a bare city goes up for auction (false: straight to the bank). */
+    val debtAuction: Boolean = true,
     val roundLimit: Int? = null,
     val netWorth: Map<Int, Int>,
     /** Seats from first to last once the match is over. */
@@ -43,6 +45,8 @@ data class CityBazaarSeatState(
     val bankrupt: Boolean,
     /** All the rent this player has collected so far this match. */
     val rentCollected: Int = 0,
+    /** All the rent this player has paid so far (club / rest house payments not included). */
+    val rentPaid: Int = 0,
 )
 
 /** What the current player owes but can't pay yet. [reason] is a MoneyReason name. */

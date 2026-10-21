@@ -58,13 +58,15 @@ fun YourRoomsPanel(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-                // Group invites waiting: red glow while there are any.
-                GlassPillButton(
-                    text = RoomStrings.roomsInvites(invitesCount),
-                    onClick = onInvites,
-                    leadingIcon = Icons.Rounded.Mail,
-                    accent = if (invitesCount > 0) colors.Error else colors.SocialZoneAccent,
-                )
+                // Group invites waiting: shown (glowing red) only while there are any.
+                if (invitesCount > 0) {
+                    GlassPillButton(
+                        text = RoomStrings.roomsInvites(invitesCount),
+                        onClick = onInvites,
+                        leadingIcon = Icons.Rounded.Mail,
+                        accent = colors.Error,
+                    )
+                }
                 GlassPillButton(
                     text = RoomStrings.roomsSeeAll,
                     onClick = onSeeAll,

@@ -63,6 +63,7 @@ object CityBazaarStrings {
     const val cbSellHouse = "Sell 1 house"
     const val cbSellHotel = "Sell the hotel"
     const val cbSellProperty = "Sell city"
+    const val cbAuctionProperty = "Auction city"
     fun cbSelectedValue(selected: String, needed: String) = "Selected value: $selected / $needed needed"
     const val cbSellAndPay = "Sell & Pay"
     const val cbAuction = "Auction"
@@ -156,6 +157,16 @@ object CityBazaarStrings {
     fun cbExtendTally(yes: Int, total: Int) = "Votes to continue: $yes of $total"
     fun cbExtendYouVoted(keepPlaying: Boolean) = if (keepPlaying) "You voted to continue. Waiting for the others..." else "You voted to end. Waiting for the others..."
     const val cbExtendWatching = "The players are deciding whether to keep playing..."
+    const val cbEndGameButton = "End game (vote)"
+    const val cbEndVoteTitle = "END THE GAME?"
+    fun cbEndVoteBody(proposer: String) = "$proposer wants to end the game now. The richest player wins. It ends if more than half of the players agree."
+    fun cbEndVoteTally(yes: Int, total: Int) = "Votes to end: $yes of $total"
+    const val cbEndVoteEnd = "End game"
+    const val cbEndVoteKeep = "Keep playing"
+    fun cbEndVoteYouVoted(agree: Boolean) = if (agree) "You voted to end. Waiting for the others..." else "You voted to keep playing. Waiting for the others..."
+    const val cbEndVoteWatching = "The players are deciding whether to end the game..."
+    fun cbFeedEndVoted(yes: Int, voters: Int) = "The game was ended by vote ($yes of $voters)"
+    fun cbFeedEndRejected(yes: Int, voters: Int) = "The game goes on: only $yes of $voters voted to end"
     fun cbFeedExtended(extra: String, yes: Int, total: Int) = "Players voted to keep playing: $extra more ($yes of $total)"
     fun cbFeedNotExtended(yes: Int, total: Int) = "Players voted to end the game ($yes of $total to continue)"
 
@@ -165,7 +176,7 @@ object CityBazaarStrings {
     const val cbBankUnknown = "—"
 
     // Titles by finishing place, until the server hands them out.
-    val cbPlaceTitles = listOf("🔥 Chaos King", "🎙️ Yap Machine", "💸 Vasooli Bhai", "🃏 Card Hoarder", "🎲 Pure Luck", "👀 Pro Spectator")
+    val cbPlaceTitles = listOf("👑 Bazaar Baadshah", "🏙️ Property Shark", "💸 Vasooli Bhai", "🧾 Rent Bharne Wala", "🎲 Pure Luck", "🪙 Kadka")
     const val cbLandedOn = "LANDED ON "
     const val cbUpgradeProperty = "UPGRADE PROPERTY: "
     fun cbBuyHeadline(land: String, house: String) = "Rent $land  ·  with 1 house $house"
@@ -305,4 +316,5 @@ object CityBazaarStrings {
     // Rent a property (and a player) has collected so far.
     fun cbRentCollected(amount: String) = "Rent collected: $amount"
     const val cbRentCollectedLabel = "Rent collected"
+    const val cbRentPaidTotalLabel = "Rent paid"
 }

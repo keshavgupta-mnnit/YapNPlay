@@ -19,6 +19,9 @@ sealed interface CityBazaarCommand {
     data object DeclareBankruptcy : CityBazaarCommand
     /** The round limit is reached: vote to play more rounds (true) or end (false). */
     data class VoteExtension(val keepPlaying: Boolean) : CityBazaarCommand
+    /** Ask everyone to end the game now. */
+    data object ProposeEnd : CityBazaarCommand
+    data class VoteEnd(val agree: Boolean) : CityBazaarCommand
     data class SetAutoplay(val enabled: Boolean) : CityBazaarCommand
     data class SetMic(val on: Boolean) : CityBazaarCommand
     /** The app went to the background (true) or came back (false). */

@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.clickable
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.draw.clip
@@ -46,6 +49,7 @@ fun AppCurrenciesPill(
     xpLabel: String,
     balancesVisible: Boolean,
     modifier: Modifier = Modifier,
+    onAddCoins: () -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -63,23 +67,27 @@ fun AppCurrenciesPill(
             iconTint = colors.Gold,
             balance = coinBalance,
             visible = balancesVisible,
+            onAdd = onAddCoins,
         )
-        // Level: a star, "Lv 3" and a thin bar filling towards the next level.
-        Column(modifier = Modifier.revealWhen(balancesVisible), horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
-                // The level number inside the app's hexagon badge.
-                Box(
-                    modifier = Modifier
-                        .size(dimens.levelHexagon)
-                        .background(Brush.verticalGradient(listOf(colors.Gold, colors.Warning)), YapNPlayTheme.shapes.hexagon),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    BasicText(text = level, style = YapNPlayTheme.typography.micro.copy(fontWeight = FontWeight.Black, color = colors.Background))
-                }
-                BasicText(text = xpLabel, style = YapNPlayTheme.typography.micro.copy(fontWeight = FontWeight.SemiBold, color = colors.TextPrimary))
+        // Level: the hexagon shield, then the XP text over a bar as wide as the text.
+        Row(
+            modifier = Modifier.revealWhen(balancesVisible),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(dimens.levelHexagon)
+                    .background(Brush.verticalGradient(listOf(colors.Gold, colors.Warning)), YapNPlayTheme.shapes.hexagon),
+                contentAlignment = Alignment.Center,
+            ) {
+                BasicText(text = level, style = YapNPlayTheme.typography.micro.copy(fontWeight = FontWeight.Black, color = colors.Background))
             }
-            Box(Modifier.fillMaxWidth().height(dimens.levelBarHeight).clip(CircleShape).background(colors.TopBarIcon.copy(alpha = LEVEL_TRACK))) {
-                Box(Modifier.fillMaxHeight().fillMaxWidth(levelProgress).background(Brush.horizontalGradient(listOf(colors.Gold, colors.LiveGreen)), CircleShape))
+            Column(modifier = Modifier.width(IntrinsicSize.Max), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
+                BasicText(text = xpLabel, style = YapNPlayTheme.typography.micro.copy(fontWeight = FontWeight.SemiBold, color = colors.TextPrimary), maxLines = 1)
+                Box(Modifier.fillMaxWidth().height(dimens.levelBarHeight).clip(CircleShape).background(colors.TopBarIcon.copy(alpha = LEVEL_TRACK))) {
+                    Box(Modifier.fillMaxHeight().fillMaxWidth(levelProgress).background(Brush.horizontalGradient(listOf(colors.Gold, colors.LiveGreen)), CircleShape))
+                }
             }
         }
     }
@@ -91,13 +99,14 @@ private fun CurrencyBalance(
     iconTint: Color,
     balance: String,
     visible: Boolean,
+    onAdd: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
 
     Row(
-        modifier = modifier,
+        modifier = modifier.clickable(role = Role.Button, onClick = onAdd),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {

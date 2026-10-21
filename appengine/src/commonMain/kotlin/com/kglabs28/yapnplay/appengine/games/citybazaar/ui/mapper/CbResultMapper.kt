@@ -66,6 +66,7 @@ object CbResultMapper {
                     micOn = p.micOn,
                     tint = Color.Unspecified,
                     isMe = p.isMe,
+                    seat = seat,
                 )
             }
         }

@@ -17,6 +17,13 @@ interface ProfileRepository {
     /** The user as last loaded or edited (null before the first load). */
     val profile: StateFlow<UserProfile?>
 
+    /**
+     * Today's daily bonus once the server granted it (on whichever /me call
+     * came first), until the user collects it on Home; 0 otherwise.
+     */
+    val pendingDailyBonus: StateFlow<Int>
+    fun collectDailyBonus()
+
     suspend fun fetchProfileData(): AppResult<UserProfile>
     suspend fun updateProfile(name: String? = null, username: String? = null, avatarId: String? = null): AppResult<UserProfile>
     suspend fun getFriendList(): AppResult<List<Friend>>

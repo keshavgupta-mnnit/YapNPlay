@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardCoins
+import com.kglabs28.yapnplay.appengine.features.matchresult.domain.SeatCoins
+import com.kglabs28.yapnplay.appengine.features.matchresult.usecase.ObserveMatchCoinsUseCase
+import com.kglabs28.yapnplay.appengine.core.common.TextUtils
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbFormat
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbNoticeMapper
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbPromptMapper
@@ -93,6 +97,7 @@ class CityBazaarMatchViewModel(
     private val cbConfig: CityBazaarAppManagerHelper,
     private val appConfig: AppManagerHelper,
     private val gamesConfig: GamesAppManagerHelper,
+    private val observeMatchCoins: ObserveMatchCoinsUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<CityBazaarMatchState, CityBazaarMatchIntent, CityBazaarMatchEffect>(CityBazaarMatchState(), dispatchers) {
@@ -145,6 +150,8 @@ class CityBazaarMatchViewModel(
     private var startAnnounced = false
     private var waitAnnounced = false
     private var leaderboard: LeaderboardUi? = null
+    /** The coins MatchEnded paid (it arrives just after the last snapshot). */
+    private var seatCoins: List<SeatCoins> = emptyList()
     /** The deck of the last card drawn (its money event names it). */
     private var lastDeck: String? = null
     private var lastCardText: String? = null
@@ -242,6 +249,11 @@ class CityBazaarMatchViewModel(
             CityBazaarMatchIntent.DismissFriendAction -> setState { copy(friendAction = null) }
             CityBazaarMatchIntent.OpenBank -> showPanel(bank = true)
             is CityBazaarMatchIntent.VoteExtension -> send(CityBazaarCommand.VoteExtension(intent.keepPlaying))
+            CityBazaarMatchIntent.ProposeEnd -> {
+                showModal(null)
+                send(CityBazaarCommand.ProposeEnd)
+            }
+            is CityBazaarMatchIntent.VoteEnd -> send(CityBazaarCommand.VoteEnd(intent.agree))
             CityBazaarMatchIntent.OpenHistory -> {
                 historyOpen = true
                 render()
@@ -303,6 +315,7 @@ class CityBazaarMatchViewModel(
                 }
             },
             scope.launch { for (update in queue) play(update) },
+            scope.launch { observeMatchCoins().collect { seatCoins = it; leaderboard = leaderboard?.let { b -> LeaderboardCoins.withCoins(b, it) }; render() } },
             scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
             scope.launch { observeMySpeaking().collect { mySpeaking = it; render() } },
             scope.launch { observeMicOn().collect { micSwitch = it; syncMic() } },
@@ -531,7 +544,7 @@ class CityBazaarMatchViewModel(
         }
         if (justFinished) {
             sound(GameSound.WIN)
-            leaderboard = CbResultMapper.leaderboard(newMatch, CbFormat.elapsed(clock.now() - newMatch.startedAt)).copy(shareLink = appConfig.playStoreUrl())
+            leaderboard = CbResultMapper.leaderboard(newMatch, CbFormat.elapsed(clock.now() - newMatch.startedAt)).copy(shareLink = appConfig.playStoreUrl()).let { LeaderboardCoins.withCoins(it, seatCoins) }
         }
         render()
     }
@@ -581,7 +594,9 @@ class CityBazaarMatchViewModel(
         val extension = m.extensionVote?.takeIf { m.phase == CityBazaarTurnPhase.EXTENSION_VOTE && !playing }?.let {
             CbPromptMapper.extensionVote(m, it, CbFormat.countdown((it.endsAt - now).inWholeSeconds.coerceAtLeast(0)))
         }
-        val modal = vote?.let { CityBazaarModerationUiMapper.vote(it, now) } ?: auction ?: extension ?: decision ?: userModal
+        // Someone asked to end the game: everyone sees it while play is paused.
+        val endVote = m.endVote?.let { CbPromptMapper.endVote(m, it, CbFormat.countdown((it.endsAt - now).inWholeSeconds.coerceAtLeast(0))) }
+        val modal = vote?.let { CityBazaarModerationUiMapper.vote(it, now) } ?: endVote ?: auction ?: extension ?: decision ?: userModal
         val panel = panelTile?.let { CbPropertyMapper.tileInfo(m, it) }
             ?: panelSeat?.let { CbPropertyMapper.playerPanel(m, it, shownCash[it] ?: 0) }
             ?: panelDeck?.let { CbPropertyMapper.cardTable(it) }
@@ -591,7 +606,8 @@ class CityBazaarMatchViewModel(
             copy(
                 loaded = true,
                 title = CityBazaarStrings.cbTitle,
-                subtitle = m.roundLimit?.let { limit -> m.title + " · " + CityBazaarStrings.cbRoundOf(m.round, limit) } ?: m.title,
+                subtitle = (m.roundLimit?.let { limit -> m.title + " · " + CityBazaarStrings.cbRoundOf(m.round, limit) } ?: m.title) +
+                    (if (m.pot > 0) " · " + TableStrings.tablePot(TextUtils.groupedThousands(m.pot)) else ""),
                 audience = CbTableMapper.audience(m, talkers, mutedForMe),
                 roomMatch = m.isRoomMatch,
                 spectatorCount = m.spectatorCount.toString(),
@@ -685,7 +701,12 @@ class CityBazaarMatchViewModel(
 
     private fun showSettings() {
         val s = audio.settings.value
-        showModal(CbModal.Settings(effectsOn = s.effectsOn, musicOn = s.musicOn, moneyPopupsOn = tablePrefs.moneyPopups.value))
+        // Ending by vote: a player still at the table, playing for themselves, while nothing else is being decided.
+        val m = match
+        val me = m?.me
+        val canProposeEnd = m != null && me != null && !me.isCpu && !me.bankrupt && me.presence == CityBazaarPresence.PLAYING &&
+            m.phase != CityBazaarTurnPhase.FINISHED && m.phase != CityBazaarTurnPhase.EXTENSION_VOTE && m.auction == null && m.endVote == null
+        showModal(CbModal.Settings(effectsOn = s.effectsOn, musicOn = s.musicOn, moneyPopupsOn = tablePrefs.moneyPopups.value, canProposeEnd = canProposeEnd))
     }
 
     private fun showReport(selected: String?, error: String?) {

@@ -19,17 +19,19 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.profile.PresetAvatar
 
-/** An avatar in a glowing multicolour ring, with a green mic badge for players who talked. */
+/** An avatar in a glowing ring ([medal] on the podium, multicolour otherwise), with a green mic badge for players who talked. */
 @Composable
-fun LeaderboardAvatar(avatarId: String, size: Dp, micOn: Boolean, modifier: Modifier = Modifier) {
+fun LeaderboardAvatar(avatarId: String, size: Dp, micOn: Boolean, modifier: Modifier = Modifier, medal: Color? = null) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
-    val ring = Brush.sweepGradient(listOf(colors.LiveGreen, colors.Cyan, colors.SocialZoneAccent, colors.Gold, colors.LiveGreen))
+    val ring = medal?.let { Brush.sweepGradient(listOf(it, Color.White, it, it.copy(alpha = MEDAL_DEEP), it)) }
+        ?: Brush.sweepGradient(listOf(colors.LiveGreen, colors.Cyan, colors.SocialZoneAccent, colors.Gold, colors.LiveGreen))
+    val glow = medal ?: colors.SocialZoneAccent
     Box(modifier = modifier.size(size)) {
         Box(
             modifier = Modifier
                 .size(size)
-                .shadow(elevation = dimens.promptGlow, shape = CircleShape, ambientColor = colors.SocialZoneAccent, spotColor = colors.Cyan)
+                .shadow(elevation = dimens.promptGlow, shape = CircleShape, ambientColor = glow, spotColor = medal ?: colors.Cyan)
                 .background(ring, CircleShape)
                 .padding(dimens.boardRing),
             contentAlignment = Alignment.Center,
@@ -50,3 +52,5 @@ fun LeaderboardAvatar(avatarId: String, size: Dp, micOn: Boolean, modifier: Modi
         }
     }
 }
+
+private const val MEDAL_DEEP = 0.7f

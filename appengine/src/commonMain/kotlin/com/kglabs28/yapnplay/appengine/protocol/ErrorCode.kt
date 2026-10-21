@@ -37,4 +37,6 @@ enum class ErrorCode {
     PLAY_GAMES_UNAVAILABLE,
     /** CreateRoom: the creator already has a group with exactly these members; the message is its name. */
     GROUP_EXISTS,
+    /** JoinQueue: the user can't pay the league's entry fee. */
+    NOT_ENOUGH_COINS,
 }

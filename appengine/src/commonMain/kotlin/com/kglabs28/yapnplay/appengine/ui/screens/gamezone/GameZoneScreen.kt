@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.gamezone
 
+import com.kglabs28.yapnplay.appengine.ui.components.coins.LeaguePickerCard
+import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferCard
 import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -160,6 +162,23 @@ fun GameZoneScreen(
                     watchingAd = penalty.watchingAd,
                     onWatchAd = { viewModel?.onIntent(GameZoneIntent.WatchAd) },
                     onClose = { viewModel?.onIntent(GameZoneIntent.DismissPenalty) },
+                )
+            }
+            val leagues = state.leagues
+            BlockingOverlay(visible = leagues != null && state.coinsOffer == null, onDismiss = { viewModel?.onIntent(GameZoneIntent.CloseLeagues) }) {
+                if (leagues != null) LeaguePickerCard(
+                    picker = leagues,
+                    onPick = { viewModel?.onIntent(GameZoneIntent.PickLeague(it)) },
+                    onClose = { viewModel?.onIntent(GameZoneIntent.CloseLeagues) },
+                )
+            }
+            val offer = state.coinsOffer
+            BlockingOverlay(visible = offer != null, onDismiss = { viewModel?.onIntent(GameZoneIntent.CloseCoinsOffer) }) {
+                if (offer != null) CoinsOfferCard(
+                    offer = offer,
+                    onWatchAd = { viewModel?.onIntent(GameZoneIntent.WatchAdForCoins) },
+                    onPlayFree = { viewModel?.onIntent(GameZoneIntent.PlayFree) },
+                    onClose = { viewModel?.onIntent(GameZoneIntent.CloseCoinsOffer) },
                 )
             }
             state.searchMessage?.let {

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.AdsAppManagerHelper
 import com.kglabs28.yapnplay.appengine.appmanager.AppManager
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.AppManagerHelper
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.BackgroundsAppManagerHelper
@@ -18,4 +19,5 @@ val appManagerModule = module {
     single { GamesAppManagerHelper(get()) }
     single { CityBazaarAppManagerHelper(get()) }
     single { BackgroundsAppManagerHelper(get()) }
+    single { AdsAppManagerHelper(get()) }
 }

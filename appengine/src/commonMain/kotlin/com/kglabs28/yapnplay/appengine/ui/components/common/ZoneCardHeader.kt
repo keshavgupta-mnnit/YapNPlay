@@ -50,10 +50,7 @@ fun ZoneCardHeader(
                     style = typography.cardTitle.copy(color = accentColor),
                 )
             }
-            BasicText(
-                text = subtitle,
-                style = typography.micro.copy(color = colors.RoomsSubtitle),
-            )
+            SlidingText(text = subtitle, style = typography.micro.copy(color = colors.RoomsSubtitle))
         }
     }
 }

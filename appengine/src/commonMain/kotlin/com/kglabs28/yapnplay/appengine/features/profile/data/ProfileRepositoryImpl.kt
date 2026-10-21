@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.profile.data
 
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.features.profile.data.local.ProfileLocalManager
 import com.kglabs28.yapnplay.appengine.features.profile.data.remote.ProfileRemoteManager
@@ -25,11 +27,20 @@ class ProfileRepositoryImpl(
 
     override val profile: StateFlow<UserProfile?> get() = local.profileFlow
 
+    private val dailyBonus = MutableStateFlow(0)
+    override val pendingDailyBonus: StateFlow<Int> = dailyBonus.asStateFlow()
+
+    override fun collectDailyBonus() {
+        dailyBonus.value = 0
+    }
+
     override suspend fun fetchProfileData(): AppResult<UserProfile> =
         withContext(Dispatchers.IO) {
             when (val result = remote.fetchProfileData()) {
                 is AppResult.Success -> {
-                    local.saveProfile(result.data)
+                    // The server grants the bonus once a day, on the first /me: keep it for Home.
+                    if (result.data.dailyBonus > 0) dailyBonus.value = result.data.dailyBonus
+                    local.saveProfile(result.data.copy(dailyBonus = 0))
                     result
                 }
                 is AppResult.Failure -> {

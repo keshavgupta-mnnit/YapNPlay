@@ -223,8 +223,12 @@ object YapNPlayColors {
     val BgButtonBankBottom = Color(0xFF050505)
     val BgPodiumBaseTop = Color(0xFF2A2F45)
     val BgPodiumBaseBottom = Color(0xFF12141F)
-    val BgLeaderboardBarTop = Color(0xCC1E2235)
-    val BgLeaderboardBarBottom = Color(0xEE0D0F18)
+    // Same frosted dark as the LEADERBOARD panel, so the art reads through both alike.
+    val BgLeaderboardBarTop = Color(0x9E25272E)
+    val BgLeaderboardBarBottom = Color(0x9E15161B)
+    val MedalGold = Color(0xFFFFC83D)
+    val MedalSilver = Color(0xFFD9DEE8)
+    val MedalBronze = Color(0xFFCD7F32)
     val TextOnPlayAgainButton = Color(0xFF06291E)
     val TextOnCollectButton = Color(0xFF3A2400)
 }

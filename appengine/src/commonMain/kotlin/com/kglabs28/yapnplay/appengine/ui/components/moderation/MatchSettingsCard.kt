@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
+import androidx.compose.material.icons.rounded.SportsScore
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,9 @@ fun MatchSettingsCard(
     onToggleMoneyPopups: () -> Unit = {},
     /** Null hides Report (games without voice reports). */
     onReport: (() -> Unit)? = null,
+    /** Ask everyone to end the game (a vote); null hides it. */
+    onEndGame: (() -> Unit)? = null,
+    endGameLabel: String = "",
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -38,6 +42,17 @@ fun MatchSettingsCard(
             SettingRow(LudoStrings.ludoSoundEffects, effectsOn, onToggleEffects)
             SettingRow(LudoStrings.ludoMusic, musicOn, onToggleMusic)
             moneyPopupsOn?.let { SettingRow(TableStrings.tableTransactionPopups, it, onToggleMoneyPopups) }
+            onEndGame?.let {
+                GlassPillButton(
+                    text = endGameLabel,
+                    onClick = it,
+                    leadingIcon = Icons.Rounded.SportsScore,
+                    accent = YapNPlayTheme.colors.Warning,
+                    contentColor = YapNPlayTheme.colors.Warning,
+                    height = YapNPlayTheme.dimens.ctaHeight,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
             onReport?.let {
                 GlassPillButton(
                     text = LudoStrings.ludoReport,

@@ -100,8 +100,8 @@ fun CityBazaarMatchScreen(
     val share = rememberShareSheet()
     val die2 = rememberGlassDiceState()
 
-    // Back at the table is the same as the exit button (asks first).
-    BlockBackPress(enabled = true, onBack = { send(CityBazaarMatchIntent.ExitClicked) })
+    // Back at the table is the same as the exit button (asks first); once the leaderboard is up the match is over, so back just leaves.
+    BlockBackPress(enabled = true, onBack = { send(if (state.leaderboard != null) CityBazaarMatchIntent.Done else CityBazaarMatchIntent.ExitClicked) })
     LaunchedEffect(viewModel, matchId) {
         viewModel?.onIntent(CityBazaarMatchIntent.Load(matchId))
         viewModel?.effects?.collect { effect ->
@@ -332,6 +332,8 @@ fun CityBazaarMatchScreen(
                         onRoll = { send(CityBazaarMatchIntent.Roll) },
                         onPayJailFine = { send(CityBazaarMatchIntent.PayJailFine) },
                         onVoteExtension = { send(CityBazaarMatchIntent.VoteExtension(it)) },
+                        onVoteEnd = { send(CityBazaarMatchIntent.VoteEnd(it)) },
+                        onProposeEnd = { send(CityBazaarMatchIntent.ProposeEnd) },
                         onStayInJail = { send(CityBazaarMatchIntent.StayInJail) },
                         onToggleSale = { send(CityBazaarMatchIntent.ToggleSale(it)) },
                         onConfirmSale = { send(CityBazaarMatchIntent.ConfirmSale) },

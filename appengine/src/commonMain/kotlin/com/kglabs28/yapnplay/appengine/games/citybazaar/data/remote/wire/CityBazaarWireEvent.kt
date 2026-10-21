@@ -62,6 +62,10 @@ sealed interface CityBazaarWireEvent {
     @Serializable @SerialName("ExtensionVoted")
     data class ExtensionVoted(val continued: Boolean, val yes: Int, val voters: Int) : CityBazaarWireEvent
 
+    /** The end-game vote is decided. */
+    @Serializable @SerialName("EndVoted")
+    data class EndVoted(val ended: Boolean, val yes: Int, val voters: Int) : CityBazaarWireEvent
+
     /** Landed on Rest House: their next turn is skipped. */
     @Serializable @SerialName("Rested")
     data class Rested(val seat: Int) : CityBazaarWireEvent

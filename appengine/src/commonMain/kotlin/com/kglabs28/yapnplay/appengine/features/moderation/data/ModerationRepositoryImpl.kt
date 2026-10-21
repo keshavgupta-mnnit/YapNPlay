@@ -47,7 +47,8 @@ class ModerationRepositoryImpl(
 
     override suspend fun clearPenaltyWithAd(): AppResult<Unit> = withContext(dispatchers.io) {
         try {
-            if (client.watchRewardedAd()) AppResult.Success(Unit) else AppResult.Failure(YapNPlayError.Unknown("ad not finished"))
+            client.clearPenaltyWithAd()
+            AppResult.Success(Unit)
         } catch (e: Exception) {
             CrashReporter.record(e, "ModerationRepository.clearPenaltyWithAd")
             AppResult.Failure(YapNPlayError.Network("ad failed"))

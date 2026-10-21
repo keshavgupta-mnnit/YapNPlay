@@ -188,7 +188,7 @@ sealed interface CbModal {
     /** Turn decisions, an auction, a vote and the final ranking need an answer: a tap outside doesn't close them. */
     val needsAnswer: Boolean
         get() = when (this) {
-            is Buy, is Build, is JailRoll, is JailChoice, is Debt, is Auction, is Vote, is Result, is ExtensionVote -> true
+            is Buy, is Build, is JailRoll, is JailChoice, is Debt, is Auction, is Vote, is Result, is ExtensionVote, is EndVote -> true
             else -> false
         }
 
@@ -265,9 +265,11 @@ sealed interface CbModal {
     data class Result(val rows: List<CbResultRowUi>) : CbModal
     /** Rounds are over: continue for more rounds or end. [canVote] only for players still in who haven't voted. */
     data class ExtensionVote(val body: String, val tally: String, val status: String?, val canVote: Boolean, val countdown: String) : CbModal
+    /** Someone asked to end the game: end or keep playing (play is paused). */
+    data class EndVote(val body: String, val tally: String, val status: String?, val canVote: Boolean, val countdown: String) : CbModal
     data object LeaveConfirm : CbModal
     data object MicPermissionNeeded : CbModal
-    data class Settings(val effectsOn: Boolean, val musicOn: Boolean, val moneyPopupsOn: Boolean = true) : CbModal
+    data class Settings(val effectsOn: Boolean, val musicOn: Boolean, val moneyPopupsOn: Boolean = true, val canProposeEnd: Boolean = false) : CbModal
     data class Report(val people: List<ReportPersonUi>, val selectedUserId: String?, val warning: String, val error: String?) : CbModal
     data class Vote(val reportId: String, val title: String, val body: String, val secondsLeft: String) : CbModal
     data class ReportOutcome(val title: String, val body: String) : CbModal
@@ -296,6 +298,9 @@ sealed interface CityBazaarMatchIntent : UiIntent {
     data object OpenHistory : CityBazaarMatchIntent
     data object OpenBank : CityBazaarMatchIntent
     data class VoteExtension(val keepPlaying: Boolean) : CityBazaarMatchIntent
+    /** Settings: ask everyone to end the game. */
+    data object ProposeEnd : CityBazaarMatchIntent
+    data class VoteEnd(val agree: Boolean) : CityBazaarMatchIntent
     data object DismissHistory : CityBazaarMatchIntent
     data class OpenDeck(val deck: CardDeck) : CityBazaarMatchIntent
     data class PlayerClicked(val seat: Int) : CityBazaarMatchIntent

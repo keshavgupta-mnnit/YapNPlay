@@ -1,5 +1,11 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.CollectDailyBonusUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveDailyBonusUseCase
+import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsUiMapper
+import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferUi
+import com.kglabs28.yapnplay.appengine.core.ui.CoinsStrings
+import com.kglabs28.yapnplay.appengine.features.coins.usecase.WatchAdForCoinsUseCase
 import kotlinx.coroutines.delay
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
@@ -28,6 +34,9 @@ class MainViewModel(
     observeNotifications: ObserveNotificationsUseCase,
     private val markNotificationsRead: MarkNotificationsReadUseCase,
     private val getActiveMatch: GetActiveMatchUseCase,
+    private val watchAdForCoins: WatchAdForCoinsUseCase,
+    observeDailyBonus: ObserveDailyBonusUseCase,
+    private val collectDailyBonus: CollectDailyBonusUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MainState, MainIntent, MainEffect>(MainState(), dispatchers) {
@@ -39,6 +48,12 @@ class MainViewModel(
         scope.launch {
             observeMyProfile().collect { profile ->
                 if (profile != null) setState { copy(userName = profile.name, avatarId = profile.avatarId) }
+            }
+        }
+        // The daily bonus, whichever screen's /me call claimed it first.
+        scope.launch {
+            observeDailyBonus().collect { coins ->
+                setState { copy(dailyBonus = if (coins > 0) Strings.dailyBonus(TextUtils.groupedThousands(coins)) else null) }
             }
         }
         // Pushes land in the history from the push service; the bell
@@ -54,7 +69,7 @@ class MainViewModel(
     override suspend fun handleIntent(intent: MainIntent) {
         when (intent) {
             is MainIntent.SelectTab -> setState { copy(selectedTab = intent.tab) }
-            MainIntent.CollectDailyBonus -> setState { copy(dailyBonus = null) }
+            MainIntent.CollectDailyBonus -> collectDailyBonus()
             MainIntent.LoadProfile -> {
                 load()
                 checkActiveMatch()
@@ -64,6 +79,9 @@ class MainViewModel(
                 emitEffect(MainEffect.OpenMatch(it.gameId, it.matchId))
             }
             MainIntent.DismissRejoin -> setState { copy(rejoin = null) }
+            MainIntent.OpenGetCoins -> setState { copy(coinsOffer = CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody)) }
+            MainIntent.CloseGetCoins -> setState { copy(coinsOffer = null) }
+            MainIntent.WatchAdForCoins -> watchAd()
             MainIntent.OpenSettings -> emitEffect(MainEffect.OpenSettingsDialog)
             MainIntent.ToggleNotifications ->
                 if (state.value.notificationsOpen) closeNotifications() else openNotifications()
@@ -127,9 +145,18 @@ class MainViewModel(
                 xpLabel = Strings.topBarXp(TextUtils.groupedThousands(data.profile.xp), TextUtils.groupedThousands(data.profile.nextLevelXp)),
             )
         }
-        // The daily bonus the server just added: say so for a moment.
-        if (data.profile.dailyBonus > 0) {
-            setState { copy(dailyBonus = Strings.dailyBonus(TextUtils.groupedThousands(data.profile.dailyBonus))) }
+    }
+
+    /** Ad watched to the end → the server adds coins; the balance updates and the dialog says how many. */
+    private suspend fun watchAd() {
+        setState { copy(coinsOffer = coinsOffer?.copy(watchingAd = true, message = null)) }
+        val result = watchAdForCoins.invoke()
+        val message = CoinsUiMapper.adMessage(result)
+        setState {
+            copy(
+                coinsOffer = coinsOffer?.copy(watchingAd = false, message = message),
+                coinBalance = (result as? AppResult.Success)?.let { TextUtils.groupedThousands(it.data.coins) } ?: coinBalance,
+            )
         }
     }
 

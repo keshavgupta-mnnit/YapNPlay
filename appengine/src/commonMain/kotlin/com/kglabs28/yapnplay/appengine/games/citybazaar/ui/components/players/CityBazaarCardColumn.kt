@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players
 
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableCardDensity
+import com.kglabs28.yapnplay.appengine.ui.components.table.TablePlayerCard
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -25,6 +28,9 @@ fun CityBazaarCardColumn(
     onToggleHear: (seat: Int) -> Unit,
     onCardClick: (seat: Int) -> Unit,
     modifier: Modifier = Modifier,
+    onCardLongPress: (seat: Int) -> Unit = {},
+    /** Extra modifier per card (e.g. to note where each card is). */
+    cardModifier: (seat: Int) -> Modifier = { Modifier },
 ) {
     val dimens = YapNPlayTheme.dimens
     BoxWithConstraints(modifier = modifier.fillMaxHeight()) {
@@ -40,13 +46,18 @@ fun CityBazaarCardColumn(
             verticalArrangement = Arrangement.spacedBy(gap),
         ) {
             cards.forEach { card ->
-                CityBazaarPlayerCard(
+                TablePlayerCard(
                     card = card,
+                    tint = card.colour.tint(),
+                    faded = card.out,
+                    badge = card.status,
                     avatarSize = avatar,
-                    compact = compact,
+                    density = if (compact) TableCardDensity.COMPACT else TableCardDensity.DENSE,
+                    details = { CbCashLine(cash = card.cash, compact = compact) },
                     onToggleHear = { onToggleHear(card.seat) },
                     onClick = { onCardClick(card.seat) },
-                    modifier = Modifier.fillMaxWidth(),
+                    onLongPress = { onCardLongPress(card.seat) },
+                    modifier = Modifier.fillMaxWidth().then(cardModifier(card.seat)),
                 )
             }
         }

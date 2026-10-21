@@ -4,7 +4,9 @@ import kotlin.math.abs
 
 /** Indian digit grouping: 25000 → "25,000", 125000 → "1,25,000". */
 object RupeeFormat {
-    fun digits(amount: Int): String {
+    fun digits(amount: Int): String = digits(amount.toLong())
+
+    fun digits(amount: Long): String {
         val text = abs(amount).toString()
         if (text.length <= LAST_GROUP) return text
         val head = text.dropLast(LAST_GROUP)

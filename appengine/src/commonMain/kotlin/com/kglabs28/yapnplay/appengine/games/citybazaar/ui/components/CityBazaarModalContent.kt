@@ -1,5 +1,12 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components
 
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbEndVotePrompt
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbExtensionVotePrompt
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbBuildPrompt
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbBuyPrompt
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -49,72 +56,44 @@ fun CityBazaarModalContent(
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
     when (modal) {
-        is CbModal.Buy -> CbDialogFrame(
-            title = modal.title,
-            accent = colors.CbCash,
-            chip = tileHeaderTint(modal.group, modal.kind),
-            countdown = modal.countdown,
-            modifier = modifier,
-            buttons = {
-                CbGlassAction(text = Strings.cbNo, onClick = actions.onDecline, primary = false, modifier = Modifier.weight(1f))
-                CbGlassAction(text = Strings.cbYes, onClick = actions.onBuy, enabled = modal.canAfford, modifier = Modifier.weight(1f))
-            },
-        ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-                CbRateTable(rows = modal.rates, modifier = Modifier.weight(1f))
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-                    CbSheetTable(rows = modal.sheet)
-                    CbDialogNote(text = if (modal.canAfford) modal.note else Strings.cbCantAfford)
-                }
-            }
-        }
-        is CbModal.Build -> CbDialogFrame(
-            title = modal.title,
-            accent = colors.CbGain,
-            chip = tileHeaderTint(modal.group, TileKind.CITY),
-            countdown = modal.countdown,
-            modifier = modifier,
-            buttons = {
-                CbGlassAction(text = Strings.cbNo, onClick = actions.onSkipBuild, primary = false, modifier = Modifier.weight(1f))
-                CbGlassAction(text = Strings.cbYes, onClick = actions.onConfirmBuild, enabled = modal.canAfford, modifier = Modifier.weight(1f))
-            },
-        ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-                CbRateTable(rows = modal.rates, modifier = Modifier.weight(1f))
-                CbSheetTable(rows = modal.sheet, modifier = Modifier.weight(1f))
-            }
-            CbDialogNote(text = if (modal.canAfford) modal.note else Strings.cbCantAfford)
-        }
+        is CbModal.Buy -> CbBuyPrompt(modal = modal, onNo = actions.onDecline, onYes = actions.onBuy, modifier = modifier)
+        is CbModal.Build -> CbBuildPrompt(modal = modal, onNo = actions.onSkipBuild, onYes = actions.onConfirmBuild, modifier = modifier)
+        is CbModal.ExtensionVote -> CbExtensionVotePrompt(modal = modal, onVote = actions.onVoteExtension, modifier = modifier)
+        is CbModal.EndVote -> CbEndVotePrompt(modal = modal, onVote = actions.onVoteEnd, modifier = modifier)
         is CbModal.JailRoll -> CbDialogFrame(
-            title = Strings.cbJailTitle,
+            title = CityBazaarStrings.cbJailTitle,
             accent = colors.Warning,
             countdown = modal.countdown,
             modifier = modifier,
-            buttons = { CbGlassAction(text = Strings.cbRollDoubles, onClick = actions.onRoll, modifier = Modifier.weight(1f)) },
+            buttons = {
+                CbGlassAction(text = CityBazaarStrings.cbHalfRent, onClick = actions.onStayInJail, primary = false, modifier = Modifier.weight(1f))
+                CbGlassAction(text = CityBazaarStrings.cbPayFine, onClick = actions.onPayJailFine, primary = false, enabled = modal.canPay, modifier = Modifier.weight(1f))
+                CbGlassAction(text = CityBazaarStrings.cbRollDoubles, onClick = actions.onRoll, modifier = Modifier.weight(1f))
+            },
         ) {
             CbDialogNote(text = modal.body)
         }
         is CbModal.JailChoice -> CbDialogFrame(
-            title = Strings.cbJailChoiceTitle,
+            title = CityBazaarStrings.cbJailChoiceTitle,
             accent = colors.Warning,
             countdown = modal.countdown,
             modifier = modifier,
             buttons = {
-                CbGlassAction(text = Strings.cbHalfRent, onClick = actions.onStayInJail, primary = false, modifier = Modifier.weight(1f))
-                CbGlassAction(text = Strings.cbPayFine, onClick = actions.onPayJailFine, enabled = modal.canPay, modifier = Modifier.weight(1f))
+                CbGlassAction(text = CityBazaarStrings.cbHalfRent, onClick = actions.onStayInJail, primary = false, modifier = Modifier.weight(1f))
+                CbGlassAction(text = CityBazaarStrings.cbPayFine, onClick = actions.onPayJailFine, enabled = modal.canPay, modifier = Modifier.weight(1f))
             },
         ) {
-            CbDialogNote(text = Strings.cbJailChoiceBody)
+            CbDialogNote(text = CityBazaarStrings.cbJailChoiceBody)
         }
         is CbModal.Debt -> CbDialogFrame(
-            title = Strings.cbDebtTitle,
+            title = CityBazaarStrings.cbDebtTitle,
             accent = colors.CbLoss,
             countdown = modal.countdown,
             modifier = modifier,
             buttons = {
-                CbGlassAction(text = Strings.cbBankrupt, onClick = actions.onDeclareBankruptcy, primary = false, modifier = Modifier.weight(1f))
-                CbGlassAction(text = Strings.cbAuction, onClick = actions.onStartAuction, primary = false, enabled = modal.canAuction, modifier = Modifier.weight(1f))
-                CbGlassAction(text = Strings.cbSellAndPay, onClick = actions.onConfirmSale, enabled = modal.enough, modifier = Modifier.weight(1f))
+                CbGlassAction(text = CityBazaarStrings.cbBankrupt, onClick = actions.onDeclareBankruptcy, primary = false, modifier = Modifier.weight(1f))
+                CbGlassAction(text = CityBazaarStrings.cbAuction, onClick = actions.onStartAuction, primary = false, enabled = modal.canAuction, modifier = Modifier.weight(1f))
+                CbGlassAction(text = CityBazaarStrings.cbSellAndPay, onClick = actions.onConfirmSale, enabled = modal.enough, modifier = Modifier.weight(1f))
             },
         ) {
             CbDialogNote(text = modal.body)
@@ -143,7 +122,7 @@ fun CityBazaarModalContent(
             modifier = modifier,
             buttons = {
                 if (!modal.isSeller) {
-                    CbGlassAction(text = Strings.cbPass, onClick = actions.onPassAuction, primary = false, modifier = Modifier.weight(1f))
+                    CbGlassAction(text = CityBazaarStrings.cbPass, onClick = actions.onPassAuction, primary = false, modifier = Modifier.weight(1f))
                     CbGlassAction(text = modal.bidLabel, onClick = actions.onBid, enabled = modal.canBid, modifier = Modifier.weight(1f))
                 }
             },
@@ -159,10 +138,10 @@ fun CityBazaarModalContent(
             }
         }
         is CbModal.Result -> CbDialogFrame(
-            title = Strings.ludoResultTitle,
+            title = LudoStrings.ludoResultTitle,
             accent = colors.Gold,
             modifier = modifier,
-            buttons = { CbGlassAction(text = Strings.ludoDone, onClick = actions.onDone, modifier = Modifier.weight(1f)) },
+            buttons = { CbGlassAction(text = LudoStrings.ludoDone, onClick = actions.onDone, modifier = Modifier.weight(1f)) },
         ) {
             modal.rows.forEach { row ->
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm), modifier = Modifier.fillMaxWidth()) {
@@ -174,14 +153,14 @@ fun CityBazaarModalContent(
             }
         }
         CbModal.LeaveConfirm -> SeatPickerDialog(
-            title = Strings.ludoLeaveTitle,
-            message = Strings.cbLeaveBody,
+            title = LudoStrings.ludoLeaveTitle,
+            message = CityBazaarStrings.cbLeaveBody,
             options = emptyList(),
             selectedIndex = null,
             onSelect = {},
-            secondaryLabel = Strings.seatCancel,
+            secondaryLabel = TableStrings.seatCancel,
             onSecondary = actions.onDismiss,
-            primaryLabel = Strings.seatExit,
+            primaryLabel = TableStrings.seatExit,
             onPrimary = actions.onConfirmLeave,
             modifier = modifier,
         )
@@ -208,11 +187,13 @@ fun CityBazaarModalContent(
             onToggleEffects = actions.onToggleEffects,
             onToggleMusic = actions.onToggleMusic,
             onReport = actions.onOpenReport,
+            onEndGame = if (modal.canProposeEnd) actions.onProposeEnd else null,
+            endGameLabel = CityBazaarStrings.cbEndGameButton,
             onClose = actions.onDismiss,
             modifier = modifier,
         )
         is CbModal.Report -> ReportPlayerCard(
-            options = modal.people.map { Strings.ludoReportOption(it.name, it.role) },
+            options = modal.people.map { LudoStrings.ludoReportOption(it.name, it.role) },
             selectedIndex = modal.people.indexOfFirst { it.userId == modal.selectedUserId }.takeIf { it >= 0 },
             warning = modal.warning,
             error = modal.error,

@@ -1,13 +1,15 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.profile.domain.ProfileScreenData
 import com.kglabs28.yapnplay.appengine.features.profile.presentation.ProfileUiMapper
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.GetMyGroupsUseCase
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.InviteFriendsToGroupUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.BlockUserUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetProfileScreenDataUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.RemoveFriendUseCase
@@ -33,6 +35,8 @@ class ProfileViewModel(
     private val removeFriend: RemoveFriendUseCase,
     private val blockUser: BlockUserUseCase,
     private val unblockUser: UnblockUserUseCase,
+    private val getMyGroups: GetMyGroupsUseCase,
+    private val inviteFriendsToGroup: InviteFriendsToGroupUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<ProfileState, ProfileIntent, ProfileEffect>(ProfileState(), dispatchers) {
 
@@ -45,23 +49,22 @@ class ProfileViewModel(
             ProfileIntent.Load -> reload()
             ProfileIntent.Back -> emitEffect(ProfileEffect.Close)
             ProfileIntent.OpenSettings -> emitEffect(ProfileEffect.OpenSettings)
-            ProfileIntent.Logout -> showModal(ProfileModal.ConfirmLogout)
             ProfileIntent.EditAvatar -> data?.let { showModal(ProfileModal.AvatarPicker(it.profile.avatarId)) }
             is ProfileIntent.PickAvatar -> (modal as? ProfileModal.AvatarPicker)?.let { showModal(it.copy(selected = intent.avatarId)) }
             ProfileIntent.SaveAvatar -> (modal as? ProfileModal.AvatarPicker)?.let { saveAvatar(it) }
             ProfileIntent.EditName -> data?.let {
                 showModal(
                     ProfileModal.EditText(
-                        ProfileField.NAME, Strings.profileEditNameTitle, Strings.profileNameLabel, it.profile.name,
-                        Strings.profileNameHint, AppConstants.MAX_NAME_LENGTH,
+                        ProfileField.NAME, ProfileStrings.profileEditNameTitle, ProfileStrings.profileNameLabel, it.profile.name,
+                        ProfileStrings.profileNameHint, AppConstants.MAX_NAME_LENGTH,
                     ),
                 )
             }
             ProfileIntent.EditUsername -> data?.let {
                 showModal(
                     ProfileModal.EditText(
-                        ProfileField.USERNAME, Strings.profileEditUsernameTitle, Strings.profileUsernameLabel, it.profile.username,
-                        Strings.profileUsernameHint, AppConstants.MAX_USERNAME_LENGTH,
+                        ProfileField.USERNAME, ProfileStrings.profileEditUsernameTitle, ProfileStrings.profileUsernameLabel, it.profile.username,
+                        ProfileStrings.profileUsernameHint, AppConstants.MAX_USERNAME_LENGTH,
                     ),
                 )
             }
@@ -74,6 +77,12 @@ class ProfileViewModel(
             ProfileIntent.SeeAllFriends -> showModal(ProfileModal.AllFriends)
             is ProfileIntent.RemoveFriend -> friend(intent.userId)?.let { showModal(ProfileModal.ConfirmRemove(it)) }
             is ProfileIntent.BlockUser -> friend(intent.userId)?.let { showModal(ProfileModal.ConfirmBlock(it)) }
+            is ProfileIntent.InviteToGroup -> friend(intent.userId)?.let { openInvite(it) }
+            is ProfileIntent.InviteToRoom -> (modal as? ProfileModal.InviteToGroup)?.let { invite(it, intent.roomId) }
+            ProfileIntent.NewGroupWithFriend -> (modal as? ProfileModal.InviteToGroup)?.let {
+                showModal(null)
+                emitEffect(ProfileEffect.OpenCreateGroup(it.person.userId))
+            }
             ProfileIntent.ConfirmAction -> confirm(modal)
             ProfileIntent.OpenKeyboard -> setState { copy(keyboardOpen = true) }
             ProfileIntent.CloseKeyboard -> setState { copy(keyboardOpen = false) }
@@ -85,10 +94,17 @@ class ProfileViewModel(
             is ProfileIntent.OpenRequest -> state.value.requests.firstOrNull { it.requestId == intent.requestId }?.let { showModal(ProfileModal.RequestProfile(it)) }
             is ProfileIntent.AcceptRequest -> accept(intent.requestId)
             is ProfileIntent.DeclineRequest -> decline(intent.requestId)
-            ProfileIntent.ViewBlocked -> showModal(ProfileModal.BlockList)
+            ProfileIntent.ViewBlocked -> if (state.value.blocked.isNotEmpty()) showModal(ProfileModal.BlockList)
             is ProfileIntent.Unblock -> state.value.blocked.firstOrNull { it.userId == intent.userId }?.let { showModal(ProfileModal.ConfirmUnblock(it)) }
             // Cancelling an unblock goes back to the list.
-            ProfileIntent.DismissModal -> showModal(if (modal is ProfileModal.ConfirmUnblock) ProfileModal.BlockList else null)
+            ProfileIntent.DismissModal -> showModal(
+                when (modal) {
+                    is ProfileModal.ConfirmUnblock -> ProfileModal.BlockList
+                    // Closing Invite to Group goes back to the friend's card.
+                    is ProfileModal.InviteToGroup -> ProfileModal.Person(modal.person)
+                    else -> null
+                },
+            )
         }
     }
 
@@ -123,9 +139,9 @@ class ProfileViewModel(
             }
             is AppResult.Failure -> {
                 val error = when {
-                    result.error !is YapNPlayError.Validation -> Strings.profileNetworkError
-                    modal.field == ProfileField.NAME -> Strings.profileNameError(AppConstants.MAX_NAME_LENGTH)
-                    else -> Strings.profileUsernameError(AppConstants.MIN_USERNAME_LENGTH, AppConstants.MAX_USERNAME_LENGTH)
+                    result.error !is YapNPlayError.Validation -> ProfileStrings.profileNetworkError
+                    modal.field == ProfileField.NAME -> ProfileStrings.profileNameError(AppConstants.MAX_NAME_LENGTH)
+                    else -> ProfileStrings.profileUsernameError(AppConstants.MIN_USERNAME_LENGTH, AppConstants.MAX_USERNAME_LENGTH)
                 }
                 showModal(modal.copy(error = error))
             }
@@ -143,7 +159,7 @@ class ProfileViewModel(
                 reload()
             }
             is AppResult.Failure -> {
-                val message = if (result.error is YapNPlayError.Validation) Strings.profileInvalidCode(AppConstants.USER_CODE_LENGTH) else Strings.profileNetworkError
+                val message = if (result.error is YapNPlayError.Validation) ProfileStrings.profileInvalidCode(AppConstants.USER_CODE_LENGTH) else ProfileStrings.profileNetworkError
                 setState { copy(sending = false, addMessage = message, addError = true) }
             }
         }
@@ -168,7 +184,6 @@ class ProfileViewModel(
             is ProfileModal.ConfirmRemove -> removeFriend(modal.person.userId)
             is ProfileModal.ConfirmBlock -> blockUser(modal.person.userId)
             is ProfileModal.ConfirmUnblock -> unblockUser(modal.user.userId)
-            // Logging out arrives with sign-in: a guest account can't come back.
             else -> Unit
         }
         showModal(if (modal is ProfileModal.ConfirmUnblock) ProfileModal.BlockList else null)
@@ -181,6 +196,28 @@ class ProfileViewModel(
         copiedJob = scope.launch {
             delay(AppConstants.PROFILE_COPIED_MS)
             setState { copy(codeCopied = false) }
+        }
+    }
+
+    private suspend fun openInvite(person: ProfilePersonUi) {
+        showModal(ProfileModal.InviteToGroup(person))
+        val groups = (getMyGroups() as? AppResult.Success)?.data.orEmpty()
+        val current = state.value.modal as? ProfileModal.InviteToGroup ?: return
+        showModal(current.copy(loading = false, groups = groups.map { InviteGroupUi(it.id, it.name, it.icon, ProfileStrings.profileGroupMembers(it.memberCount)) }))
+    }
+
+    private suspend fun invite(modal: ProfileModal.InviteToGroup, roomId: String) {
+        val group = modal.groups.firstOrNull { it.roomId == roomId } ?: return
+        if (group.invited || group.sending) return
+        fun mark(change: InviteGroupUi.() -> InviteGroupUi, error: String? = null) {
+            val now = state.value.modal as? ProfileModal.InviteToGroup ?: return
+            showModal(now.copy(error = error, groups = now.groups.map { if (it.roomId == roomId) it.change() else it }))
+        }
+        mark({ copy(sending = true) })
+        when (val result = inviteFriendsToGroup(roomId, listOf(modal.person.userId))) {
+            // Skipped (already a member or invited) still reads as Invited.
+            is AppResult.Success -> mark({ copy(sending = false, invited = true) })
+            is AppResult.Failure -> mark({ copy(sending = false) }, ProfileStrings.profileInviteFailed)
         }
     }
 

@@ -1,12 +1,12 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.MicOff
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
 
 /** A spectator's mic (they talk in the room's voice too): green while on, red while off. */
@@ -20,7 +20,7 @@ fun TableSpectatorMicButton(
     val tint = if (micOn) colors.ReadyGreen else colors.Error
     GlassIconButton(
         imageVector = if (micOn) Icons.Rounded.Mic else Icons.Rounded.MicOff,
-        contentDescription = Strings.lobbyMic,
+        contentDescription = RoomStrings.lobbyMic,
         onClick = onToggle,
         modifier = modifier,
         size = YapNPlayTheme.dimens.ludoSpectatorMic,

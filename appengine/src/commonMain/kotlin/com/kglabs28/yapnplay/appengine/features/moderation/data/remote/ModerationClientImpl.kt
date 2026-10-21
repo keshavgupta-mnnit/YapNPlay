@@ -11,7 +11,6 @@ import com.kglabs28.yapnplay.appengine.protocol.transport.Channel
 import com.kglabs28.yapnplay.appengine.protocol.transport.MessageType
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
@@ -46,20 +45,13 @@ class ModerationClientImpl(
 
     override fun penalties(): Flow<PenaltyIssued?> = merge(pushes(MessageType.PENALTY_ISSUED, PenaltyIssued.serializer()), cleared)
 
-    override suspend fun watchRewardedAd(): Boolean {
-        // No ad SDK yet: a short pause stands in for the ad, then the server lifts the block.
-        delay(AD_PLACEHOLDER_MS)
+    override suspend fun clearPenaltyWithAd() {
         client.post(BackendPaths.CLEAR_PENALTY_WITH_AD)
         cleared.emit(null)
-        return true
     }
 
     private fun <T> pushes(type: String, serializer: KSerializer<T>): Flow<T> =
         realtime.stream(Channel.MODERATION)
             .filter { it.type == type }
             .map { realtime.decode(it, serializer) }
-
-    private companion object {
-        const val AD_PLACEHOLDER_MS = 3_000L
-    }
 }

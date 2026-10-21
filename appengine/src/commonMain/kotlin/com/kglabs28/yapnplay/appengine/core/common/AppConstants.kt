@@ -5,7 +5,6 @@ package com.kglabs28.yapnplay.appengine.core.common
  * Values already declared in games/base contracts are re-exported, not duplicated.
  */
 object AppConstants {
-    const val APP_VERSION = "1.0.0-phase7"
 
     /** Length of a room join code. */
     const val ROOM_CODE_LENGTH = 6
@@ -22,12 +21,20 @@ object AppConstants {
     const val CB_HOP_MS = 200
     /** City Bazaar: each side column of player pods, as a share of the width. */
     const val CB_SIDE_COLUMN_WEIGHT = 0.21f
-    /** City Bazaar: pause on the user's own balance sheet before play goes on. */
-    const val CB_MONEY_PAUSE_MS = 900L
-    /** City Bazaar: pause on a card draw. */
-    const val CB_CARD_PAUSE_MS = 1_300L
+    /** The "auto-paying rent" notice: how long it stays (its bar fills meanwhile). */
+    const val CB_RENT_NOTICE_MS = 3_000L
+    /** Money popups off: how long the amount takes to fly from payer to receiver. */
+    const val CB_MONEY_FLIGHT_MS = 1_100L
     /** City Bazaar: how long a balance-sheet toast stays. */
-    const val CB_TOAST_MS = 2_800L
+    const val CB_TOAST_MS = 2_500L
+    /** A switch the user flipped shows its new value this long while the server confirms. */
+    const val TOGGLE_CONFIRM_MS = 5_000L
+    /** A tap within this long after the panel closed counts as the tap that closed it. */
+    const val PANEL_RETAP_MS = 400L
+    /** Google Play Games: the game server (web) OAuth client the backend checks sign-ins with. Public, not a secret. */
+    const val PLAY_GAMES_WEB_CLIENT_ID = "532749629825-lflcpgr3pn64o7emjnvfdld8i0inpqhq.apps.googleusercontent.com"
+    /** EXP for 1st, 2nd, 3rd and everyone after, until the server hands it out. */
+    val PLACE_EXP = listOf(400, 300, 200, 100)
     /** City Bazaar: a balance counting to its new value. */
     const val CB_CASH_COUNT_MS = 900
     /** In the background this long (not a quick glance) and the server is told the user is away. */
@@ -52,7 +59,6 @@ object AppConstants {
     const val LUDO_SPECTATOR_BOARD_WIDTH_WEIGHT = 0.6f
     /** The exit dialog closes by itself after this long without a choice. */
     const val EXIT_DIALOG_SECONDS = 30L
-    const val LUDO_TALK_BLINK_MS = 520
 
     /** Room-code caret blink (half period). */
     const val CARET_BLINK_MS = 500
@@ -72,19 +78,12 @@ object AppConstants {
     /** Maximum members in a room. */
     const val MAX_MEMBERS = 10
 
-    /** Match-start countdown, in seconds. */
-    const val COUNTDOWN_SECONDS = 10
-
-    /** Content width cap in dp — wider windows centre content instead of stretching. */
-    const val CONTENT_MAX_WIDTH_DP = 1100
-
     /**
-     * Dev backend base URL: the laptop's backend, reached from a phone or
-     * emulator through `adb reverse tcp:8080 tcp:8080`. The hosted address
-     * replaces it later. No screen or repository hardcodes a URL — they
-     * all read this.
+     * The hosted backend: the built-in default for AppManager's
+     * `server_base_url` Remote Config key, so moving servers (e.g. Render →
+     * Oracle) needs no app release. No screen or repository hardcodes a URL.
      */
-    const val SERVER_BASE_URL = "http://localhost:8080"
+    const val SERVER_BASE_URL = "https://yapnplay-backend.onrender.com"
 
     /**
      * Local (no-backend) mode. When on, the app answers itself: HTTP calls
@@ -111,7 +110,6 @@ object AppConstants {
     /** Window-width thresholds (dp) for [LayoutTier]. */
     const val TIER_M_MIN_WIDTH_DP = 740
     const val TIER_L_MIN_WIDTH_DP = 960
-
 
     /**
      * Top bar free-space split: the gap before the tab strip is twice

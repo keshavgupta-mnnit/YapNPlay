@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -28,7 +31,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /**
@@ -54,6 +56,8 @@ fun TableTopBar(
     /** A short switch label before settings ("3D" / "2D"); null hides it. */
     switchLabel: String? = null,
     onSwitch: () -> Unit = {},
+    /** Opens the game's history (everything that happened); null hides it. */
+    onHistory: (() -> Unit)? = null,
     /** The title card's share of the bar's width (to line up with the side columns below); null: as wide as its text. */
     titleWidthFraction: Float? = null,
 ) {
@@ -123,8 +127,9 @@ fun TableTopBar(
             }
             TableMatchClock(elapsed = elapsed, modifier = Modifier.fillMaxHeight())
             switchLabel?.let { TableTextSquareButton(text = it, onClick = onSwitch) }
-            TableSquareIconButton(icon = Icons.Rounded.Settings, description = Strings.ludoSettings, tint = colors.LudoTeal, onClick = onSettings)
-            TableSquareIconButton(icon = Icons.AutoMirrored.Rounded.Logout, description = Strings.ludoExit, tint = colors.Error, onClick = onExit)
+            onHistory?.let { TableSquareIconButton(icon = Icons.Rounded.History, description = TableStrings.tableHistory, tint = colors.Cyan, onClick = it) }
+            TableSquareIconButton(icon = Icons.Rounded.Settings, description = LudoStrings.ludoSettings, tint = colors.LudoTeal, onClick = onSettings)
+            TableSquareIconButton(icon = Icons.AutoMirrored.Rounded.Logout, description = LudoStrings.ludoExit, tint = colors.Error, onClick = onExit)
         }
     }
 }

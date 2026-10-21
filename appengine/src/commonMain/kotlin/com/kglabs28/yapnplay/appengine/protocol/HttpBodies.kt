@@ -23,8 +23,13 @@ data class Me(
     val xp: Int = 0,
     /** Derived from [xp] by the server. */
     val level: Int = 1,
-    /** Provisional: economy not designed yet. */
+    /** The server's coin balance (new players start at 1000). */
     val coins: Int = 0,
+    /** XP where this level starts / where the next one starts (the level bar). */
+    val levelXp: Int = 0,
+    val nextLevelXp: Int = 0,
+    /** Coins added by this call (the daily bonus: first /me of the day); 0 otherwise. */
+    val dailyBonus: Int = 0,
     /** Provisional: economy not designed yet. */
     val gems: Int = 0,
     /** Shown as "@username"; anyone may pick any (not unique). */
@@ -210,4 +215,82 @@ data class ActiveMatch(
     /** Room name, or "Quick Play". */
     val title: String,
     val roomId: String? = null,
+)
+
+/** `POST /rooms/{roomId}/invites`: invite friends into a room the caller belongs to. */
+@Serializable
+data class InviteToRoomBody(
+    val userIds: List<String>,
+)
+
+/** Who got an invite, and who was skipped (not a friend, blocked, already a member or invited, room full). */
+@Serializable
+data class InviteToRoomReply(
+    val invited: List<String>,
+    val skipped: List<String> = emptyList(),
+)
+
+/** `GET /rooms/invites`: room invites waiting for the user, newest first. */
+@Serializable
+data class RoomInvites(
+    val invites: List<RoomInviteSummary>,
+)
+
+@Serializable
+data class RoomInviteSummary(
+    val inviteId: String,
+    val roomId: String,
+    val roomName: String,
+    /** Room badge key, same as RoomSummary.icon. */
+    val roomIcon: String = "group",
+    val memberCount: Int,
+    val invitedBy: FriendSummary,
+    /** Epoch millis. */
+    val invitedAt: Long,
+)
+
+/** `POST /auth/play-games`: the one-time code from Google Play Games (sent with the current guest's bearer). */
+@Serializable
+data class PlayGamesSignInBody(
+    val serverAuthCode: String,
+)
+
+/**
+ * The account to use from now on. [restored]: this Play Games player was
+ * already linked to another account (a new phone or a reinstall), which is
+ * returned instead of the current guest.
+ */
+@Serializable
+data class PlayGamesSignedIn(
+    val userId: String,
+    val secret: String,
+    val restored: Boolean = false,
+)
+
+/** `POST /coins/ad-reward` body: a unique id per ad view (a random UUID). */
+@Serializable
+data class AdRewardBody(
+    val adId: String,
+)
+
+/** `POST /coins/ad-reward`: after a fully watched rewarded ad. [coins] is the new balance. */
+@Serializable
+data class CoinsReward(
+    val coins: Int,
+    val granted: Int,
+    val adsLeftToday: Int,
+)
+
+/** `GET /coins/leagues`: Quick Play leagues; [League.canEnter] is false when [coins] are short of the fee. */
+@Serializable
+data class Leagues(
+    val coins: Int,
+    val leagues: List<League>,
+)
+
+@Serializable
+data class League(
+    val entryCoins: Int,
+    val name: String,
+    val canEnter: Boolean,
 )

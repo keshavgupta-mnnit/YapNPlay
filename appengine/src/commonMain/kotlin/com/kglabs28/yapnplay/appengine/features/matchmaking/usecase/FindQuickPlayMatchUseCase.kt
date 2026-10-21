@@ -10,5 +10,5 @@ import kotlinx.coroutines.flow.Flow
  */
 class FindQuickPlayMatchUseCase(private val repository: MatchmakingRepository) {
 
-    operator fun invoke(gameId: String): Flow<MatchmakingStatus> = repository.findMatch(gameId)
+    operator fun invoke(gameId: String, entryCoins: Int): Flow<MatchmakingStatus> = repository.findMatch(gameId, entryCoins)
 }

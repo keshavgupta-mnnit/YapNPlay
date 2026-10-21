@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -26,7 +27,6 @@ import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /**
@@ -73,7 +73,7 @@ fun RoomCodeField(
         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             if (code.isEmpty() && !active) {
                 BasicText(
-                    text = Strings.roomsCodeHint,
+                    text = RoomStrings.roomsCodeHint,
                     style = textStyle.copy(color = colors.RoomsPlaceholderDigits),
                 )
             } else {

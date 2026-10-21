@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,12 +13,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.rounded.Mail
+import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
@@ -34,6 +36,8 @@ fun YourRoomsPanel(
     onOpenRoom: (String) -> Unit,
     onSeeAll: () -> Unit,
     modifier: Modifier = Modifier,
+    invitesCount: Int = 0,
+    onInvites: () -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -49,15 +53,26 @@ fun YourRoomsPanel(
     ) {
         SectionHeader(
             icon = Icons.Rounded.Forum,
-            title = Strings.roomsYourRoomsTitle,
-            subtitle = Strings.roomsYourRoomsSubtitle,
+            title = RoomStrings.roomsYourRoomsTitle,
+            subtitle = RoomStrings.roomsYourRoomsSubtitle,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            GlassPillButton(
-                text = Strings.roomsSeeAll,
-                onClick = onSeeAll,
-                trailingIcon = Icons.Rounded.ChevronRight,
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+                // Group invites waiting: shown (glowing red) only while there are any.
+                if (invitesCount > 0) {
+                    GlassPillButton(
+                        text = RoomStrings.roomsInvites(invitesCount),
+                        onClick = onInvites,
+                        leadingIcon = Icons.Rounded.Mail,
+                        accent = colors.Error,
+                    )
+                }
+                GlassPillButton(
+                    text = RoomStrings.roomsSeeAll,
+                    onClick = onSeeAll,
+                    trailingIcon = Icons.Rounded.ChevronRight,
+                )
+            }
         }
         Box(
             modifier = Modifier
@@ -67,7 +82,7 @@ fun YourRoomsPanel(
         ) {
             if (loaded && rooms.isEmpty()) {
                 EmptyStateText(
-                    text = Strings.roomsNoRooms,
+                    text = RoomStrings.roomsNoRooms,
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {

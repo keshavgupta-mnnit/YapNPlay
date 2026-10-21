@@ -3,6 +3,7 @@ package com.kglabs28.yapnplay.appengine.ui.screens.profile
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 
 /**
@@ -13,7 +14,7 @@ import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 data class ProfileState(
     val loaded: Boolean = false,
     val name: String = "",
-    /** "@keshav_28" (not unique). */
+    /** "@riya_28" (not unique). */
     val username: String = "",
     /** The raw 6-character YapNPlay ID, for showing and copying. */
     val userCode: String = "",
@@ -46,6 +47,9 @@ data class ProfileState(
 ) : UiState
 
 enum class FriendsTab { ALL, ONLINE, OFFLINE }
+
+/** One of the user's groups in "Invite to Group". [invited]: an invite went out from here. */
+data class InviteGroupUi(val roomId: String, val name: String, val icon: PlayRoomIcon, val detail: String, val invited: Boolean = false, val sending: Boolean = false)
 
 enum class ProfileStatKind { GAMES, WINS, FRIENDS, LEVEL }
 
@@ -83,6 +87,8 @@ sealed interface ProfileModal {
     data object AllFriends : ProfileModal
     /** A friend's card: Remove Friend and Block User. */
     data class Person(val person: ProfilePersonUi) : ProfileModal
+    /** "Invite <friend>": the user's groups (Invite / Invited each), or New Group with them. */
+    data class InviteToGroup(val person: ProfilePersonUi, val groups: List<InviteGroupUi> = emptyList(), val loading: Boolean = true, val error: String? = null) : ProfileModal
     /** Everyone asking to be friends: Decline or Accept each; tap one for their card. */
     data object Requests : ProfileModal
     data class RequestProfile(val request: ProfileRequestUi) : ProfileModal
@@ -91,14 +97,12 @@ sealed interface ProfileModal {
     data class ConfirmBlock(val person: ProfilePersonUi) : ProfileModal
     data object BlockList : ProfileModal
     data class ConfirmUnblock(val user: ProfileBlockedUi) : ProfileModal
-    data object ConfirmLogout : ProfileModal
 }
 
 sealed interface ProfileIntent : UiIntent {
     data object Load : ProfileIntent
     data object Back : ProfileIntent
     data object OpenSettings : ProfileIntent
-    data object Logout : ProfileIntent
     data object EditAvatar : ProfileIntent
     data class PickAvatar(val avatarId: String) : ProfileIntent
     data object SaveAvatar : ProfileIntent
@@ -114,6 +118,9 @@ sealed interface ProfileIntent : UiIntent {
     data object SeeAllFriends : ProfileIntent
     data class RemoveFriend(val userId: String) : ProfileIntent
     data class BlockUser(val userId: String) : ProfileIntent
+    data class InviteToGroup(val userId: String) : ProfileIntent
+    data class InviteToRoom(val roomId: String) : ProfileIntent
+    data object NewGroupWithFriend : ProfileIntent
     data object ConfirmAction : ProfileIntent
     data object OpenKeyboard : ProfileIntent
     data object CloseKeyboard : ProfileIntent
@@ -133,4 +140,6 @@ sealed interface ProfileIntent : UiIntent {
 sealed interface ProfileEffect : UiEffect {
     data object Close : ProfileEffect
     data object OpenSettings : ProfileEffect
+    /** Go to the Rooms tab's Create New Group with this friend picked. */
+    data class OpenCreateGroup(val userId: String) : ProfileEffect
 }

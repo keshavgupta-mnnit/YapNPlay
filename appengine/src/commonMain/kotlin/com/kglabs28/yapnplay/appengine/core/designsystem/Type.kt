@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.core.designsystem
 
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 
 /**
@@ -10,45 +11,48 @@ import androidx.compose.ui.text.font.FontWeight
  * Body text never goes below 12sp at baseline; tiny metadata (online
  * dots, scores, pillar captions) uses micro.
  */
-class YapNPlayTypography {
+class YapNPlayTypography(
+    private val headlineFamily: FontFamily = FontFamily.Default,
+    private val bodyFamily: FontFamily = FontFamily.Default,
+) {
     val display: TextStyle
         get() = TextStyle(
-            fontFamily = HeadlineFontFamily,
+            fontFamily = headlineFamily,
             fontWeight = FontWeight.SemiBold,
             fontSize = 32.scaledSp,
             lineHeight = 38.scaledSp,
         )
     val headline: TextStyle
         get() = TextStyle(
-            fontFamily = HeadlineFontFamily,
+            fontFamily = headlineFamily,
             fontWeight = FontWeight.SemiBold,
             fontSize = 22.scaledSp,
             lineHeight = 28.scaledSp,
         )
     val title: TextStyle
         get() = TextStyle(
-            fontFamily = HeadlineFontFamily,
+            fontFamily = headlineFamily,
             fontWeight = FontWeight.SemiBold,
             fontSize = 16.scaledSp,
             lineHeight = 22.scaledSp,
         )
     val body: TextStyle
         get() = TextStyle(
-            fontFamily = BodyFontFamily,
+            fontFamily = bodyFamily,
             fontWeight = FontWeight.Normal,
             fontSize = 13.scaledSp,
             lineHeight = 18.scaledSp,
         )
     val label: TextStyle
         get() = TextStyle(
-            fontFamily = BodyFontFamily,
+            fontFamily = bodyFamily,
             fontWeight = FontWeight.Medium,
             fontSize = 12.scaledSp,
             lineHeight = 16.scaledSp,
         )
     val caption: TextStyle
         get() = TextStyle(
-            fontFamily = BodyFontFamily,
+            fontFamily = bodyFamily,
             fontWeight = FontWeight.Normal,
             fontSize = 12.scaledSp,
             lineHeight = 16.scaledSp,
@@ -56,7 +60,7 @@ class YapNPlayTypography {
     /** Card headline: ENTER GAME ZONE, CREATE NEW. */
     val cardTitle: TextStyle
         get() = TextStyle(
-            fontFamily = HeadlineFontFamily,
+            fontFamily = headlineFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 15.scaledSp,
             lineHeight = 18.scaledSp,
@@ -65,7 +69,7 @@ class YapNPlayTypography {
     /** Oversized hero word: ROOM. */
     val heroWord: TextStyle
         get() = TextStyle(
-            fontFamily = HeadlineFontFamily,
+            fontFamily = headlineFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 24.scaledSp,
             lineHeight = 26.scaledSp,
@@ -74,7 +78,7 @@ class YapNPlayTypography {
     /** Panel headings: Your Rooms, Online Friends. */
     val sectionTitle: TextStyle
         get() = TextStyle(
-            fontFamily = BodyFontFamily,
+            fontFamily = bodyFamily,
             fontWeight = FontWeight.SemiBold,
             fontSize = 11.scaledSp,
             lineHeight = 14.scaledSp,
@@ -83,7 +87,7 @@ class YapNPlayTypography {
     /** List item names (rooms, friends). */
     val itemTitle: TextStyle
         get() = TextStyle(
-            fontFamily = BodyFontFamily,
+            fontFamily = bodyFamily,
             fontWeight = FontWeight.Medium,
             fontSize = 10.scaledSp,
             lineHeight = 13.scaledSp,
@@ -92,7 +96,7 @@ class YapNPlayTypography {
     /** The lobby START MATCH label. */
     val startLabel: TextStyle
         get() = TextStyle(
-            fontFamily = HeadlineFontFamily,
+            fontFamily = headlineFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 20.scaledSp,
             lineHeight = 22.scaledSp,
@@ -101,7 +105,7 @@ class YapNPlayTypography {
     /** Pill button labels: QUICK PLAY, JOIN, Create Room. */
     val button: TextStyle
         get() = TextStyle(
-            fontFamily = HeadlineFontFamily,
+            fontFamily = headlineFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 11.scaledSp,
             lineHeight = 14.scaledSp,
@@ -109,7 +113,7 @@ class YapNPlayTypography {
 
     val micro: TextStyle
         get() = TextStyle(
-            fontFamily = BodyFontFamily,
+            fontFamily = bodyFamily,
             fontWeight = FontWeight.Normal,
             fontSize = 10.scaledSp,
             lineHeight = 13.scaledSp,

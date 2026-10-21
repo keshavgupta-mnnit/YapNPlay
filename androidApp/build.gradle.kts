@@ -13,18 +13,38 @@ android {
         applicationId = "com.kglabs28.yapnplay"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0-phase7"
+        versionCode = 2
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Must match AppConstants.INVITE_HOST / APP_SCHEME (invite + room links).
         manifestPlaceholders["inviteHost"] = "kglabs28-yapnplay.web.app"
         manifestPlaceholders["appScheme"] = "yapnplay"
+        // AdMob app id: -PadmobAppId=ca-app-pub-…~… (or gradle.properties); default is Google's test app.
+        manifestPlaceholders["admobAppId"] = (project.findProperty("admobAppId") as String?) ?: "ca-app-pub-3940256099942544~3347511713"
     }
 
+    
+    signingConfigs {
+        create("release") {
+            storeFile = file(System.getenv("KEYSTORE_FILE") ?: "release.jks")
+            storePassword = System.getenv("KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("KEY_ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD")
+        }
+    }
     buildTypes {
         release {
-            isMinifyEnabled = false
-        }
+            // R8: shrinks and obfuscates the release APK (harder to read, smaller).
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        
+            signingConfigs.getByName("release").let {
+                if (System.getenv("KEYSTORE_PASSWORD") != null) signingConfig = it
+            }
+            ndk {
+                debugSymbolLevel = "FULL"
+            }}
     }
     testOptions {
         unitTests {

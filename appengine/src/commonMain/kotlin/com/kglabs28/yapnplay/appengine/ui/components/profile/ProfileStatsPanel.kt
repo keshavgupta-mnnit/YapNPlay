@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +27,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileStatKind
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileStatUi
@@ -81,7 +81,7 @@ fun ProfileStatsPanel(stats: List<ProfileStatUi>, modifier: Modifier = Modifier)
             horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
         ) {
             AppIcon(imageVector = Icons.Rounded.Insights, tint = colors.SocialZoneAccent, size = dimens.iconSmall)
-            BasicText(text = Strings.profileStatsTitle, style = typography.micro.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
+            BasicText(text = ProfileStrings.profileStatsTitle, style = typography.micro.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
         }
     }
 }

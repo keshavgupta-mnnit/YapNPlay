@@ -1,5 +1,14 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.gamezone
 
+import com.kglabs28.yapnplay.appengine.ui.components.coins.LeaguePickerUi
+import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsUiMapper
+import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferUi
+import com.kglabs28.yapnplay.appengine.core.ui.CoinsStrings
+import com.kglabs28.yapnplay.appengine.features.matchmaking.domain.MatchmakingCancelReason
+import com.kglabs28.yapnplay.appengine.features.coins.domain.CoinLeagues
+import com.kglabs28.yapnplay.appengine.features.coins.usecase.WatchAdForCoinsUseCase
+import com.kglabs28.yapnplay.appengine.features.coins.usecase.GetCoinLeaguesUseCase
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
@@ -24,7 +33,8 @@ import kotlinx.datetime.Instant
 
 /**
  * Game Zone: loads the game catalog and online count, keeps the focused
- * game and view mode, and runs Quick Play — the server searches, starts
+ * game and view mode, and runs Quick Play — the user picks a coin league
+ * (short of the fee: a rewarded ad for coins, or Starter), the server searches, starts
  * early when every seat has a human, and fills the rest with CPU players
  * at the deadline; this view model only shows progress and navigates.
  */
@@ -35,6 +45,8 @@ class GameZoneViewModel(
     private val leaveQuickPlayQueue: LeaveQuickPlayQueueUseCase,
     private val observePenalty: ObservePenaltyUseCase,
     private val clearPenaltyWithAd: ClearPenaltyWithAdUseCase,
+    private val getCoinLeagues: GetCoinLeaguesUseCase,
+    private val watchAdForCoins: WatchAdForCoinsUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<GameZoneState, GameZoneIntent, GameZoneEffect>(GameZoneState(), dispatchers) {
@@ -43,6 +55,8 @@ class GameZoneViewModel(
     /** The game being searched for (its table opens when a match is found). */
     private var searchGameId = ""
     private var tickJob: Job? = null
+    /** The last league list, to tell a locked row from an open one. */
+    private var lastLeagues: CoinLeagues? = null
 
     override suspend fun handleIntent(intent: GameZoneIntent) {
         when (intent) {
@@ -59,8 +73,16 @@ class GameZoneViewModel(
             }
             is GameZoneIntent.PlayGame -> {
                 focus(intent.index)
-                startSearch()
+                openLeagues()
             }
+            is GameZoneIntent.PickLeague -> pickLeague(intent.entryCoins)
+            GameZoneIntent.CloseLeagues -> setState { copy(leagues = null) }
+            GameZoneIntent.WatchAdForCoins -> watchAdThenReload()
+            GameZoneIntent.PlayFree -> {
+                setState { copy(coinsOffer = null, leagues = null) }
+                startSearch(FREE_LEAGUE)
+            }
+            GameZoneIntent.CloseCoinsOffer -> setState { copy(coinsOffer = null) }
             GameZoneIntent.CancelSearch -> cancelSearch()
             GameZoneIntent.DismissPenalty -> setState { copy(penalty = null) }
             GameZoneIntent.WatchAd -> {
@@ -93,25 +115,80 @@ class GameZoneViewModel(
         setState { copy(focusedIndex = index.coerceIn(0, (games.size - 1).coerceAtLeast(0))) }
     }
 
-    private fun startSearch() {
-        val game = state.value.games.getOrNull(state.value.focusedIndex) ?: return
+    /** Quick Play: a play block first (an ad lifts it), then the league picker with today's balance. */
+    private suspend fun openLeagues() {
         if (searchJob?.isActive == true) return
-        // A recorded incident blocks play for a while (an ad lifts it).
         observePenalty().value?.takeIf { it.blockedUntil > clock.now() }?.let { block ->
             val minutes = ceil((block.blockedUntil - clock.now()).inWholeSeconds / SECONDS_PER_MINUTE.toDouble()).toInt()
-            setState { copy(penalty = PenaltyUi(Strings.ludoPenaltyTitle, Strings.ludoPenaltyBody(block.points, minutes), watchingAd = false)) }
+            setState { copy(penalty = PenaltyUi(LudoStrings.ludoPenaltyTitle, LudoStrings.ludoPenaltyBody(block.points, minutes), watchingAd = false)) }
             return
         }
+        setState { copy(searchMessage = null, leagues = LeaguePickerUi(balanceLabel = "", leagues = emptyList())) }
+        reloadLeagues(message = null)
+    }
+
+    /** Fills the open picker; without the server's list, the free league is the only choice. */
+    private suspend fun reloadLeagues(message: String?) {
+        when (val result = getCoinLeagues()) {
+            is AppResult.Success -> {
+                lastLeagues = result.data
+                setState { copy(leagues = leagues?.let { CoinsUiMapper.picker(result.data, message) }) }
+            }
+            is AppResult.Failure -> {
+                setState { copy(leagues = null) }
+                startSearch(FREE_LEAGUE)
+            }
+        }
+    }
+
+    private fun pickLeague(entryCoins: Int) {
+        val league = lastLeagues?.leagues?.firstOrNull { it.entryCoins == entryCoins }
+        if (league != null && !league.canEnter) {
+            setState {
+                copy(
+                    coinsOffer = CoinsOfferUi(
+                        title = CoinsStrings.notEnoughTitle,
+                        body = CoinsStrings.notEnoughBody(league.name, TextUtils.groupedThousands(league.entryCoins)),
+                        offerFree = true,
+                    ),
+                )
+            }
+            return
+        }
+        setState { copy(leagues = null) }
+        startSearch(entryCoins)
+    }
+
+    /** Ad watched to the end → the server adds coins; the picker reopens with the new balance. */
+    private suspend fun watchAdThenReload() {
+        setState { copy(coinsOffer = coinsOffer?.copy(watchingAd = true, message = null)) }
+        val result = watchAdForCoins.invoke()
+        val message = CoinsUiMapper.adMessage(result)
+        if (result is AppResult.Success) {
+            setState { copy(coinsOffer = null, leagues = leagues ?: LeaguePickerUi(balanceLabel = "", leagues = emptyList())) }
+            reloadLeagues(message)
+        } else {
+            setState { copy(coinsOffer = coinsOffer?.copy(watchingAd = false, message = message)) }
+        }
+    }
+
+    private fun startSearch(entryCoins: Int) {
+        val game = state.value.games.getOrNull(state.value.focusedIndex) ?: return
+        if (searchJob?.isActive == true) return
         setState { copy(searchMessage = null) }
         searchGameId = game.id
         searchJob = scope.launch {
-            findQuickPlayMatch(game.id).collect { status ->
+            findQuickPlayMatch(game.id, entryCoins).collect { status ->
                 when (status) {
                     is MatchmakingStatus.Searching -> showSearching(status)
                     is MatchmakingStatus.Found -> showFound(status)
                     is MatchmakingStatus.Cancelled -> {
                         tickJob?.cancel()
-                        setState { copy(search = null, searchMessage = Strings.gameZoneNoMatch) }
+                        if (status.reason == MatchmakingCancelReason.NOT_ENOUGH_COINS) {
+                            setState { copy(search = null, coinsOffer = CoinsOfferUi(CoinsStrings.notEnoughTitle, CoinsStrings.notEnoughBodyGeneric, offerFree = true)) }
+                        } else {
+                            setState { copy(search = null, searchMessage = Strings.gameZoneNoMatch) }
+                        }
                     }
                 }
             }
@@ -175,5 +252,6 @@ class GameZoneViewModel(
 
     private companion object {
         const val SECONDS_PER_MINUTE = 60L
+        const val FREE_LEAGUE = 0
     }
 }

@@ -1,11 +1,11 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.DeepLinks
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.domain.GameCatalogItem
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.LobbyCommand
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.LobbyData
@@ -112,7 +112,7 @@ class PlayRoomLobbyViewModel(
                 emitEffect(PlayRoomLobbyEffect.Close)
             }
             PlayRoomLobbyIntent.ShareLink -> data?.room?.let {
-                emitEffect(PlayRoomLobbyEffect.ShareText(Strings.roomInviteMessage(it.name, it.code, DeepLinks.inviteUrl(it.code))))
+                emitEffect(PlayRoomLobbyEffect.ShareText(RoomStrings.roomInviteMessage(it.name, it.code, DeepLinks.inviteUrl(it.code))))
             }
             PlayRoomLobbyIntent.OpenWaitingList -> showModal(LobbyModal.WaitingList)
             is PlayRoomLobbyIntent.ApproveJoin -> send(LobbyCommand.ApproveJoin(intent.userId))
@@ -226,7 +226,7 @@ class PlayRoomLobbyViewModel(
                 isLeader = me?.isLeader == true,
                 isAdmin = me?.isAdmin == true,
                 members = LobbyRules.sortMembers(room.members, d.myUserId).map { it.toUi(d) },
-                membersLabel = Strings.lobbyPlayersOnline(room.members.count { it.online }, room.members.size),
+                membersLabel = RoomStrings.lobbyPlayersOnline(room.members.count { it.online }, room.members.size),
                 games = d.games,
                 focusedIndex = focusedIndex.coerceIn(0, (d.games.size - 1).coerceAtLeast(0)),
                 selectedGame = game,
@@ -266,32 +266,32 @@ class PlayRoomLobbyViewModel(
 
     /** "Fill with bots" first, then the game own toggles. */
     private fun houseRulesFor(room: LobbyRoom, game: GameCatalogItem): List<HouseRuleUi> =
-        listOf(HouseRuleUi(BOT_FILL_KEY, Strings.lobbyBotFillTitle, Strings.lobbyBotFillDescription, room.botFill)) +
+        listOf(HouseRuleUi(BOT_FILL_KEY, RoomStrings.lobbyBotFillTitle, RoomStrings.lobbyBotFillDescription, room.botFill)) +
             game.houseRuleOptions.map {
                 HouseRuleUi(it.key, it.title, it.description, room.houseRules[it.key] ?: it.defaultEnabled)
             }
 
     private fun primaryFor(room: LobbyRoom, me: LobbyMember, game: GameCatalogItem?): LobbyPrimaryButtonUi {
         if (room.matchInProgress != null) {
-            return LobbyPrimaryButtonUi(Strings.lobbyWatchMatch, Strings.lobbyMatchInProgress, enabled = true, active = true, isStart = true)
+            return LobbyPrimaryButtonUi(RoomStrings.lobbyWatchMatch, RoomStrings.lobbyMatchInProgress, enabled = true, active = true, isStart = true)
         }
         if (me.isLeader) {
             val canStart = LobbyRules.canStart(room, game)
             return LobbyPrimaryButtonUi(
-                label = Strings.lobbyStartMatch,
-                sublabel = game?.let { Strings.lobbyPlayersReady(LobbyRules.readyCount(room), it.maxPlayers) }
-                    ?: Strings.lobbyPickGameFirst,
+                label = RoomStrings.lobbyStartMatch,
+                sublabel = game?.let { RoomStrings.lobbyPlayersReady(LobbyRules.readyCount(room), it.maxPlayers) }
+                    ?: RoomStrings.lobbyPickGameFirst,
                 enabled = canStart,
                 active = canStart,
                 isStart = true,
             )
         }
         return when (LobbyRules.playerButtonState(room, me, game)) {
-            PlayerButtonState.DISABLED -> LobbyPrimaryButtonUi(Strings.lobbyReadyButton, Strings.lobbyWaitingForGame)
-            PlayerButtonState.NOT_READY -> LobbyPrimaryButtonUi(Strings.lobbyNotReadyButton, Strings.lobbyTapWhenReady, enabled = true)
-            PlayerButtonState.READY -> LobbyPrimaryButtonUi(Strings.lobbyReadyButton, Strings.lobbySeatSaved, enabled = true, active = true)
-            PlayerButtonState.NOT_WATCHING -> LobbyPrimaryButtonUi(Strings.lobbyNotWatchingButton, Strings.lobbyTapToWatch, enabled = true)
-            PlayerButtonState.WATCHING -> LobbyPrimaryButtonUi(Strings.lobbyWatchingButton, Strings.lobbyTapToStopWatching, enabled = true, active = true)
+            PlayerButtonState.DISABLED -> LobbyPrimaryButtonUi(RoomStrings.lobbyReadyButton, RoomStrings.lobbyWaitingForGame)
+            PlayerButtonState.NOT_READY -> LobbyPrimaryButtonUi(RoomStrings.lobbyNotReadyButton, RoomStrings.lobbyTapWhenReady, enabled = true)
+            PlayerButtonState.READY -> LobbyPrimaryButtonUi(RoomStrings.lobbyReadyButton, RoomStrings.lobbySeatSaved, enabled = true, active = true)
+            PlayerButtonState.NOT_WATCHING -> LobbyPrimaryButtonUi(RoomStrings.lobbyNotWatchingButton, RoomStrings.lobbyTapToWatch, enabled = true)
+            PlayerButtonState.WATCHING -> LobbyPrimaryButtonUi(RoomStrings.lobbyWatchingButton, RoomStrings.lobbyTapToStopWatching, enabled = true, active = true)
         }
     }
 
@@ -299,7 +299,7 @@ class PlayRoomLobbyViewModel(
         val endsAt = room.countdownEndsAt ?: return null
         val seconds = (endsAt - clock.now()).inWholeSeconds.coerceAtLeast(0)
         return LobbyModal.Countdown(
-            title = Strings.lobbyStartingIn(seconds),
+            title = RoomStrings.lobbyStartingIn(seconds),
             canCancel = me != null && (me.isLeader || me.ready),
         )
     }

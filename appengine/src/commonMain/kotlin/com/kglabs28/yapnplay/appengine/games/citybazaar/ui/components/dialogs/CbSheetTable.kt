@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,14 +35,14 @@ fun CbSheetTable(rows: List<CbSheetRowUi>, modifier: Modifier = Modifier) {
     ) {
         rows.forEach { row ->
             if (row.kind == CbRowKind.TOTAL) Box(Modifier.fillMaxWidth().height(dimens.hairline).background(colors.IconMuted))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
                 val bold = row.kind == CbRowKind.TOTAL
-                BasicText(
+                ShrinkText(
                     text = row.label,
                     style = typography.label.copy(color = if (bold) colors.TextPrimary else colors.TextSecondary, fontWeight = if (bold) FontWeight.Bold else null),
                     modifier = Modifier.weight(1f),
                 )
-                BasicText(
+                ShrinkText(
                     text = row.amount,
                     style = typography.label.copy(
                         fontWeight = FontWeight.Bold,

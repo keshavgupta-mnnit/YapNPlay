@@ -19,4 +19,7 @@ data class ProfileModalActions(
     val onDecline: (requestId: String) -> Unit,
     val onUnblock: (userId: String) -> Unit,
     val onCopyCode: (code: String) -> Unit,
+    val onInviteToGroup: (userId: String) -> Unit,
+    val onInviteToRoom: (roomId: String) -> Unit,
+    val onNewGroup: () -> Unit,
 )

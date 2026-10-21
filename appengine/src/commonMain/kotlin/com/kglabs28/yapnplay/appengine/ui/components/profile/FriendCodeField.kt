@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -25,7 +26,6 @@ import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 
 /**
  * The glass pill showing the friend's ID being typed. It never opens the
@@ -65,7 +65,7 @@ fun FriendCodeField(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (code.isEmpty() && !active) {
-            BasicText(text = Strings.profileCodeHint, style = typography.label.copy(color = colors.RoomsPlaceholderDigits), maxLines = 1)
+            BasicText(text = ProfileStrings.profileCodeHint, style = typography.label.copy(color = colors.RoomsPlaceholderDigits), maxLines = 1)
         } else {
             BasicText(
                 text = code,

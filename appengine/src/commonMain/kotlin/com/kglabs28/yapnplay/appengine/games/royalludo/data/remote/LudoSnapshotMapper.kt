@@ -67,6 +67,7 @@ class LudoSnapshotMapper(private val json: Json) {
             startedAt = toLocal(snapshot.startedAt),
             finishedSeats = state.finishedSeats,
             ranking = state.ranking,
+            pot = snapshot.pot?.total ?: 0,
             seatOffer = snapshot.seatOffer?.toDomain(toLocal),
             roomId = snapshot.roomId,
             viewerUserId = myUserId,

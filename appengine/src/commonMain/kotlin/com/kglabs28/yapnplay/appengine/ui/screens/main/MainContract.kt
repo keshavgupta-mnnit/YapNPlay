@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferUi
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
@@ -20,7 +21,11 @@ data class MainState(
      *  layout and only fades the values in, so nothing jumps. */
     val profileLoaded: Boolean = false,
     val coinBalance: String = "",
-    val diamondBalance: String = "",
+    /** 0–1 towards the next level, and "350 / 1,000 XP". */
+    val levelProgress: Float = 0f,
+    val xpLabel: String = "",
+    /** "+100": the daily bonus the server just added, until the user collects it; null otherwise. */
+    val dailyBonus: String? = null,
     val selectedTab: AppNavTab = AppNavTab.HOME,
     /** Bell history, newest first (at most 10). */
     val notifications: List<NotificationUi> = emptyList(),
@@ -28,6 +33,8 @@ data class MainState(
     val notificationsOpen: Boolean = false,
     /** A match the user still has a seat in: "Rejoin?" dialog; null when none. */
     val rejoin: RejoinUi? = null,
+    /** The coins "+": watch an ad for free coins; null when closed. */
+    val coinsOffer: CoinsOfferUi? = null,
 ) : UiState
 
 /** The "your game is still on" dialog. */
@@ -44,6 +51,7 @@ data class NotificationUi(
 )
 
 sealed interface MainIntent : UiIntent {
+    data object CollectDailyBonus : MainIntent
     data class SelectTab(val tab: AppNavTab) : MainIntent
     data object LoadProfile : MainIntent
     data object OpenSettings : MainIntent
@@ -54,6 +62,10 @@ sealed interface MainIntent : UiIntent {
     data class NotificationClicked(val roomId: String) : MainIntent
     data object Rejoin : MainIntent
     data object DismissRejoin : MainIntent
+    /** The coins "+" in the top bar. */
+    data object OpenGetCoins : MainIntent
+    data object WatchAdForCoins : MainIntent
+    data object CloseGetCoins : MainIntent
 }
 
 sealed interface MainEffect : UiEffect {

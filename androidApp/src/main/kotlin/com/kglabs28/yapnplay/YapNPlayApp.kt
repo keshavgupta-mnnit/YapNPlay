@@ -4,7 +4,8 @@ import android.app.Application
 import com.google.firebase.messaging.FirebaseMessaging
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.appmanager.AppManager
-import com.kglabs28.yapnplay.appengine.appmanager.fetchRemoteFlags
+import com.kglabs28.yapnplay.appengine.appmanager.RemoteConfigSource
+import com.kglabs28.yapnplay.appengine.appmanager.AppManagerKeys
 import com.kglabs28.yapnplay.appengine.di.appModules
 import com.kglabs28.yapnplay.appengine.di.platformAppManagerModule
 import kotlinx.coroutines.CoroutineScope
@@ -33,7 +34,7 @@ class YapNPlayApp : Application() {
         RoomNotifications.createChannel(this)
         registerForPush()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            get<AppManager>().syncWithRemote(fetchRemoteFlags())
+            get<AppManager>().syncWithRemote(get<RemoteConfigSource>().fetch(AppManagerKeys.defaults))
         }
     }
 

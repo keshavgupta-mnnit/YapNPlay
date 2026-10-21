@@ -16,7 +16,6 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CityBaz
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.RoyalLudoMatchScreen
 import com.kglabs28.yapnplay.appengine.core.common.DeepLink
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.PlayRoomLobbyScreen
-import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.mono.MatchMonoChaosScreen
@@ -39,6 +38,8 @@ fun YapNPlayNavHost(
 ) {
     // Invite code from a link, waiting for the Rooms tab to ask "Join?".
     var pendingInviteCode by remember { mutableStateOf<String?>(null) }
+    // A friend picked on Profile for Create New Group on the Rooms tab.
+    var pendingCreateGroupWith by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(deepLink) {
         when (deepLink) {
             // Notification tap: straight to that room lobby.
@@ -74,6 +75,8 @@ fun YapNPlayNavHost(
                 onOpenProfile = { navController.navigate(Profile) },
                 pendingInviteCode = pendingInviteCode,
                 onInviteConsumed = { pendingInviteCode = null },
+                pendingCreateGroupWith = pendingCreateGroupWith,
+                onCreateGroupConsumed = { pendingCreateGroupWith = null },
                 viewModel = mainViewModel,
                 gameZoneViewModel = gameZoneViewModel,
                 playRoomsViewModel = playRoomsViewModel,
@@ -82,12 +85,10 @@ fun YapNPlayNavHost(
         composable<Profile> { entry ->
             ProfileScreen(
                 onBack = { navController.popBackStack() },
-                viewModel = entry.rememberScreenViewModel(),
-            )
-        }
-        composable<About> { entry ->
-            AboutScreen(
-                onBack = { navController.popBackStack() },
+                onCreateGroupWith = { userId ->
+                    pendingCreateGroupWith = userId
+                    navController.popBackStack(Main, inclusive = false)
+                },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }
@@ -105,14 +106,16 @@ fun YapNPlayNavHost(
         composable<CityBazaarMatch> { entry ->
             CityBazaarMatchScreen(
                 matchId = entry.toRoute<CityBazaarMatch>().matchId,
-                onClose = { navController.popBackStack() },
+                // Only while this table is on top: a second close mustn't pop the screen under it (black screen).
+                onClose = { if (navController.currentBackStackEntry?.id == entry.id) navController.popBackStack() },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<RoyalLudoMatch> { entry ->
             RoyalLudoMatchScreen(
                 matchId = entry.toRoute<RoyalLudoMatch>().matchId,
-                onClose = { navController.popBackStack() },
+                // Only while this table is on top: a second close mustn't pop the screen under it (black screen).
+                onClose = { if (navController.currentBackStackEntry?.id == entry.id) navController.popBackStack() },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }

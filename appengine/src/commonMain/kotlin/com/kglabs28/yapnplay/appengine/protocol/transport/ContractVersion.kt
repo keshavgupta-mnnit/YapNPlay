@@ -13,4 +13,4 @@ package com.kglabs28.yapnplay.appengine.protocol.transport
  * error codes BLOCKED, SEAT_TAKEN, VOICE_UNAVAILABLE; JoinRoomResult reply type.
  * 0.3.0 — Quick Play matchmaking, lobby, CPU seats.
  */
-const val CONTRACT_VERSION: String = "0.4.0"
+const val CONTRACT_VERSION: String = "0.4.4"

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +30,6 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
 
@@ -60,13 +60,13 @@ fun RoomCodeKeypad(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
             AppIcon(imageVector = Icons.Rounded.Dialpad, tint = colors.IconMuted)
             BasicText(
-                text = Strings.roomsKeypadTitle,
+                text = RoomStrings.roomsKeypadTitle,
                 style = YapNPlayTheme.typography.sectionTitle.copy(color = colors.TextPrimary),
                 modifier = Modifier.weight(1f),
             )
             GlassIconButton(
                 imageVector = Icons.Rounded.Close,
-                contentDescription = Strings.lobbyClose,
+                contentDescription = RoomStrings.lobbyClose,
                 onClick = onClose,
                 size = dimens.smallButtonHeight,
                 iconSize = dimens.iconSmall,
@@ -79,15 +79,15 @@ fun RoomCodeKeypad(
             }
         }
         KeyRow {
-            IconKey(Icons.AutoMirrored.Rounded.Backspace, Strings.roomsKeypadBackspace, colors.IconMuted, onBackspace)
+            IconKey(Icons.AutoMirrored.Rounded.Backspace, RoomStrings.roomsKeypadBackspace, colors.IconMuted, onBackspace)
             DigitKey(digit = '0', onClick = { onDigit('0') })
             IconKey(
                 icon = Icons.AutoMirrored.Rounded.Login,
-                description = Strings.roomsJoinButton,
+                description = RoomStrings.roomsJoinButton,
                 tint = if (joinEnabled) colors.ReadyGreen else colors.TextDisabled,
                 onClick = onJoin,
                 enabled = joinEnabled,
-                label = Strings.roomsJoinButton,
+                label = RoomStrings.roomsJoinButton,
             )
         }
     }

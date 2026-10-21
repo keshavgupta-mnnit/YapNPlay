@@ -7,6 +7,9 @@ package com.kglabs28.yapnplay.appengine.features.playrooms.domain
 enum class PlayRoomIcon {
     GROUP, DICE, FAMILY, GAMEPAD;
 
+    /** The server's key for this icon ("dice"). */
+    val key: String get() = name.lowercase()
+
     companion object {
         /** Server key ("dice") to icon; unknown or missing → [GROUP]. */
         fun fromKey(key: String?): PlayRoomIcon =

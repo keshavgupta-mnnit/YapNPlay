@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,7 +17,6 @@ import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.IconCircle
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
 
@@ -60,11 +60,11 @@ fun JoinRoomCard(
             )
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
                 BasicText(
-                    text = Strings.roomsJoinTitle,
+                    text = RoomStrings.roomsJoinTitle,
                     style = typography.sectionTitle.copy(color = colors.TextPrimary),
                 )
                 BasicText(
-                    text = errorMessage ?: Strings.roomsJoinSubtitle(AppConstants.ROOM_CODE_LENGTH),
+                    text = errorMessage ?: RoomStrings.roomsJoinSubtitle(AppConstants.ROOM_CODE_LENGTH),
                     style = typography.micro.copy(
                         color = if (errorMessage != null) colors.Error else colors.RoomsSubtitle,
                     ),
@@ -85,7 +85,7 @@ fun JoinRoomCard(
                 modifier = Modifier.weight(1f),
             )
             PillButton(
-                text = Strings.roomsJoinButton,
+                text = RoomStrings.roomsJoinButton,
                 onClick = onJoin,
                 enabled = !isJoining,
                 gradient = listOf(colors.CtaPurpleStart, colors.CtaPurpleEnd),

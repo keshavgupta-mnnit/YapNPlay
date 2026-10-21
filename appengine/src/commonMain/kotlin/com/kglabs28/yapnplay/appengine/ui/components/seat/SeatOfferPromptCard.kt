@@ -1,12 +1,12 @@
 package com.kglabs28.yapnplay.appengine.ui.components.seat
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.EventSeat
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
@@ -27,7 +27,7 @@ fun SeatOfferPromptCard(
         subtitle = body,
         modifier = modifier,
         actions = {
-            GlassPillButton(text = Strings.seatDecline, onClick = onDecline, leadingIcon = Icons.Rounded.Close, height = YapNPlayTheme.dimens.ctaHeight)
+            GlassPillButton(text = TableStrings.seatDecline, onClick = onDecline, leadingIcon = Icons.Rounded.Close, height = YapNPlayTheme.dimens.ctaHeight)
             PillButton(
                 text = acceptLabel,
                 onClick = onAccept,

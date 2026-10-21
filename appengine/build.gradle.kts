@@ -39,12 +39,17 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.ui)
+            // Bundled images (commonMain/composeResources), every platform.
+            implementation(compose.components.resources)
             implementation(compose.materialIconsExtended)
             implementation(libs.navigation.compose)
             implementation(libs.lifecycle.runtime.compose)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.ktor.client.core)
+            // Images from AppManager URLs (backgrounds, game art), any platform.
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
             implementation(libs.ktor.client.okhttp)
             // Local (no-backend) mode only: answers the app's HTTP calls in-process.
             implementation(libs.ktor.client.mock)
@@ -76,8 +81,18 @@ kotlin {
             implementation(libs.kotlinx.coroutines.play.services)
             // Live voice: joins the LiveKit room the backend issues a token for.
             implementation(libs.livekit.android)
+            implementation(libs.play.app.update)
+            // Google Play Games sign-in (Clash of Clans style account restore).
+            implementation(libs.play.games.v2)
+            // Rewarded ads (coins, lifting a play block).
+            implementation(libs.play.services.ads)
         }
     }
+}
+
+// Generated accessor for commonMain/composeResources: Res.drawable.<file>.
+compose.resources {
+    packageOfResClass = "com.kglabs28.yapnplay.appengine.resources"
 }
 
 // Tests run but never block the build. They will be made mandatory later.

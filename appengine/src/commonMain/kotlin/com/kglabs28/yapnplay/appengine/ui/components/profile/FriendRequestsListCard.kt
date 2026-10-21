@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
+import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileRequestUi
 
@@ -36,7 +37,7 @@ fun FriendRequestsListCard(
     val dimens = YapNPlayTheme.dimens
     val rowShape = RoundedCornerShape(dimens.cbRowRadius)
     ModalCard(
-        surfaceBrush = Brush.verticalGradient(listOf(YapNPlayTheme.colors.GlassDialogTop, YapNPlayTheme.colors.GlassDialogBottom)),title = Strings.profileRequestsDialogTitle(requests.size), onClose = onClose, modifier = modifier.width(dimens.profileWideDialogWidth)) {
+        surfaceBrush = AppBrushes.dialogGeneric,title = ProfileStrings.profileRequestsDialogTitle(requests.size), onClose = onClose, modifier = modifier.width(dimens.profileWideDialogWidth)) {
         Column(
             modifier = Modifier.fillMaxWidth().heightIn(max = dimens.profileListMaxHeight).glassScrollbar(listScroll).verticalScroll(listScroll).padding(end = YapNPlayTheme.dimens.scrollbarWidth * 2),
             verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
@@ -47,11 +48,11 @@ fun FriendRequestsListCard(
                     avatarId = p.avatarId,
                     name = p.name,
                     username = p.username,
-                    detail = Strings.profileYapId + "  " + p.userCode,
+                    detail = ProfileStrings.profileYapIdLine(p.userCode),
                     modifier = Modifier.fillMaxWidth().clip(rowShape).background(YapNPlayTheme.colors.ListRow).clickable { onOpen(request.requestId) }.padding(Spacing.Xs),
                 ) {
-                    ProfileActionButton(text = Strings.profileDecline, kind = ProfileButtonKind.NEUTRAL, onClick = { onDecline(request.requestId) }, height = dimens.smallButtonHeight)
-                    ProfileActionButton(text = Strings.profileAccept, kind = ProfileButtonKind.CONFIRM, onClick = { onAccept(request.requestId) }, height = dimens.smallButtonHeight)
+                    ProfileActionButton(text = ProfileStrings.profileDecline, kind = ProfileButtonKind.NEUTRAL, onClick = { onDecline(request.requestId) }, height = dimens.smallButtonHeight)
+                    ProfileActionButton(text = ProfileStrings.profileAccept, kind = ProfileButtonKind.CONFIRM, onClick = { onAccept(request.requestId) }, height = dimens.smallButtonHeight)
                 }
             }
         }

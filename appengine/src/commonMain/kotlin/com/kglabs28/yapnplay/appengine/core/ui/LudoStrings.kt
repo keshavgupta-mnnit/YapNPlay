@@ -1,0 +1,56 @@
+package com.kglabs28.yapnplay.appengine.core.ui
+
+/** Royal Ludo: table, board, results. */
+object LudoStrings {
+    const val ludoTitle = "ROYAL LUDO"
+    const val ludoRollDice = "Roll Dice"
+    const val ludoAutoplay = "Autoplay"
+    const val ludoSpectators = "spectators"
+    const val ludoMatchTime = "Match time"
+    const val ludoSettings = "Settings"
+    const val ludoExit = "Leave match"
+    const val ludoLeaveTitle = "Leave the match?"
+    const val ludoLeaveBody = "A CPU will play your seat for the rest of the match."
+    const val ludoResultTitle = "Match over"
+    const val ludoDone = "Done"
+    const val ludoSoundEffects = "Sound effects"
+    const val ludoMusic = "Music"
+    const val ludoReport = "Report a player"
+    const val ludoReportTitle = "Report voice chat"
+    const val ludoReportBody = "Was someone abusive or offensive on voice chat? Choose who."
+    fun ludoReportWarning(required: Int) =
+        "Everyone else here will be asked to confirm. If fewer than $required agree, the incident is recorded against you."
+    const val ludoReportSend = "Report"
+    const val ludoReportPick = "Choose a person"
+    fun ludoReportOption(name: String, role: String) = "$name · $role"
+    const val ludoReportNeedPeople = "Not enough people here to confirm a report."
+    const val ludoRolePlayer = "Player"
+    const val ludoRoleSpectator = "Spectator"
+    const val ludoVoteTitle = "Can you confirm?"
+    fun ludoVoteBody(reporter: String, reported: String) = "$reporter reported $reported for voice chat (abuse or similar). Did $reported do this?"
+    const val ludoVoteAgree = "Agree"
+    const val ludoVoteDisagree = "Disagree"
+    fun ludoVoteSecondsLeft(seconds: Int) = "Closes in ${seconds}s"
+    const val ludoReportUpheldTitle = "Report confirmed"
+    fun ludoReportUpheldBody(reported: String, tally: String) = "$tally. The incident is recorded against $reported."
+    const val ludoReportRejectedTitle = "Report not confirmed"
+    fun ludoReportRejectedBody(tally: String, required: Int) = "$tally ($required agreements needed), so the incident is recorded against you."
+    fun ludoReportTally(agreed: Int, disagreed: Int, noResponse: Int) = "$agreed agreed, $disagreed disagreed, $noResponse didn't answer"
+    const val ludoPenaltyTitle = "You're on a break"
+    fun ludoPenaltyBody(points: Int, minutes: Int) = "$points points were taken. You can play again in $minutes min."
+    const val ludoWatchAd = "Watch an ad to play now"
+    const val ludoWatchingAd = "Playing ad…"
+    const val ludoOk = "OK"
+    fun ludoMuteFor(name: String) = "Mute $name for me"
+    fun ludoMove(steps: Int) = "Move $steps"
+    const val ludoAway = "Away"
+    fun ludoClock(minutes: Long, seconds: Long) = "$minutes:${seconds.toString().padStart(2, '0')}"
+    fun ludoPlace(place: Int) = when (place) {
+        1 -> "1st"
+        2 -> "2nd"
+        3 -> "3rd"
+        else -> "${place}th"
+    }
+    val ludoPlaceTitles = listOf("🔥 Chaos King", "⚡ Speed Runner", "🎯 Token Hunter", "🐢 Slow & Steady", "🎲 Pure Luck", "👀 Pro Spectator")
+
+}

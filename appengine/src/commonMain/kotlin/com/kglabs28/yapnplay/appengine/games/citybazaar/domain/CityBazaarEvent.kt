@@ -25,4 +25,10 @@ sealed interface CityBazaarEvent {
     data class Bankrupt(val seat: Int) : CityBazaarEvent
     data class Skipped(val seat: Int) : CityBazaarEvent
     data class TurnPassed(val seat: Int) : CityBazaarEvent
+    /** Landed on Rest House: their next turn is skipped. */
+    data class Rested(val seat: Int) : CityBazaarEvent
+    /** The continue-or-end vote is decided. */
+    data class ExtensionVoted(val continued: Boolean, val yes: Int, val voters: Int) : CityBazaarEvent
+    /** The end-game vote is decided: [ended] or play goes on. */
+    data class EndVoted(val ended: Boolean, val yes: Int, val voters: Int) : CityBazaarEvent
 }

@@ -28,6 +28,8 @@ data class LudoMatch(
     val finishedSeats: List<Int>,
     /** Seats in finishing order once the match is over. */
     val ranking: List<Int>,
+    /** The coin pot of a paid league (0 for free games). */
+    val pot: Int = 0,
     /** A seat changing hands (room matches only); null when none. */
     val seatOffer: SeatOffer? = null,
     /** The room this match belongs to; null for Quick Play (no spectators, no handover). */

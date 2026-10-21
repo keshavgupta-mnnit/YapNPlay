@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -23,7 +24,6 @@ import androidx.compose.ui.draw.clip
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.OnOffSwitch
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.SectionHeader
@@ -56,11 +56,11 @@ fun HouseRulesPanel(
     ) {
         SectionHeader(
             icon = Icons.Rounded.Settings,
-            title = Strings.lobbyHouseRules,
+            title = RoomStrings.lobbyHouseRules,
             modifier = Modifier.fillMaxWidth(),
         ) {
             GlassPillButton(
-                text = Strings.lobbyRuleSheet,
+                text = RoomStrings.lobbyRuleSheet,
                 onClick = onShowRuleSheet,
                 leadingIcon = Icons.Rounded.Gavel,
             )

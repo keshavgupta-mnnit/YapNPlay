@@ -13,6 +13,6 @@ interface ModerationClient {
     suspend fun vote(reportId: String, agree: Boolean)
     fun resolutions(): Flow<ReportResolved>
     fun penalties(): Flow<PenaltyIssued?>
-    /** Shows a rewarded ad; true when it was watched to the end (the server then lifts the block). */
-    suspend fun watchRewardedAd(): Boolean
+    /** `POST /penalties/clear-with-ad`, after a fully watched rewarded ad. */
+    suspend fun clearPenaltyWithAd()
 }

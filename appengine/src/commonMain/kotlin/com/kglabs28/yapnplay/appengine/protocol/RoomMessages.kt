@@ -7,10 +7,18 @@ import kotlinx.serialization.Serializable
 // Room channel — client to server requests
 // ══════════════════════════════════════════════════════════════════════════
 
-/** Create a new room. [name] is optional. */
+/**
+ * Create a new room ("group" in the app). [name] is optional; [icon] is a
+ * room badge key ("group", "dice", "family", "gamepad"; unknown → group).
+ * [inviteUserIds]: friends to invite at once; each gets a room invite to
+ * accept (only the creator's friends, not blocked either way; extras past
+ * the room's limit are skipped).
+ */
 @Serializable
 data class CreateRoom(
     val name: String? = null,
+    val icon: String? = null,
+    val inviteUserIds: List<String> = emptyList(),
 )
 
 /** Join a room by its six-character code. Also used to re-enter a room you already belong to. */

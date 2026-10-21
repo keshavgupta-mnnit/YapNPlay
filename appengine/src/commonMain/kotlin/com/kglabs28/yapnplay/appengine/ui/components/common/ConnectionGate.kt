@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import com.kglabs28.yapnplay.appengine.ui.placeholders.HomeBackgroundArtwork
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -54,6 +55,8 @@ fun ConnectionGate(
 
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         if (!everOnline) {
+            HomeBackgroundArtwork(modifier = Modifier.fillMaxSize())
+            Box(Modifier.fillMaxSize().background(YapNPlayTheme.colors.Background.copy(alpha = ART_SHADE)))
             ConnectionCard(
                 title = if (status == ConnectionStatus.OFFLINE) Strings.connectionOffline else Strings.connectionConnecting,
                 body = if (status == ConnectionStatus.OFFLINE) Strings.connectionOfflineBody else Strings.connectionConnectingBody,
@@ -83,18 +86,6 @@ fun ConnectionGate(
     }
 }
 
-@Composable
-private fun ConnectionCard(title: String, body: String, onRetry: (() -> Unit)?) {
-    ModalCard(
-        title = title,
-        subtitle = body,
-        actions = {
-            onRetry?.let {
-                GlassPillButton(text = Strings.connectionRetry, onClick = it, leadingIcon = Icons.Rounded.Refresh)
-            }
-        },
-    )
-}
-
 private const val LOST_GRACE_MS = 2_000L
 private const val SCRIM_ALPHA = 0.8f
+private const val ART_SHADE = 0.55f

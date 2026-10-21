@@ -1,5 +1,10 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.placeholders.RoyalLudoArtwork
+import com.kglabs28.yapnplay.appengine.ui.components.common.rememberShareSheet
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.MatchLeaderboard
+import com.kglabs28.yapnplay.appengine.ui.components.table.PlayerFriendDialog
+import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -55,6 +60,9 @@ fun RoyalLudoMatchScreen(
     val send: (RoyalLudoMatchIntent) -> Unit = { viewModel?.onIntent(it) }
     val micPermission = rememberPermissionRequester(AppPermission.MICROPHONE)
     val dice = rememberGlassDiceState()
+    val share = rememberShareSheet()
+    // Back at the table is the same as the exit button (asks first); once the leaderboard is up the match is over, so back just leaves.
+    BlockBackPress(enabled = true, onBack = { send(if (state.leaderboard != null) RoyalLudoMatchIntent.Done else RoyalLudoMatchIntent.ExitClicked) })
     LaunchedEffect(viewModel, matchId) {
         viewModel?.onIntent(RoyalLudoMatchIntent.Load(matchId))
         viewModel?.effects?.collect { effect ->
@@ -63,6 +71,7 @@ fun RoyalLudoMatchScreen(
                 RoyalLudoMatchEffect.RequestMicPermission ->
                     micPermission.request { send(RoyalLudoMatchIntent.MicPermissionResult(it)) }
                 RoyalLudoMatchEffect.OpenAppSettings -> micPermission.openSettings()
+                is RoyalLudoMatchEffect.ShareText -> share(effect.text)
             }
         }
     }
@@ -148,6 +157,7 @@ fun RoyalLudoMatchScreen(
                 LudoOpponentsColumn(
                     cards = if (state.spectating) state.leftCards else state.opponents,
                     onToggleHear = { send(RoyalLudoMatchIntent.ToggleHear(it)) },
+                    onLongPress = { send(RoyalLudoMatchIntent.PlayerLongPressed(it)) },
                     modifier = Modifier
                         .align(Alignment.CenterStart)
                         .fillMaxWidth(AppConstants.LUDO_CARD_COLUMN_WEIGHT),
@@ -162,11 +172,34 @@ fun RoyalLudoMatchScreen(
                     LudoOpponentsColumn(
                         cards = state.rightCards,
                         onToggleHear = { send(RoyalLudoMatchIntent.ToggleHear(it)) },
+                        onLongPress = { send(RoyalLudoMatchIntent.PlayerLongPressed(it)) },
                         modifier = Modifier
                             .align(Alignment.CenterEnd)
                             .fillMaxWidth(AppConstants.LUDO_CARD_COLUMN_WEIGHT),
                     )
                 }
+            }
+        }
+
+        val board = state.leaderboard
+        BlockingOverlay(visible = board != null) {
+            if (board != null) {
+                MatchLeaderboard(
+                    board = board,
+                    gameArt = { RoyalLudoArtwork(modifier = it) },
+                    onPlayAgain = { send(RoyalLudoMatchIntent.Done) },
+                )
+            }
+        }
+
+        val friendAction = state.friendAction
+        BlockingOverlay(visible = friendAction != null, onDismiss = { send(RoyalLudoMatchIntent.DismissFriendAction) }) {
+            if (friendAction != null) {
+                PlayerFriendDialog(
+                    action = friendAction,
+                    onConfirm = { send(RoyalLudoMatchIntent.ConfirmFriendAction) },
+                    onCancel = { send(RoyalLudoMatchIntent.DismissFriendAction) },
+                )
             }
         }
 

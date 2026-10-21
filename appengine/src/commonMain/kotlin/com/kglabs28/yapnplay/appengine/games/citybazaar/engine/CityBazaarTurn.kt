@@ -4,7 +4,6 @@ import com.kglabs28.yapnplay.appengine.games.base.play.ApplyResult
 import com.kglabs28.yapnplay.appengine.games.base.play.GameEvent
 import com.kglabs28.yapnplay.appengine.games.base.play.GameRandom
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.BidSteps
-import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CLUB_FEE
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CardDeck
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CardEffect
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CityBazaarBoard
@@ -77,10 +76,17 @@ internal class CityBazaarTurn(private var s: CityBazaarState, private val random
         when (spec.kind) {
             TileKind.START -> Unit
             TileKind.JAIL -> goToJail(seat)
-            TileKind.CLUB -> if (s.cbRules.house.clubFee) charge(seat, CLUB_FEE, emptyMap(), MoneyReason.CLUB, tile)
+            // Club: the lander treats everyone; Rest House: everyone pays the lander. One Money event per pair.
+            TileKind.CLUB -> if (s.cbRules.house.clubFee) {
+                val each = s.cbRules.house.clubRestEach
+                val others = s.active.filter { it != seat }
+                if (others.isNotEmpty()) charge(seat, each * others.size, others.associateWith { each }, MoneyReason.CLUB, tile)
+            }
             TileKind.REST_HOUSE -> if (s.cbRules.house.restHouseSkips) {
-                s = s.copy(skipNext = s.skipNext + seat)
-                events += RestTaken(seat)
+                val each = s.cbRules.house.clubRestEach
+                s.active.filter { it != seat }.forEach { payer ->
+                    if (payer in s.active) charge(payer, each, mapOf(seat to each), MoneyReason.REST, tile)
+                }
             }
             TileKind.TAX -> {
                 val bill = spec.taxPerProperty * CityBazaarEconomy.properties(s, seat) + spec.taxPerBuilding * CityBazaarEconomy.buildings(s, seat)

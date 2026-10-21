@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.text.BasicText
@@ -12,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
 
@@ -38,14 +38,14 @@ fun WaitingRequestRow(
             modifier = Modifier.weight(1f),
         )
         GlassPillButton(
-            text = Strings.lobbyDeclineRequest,
+            text = RoomStrings.lobbyDeclineRequest,
             onClick = onDecline,
             leadingIcon = Icons.Rounded.Close,
             accent = colors.Error,
             contentColor = colors.Error,
         )
         PillButton(
-            text = Strings.lobbyLetIn,
+            text = RoomStrings.lobbyLetIn,
             onClick = onApprove,
             gradient = listOf(colors.CtaGreenStart, colors.CtaGreenEnd),
             contentColor = colors.CtaGreenContent,

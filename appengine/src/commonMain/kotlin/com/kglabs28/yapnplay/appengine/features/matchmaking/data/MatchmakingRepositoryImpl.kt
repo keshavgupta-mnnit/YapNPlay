@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.matchmaking.data
 
+import com.kglabs28.yapnplay.appengine.protocol.ErrorCode
+import com.kglabs28.yapnplay.appengine.core.network.RealtimeRejectedException
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
@@ -31,12 +33,16 @@ class MatchmakingRepositoryImpl(
     private val dispatchers: DispatcherProvider,
 ) : MatchmakingRepository {
 
-    override fun findMatch(gameId: String): Flow<MatchmakingStatus> =
-        client.queue(gameId)
+    override fun findMatch(gameId: String, entryCoins: Int): Flow<MatchmakingStatus> =
+        client.queue(gameId, entryCoins)
             .map { message -> message.toDomain(gameId) }
             .catch { e ->
-                CrashReporter.record(e, "MatchmakingRepository.findMatch:$gameId")
-                emit(MatchmakingStatus.Cancelled(MatchmakingCancelReason.CONNECTION_FAILED))
+                if (e is RealtimeRejectedException && e.code == ErrorCode.NOT_ENOUGH_COINS) {
+                    emit(MatchmakingStatus.Cancelled(MatchmakingCancelReason.NOT_ENOUGH_COINS))
+                } else {
+                    CrashReporter.record(e, "MatchmakingRepository.findMatch:$gameId")
+                    emit(MatchmakingStatus.Cancelled(MatchmakingCancelReason.CONNECTION_FAILED))
+                }
             }
             .flowOn(dispatchers.io)
 

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
+import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
@@ -41,19 +42,19 @@ fun AllFriendsCard(
     val listScroll = rememberScrollState()
     val dimens = YapNPlayTheme.dimens
     ModalCard(
-        surfaceBrush = Brush.verticalGradient(listOf(YapNPlayTheme.colors.GlassDialogTop, YapNPlayTheme.colors.GlassDialogBottom)),title = Strings.profileAllFriendsTitle, onClose = onClose, modifier = modifier.width(dimens.profileWideDialogWidth)) {
+        surfaceBrush = AppBrushes.dialogGeneric,title = ProfileStrings.profileAllFriendsTitle, onClose = onClose, modifier = modifier.width(dimens.profileWideDialogWidth)) {
         FriendsTabs(
             tabs = listOf(
-                FriendsTab.ALL to Strings.profileTabAll(allCount),
-                FriendsTab.ONLINE to Strings.profileTabOnline(onlineCount),
-                FriendsTab.OFFLINE to Strings.profileTabOffline(offlineCount),
+                FriendsTab.ALL to ProfileStrings.profileTabAll(allCount),
+                FriendsTab.ONLINE to ProfileStrings.profileTabOnline(onlineCount),
+                FriendsTab.OFFLINE to ProfileStrings.profileTabOffline(offlineCount),
             ),
             selected = tab,
             onSelect = onSelectTab,
         )
         Column(modifier = Modifier.fillMaxWidth().heightIn(max = dimens.friendsGridMaxHeight).glassScrollbar(listScroll).verticalScroll(listScroll).padding(end = YapNPlayTheme.dimens.scrollbarWidth * 2)) {
             if (friends.isEmpty()) {
-                EmptyStateText(text = if (tab == FriendsTab.ONLINE) Strings.profileNoneOnline else Strings.profileNoneOffline, modifier = Modifier.fillMaxWidth())
+                EmptyStateText(text = if (tab == FriendsTab.ONLINE) ProfileStrings.profileNoneOnline else ProfileStrings.profileNoneOffline, modifier = Modifier.fillMaxWidth())
             } else {
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
+import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,7 +13,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 
 /** "Remove Friend" / "Block User" / "Unblock User": their avatar beside the question and what it means; Cancel and the action (red, or green to unblock). */
@@ -30,12 +31,12 @@ fun ConfirmPersonCard(
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
     ModalCard(
-        surfaceBrush = Brush.verticalGradient(listOf(YapNPlayTheme.colors.GlassDialogTop, YapNPlayTheme.colors.GlassDialogBottom)),
+        surfaceBrush = AppBrushes.dialogGeneric,
         title = title,
         onClose = onCancel,
         modifier = modifier,
         actions = {
-            ProfileActionButton(text = Strings.profileCancel, kind = ProfileButtonKind.NEUTRAL, onClick = onCancel, modifier = Modifier.weight(1f))
+            ProfileActionButton(text = ProfileStrings.profileCancel, kind = ProfileButtonKind.NEUTRAL, onClick = onCancel, modifier = Modifier.weight(1f))
             ProfileActionButton(text = confirmLabel, kind = confirmKind, onClick = onConfirm, modifier = Modifier.weight(1f))
         },
     ) {

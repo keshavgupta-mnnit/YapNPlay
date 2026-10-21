@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
@@ -7,7 +8,6 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
@@ -30,13 +30,13 @@ fun ReportVoteCard(
         modifier = modifier,
         actions = {
             GlassPillButton(
-                text = Strings.ludoVoteDisagree,
+                text = LudoStrings.ludoVoteDisagree,
                 onClick = onDisagree,
                 leadingIcon = Icons.Rounded.Close,
                 height = YapNPlayTheme.dimens.ctaHeight,
             )
             PillButton(
-                text = Strings.ludoVoteAgree,
+                text = LudoStrings.ludoVoteAgree,
                 onClick = onAgree,
                 gradient = listOf(colors.Error, colors.Error.copy(alpha = GRADIENT_END)),
                 contentColor = colors.TextPrimary,

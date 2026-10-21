@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -36,8 +37,8 @@ fun CbRateTable(rows: List<CbRateRowUi>, modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
             ) {
-                BasicText(text = row.label, style = typography.label.copy(color = colors.TextSecondary), modifier = Modifier.weight(1f))
-                BasicText(text = row.rent, style = typography.label.copy(color = if (row.highlighted) colors.CbGain else colors.TextPrimary, fontWeight = FontWeight.Bold))
+                ShrinkText(text = row.label, style = typography.label.copy(color = colors.TextSecondary), modifier = Modifier.weight(1f))
+                ShrinkText(text = row.rent, style = typography.label.copy(color = if (row.highlighted) colors.CbGain else colors.TextPrimary, fontWeight = FontWeight.Bold))
             }
         }
     }

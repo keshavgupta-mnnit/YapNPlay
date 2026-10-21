@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
@@ -10,7 +11,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbModal
 import com.kglabs28.yapnplay.appengine.ui.components.profile.ProfileActionButton
 import com.kglabs28.yapnplay.appengine.ui.components.profile.ProfileButtonKind
@@ -21,14 +21,14 @@ fun CbExtensionVotePrompt(modal: CbModal.ExtensionVote, onVote: (keepPlaying: Bo
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
     CbPromptFrame(
-        title = buildAnnotatedString { append(Strings.cbExtendTitle) },
+        title = buildAnnotatedString { append(CityBazaarStrings.cbExtendTitle) },
         accent = colors.Gold,
         countdown = modal.countdown,
         modifier = modifier,
         buttons = if (modal.canVote) {
             {
-                ProfileActionButton(text = Strings.cbExtendEnd, kind = ProfileButtonKind.DANGER, onClick = { onVote(false) }, leadingIcon = Icons.Rounded.Flag, modifier = Modifier.weight(1f))
-                ProfileActionButton(text = Strings.cbExtendContinue, kind = ProfileButtonKind.CONFIRM, onClick = { onVote(true) }, leadingIcon = Icons.Rounded.Check, modifier = Modifier.weight(1f))
+                ProfileActionButton(text = CityBazaarStrings.cbExtendEnd, kind = ProfileButtonKind.DANGER, onClick = { onVote(false) }, leadingIcon = Icons.Rounded.Flag, modifier = Modifier.weight(1f))
+                ProfileActionButton(text = CityBazaarStrings.cbExtendContinue, kind = ProfileButtonKind.CONFIRM, onClick = { onVote(true) }, leadingIcon = Icons.Rounded.Check, modifier = Modifier.weight(1f))
             }
         } else {
             null

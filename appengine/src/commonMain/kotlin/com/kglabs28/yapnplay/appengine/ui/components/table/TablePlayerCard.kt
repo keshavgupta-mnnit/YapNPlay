@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,7 +29,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.coerceAtMost
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 
 /**
  * A player's card at any game table: avatar with level, name in their
@@ -107,7 +107,7 @@ fun TablePlayerCard(
                 if (!card.isMe && card.canSpeak) {
                     TableMuteButton(
                         muted = card.mutedForMe,
-                        description = Strings.ludoMuteFor(card.name),
+                        description = LudoStrings.ludoMuteFor(card.name),
                         onToggle = onToggleHear,
                         modifier = if (compact) Modifier.size(avatarSize.coerceAtMost(dimens.ludoMuteButton)) else Modifier,
                     )

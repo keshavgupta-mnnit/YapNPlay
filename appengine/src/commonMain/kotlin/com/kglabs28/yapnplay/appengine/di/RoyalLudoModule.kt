@@ -19,5 +19,5 @@ val royalLudoModule = module {
     factory { ObserveLudoMatchUseCase(get()) }
     factory { ObserveMatchSpeakingUseCase(get()) }
     factory { SendLudoCommandUseCase(get()) }
-    factory { RoyalLudoMatchViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { RoyalLudoMatchViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

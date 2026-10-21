@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.gamezone
 
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
@@ -99,7 +100,7 @@ class GameZoneViewModel(
         // A recorded incident blocks play for a while (an ad lifts it).
         observePenalty().value?.takeIf { it.blockedUntil > clock.now() }?.let { block ->
             val minutes = ceil((block.blockedUntil - clock.now()).inWholeSeconds / SECONDS_PER_MINUTE.toDouble()).toInt()
-            setState { copy(penalty = PenaltyUi(Strings.ludoPenaltyTitle, Strings.ludoPenaltyBody(block.points, minutes), watchingAd = false)) }
+            setState { copy(penalty = PenaltyUi(LudoStrings.ludoPenaltyTitle, LudoStrings.ludoPenaltyBody(block.points, minutes), watchingAd = false)) }
             return
         }
         setState { copy(searchMessage = null) }

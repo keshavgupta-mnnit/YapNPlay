@@ -39,12 +39,17 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.ui)
+            // Bundled images (commonMain/composeResources), every platform.
+            implementation(compose.components.resources)
             implementation(compose.materialIconsExtended)
             implementation(libs.navigation.compose)
             implementation(libs.lifecycle.runtime.compose)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.ktor.client.core)
+            // Images from AppManager URLs (backgrounds, game art), any platform.
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.client.websockets)
@@ -79,6 +84,11 @@ kotlin {
             implementation(libs.play.games.v2)
         }
     }
+}
+
+// Generated accessor for commonMain/composeResources: Res.drawable.<file>.
+compose.resources {
+    packageOfResClass = "com.kglabs28.yapnplay.appengine.resources"
 }
 
 // Tests run but never block the build. They will be made mandatory later.

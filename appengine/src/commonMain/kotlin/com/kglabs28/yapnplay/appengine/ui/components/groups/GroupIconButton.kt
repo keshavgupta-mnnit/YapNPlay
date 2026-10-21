@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.groups
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -15,7 +16,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.playrooms.badge
@@ -32,7 +32,7 @@ fun GroupIconButton(icon: PlayRoomIcon, onClick: () -> Unit, modifier: Modifier 
             .clip(RoundedCornerShape(dimens.cbRowRadius))
             .background(badge.fill)
             .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = Strings.groupChangeIcon },
+            .semantics { contentDescription = RoomStrings.groupChangeIcon },
         contentAlignment = Alignment.Center,
     ) {
         AppIcon(imageVector = badge.icon, tint = colors.TextPrimary, size = dimens.iconMedium)

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -20,7 +21,6 @@ import androidx.compose.ui.graphics.Brush
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 
 /**
  * Dark glass card for modals shown through [BlockingOverlay]: title,
@@ -69,7 +69,7 @@ fun ModalCard(
                 onClose?.let {
                     GlassIconButton(
                         imageVector = Icons.Rounded.Close,
-                        contentDescription = Strings.lobbyClose,
+                        contentDescription = RoomStrings.lobbyClose,
                         onClick = it,
                         size = dimens.modalCloseButton,
                         iconSize = dimens.modalCloseIcon,

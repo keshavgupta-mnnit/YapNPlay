@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbOwnedRowUi
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbSheetRowUi
 import androidx.compose.ui.graphics.Color
@@ -19,7 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.table.tableFrostedGlass
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CbCityCard
@@ -61,7 +61,7 @@ fun CbPlayerPanel(
         ) {
             CbSheetTable(rows = sheet)
             if (cities.isEmpty()) {
-                CbDialogNote(text = Strings.cbNoProperties)
+                CbDialogNote(text = CityBazaarStrings.cbNoProperties)
             } else {
                 // Grouped by colour, most valuable first; a tap opens the full card.
                 cities.forEach { CbCityCard(city = it, onClick = { onPropertyClick(it.tile) }) }

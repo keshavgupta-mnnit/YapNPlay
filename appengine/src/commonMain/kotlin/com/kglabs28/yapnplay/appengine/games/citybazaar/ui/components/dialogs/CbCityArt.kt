@@ -41,7 +41,7 @@ fun cityArtIcon(tile: Int): ImageVector = when (tile) {
     11 -> Icons.Rounded.Park // Chandigarh Rock Garden
     12 -> Icons.Rounded.ElectricBolt // Electric Company
     13 -> Icons.Rounded.DirectionsBus // B.E.S.T. buses
-    14 -> Icons.Rounded.Terrain // Simla hills
+    14 -> Icons.Rounded.Terrain // Shimla hills
     15 -> Icons.Rounded.TempleHindu // Amritsar Golden Temple
     17 -> Icons.Rounded.Sailing // Srinagar houseboats
     19 -> Icons.Rounded.Mosque // Agra, Taj Mahal
@@ -49,12 +49,12 @@ fun cityArtIcon(tile: Int): ImageVector = when (tile) {
     22 -> Icons.Rounded.Museum // Patna heritage
     23 -> Icons.Rounded.LocalCafe // Darjeeling tea
     24 -> Icons.Rounded.Flight // Air India
-    25 -> Icons.Rounded.Tram // Calcutta trams
+    25 -> Icons.Rounded.Tram // Kolkata trams
     26 -> Icons.Rounded.Diamond // Hyderabad, Golconda diamonds
     28 -> Icons.Rounded.Waves // Chennai, Marina beach
     30 -> Icons.Rounded.Computer // Bengaluru tech
     32 -> Icons.Rounded.Forest // Ooty forests
-    33 -> Icons.Rounded.Anchor // Cochin port
+    33 -> Icons.Rounded.Anchor // Kochi port
     34 -> Icons.Rounded.DirectionsBoat // Motorboat
     35 -> Icons.Rounded.BeachAccess // Goa beaches
     else -> Icons.Rounded.LocationCity

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,7 +18,6 @@ import androidx.compose.ui.graphics.Brush
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CreateRoomGraphic
 
@@ -55,21 +55,21 @@ fun CreateRoomHeroCard(
             verticalArrangement = Arrangement.Center,
         ) {
             BasicText(
-                text = Strings.roomsCreateTitle,
+                text = RoomStrings.roomsCreateTitle,
                 style = typography.cardTitle.copy(color = colors.TextPrimary),
             )
             BasicText(
-                text = Strings.roomsCreateHero,
+                text = RoomStrings.roomsCreateHero,
                 style = typography.heroWord.copy(color = colors.GameZoneAccent),
             )
             Spacer(Modifier.padding(top = Spacing.Xxs))
             BasicText(
-                text = Strings.roomsCreateSubtitle,
+                text = RoomStrings.roomsCreateSubtitle,
                 style = typography.micro.copy(color = colors.RoomsSubtitle),
             )
             Spacer(Modifier.padding(top = Spacing.Sm))
             PillButton(
-                text = Strings.roomsCreateButton,
+                text = RoomStrings.roomsCreateButton,
                 onClick = onCreateRoom,
                 gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),
                 contentColor = colors.CtaGreenContent,

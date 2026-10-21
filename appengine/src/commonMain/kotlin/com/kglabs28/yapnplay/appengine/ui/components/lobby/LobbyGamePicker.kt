@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +17,6 @@ import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.domain.GameCatalogItem
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.games.GameCarousel
@@ -81,7 +81,7 @@ fun LobbyGamePicker(
         if (canSelect && viewMode == GamePickerViewMode.CAROUSEL) {
             // Same tinted glass as Grid View / Change Game, in green.
             GlassPillButton(
-                text = Strings.lobbySelectGame,
+                text = RoomStrings.lobbySelectGame,
                 onClick = { onSelect(focusedIndex) },
                 leadingIcon = Icons.Rounded.CheckCircle,
                 trailingIcon = Icons.Rounded.ChevronRight,
@@ -94,7 +94,7 @@ fun LobbyGamePicker(
             )
         } else if (!canSelect) {
             BasicText(
-                text = Strings.lobbyLeaderChoosing,
+                text = RoomStrings.lobbyLeaderChoosing,
                 style = YapNPlayTheme.typography.label.copy(color = colors.TextSecondary),
             )
         }

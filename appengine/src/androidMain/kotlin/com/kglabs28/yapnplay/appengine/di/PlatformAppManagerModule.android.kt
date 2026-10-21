@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.appmanager.FirebaseRemoteConfigSource
+import com.kglabs28.yapnplay.appengine.appmanager.RemoteConfigSource
 import com.kglabs28.yapnplay.appengine.core.common.AndroidTablePreferences
 import com.kglabs28.yapnplay.appengine.core.common.TablePreferences
 import com.kglabs28.yapnplay.appengine.core.network.CredentialStore
@@ -25,6 +27,7 @@ val platformAppManagerModule = module {
     single<NotificationHistoryStore> { AndroidNotificationHistoryStore(androidContext()) }
     single<CredentialStore> { AndroidCredentialStore(androidContext()) }
     single<GameAudio> { AndroidGameAudio(androidContext()) }
+    single<RemoteConfigSource> { FirebaseRemoteConfigSource() }
     single<TablePreferences> { AndroidTablePreferences(androidContext()) }
     single<AppVersionProvider> { AndroidAppVersionProvider(androidContext()) }
     single<MicLevelMonitor> { AndroidMicLevelMonitor(androidContext()) }

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +16,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.platform.LocalClipboardManager
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import androidx.compose.material.icons.rounded.HourglassTop
 import androidx.compose.material.icons.Icons
@@ -174,7 +174,7 @@ fun PlayRoomsScreen(
                 onClose = { viewModel?.onIntent(PlayRoomsIntent.DismissRequestSent) },
                 actions = {
                     GlassPillButton(
-                        text = Strings.roomsRequestSentOk,
+                        text = RoomStrings.roomsRequestSentOk,
                         onClick = { viewModel?.onIntent(PlayRoomsIntent.DismissRequestSent) },
                         leadingIcon = Icons.Rounded.HourglassTop,
                         height = YapNPlayTheme.dimens.ctaHeight,

@@ -5,7 +5,7 @@ import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomInvite
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.CreatedPlayRoom
 import com.kglabs28.yapnplay.appengine.protocol.InviteToRoomBody
 import com.kglabs28.yapnplay.appengine.protocol.CreateRoom
-import com.kglabs28.yapnplay.appengine.appmanager.AppManagerConstants
+import com.kglabs28.yapnplay.appengine.appmanager.AppManagerKeys
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.network.RealtimeRejectedException
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.JoinPlayRoomByCodeUseCase
@@ -84,7 +84,7 @@ class PlayRoomsRemoteManager(private val api: PlayRoomsApi) {
     private fun Exception.toJoinError(): YapNPlayError = when ((this as? RealtimeRejectedException)?.code) {
         ErrorCode.INVALID_CODE -> YapNPlayError.Validation(JoinPlayRoomByCodeUseCase.FIELD_ROOM_CODE)
         ErrorCode.NOT_FOUND -> YapNPlayError.NotFound(NOT_FOUND_ROOM)
-        ErrorCode.ROOM_LIMIT_REACHED -> YapNPlayError.LimitReached(AppManagerConstants.Default.MAX_ROOMS_PER_USER)
+        ErrorCode.ROOM_LIMIT_REACHED -> YapNPlayError.LimitReached(AppManagerKeys.App.MAX_ROOMS_PER_USER.default)
         ErrorCode.GROUP_EXISTS -> YapNPlayError.AlreadyExists(message.orEmpty())
         else -> YapNPlayError.Network(message ?: NETWORK_FAILED)
     }

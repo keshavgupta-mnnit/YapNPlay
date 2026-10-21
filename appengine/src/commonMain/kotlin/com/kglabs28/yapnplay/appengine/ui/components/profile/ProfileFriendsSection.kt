@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +26,6 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
@@ -66,16 +66,16 @@ fun ProfileFriendsSection(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
             AppIcon(imageVector = Icons.Rounded.Groups, tint = colors.SocialZoneAccent, size = dimens.iconMedium)
-            BasicText(text = Strings.profileMyFriends, style = YapNPlayTheme.typography.sectionTitle.copy(color = colors.TextPrimary))
+            BasicText(text = ProfileStrings.profileMyFriends, style = YapNPlayTheme.typography.sectionTitle.copy(color = colors.TextPrimary))
             FriendsTabs(
-                tabs = listOf(FriendsTab.ONLINE to Strings.profileTabOnline(onlineCount), FriendsTab.OFFLINE to Strings.profileTabOffline(offlineCount)),
+                tabs = listOf(FriendsTab.ONLINE to ProfileStrings.profileTabOnline(onlineCount), FriendsTab.OFFLINE to ProfileStrings.profileTabOffline(offlineCount)),
                 selected = tab,
                 onSelect = onSelectTab,
             )
             Spacer(Modifier.weight(1f))
             // See All and the arrows are as small as the tabs.
             GlassPillButton(
-                text = Strings.profileSeeAll,
+                text = ProfileStrings.profileSeeAll,
                 onClick = onSeeAll,
                 trailingIcon = Icons.Rounded.ChevronRight,
                 enabled = hasFriends,
@@ -85,7 +85,7 @@ fun ProfileFriendsSection(
             )
             GlassIconButton(
                 imageVector = Icons.Rounded.ChevronLeft,
-                contentDescription = Strings.profilePreviousFriends,
+                contentDescription = ProfileStrings.profilePreviousFriends,
                 onClick = { scope.launch { listState.animateScrollToItem((listState.firstVisibleItemIndex - AppConstants.FRIENDS_SCROLL_STEP).coerceAtLeast(0)) } },
                 size = dimens.profileTabHeight,
                 iconSize = dimens.iconSmall,
@@ -93,7 +93,7 @@ fun ProfileFriendsSection(
             )
             GlassIconButton(
                 imageVector = Icons.Rounded.ChevronRight,
-                contentDescription = Strings.profileNextFriends,
+                contentDescription = ProfileStrings.profileNextFriends,
                 onClick = { scope.launch { listState.animateScrollToItem(listState.firstVisibleItemIndex + AppConstants.FRIENDS_SCROLL_STEP) } },
                 size = dimens.profileTabHeight,
                 iconSize = dimens.iconSmall,
@@ -104,9 +104,9 @@ fun ProfileFriendsSection(
             if (loaded && friends.isEmpty()) {
                 EmptyStateText(
                     text = when {
-                        !hasFriends -> Strings.profileNoFriends
-                        tab == FriendsTab.ONLINE -> Strings.profileNoneOnline
-                        else -> Strings.profileNoneOffline
+                        !hasFriends -> ProfileStrings.profileNoFriends
+                        tab == FriendsTab.ONLINE -> ProfileStrings.profileNoneOnline
+                        else -> ProfileStrings.profileNoneOffline
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )

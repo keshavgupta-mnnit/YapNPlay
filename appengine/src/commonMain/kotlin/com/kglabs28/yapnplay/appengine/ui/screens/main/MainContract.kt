@@ -20,7 +20,11 @@ data class MainState(
      *  layout and only fades the values in, so nothing jumps. */
     val profileLoaded: Boolean = false,
     val coinBalance: String = "",
-    val diamondBalance: String = "",
+    /** 0–1 towards the next level, and "350 / 1,000 XP". */
+    val levelProgress: Float = 0f,
+    val xpLabel: String = "",
+    /** "+100": the daily bonus the server just added, until the user collects it; null otherwise. */
+    val dailyBonus: String? = null,
     val selectedTab: AppNavTab = AppNavTab.HOME,
     /** Bell history, newest first (at most 10). */
     val notifications: List<NotificationUi> = emptyList(),
@@ -44,6 +48,7 @@ data class NotificationUi(
 )
 
 sealed interface MainIntent : UiIntent {
+    data object CollectDailyBonus : MainIntent
     data class SelectTab(val tab: AppNavTab) : MainIntent
     data object LoadProfile : MainIntent
     data object OpenSettings : MainIntent

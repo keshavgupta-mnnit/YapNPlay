@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -81,9 +82,9 @@ fun LobbyModalContent(
                 modifier = modifier,
                 onClose = onDismiss,
                 actions = {
-                    DarkButton(Strings.lobbyCancel, onDismiss)
+                    DarkButton(RoomStrings.lobbyCancel, onDismiss)
                     PillButton(
-                        text = Strings.lobbyConfirm,
+                        text = RoomStrings.lobbyConfirm,
                         onClick = onConfirmMemberAction,
                         gradient = if (modal.option.destructive) {
                             listOf(colors.Error, colors.Error.copy(alpha = 0.8f))
@@ -99,24 +100,24 @@ fun LobbyModalContent(
             )
         }
         LobbyModal.RuleSheet -> ModalCard(
-            title = Strings.lobbyRuleSheetTitle,
+            title = RoomStrings.lobbyRuleSheetTitle,
             subtitle = gameName,
             modifier = modifier,
             onClose = onDismiss,
         ) {
-            BasicText(text = Strings.lobbyRuleSheetSubtitle, style = typography.micro.copy(color = colors.TextSecondary))
+            BasicText(text = RoomStrings.lobbyRuleSheetSubtitle, style = typography.micro.copy(color = colors.TextSecondary))
             fixedRules.forEach { rule ->
                 BasicText(text = "•  $rule", style = typography.label.copy(color = colors.TextPrimary))
             }
         }
         LobbyModal.WaitingList -> ModalCard(
-            title = Strings.lobbyWaitingList,
-            subtitle = Strings.lobbyWaitingListSubtitle,
+            title = RoomStrings.lobbyWaitingList,
+            subtitle = RoomStrings.lobbyWaitingListSubtitle,
             modifier = modifier,
             onClose = onDismiss,
         ) {
             if (waitingList.isEmpty()) {
-                EmptyStateText(text = Strings.lobbyWaitingListEmpty, modifier = Modifier.fillMaxWidth())
+                EmptyStateText(text = RoomStrings.lobbyWaitingListEmpty, modifier = Modifier.fillMaxWidth())
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
                     waitingList.forEach { request ->
@@ -131,13 +132,13 @@ fun LobbyModalContent(
             }
         }
         LobbyModal.LeaveConfirm -> ModalCard(
-            title = Strings.lobbyLeaveTitle,
-            subtitle = Strings.lobbyLeaveBody,
+            title = RoomStrings.lobbyLeaveTitle,
+            subtitle = RoomStrings.lobbyLeaveBody,
             modifier = modifier,
             actions = {
-                DarkButton(Strings.lobbyStay, onDismiss)
+                DarkButton(RoomStrings.lobbyStay, onDismiss)
                 PillButton(
-                    text = Strings.lobbyLeaveConfirm,
+                    text = RoomStrings.lobbyLeaveConfirm,
                     onClick = onConfirmLeave,
                     gradient = listOf(colors.Error, colors.Error.copy(alpha = 0.8f)),
                     contentColor = colors.TextPrimary,
@@ -152,7 +153,7 @@ fun LobbyModalContent(
             subtitle = Strings.micPermissionBody,
             modifier = modifier,
             actions = {
-                DarkButton(Strings.lobbyClose, onDismiss)
+                DarkButton(RoomStrings.lobbyClose, onDismiss)
                 PillButton(
                     text = Strings.micPermissionOpenSettings,
                     onClick = onOpenSettings,
@@ -165,11 +166,11 @@ fun LobbyModalContent(
             },
         )
         is LobbyModal.Countdown -> ModalCard(
-            title = Strings.lobbyMatchStarting,
+            title = RoomStrings.lobbyMatchStarting,
             subtitle = modal.title,
             modifier = modifier,
             actions = {
-                if (modal.canCancel) DarkButton(Strings.lobbyCancel, onCancelCountdown)
+                if (modal.canCancel) DarkButton(RoomStrings.lobbyCancel, onCancelCountdown)
             },
         )
     }
@@ -179,20 +180,20 @@ private val MemberMenuOption.destructive: Boolean
     get() = this == MemberMenuOption.REMOVE_FROM_ROOM || this == MemberMenuOption.REMOVE_FRIEND
 
 private fun MemberMenuOption.labelAndIcon(): Pair<String, ImageVector> = when (this) {
-    MemberMenuOption.MAKE_LEADER -> Strings.lobbyMakeLeader to Icons.Rounded.Star
-    MemberMenuOption.MAKE_ADMIN -> Strings.lobbyMakeAdmin to Icons.Rounded.WorkspacePremium
-    MemberMenuOption.ADD_FRIEND -> Strings.lobbyAddFriend to Icons.Rounded.PersonAdd
-    MemberMenuOption.REMOVE_FRIEND -> Strings.lobbyRemoveFriend to Icons.Rounded.PersonRemove
-    MemberMenuOption.REMOVE_FROM_ROOM -> Strings.lobbyRemoveFromRoom to Icons.Rounded.PersonOff
+    MemberMenuOption.MAKE_LEADER -> RoomStrings.lobbyMakeLeader to Icons.Rounded.Star
+    MemberMenuOption.MAKE_ADMIN -> RoomStrings.lobbyMakeAdmin to Icons.Rounded.WorkspacePremium
+    MemberMenuOption.ADD_FRIEND -> RoomStrings.lobbyAddFriend to Icons.Rounded.PersonAdd
+    MemberMenuOption.REMOVE_FRIEND -> RoomStrings.lobbyRemoveFriend to Icons.Rounded.PersonRemove
+    MemberMenuOption.REMOVE_FROM_ROOM -> RoomStrings.lobbyRemoveFromRoom to Icons.Rounded.PersonOff
 }
 
 /** Title and explanation for the "are you sure?" step. */
 private fun confirmText(option: MemberMenuOption, name: String): Pair<String, String> = when (option) {
-    MemberMenuOption.MAKE_LEADER -> Strings.lobbyConfirmMakeLeader(name) to Strings.lobbyConfirmMakeLeaderBody(name)
-    MemberMenuOption.MAKE_ADMIN -> Strings.lobbyConfirmMakeAdmin(name) to Strings.lobbyConfirmMakeAdminBody(name)
-    MemberMenuOption.ADD_FRIEND -> Strings.lobbyConfirmAddFriend(name) to Strings.lobbyConfirmAddFriendBody
-    MemberMenuOption.REMOVE_FRIEND -> Strings.lobbyConfirmRemoveFriend(name) to Strings.lobbyConfirmRemoveFriendBody
-    MemberMenuOption.REMOVE_FROM_ROOM -> Strings.lobbyConfirmRemoveFromRoom(name) to Strings.lobbyConfirmRemoveFromRoomBody
+    MemberMenuOption.MAKE_LEADER -> RoomStrings.lobbyConfirmMakeLeader(name) to RoomStrings.lobbyConfirmMakeLeaderBody(name)
+    MemberMenuOption.MAKE_ADMIN -> RoomStrings.lobbyConfirmMakeAdmin(name) to RoomStrings.lobbyConfirmMakeAdminBody(name)
+    MemberMenuOption.ADD_FRIEND -> RoomStrings.lobbyConfirmAddFriend(name) to RoomStrings.lobbyConfirmAddFriendBody
+    MemberMenuOption.REMOVE_FRIEND -> RoomStrings.lobbyConfirmRemoveFriend(name) to RoomStrings.lobbyConfirmRemoveFriendBody
+    MemberMenuOption.REMOVE_FROM_ROOM -> RoomStrings.lobbyConfirmRemoveFromRoom(name) to RoomStrings.lobbyConfirmRemoveFromRoomBody
 }
 
 @Composable

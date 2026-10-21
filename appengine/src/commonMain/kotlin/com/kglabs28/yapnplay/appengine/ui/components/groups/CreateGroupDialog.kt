@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.groups
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,7 +25,6 @@ import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
 import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
@@ -58,14 +58,14 @@ fun CreateGroupDialog(
     val picked = form.selectedIds.mapNotNull { id -> form.friends.firstOrNull { it.userId == id } }
     val shown = form.friends.filter { form.search.isBlank() || it.name.contains(form.search.trim(), ignoreCase = true) }
     GroupDialogFrame(width = dimens.groupDialogWidth, modifier = modifier) {
-        GroupDialogTitle(start = Strings.groupTitleStart, end = Strings.groupTitleEnd, onClose = onClose)
-        BasicText(text = Strings.groupNameLabel, style = typography.label.copy(color = colors.TextSecondary))
+        GroupDialogTitle(start = RoomStrings.groupTitleStart, end = RoomStrings.groupTitleEnd, onClose = onClose)
+        BasicText(text = RoomStrings.groupNameLabel, style = typography.label.copy(color = colors.TextSecondary))
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
             GroupIconButton(icon = form.icon, onClick = onCycleIcon)
             ProfileTextField(
                 value = form.name,
                 onValueChange = onNameChange,
-                hint = Strings.groupNameHint,
+                hint = RoomStrings.groupNameHint,
                 maxLength = AppConstants.MAX_ROOM_NAME_LENGTH,
                 isError = false,
                 onDone = {},
@@ -78,7 +78,7 @@ fun CreateGroupDialog(
                 modifier = Modifier.weight(1f).fillMaxHeight().glassPanel(glowColor = colors.SocialZoneAccent, surface = colors.ListRow).padding(Spacing.Xs),
                 verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
-                BasicText(text = Strings.groupSelectedMembers(picked.size + 1, AppConstants.MAX_MEMBERS), style = typography.label.copy(color = colors.TextPrimary))
+                BasicText(text = RoomStrings.groupSelectedMembers(picked.size + 1, AppConstants.MAX_MEMBERS), style = typography.label.copy(color = colors.TextPrimary))
                 val scroll = rememberScrollState()
                 FlowRow(
                     modifier = Modifier.weight(1f).fillMaxWidth().glassScrollbar(scroll).verticalScroll(scroll),
@@ -97,8 +97,8 @@ fun CreateGroupDialog(
                 verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-                    BasicText(text = Strings.groupAddFromFriends, style = typography.label.copy(color = colors.TextPrimary), maxLines = 1)
-                    ProfileTextField(value = form.search, onValueChange = onSearchChange, hint = Strings.groupSearchHint, maxLength = SEARCH_MAX, isError = false, onDone = {}, modifier = Modifier.weight(1f))
+                    BasicText(text = RoomStrings.groupAddFromFriends, style = typography.label.copy(color = colors.TextPrimary), maxLines = 1)
+                    ProfileTextField(value = form.search, onValueChange = onSearchChange, hint = RoomStrings.groupSearchHint, maxLength = SEARCH_MAX, isError = false, onDone = {}, modifier = Modifier.weight(1f))
                 }
                 val scroll = rememberScrollState()
                 Column(
@@ -106,8 +106,8 @@ fun CreateGroupDialog(
                     verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
                 ) {
                     when {
-                        form.friends.isEmpty() -> EmptyStateText(text = Strings.groupNoFriends, modifier = Modifier.fillMaxWidth())
-                        shown.isEmpty() -> EmptyStateText(text = Strings.groupNoMatch, modifier = Modifier.fillMaxWidth())
+                        form.friends.isEmpty() -> EmptyStateText(text = RoomStrings.groupNoFriends, modifier = Modifier.fillMaxWidth())
+                        shown.isEmpty() -> EmptyStateText(text = RoomStrings.groupNoMatch, modifier = Modifier.fillMaxWidth())
                         else -> shown.forEach { friend: Friend ->
                             FriendPickRow(friend = friend, added = friend.userId in form.selectedIds, onToggle = { onToggleMember(friend.userId) })
                         }
@@ -117,8 +117,8 @@ fun CreateGroupDialog(
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
             BasicText(text = form.error.orEmpty(), style = typography.micro.copy(color = colors.Error), modifier = Modifier.weight(1f))
-            ProfileActionButton(text = Strings.groupCancel, kind = ProfileButtonKind.NEUTRAL, onClick = onClose)
-            ProfileActionButton(text = Strings.groupCreate, kind = ProfileButtonKind.CONFIRM, onClick = onCreate, enabled = !form.creating, leadingIcon = Icons.Rounded.ChevronRight)
+            ProfileActionButton(text = RoomStrings.groupCancel, kind = ProfileButtonKind.NEUTRAL, onClick = onClose)
+            ProfileActionButton(text = RoomStrings.groupCreate, kind = ProfileButtonKind.CONFIRM, onClick = onCreate, enabled = !form.creating, leadingIcon = Icons.Rounded.ChevronRight)
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +20,6 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
@@ -53,20 +53,20 @@ fun YourRoomsPanel(
     ) {
         SectionHeader(
             icon = Icons.Rounded.Forum,
-            title = Strings.roomsYourRoomsTitle,
-            subtitle = Strings.roomsYourRoomsSubtitle,
+            title = RoomStrings.roomsYourRoomsTitle,
+            subtitle = RoomStrings.roomsYourRoomsSubtitle,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
                 // Group invites waiting: red glow while there are any.
                 GlassPillButton(
-                    text = Strings.roomsInvites(invitesCount),
+                    text = RoomStrings.roomsInvites(invitesCount),
                     onClick = onInvites,
                     leadingIcon = Icons.Rounded.Mail,
                     accent = if (invitesCount > 0) colors.Error else colors.SocialZoneAccent,
                 )
                 GlassPillButton(
-                    text = Strings.roomsSeeAll,
+                    text = RoomStrings.roomsSeeAll,
                     onClick = onSeeAll,
                     trailingIcon = Icons.Rounded.ChevronRight,
                 )
@@ -80,7 +80,7 @@ fun YourRoomsPanel(
         ) {
             if (loaded && rooms.isEmpty()) {
                 EmptyStateText(
-                    text = Strings.roomsNoRooms,
+                    text = RoomStrings.roomsNoRooms,
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CityBazaarArtwork
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarColour
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.CbMoneyFlight
@@ -48,7 +50,6 @@ import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.GlassDice
 import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.rememberGlassDiceState
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
@@ -144,7 +145,7 @@ fun CityBazaarMatchScreen(
                 onSettings = { send(CityBazaarMatchIntent.OpenSettings) },
                 onExit = { send(CityBazaarMatchIntent.ExitClicked) },
                 // The view to switch to.
-                switchLabel = if (state.threeD) Strings.cbView2d else Strings.cbView3d,
+                switchLabel = if (state.threeD) CityBazaarStrings.cbView2d else CityBazaarStrings.cbView3d,
                 onSwitch = { send(CityBazaarMatchIntent.ToggleView) },
                 onHistory = { send(CityBazaarMatchIntent.OpenHistory) },
                 // As wide as the player cards below.
@@ -246,7 +247,7 @@ fun CityBazaarMatchScreen(
                     }
                     if (!state.spectating) {
                         TableGlassButton(
-                            text = Strings.cbMyCities,
+                            text = CityBazaarStrings.cbMyCities,
                             onClick = { send(CityBazaarMatchIntent.OpenMyCities) },
                             fill = smoke,
                             textColor = colors.TextPrimary,
@@ -298,7 +299,7 @@ fun CityBazaarMatchScreen(
 
         BlockingOverlay(visible = state.historyOpen, onDismiss = { send(CityBazaarMatchIntent.DismissHistory) }) {
             if (state.historyOpen) {
-                TableHistoryDialog(title = Strings.tableHistoryTitle, lines = state.history, playerTints = playerTints, onClose = { send(CityBazaarMatchIntent.DismissHistory) })
+                TableHistoryDialog(title = TableStrings.tableHistoryTitle, lines = state.history, playerTints = playerTints, onClose = { send(CityBazaarMatchIntent.DismissHistory) })
             }
         }
 

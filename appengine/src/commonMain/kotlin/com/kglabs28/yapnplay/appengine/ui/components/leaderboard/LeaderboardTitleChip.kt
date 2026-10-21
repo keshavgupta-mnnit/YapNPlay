@@ -27,7 +27,7 @@ fun LeaderboardTitleChip(title: String, place: Int, modifier: Modifier = Modifie
     }
     BasicText(
         text = title,
-        style = YapNPlayTheme.typography.label.copy(color = Color.White, fontWeight = FontWeight.Bold),
+        style = YapNPlayTheme.typography.micro.copy(color = Color.White, fontWeight = FontWeight.Bold),
         maxLines = 1,
         modifier = modifier
             .background(Brush.verticalGradient(listOf(tint.copy(alpha = TOP), tint.copy(alpha = BOTTOM))), CircleShape)

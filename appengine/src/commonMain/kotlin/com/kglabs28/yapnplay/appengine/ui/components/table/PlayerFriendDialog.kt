@@ -1,8 +1,9 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.profile.ConfirmPersonCard
 import com.kglabs28.yapnplay.appengine.ui.components.profile.ProfileButtonKind
 
@@ -17,22 +18,22 @@ fun PlayerFriendDialog(
     val confirm = if (action.busy) ({}) else onConfirm
     if (action.isFriend) {
         ConfirmPersonCard(
-            title = Strings.playerRemoveFriendTitle,
+            title = TableStrings.playerRemoveFriendTitle,
             avatarId = action.avatarId,
-            question = Strings.profileRemoveQuestion(action.name),
-            body = action.error ?: Strings.profileRemoveBody,
-            confirmLabel = Strings.profileRemove,
+            question = ProfileStrings.profileRemoveQuestion(action.name),
+            body = action.error ?: ProfileStrings.profileRemoveBody,
+            confirmLabel = ProfileStrings.profileRemove,
             onConfirm = confirm,
             onCancel = onCancel,
             modifier = modifier,
         )
     } else {
         ConfirmPersonCard(
-            title = Strings.playerAddFriendTitle,
+            title = TableStrings.playerAddFriendTitle,
             avatarId = action.avatarId,
-            question = Strings.playerAddFriendQuestion(action.name),
-            body = action.error ?: Strings.playerAddFriendBody,
-            confirmLabel = Strings.playerAddFriendConfirm,
+            question = TableStrings.playerAddFriendQuestion(action.name),
+            body = action.error ?: TableStrings.playerAddFriendBody,
+            confirmLabel = TableStrings.playerAddFriendConfirm,
             onConfirm = confirm,
             onCancel = onCancel,
             confirmKind = ProfileButtonKind.CONFIRM,

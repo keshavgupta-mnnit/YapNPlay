@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,7 +20,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tileHeaderTint
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbModal
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TileKind
@@ -38,14 +38,14 @@ fun CbBuildPrompt(modal: CbModal.Build, onNo: () -> Unit, onYes: () -> Unit, mod
     val typography = YapNPlayTheme.typography
     val tint = tileHeaderTint(modal.group, TileKind.CITY)
     CbPromptFrame(
-        title = buildAnnotatedString { append(Strings.cbUpgradeProperty + modal.name.uppercase()) },
+        title = buildAnnotatedString { append(CityBazaarStrings.cbUpgradeProperty + modal.name.uppercase()) },
         accent = colors.CbGain,
         countdown = modal.countdown,
         width = dimens.promptWideWidth,
         modifier = modifier,
         buttons = {
-            CbNeonButton(text = Strings.cbNoCaps, color = colors.Error, onClick = onNo, modifier = Modifier.weight(1f))
-            CbNeonButton(text = Strings.cbYesCaps, color = colors.CbGain, onClick = onYes, enabled = modal.canAfford, icon = Icons.Rounded.Check, modifier = Modifier.weight(1f))
+            CbNeonButton(text = CityBazaarStrings.cbNoCaps, color = colors.Error, onClick = onNo, modifier = Modifier.weight(1f))
+            CbNeonButton(text = CityBazaarStrings.cbYesCaps, color = colors.CbGain, onClick = onYes, enabled = modal.canAfford, icon = Icons.Rounded.Check, modifier = Modifier.weight(1f))
         },
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
@@ -54,17 +54,17 @@ fun CbBuildPrompt(modal: CbModal.Build, onNo: () -> Unit, onYes: () -> Unit, mod
                 CbPromptArt(tile = modal.tile, name = modal.name, price = modal.price, tint = tint, withHouse = true)
                 BasicText(
                     text = buildAnnotatedString {
-                        append(Strings.cbBuildAction(""))
+                        append(CityBazaarStrings.cbBuildAction(""))
                         withStyle(SpanStyle(color = colors.Gold)) { append(modal.what) }
                         withStyle(SpanStyle(color = colors.CbLoss)) { append(" (" + modal.cost + ")") }
                     },
                     style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
                 )
-                CbBalanceStrip(cash = modal.cash, changeLabel = Strings.cbUpgradeCostLabel, change = modal.cost, remaining = modal.remaining)
+                CbBalanceStrip(cash = modal.cash, changeLabel = CityBazaarStrings.cbUpgradeCostLabel, change = modal.cost, remaining = modal.remaining)
             }
         }
         BasicText(
-            text = if (modal.canAfford) Strings.cbUpgradeQuestion else Strings.cbCantAfford,
+            text = if (modal.canAfford) CityBazaarStrings.cbUpgradeQuestion else CityBazaarStrings.cbCantAfford,
             style = typography.title.copy(color = if (modal.canAfford) colors.TextPrimary else colors.CbLoss, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, shadow = Shadow(color = colors.Cyan, blurRadius = QUESTION_GLOW)),
             modifier = Modifier.fillMaxWidth(),
         )

@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
-import com.kglabs28.yapnplay.appengine.core.designsystem.HeadlineFontFamily
+import com.kglabs28.yapnplay.appengine.core.designsystem.headlineFontFamily
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
@@ -46,7 +46,7 @@ fun RoomCodeDisplay(
                 BasicText(
                     text = char,
                     style = YapNPlayTheme.typography.title.copy(
-                        fontFamily = HeadlineFontFamily,
+                        fontFamily = headlineFontFamily(),
                         fontWeight = FontWeight.SemiBold,
                         color = if (char.isEmpty()) colors.TextDisabled else colors.TextPrimary,
                     ),

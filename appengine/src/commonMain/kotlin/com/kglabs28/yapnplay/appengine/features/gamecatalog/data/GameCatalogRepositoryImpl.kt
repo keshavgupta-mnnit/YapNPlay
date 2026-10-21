@@ -1,6 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.gamecatalog.data
 
-import com.kglabs28.yapnplay.appengine.appmanager.AppManager
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.GamesAppManagerHelper
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.domain.GameCatalogItem
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.repository.GameCatalogRepository
 import com.kglabs28.yapnplay.appengine.games.base.GameRegistry
@@ -12,12 +12,12 @@ import com.kglabs28.yapnplay.appengine.games.base.GameRegistry
  */
 class GameCatalogRepositoryImpl(
     private val registry: GameRegistry,
-    private val appManager: AppManager,
+    private val gamesConfig: GamesAppManagerHelper,
 ) : GameCatalogRepository {
 
     override suspend fun getGames(): List<GameCatalogItem> =
         registry.games
-            .filter { appManager.isGameEnabled(it.id.value) }
+            .filter { gamesConfig.isGameEnabled(it.id.value) }
             .map { it.toCatalogItem() }
 
     override suspend fun findGame(gameId: String): GameCatalogItem? =

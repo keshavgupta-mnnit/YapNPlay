@@ -1,62 +1,59 @@
 package com.kglabs28.yapnplay.appengine.ui.placeholders
 
+import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.BackgroundsAppManagerHelper
+import org.koin.compose.koinInject
 
 /**
- * Platform image loading. Android reads module drawables (compose
- * resources are not packaged into the APK); JVM reads the shared
- * compose resources. Callers never change when assets do.
+ * The app's images, common to every platform: each backdrop and game art
+ * reads its URL from AppManager (BackgroundsAppManagerHelper) and falls
+ * back to the built-in picture. Callers never change when assets do.
  */
 @Composable
-expect fun HomeLogoArtwork(
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-)
+fun HomeLogoArtwork(modifier: Modifier = Modifier, contentDescription: String? = null) {
+    // Square art with transparent margins: crop to the caller's wide box so the wordmark fills it.
+    Image(painter = builtInPainter(BuiltInImage.APP_LOGO), contentDescription = contentDescription, modifier = modifier, contentScale = ContentScale.Crop)
+}
 
 @Composable
-expect fun GameZoneArtwork(
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-)
+fun GameZoneArtwork(modifier: Modifier = Modifier, contentDescription: String? = null, urls: BackgroundsAppManagerHelper = koinInject()) {
+    AppArtwork(BuiltInImage.GAME_ZONE_CARD, urls.gameZoneCard(), ContentScale.Fit, modifier, contentDescription)
+}
 
 @Composable
-expect fun FriendZoneArtwork(
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-)
+fun FriendZoneArtwork(modifier: Modifier = Modifier, contentDescription: String? = null, urls: BackgroundsAppManagerHelper = koinInject()) {
+    AppArtwork(BuiltInImage.FRIEND_ZONE_CARD, urls.friendZoneCard(), ContentScale.Fit, modifier, contentDescription)
+}
 
-/** The leaderboard's celebration background (boards, confetti, sparks). */
+/** The leaderboard's celebration background (boards, confetti, sparks), stretched to the screen. */
 @Composable
-expect fun LeaderboardArtwork(
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-)
+fun LeaderboardArtwork(modifier: Modifier = Modifier, contentDescription: String? = null, urls: BackgroundsAppManagerHelper = koinInject()) {
+    AppArtwork(BuiltInImage.LEADERBOARD_BACKGROUND, urls.leaderboard(), ContentScale.FillBounds, modifier, contentDescription)
+}
 
 @Composable
-expect fun HomeBackgroundArtwork(
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-)
+fun HomeBackgroundArtwork(modifier: Modifier = Modifier, contentDescription: String? = null, urls: BackgroundsAppManagerHelper = koinInject()) {
+    AppArtwork(BuiltInImage.HOME_BACKGROUND, urls.home(), ContentScale.Crop, modifier, contentDescription)
+}
 
-/** Royal Ludo's game art (carousel, lobby, every game picker). */
+/** Royal Ludo's game art (carousel, lobby, every game picker, leaderboard). */
 @Composable
-expect fun RoyalLudoArtwork(
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-)
+fun RoyalLudoArtwork(modifier: Modifier = Modifier, contentDescription: String? = null, urls: BackgroundsAppManagerHelper = koinInject()) {
+    AppArtwork(BuiltInImage.ROYAL_LUDO_ART, urls.royalLudoArt(), ContentScale.Crop, modifier, contentDescription)
+}
+
+/** City Bazaar's game art (carousel, lobby, every game picker, leaderboard). */
+@Composable
+fun CityBazaarArtwork(modifier: Modifier = Modifier, contentDescription: String? = null, urls: BackgroundsAppManagerHelper = koinInject()) {
+    AppArtwork(BuiltInImage.CITY_BAZAAR_ART, urls.cityBazaarArt(), ContentScale.Crop, modifier, contentDescription)
+}
 
 /** Preset avatar number [index] (0-based, see AvatarPresets), filling [modifier]. */
 @Composable
-expect fun PresetAvatarArtwork(
-    index: Int,
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-)
-
-/** City Bazaar's game art (carousel, lobby, every game picker). */
-@Composable
-expect fun CityBazaarArtwork(
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-)
+fun PresetAvatarArtwork(index: Int, modifier: Modifier = Modifier, contentDescription: String? = null) {
+    // Portrait on a transparent square: fill the circle.
+    Image(painter = avatarPainter(index), contentDescription = contentDescription, modifier = modifier, contentScale = ContentScale.Crop)
+}

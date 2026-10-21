@@ -28,6 +28,7 @@ fun LeaderboardRow(entry: LeaderboardEntryUi, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .background(Color.Black.copy(alpha = ROW_DARK), shape)
             .background(Color.White.copy(alpha = FILL), shape)
             .border(dimens.hairline, if (entry.isMe) colors.Cyan else Color.White.copy(alpha = RIM), shape)
             .padding(horizontal = Spacing.Sm, vertical = Spacing.Xs),
@@ -37,12 +38,13 @@ fun LeaderboardRow(entry: LeaderboardEntryUi, modifier: Modifier = Modifier) {
         BasicText(text = entry.placeLabel, style = typography.title.copy(color = colors.TextSecondary, fontWeight = FontWeight.Bold))
         LeaderboardAvatar(avatarId = entry.avatarId, size = dimens.boardAvatarRow, micOn = entry.micOn)
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
-            BasicText(text = entry.name.uppercase(), style = typography.title.copy(color = if (entry.isMe) colors.Cyan else Color.White, fontWeight = FontWeight.Black), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            BasicText(text = entry.name.uppercase(), style = typography.label.copy(color = if (entry.isMe) colors.Cyan else Color.White, fontWeight = FontWeight.Black), maxLines = 1, overflow = TextOverflow.Ellipsis)
             BasicText(text = entry.score, style = typography.label.copy(color = colors.Cyan, fontWeight = FontWeight.Bold))
             LeaderboardTitleChip(title = entry.title, place = entry.place)
         }
     }
 }
 
-private const val FILL = 0.07f
+private const val ROW_DARK = 0.35f
+private const val FILL = 0.06f
 private const val RIM = 0.15f

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
+import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,7 +27,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.IconCircle
@@ -47,16 +48,16 @@ fun InviteToGroupCard(
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
     ModalCard(
-        surfaceBrush = Brush.verticalGradient(listOf(colors.GlassDialogTop, colors.GlassDialogBottom)),
-        title = Strings.profileInviteTitle(modal.person.name),
+        surfaceBrush = AppBrushes.dialogGeneric,
+        title = ProfileStrings.profileInviteTitle(modal.person.name),
         onClose = onClose,
         modifier = modifier,
     ) {
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-            BasicText(text = Strings.profileInviteHint, style = typography.micro.copy(color = colors.TextSecondary, textAlign = TextAlign.Center))
+            BasicText(text = ProfileStrings.profileInviteHint, style = typography.micro.copy(color = colors.TextSecondary, textAlign = TextAlign.Center))
             modal.error?.let { BasicText(text = it, style = typography.micro.copy(color = colors.Error)) }
             if (!modal.loading && modal.groups.isEmpty()) {
-                EmptyStateText(text = Strings.profileNoGroups, modifier = Modifier.fillMaxWidth())
+                EmptyStateText(text = ProfileStrings.profileNoGroups, modifier = Modifier.fillMaxWidth())
             }
             if (modal.groups.isNotEmpty()) {
                 val scroll = rememberScrollState()
@@ -77,10 +78,10 @@ fun InviteToGroupCard(
                                 BasicText(text = group.detail, style = typography.micro.copy(color = colors.TextSecondary), maxLines = 1)
                             }
                             if (group.invited) {
-                                GlassPillButton(text = Strings.profileInvited, onClick = {}, leadingIcon = Icons.Rounded.Check, accent = colors.LiveGreen, contentColor = colors.LiveGreen)
+                                GlassPillButton(text = ProfileStrings.profileInvited, onClick = {}, leadingIcon = Icons.Rounded.Check, accent = colors.LiveGreen, contentColor = colors.LiveGreen)
                             } else {
                                 ProfileActionButton(
-                                    text = Strings.profileInvite,
+                                    text = ProfileStrings.profileInvite,
                                     kind = ProfileButtonKind.CONFIRM,
                                     onClick = { onInvite(group.roomId) },
                                     enabled = !group.sending,
@@ -92,7 +93,7 @@ fun InviteToGroupCard(
                     }
                 }
             }
-            ProfileActionButton(text = Strings.profileNewGroup, kind = ProfileButtonKind.NEUTRAL, onClick = onNewGroup, leadingIcon = Icons.Rounded.GroupAdd, modifier = Modifier.fillMaxWidth())
+            ProfileActionButton(text = ProfileStrings.profileNewGroup, kind = ProfileButtonKind.NEUTRAL, onClick = onNewGroup, leadingIcon = Icons.Rounded.GroupAdd, modifier = Modifier.fillMaxWidth())
         }
     }
 }

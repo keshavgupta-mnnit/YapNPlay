@@ -13,9 +13,9 @@ import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
  * 1. Construction loads local values instantly (offline-safe).
  * 2. [syncWithRemote] merges remote values over local and persists them.
  *
- * Every getter never throws: corrupt values fall back to defaults.
- * Typed feature helpers (e.g. [isVoiceEnabled]) keep call sites readable;
- * the generic getters cover anything added later without code changes.
+ * Every getter never throws: corrupt values fall back to defaults. Keys
+ * live in [AppManagerKeys]; features read them through their module's
+ * helper (AppManagerHelper, GamesAppManagerHelper…), not from here.
  */
 class AppManager(private val store: AppConfigStore) {
 
@@ -46,55 +46,17 @@ class AppManager(private val store: AppConfigStore) {
         }
     }
 
-    // ── Feature flags ────────────────────────────────────────────────────
-
-    fun isVoiceEnabled(): Boolean =
-        getBoolean(AppManagerConstants.Key.VOICE_ENABLED, AppManagerConstants.Default.VOICE_ENABLED)
-
-    fun isRoyalLudoEnabled(): Boolean =
-        getBoolean(AppManagerConstants.Key.ROYAL_LUDO_ENABLED, AppManagerConstants.Default.ROYAL_LUDO_ENABLED)
-
-    fun isPartyChatEnabled(): Boolean =
-        getBoolean(AppManagerConstants.Key.PARTY_CHAT_ENABLED, AppManagerConstants.Default.PARTY_CHAT_ENABLED)
-
-    /** Force-update rule as JSON (see UpdateRule); "" = none. */
-    fun updateConfig(): String =
-        getString(AppManagerConstants.Key.UPDATE_CONFIG, AppManagerConstants.Default.UPDATE_CONFIG)
-
-    /**
-     * Whether a registered game may be shown and queued. Royal Ludo keeps
-     * its original key; any other game reads `game_enabled_<id>`.
-     */
-    fun isGameEnabled(gameId: String): Boolean = when (gameId) {
-        AppManagerConstants.ROYAL_LUDO_GAME_ID -> isRoyalLudoEnabled()
-        else -> getBoolean(AppManagerConstants.Key.gameEnabled(gameId), true)
-    }
-
-    /** How many rooms one user may belong to (server enforces the same). */
-    fun maxRoomsPerUser(): Int =
-        getInt(AppManagerConstants.Key.MAX_ROOMS_PER_USER, AppManagerConstants.Default.MAX_ROOMS_PER_USER)
-
-    /** City Bazaar: each player's starting balance (₹). */
-    fun cityBazaarStartingCash(): Int =
-        getInt(AppManagerConstants.Key.CITY_BAZAAR_STARTING_CASH, AppManagerConstants.Default.CITY_BAZAAR_STARTING_CASH)
-
-    /** City Bazaar: rounds before the match ends on net worth (when the room's toggle is on). */
-    fun cityBazaarRoundLimit(): Int =
-        getInt(AppManagerConstants.Key.CITY_BAZAAR_ROUND_LIMIT, AppManagerConstants.Default.CITY_BAZAAR_ROUND_LIMIT)
-
-    /** City Bazaar: minutes before the match ends on net worth (when the room's toggle is on). */
-    fun cityBazaarTimeLimitMinutes(): Int =
-        getInt(AppManagerConstants.Key.CITY_BAZAAR_TIME_LIMIT_MINUTES, AppManagerConstants.Default.CITY_BAZAAR_TIME_LIMIT_MINUTES)
-
-    /**
-     * Where the backend lives. Remote Config can move every app to a new
-     * server; anything that is not an http(s) address falls back to the
-     * built-in one.
-     */
-    fun serverBaseUrl(): String =
-        getString(AppManagerConstants.Key.SERVER_BASE_URL).trim().trimEnd('/')
-            .takeIf { it.startsWith(HTTPS) || it.startsWith(HTTP) }
-            ?: AppConstants.SERVER_BASE_URL
+    /** [key]'s value, or its default (never throws). */
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> get(key: ConfigKey<T>): T = when (val default = key.default) {
+        is Boolean -> getBoolean(key.name, default)
+        is Int -> getInt(key.name, default)
+        is Long -> getLong(key.name, default)
+        is Float -> getFloat(key.name, default)
+        is Double -> getDouble(key.name, default)
+        is String -> getString(key.name, default)
+        else -> default
+    } as T
 
     // ── Typed getters ────────────────────────────────────────────────────
 
@@ -140,8 +102,4 @@ class AppManager(private val store: AppConfigStore) {
         default
     }
 
-    private companion object {
-        const val HTTPS = "https://"
-        const val HTTP = "http://"
-    }
 }

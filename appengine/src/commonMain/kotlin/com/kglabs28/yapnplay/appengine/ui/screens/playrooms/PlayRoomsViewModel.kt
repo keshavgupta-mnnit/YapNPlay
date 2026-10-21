@@ -1,11 +1,11 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.common.TextUtils
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.JoinOutcome
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.CreatePlayRoomUseCase
@@ -75,7 +75,7 @@ class PlayRoomsViewModel(
             is PlayRoomsIntent.ToggleGroupMember -> updateGroup {
                 when {
                     intent.userId in selectedIds -> copy(selectedIds = selectedIds - intent.userId, error = null)
-                    selectedIds.size + 1 >= AppConstants.MAX_MEMBERS -> copy(error = Strings.groupFull(AppConstants.MAX_MEMBERS))
+                    selectedIds.size + 1 >= AppConstants.MAX_MEMBERS -> copy(error = RoomStrings.groupFull(AppConstants.MAX_MEMBERS))
                     else -> copy(selectedIds = selectedIds + intent.userId, error = null)
                 }
             }
@@ -108,7 +108,7 @@ class PlayRoomsViewModel(
     }
 
     private fun PlayRoomInvite.toUi(): GroupInviteUi =
-        GroupInviteUi(inviteId, roomName, icon, Strings.groupInvitedBy(invitedBy.name, memberCount), invitedBy.avatarId)
+        GroupInviteUi(inviteId, roomName, icon, RoomStrings.groupInvitedBy(invitedBy.name, memberCount), invitedBy.avatarId)
 
     private fun updateGroup(change: CreateGroupUi.() -> CreateGroupUi) {
         setState { copy(createGroup = createGroup?.change()) }
@@ -139,8 +139,8 @@ class PlayRoomsViewModel(
                             name = room.name,
                             code = room.code,
                             link = link,
-                            body = Strings.groupCreatedBody(room.name, form.selectedIds.size),
-                            shareText = Strings.roomInviteMessage(room.name, room.code, link),
+                            body = RoomStrings.groupCreatedBody(room.name, form.selectedIds.size),
+                            shareText = RoomStrings.roomInviteMessage(room.name, room.code, link),
                         ),
                     )
                 }
@@ -151,13 +151,13 @@ class PlayRoomsViewModel(
                     creating = false,
                     error = when (val e = result.error) {
                         is YapNPlayError.Validation -> when (e.field) {
-                            CreatePlayRoomUseCase.FIELD_NAME_EMPTY -> Strings.groupNameRequired
-                            CreatePlayRoomUseCase.FIELD_MEMBERS -> Strings.groupNeedsMember
-                            else -> Strings.groupNameTooLong(AppConstants.MAX_ROOM_NAME_LENGTH)
+                            CreatePlayRoomUseCase.FIELD_NAME_EMPTY -> RoomStrings.groupNameRequired
+                            CreatePlayRoomUseCase.FIELD_MEMBERS -> RoomStrings.groupNeedsMember
+                            else -> RoomStrings.groupNameTooLong(AppConstants.MAX_ROOM_NAME_LENGTH)
                         }
-                        is YapNPlayError.AlreadyExists -> Strings.groupExists(e.name)
-                        is YapNPlayError.LimitReached -> if (e.limit == AppConstants.MAX_MEMBERS) Strings.groupFull(e.limit) else errorMessage(e)
-                        else -> Strings.roomsCreateFailed
+                        is YapNPlayError.AlreadyExists -> RoomStrings.groupExists(e.name)
+                        is YapNPlayError.LimitReached -> if (e.limit == AppConstants.MAX_MEMBERS) RoomStrings.groupFull(e.limit) else errorMessage(e)
+                        else -> RoomStrings.roomsCreateFailed
                     },
                 )
             }
@@ -172,7 +172,7 @@ class PlayRoomsViewModel(
     /** Accepting joins the group (it appears in Your Rooms); the list closes once it's empty. */
     private suspend fun answer(inviteId: String, accept: Boolean) {
         if (respondToInvite(inviteId, accept) is AppResult.Failure) {
-            setState { copy(inviteError = Strings.groupInviteFailed) }
+            setState { copy(inviteError = RoomStrings.groupInviteFailed) }
             return
         }
         load()
@@ -204,8 +204,8 @@ class PlayRoomsViewModel(
                         isJoining = false,
                         joinPrompt = JoinPromptUi(
                             code = room.code,
-                            title = Strings.roomsJoinPromptTitle(room.name),
-                            details = Strings.roomsJoinPromptDetails(room.memberCount, room.onlineCount),
+                            title = RoomStrings.roomsJoinPromptTitle(room.name),
+                            details = RoomStrings.roomsJoinPromptDetails(room.memberCount, room.onlineCount),
                             description = room.description,
                         ),
                     )
@@ -236,8 +236,8 @@ class PlayRoomsViewModel(
                         roomCode = "",
                         isJoining = false,
                         requestSent = RequestSentUi(
-                            title = Strings.roomsRequestSentTitle,
-                            body = Strings.roomsRequestSentBody(outcome.roomName),
+                            title = RoomStrings.roomsRequestSentTitle,
+                            body = RoomStrings.roomsRequestSentBody(outcome.roomName),
                         ),
                     )
                 }
@@ -247,9 +247,9 @@ class PlayRoomsViewModel(
     }
 
     private fun errorMessage(error: YapNPlayError): String = when (error) {
-        is YapNPlayError.Validation -> Strings.roomsJoinInvalidCode(AppConstants.ROOM_CODE_LENGTH)
-        is YapNPlayError.LimitReached -> Strings.roomsJoinLimit(error.limit)
-        is YapNPlayError.NotFound -> Strings.roomsJoinNotFound
-        else -> Strings.roomsJoinFailed
+        is YapNPlayError.Validation -> RoomStrings.roomsJoinInvalidCode(AppConstants.ROOM_CODE_LENGTH)
+        is YapNPlayError.LimitReached -> RoomStrings.roomsJoinLimit(error.limit)
+        is YapNPlayError.NotFound -> RoomStrings.roomsJoinNotFound
+        else -> RoomStrings.roomsJoinFailed
     }
 }

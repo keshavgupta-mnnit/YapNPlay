@@ -1,12 +1,12 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 
 /**
  * "Add Friend": the line under the title is the hint, or the result
@@ -30,8 +30,8 @@ fun AddFriendCard(
     ProfileActionCard(
         icon = Icons.Rounded.PersonAdd,
         iconTint = colors.Cyan,
-        title = Strings.profileAddTitle,
-        description = message ?: Strings.profileAddHint(AppConstants.USER_CODE_LENGTH),
+        title = ProfileStrings.profileAddTitle,
+        description = message ?: ProfileStrings.profileAddHint(AppConstants.USER_CODE_LENGTH),
         descriptionColor = when {
             message == null -> colors.RoomsSubtitle
             isError -> colors.Error
@@ -48,7 +48,7 @@ fun AddFriendCard(
             modifier = Modifier.weight(1f),
         )
         ProfileActionButton(
-            text = Strings.profileAddButton,
+            text = ProfileStrings.profileAddButton,
             kind = ProfileButtonKind.CONFIRM,
             onClick = onSend,
             enabled = ready,

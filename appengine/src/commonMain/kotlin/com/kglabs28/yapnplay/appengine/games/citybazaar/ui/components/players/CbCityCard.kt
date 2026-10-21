@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players
 
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,7 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.table.tableFrostedGlass
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tileHeaderTint
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbOwnedRowUi
@@ -50,8 +50,8 @@ fun CbCityCard(city: CbOwnedRowUi, onClick: () -> Unit, modifier: Modifier = Mod
     ) {
         BasicText(text = city.name, style = typography.cardTitle.copy(color = tint, fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis)
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            BasicText(text = Strings.cbWorthLine(city.worth), style = typography.micro.copy(color = colors.TextSecondary, fontWeight = FontWeight.Bold), modifier = Modifier.weight(1f))
-            BasicText(text = Strings.cbRentLine(city.rent), style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
+            BasicText(text = CityBazaarStrings.cbWorthLine(city.worth), style = typography.micro.copy(color = colors.TextSecondary, fontWeight = FontWeight.Bold), modifier = Modifier.weight(1f))
+            BasicText(text = CityBazaarStrings.cbRentLine(city.rent), style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
         }
     }
 }

@@ -1,11 +1,11 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.profile.domain.ProfileScreenData
 import com.kglabs28.yapnplay.appengine.features.profile.presentation.ProfileUiMapper
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.GetMyGroupsUseCase
@@ -56,16 +56,16 @@ class ProfileViewModel(
             ProfileIntent.EditName -> data?.let {
                 showModal(
                     ProfileModal.EditText(
-                        ProfileField.NAME, Strings.profileEditNameTitle, Strings.profileNameLabel, it.profile.name,
-                        Strings.profileNameHint, AppConstants.MAX_NAME_LENGTH,
+                        ProfileField.NAME, ProfileStrings.profileEditNameTitle, ProfileStrings.profileNameLabel, it.profile.name,
+                        ProfileStrings.profileNameHint, AppConstants.MAX_NAME_LENGTH,
                     ),
                 )
             }
             ProfileIntent.EditUsername -> data?.let {
                 showModal(
                     ProfileModal.EditText(
-                        ProfileField.USERNAME, Strings.profileEditUsernameTitle, Strings.profileUsernameLabel, it.profile.username,
-                        Strings.profileUsernameHint, AppConstants.MAX_USERNAME_LENGTH,
+                        ProfileField.USERNAME, ProfileStrings.profileEditUsernameTitle, ProfileStrings.profileUsernameLabel, it.profile.username,
+                        ProfileStrings.profileUsernameHint, AppConstants.MAX_USERNAME_LENGTH,
                     ),
                 )
             }
@@ -140,9 +140,9 @@ class ProfileViewModel(
             }
             is AppResult.Failure -> {
                 val error = when {
-                    result.error !is YapNPlayError.Validation -> Strings.profileNetworkError
-                    modal.field == ProfileField.NAME -> Strings.profileNameError(AppConstants.MAX_NAME_LENGTH)
-                    else -> Strings.profileUsernameError(AppConstants.MIN_USERNAME_LENGTH, AppConstants.MAX_USERNAME_LENGTH)
+                    result.error !is YapNPlayError.Validation -> ProfileStrings.profileNetworkError
+                    modal.field == ProfileField.NAME -> ProfileStrings.profileNameError(AppConstants.MAX_NAME_LENGTH)
+                    else -> ProfileStrings.profileUsernameError(AppConstants.MIN_USERNAME_LENGTH, AppConstants.MAX_USERNAME_LENGTH)
                 }
                 showModal(modal.copy(error = error))
             }
@@ -160,7 +160,7 @@ class ProfileViewModel(
                 reload()
             }
             is AppResult.Failure -> {
-                val message = if (result.error is YapNPlayError.Validation) Strings.profileInvalidCode(AppConstants.USER_CODE_LENGTH) else Strings.profileNetworkError
+                val message = if (result.error is YapNPlayError.Validation) ProfileStrings.profileInvalidCode(AppConstants.USER_CODE_LENGTH) else ProfileStrings.profileNetworkError
                 setState { copy(sending = false, addMessage = message, addError = true) }
             }
         }
@@ -205,7 +205,7 @@ class ProfileViewModel(
         showModal(ProfileModal.InviteToGroup(person))
         val groups = (getMyGroups() as? AppResult.Success)?.data.orEmpty()
         val current = state.value.modal as? ProfileModal.InviteToGroup ?: return
-        showModal(current.copy(loading = false, groups = groups.map { InviteGroupUi(it.id, it.name, it.icon, Strings.profileGroupMembers(it.memberCount)) }))
+        showModal(current.copy(loading = false, groups = groups.map { InviteGroupUi(it.id, it.name, it.icon, ProfileStrings.profileGroupMembers(it.memberCount)) }))
     }
 
     private suspend fun invite(modal: ProfileModal.InviteToGroup, roomId: String) {
@@ -219,7 +219,7 @@ class ProfileViewModel(
         when (val result = inviteFriendsToGroup(roomId, listOf(modal.person.userId))) {
             // Skipped (already a member or invited) still reads as Invited.
             is AppResult.Success -> mark({ copy(sending = false, invited = true) })
-            is AppResult.Failure -> mark({ copy(sending = false) }, Strings.profileInviteFailed)
+            is AppResult.Failure -> mark({ copy(sending = false) }, ProfileStrings.profileInviteFailed)
         }
     }
 

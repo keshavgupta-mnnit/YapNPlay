@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.groups
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
@@ -22,7 +23,7 @@ fun GroupDialogFrame(width: Dp, modifier: Modifier = Modifier, content: @Composa
             .width(width)
             .glassPanel(
                 glowColor = colors.SocialZoneAccent,
-                surfaceBrush = Brush.verticalGradient(listOf(colors.GlassDialogTop, colors.GlassDialogBottom)),
+                surfaceBrush = AppBrushes.dialogCreateGroup,
             )
             .padding(Spacing.Md),
         verticalArrangement = Arrangement.spacedBy(Spacing.Sm),

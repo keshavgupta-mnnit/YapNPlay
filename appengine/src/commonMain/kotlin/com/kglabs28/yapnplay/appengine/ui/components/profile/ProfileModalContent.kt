@@ -1,8 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileModal
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileState
 
@@ -80,31 +80,31 @@ fun ProfileModalContent(
         )
         is ProfileModal.RequestAccepted -> RequestAcceptedCard(name = modal.name, onDone = actions.onDismiss, modifier = modifier)
         is ProfileModal.ConfirmRemove -> ConfirmPersonCard(
-            title = Strings.profileRemoveDialogTitle,
+            title = ProfileStrings.profileRemoveDialogTitle,
             avatarId = modal.person.avatarId,
-            question = Strings.profileRemoveQuestion(modal.person.name),
-            body = Strings.profileRemoveBody,
-            confirmLabel = Strings.profileRemove,
+            question = ProfileStrings.profileRemoveQuestion(modal.person.name),
+            body = ProfileStrings.profileRemoveBody,
+            confirmLabel = ProfileStrings.profileRemove,
             onConfirm = actions.onConfirm,
             onCancel = actions.onDismiss,
             modifier = modifier,
         )
         is ProfileModal.ConfirmBlock -> ConfirmPersonCard(
-            title = Strings.profileBlockDialogTitle,
+            title = ProfileStrings.profileBlockDialogTitle,
             avatarId = modal.person.avatarId,
-            question = Strings.profileBlockQuestion(modal.person.name),
-            body = Strings.profileBlockBody,
-            confirmLabel = Strings.profileBlock,
+            question = ProfileStrings.profileBlockQuestion(modal.person.name),
+            body = ProfileStrings.profileBlockBody,
+            confirmLabel = ProfileStrings.profileBlock,
             onConfirm = actions.onConfirm,
             onCancel = actions.onDismiss,
             modifier = modifier,
         )
         is ProfileModal.ConfirmUnblock -> ConfirmPersonCard(
-            title = Strings.profileUnblockDialogTitle,
+            title = ProfileStrings.profileUnblockDialogTitle,
             avatarId = modal.user.avatarId,
-            question = Strings.profileUnblockQuestion(modal.user.name),
-            body = Strings.profileUnblockBody,
-            confirmLabel = Strings.profileUnblock,
+            question = ProfileStrings.profileUnblockQuestion(modal.user.name),
+            body = ProfileStrings.profileUnblockBody,
+            confirmLabel = ProfileStrings.profileUnblock,
             onConfirm = actions.onConfirm,
             onCancel = actions.onDismiss,
             confirmKind = ProfileButtonKind.CONFIRM,

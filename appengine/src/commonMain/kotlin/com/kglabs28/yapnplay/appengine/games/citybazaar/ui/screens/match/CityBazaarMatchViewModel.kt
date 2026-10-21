@@ -1,5 +1,17 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbFormat
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbNoticeMapper
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbPromptMapper
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbPropertyMapper
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbResultMapper
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbTableMapper
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.AppManagerHelper
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.GamesAppManagerHelper
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.CityBazaarAppManagerHelper
 import kotlin.time.Duration.Companion.milliseconds
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbMoneyFlightUi
 import com.kglabs28.yapnplay.appengine.core.common.TablePreferences
@@ -20,7 +32,6 @@ import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.moderation.domain.ModerationRules
 import com.kglabs28.yapnplay.appengine.features.moderation.domain.Penalty
 import com.kglabs28.yapnplay.appengine.features.moderation.domain.ReportVoteRequest
@@ -50,7 +61,6 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.MoneyReason
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TileKind
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TILE_COUNT
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CityBazaarModerationUiMapper
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CityBazaarUiMapper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -80,6 +90,9 @@ class CityBazaarMatchViewModel(
     private val playerFriends: PlayerFriendUseCases,
     private val audio: GameAudio,
     private val tablePrefs: TablePreferences,
+    private val cbConfig: CityBazaarAppManagerHelper,
+    private val appConfig: AppManagerHelper,
+    private val gamesConfig: GamesAppManagerHelper,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<CityBazaarMatchState, CityBazaarMatchIntent, CityBazaarMatchEffect>(CityBazaarMatchState(), dispatchers) {
@@ -135,7 +148,10 @@ class CityBazaarMatchViewModel(
     /** The deck of the last card drawn (its money event names it). */
     private var lastDeck: String? = null
     private var lastCardText: String? = null
-    private val turnAlarm = TurnAlarm { sound(it) }
+    /** A roll not told yet (it joins the next line of the history). */
+    private var pendingRoll: TableFeedLineUi? = null
+    private var pendingDice: CityBazaarEvent.Rolled? = null
+    private val turnAlarm = TurnAlarm(hurrySeconds = { gamesConfig.turnHurrySeconds() }) { sound(it) }
     /** The card the user just drew, so the money that follows is titled with it. */
     private var cardTitle: String? = null
     private var foreground = true
@@ -160,16 +176,16 @@ class CityBazaarMatchViewModel(
             }
             CityBazaarMatchIntent.ConfirmSale -> {
                 // Buildings first: a city can only be sold bare.
-                val picked = saleSelection.sortedBy { if (CityBazaarUiMapper.isBuilding(it)) 0 else 1 }
+                val picked = saleSelection.sortedBy { if (CbPromptMapper.isBuilding(it)) 0 else 1 }
                 saleSelection = emptySet()
                 picked.forEach { id ->
-                    val tile = CityBazaarUiMapper.assetTile(id)
-                    send(if (CityBazaarUiMapper.isBuilding(id)) CityBazaarCommand.SellBuilding(tile) else CityBazaarCommand.SellTile(tile))
+                    val tile = CbPromptMapper.assetTile(id)
+                    send(if (CbPromptMapper.isBuilding(id)) CityBazaarCommand.SellBuilding(tile) else CityBazaarCommand.SellTile(tile))
                 }
             }
-            CityBazaarMatchIntent.StartAuction -> saleSelection.singleOrNull()?.takeIf { !CityBazaarUiMapper.isBuilding(it) }?.let {
+            CityBazaarMatchIntent.StartAuction -> saleSelection.singleOrNull()?.takeIf { !CbPromptMapper.isBuilding(it) }?.let {
                 saleSelection = emptySet()
-                send(CityBazaarCommand.StartAuction(CityBazaarUiMapper.assetTile(it)))
+                send(CityBazaarCommand.StartAuction(CbPromptMapper.assetTile(it)))
             }
             CityBazaarMatchIntent.Bid -> send(CityBazaarCommand.Bid)
             CityBazaarMatchIntent.PassAuction -> {
@@ -187,7 +203,7 @@ class CityBazaarMatchViewModel(
                 when (CityBazaarBoard.tile(intent.tile).kind) {
                     TileKind.LUCK -> showPanel(deck = CardDeck.LUCK)
                     TileKind.CHEST -> showPanel(deck = CardDeck.CHEST)
-                    else -> if (CityBazaarUiMapper.tileInfo(m, intent.tile) != null) showPanel(tile = intent.tile, seat = null)
+                    else -> if (CbPropertyMapper.tileInfo(m, intent.tile) != null) showPanel(tile = intent.tile, seat = null)
                 }
             }
             is CityBazaarMatchIntent.OpenStack -> showPanel(cities = true, group = intent.group)
@@ -265,7 +281,7 @@ class CityBazaarMatchViewModel(
             CityBazaarMatchIntent.WatchAd -> watchAd()
             is CityBazaarMatchIntent.ScreenVisible -> onScreenVisible(intent.visible)
             CityBazaarMatchIntent.Done -> emitEffect(CityBazaarMatchEffect.Close)
-            CityBazaarMatchIntent.ShareResult -> leaderboard?.let { emitEffect(CityBazaarMatchEffect.ShareText(Strings.leaderboardShareText(it.game, it.myPlace))) }
+            CityBazaarMatchIntent.ShareResult -> leaderboard?.let { emitEffect(CityBazaarMatchEffect.ShareText(TableStrings.leaderboardShareText(it.game, it.myPlace))) }
         }
     }
 
@@ -283,7 +299,7 @@ class CityBazaarMatchViewModel(
                 } catch (e: MatchGoneException) {
                     // The server lost the match (e.g. it restarted): say so, then close the table.
                     matchGone = true
-                    showModal(CbModal.ReportOutcome(Strings.matchGoneTitle, Strings.matchGoneBody))
+                    showModal(CbModal.ReportOutcome(TableStrings.matchGoneTitle, TableStrings.matchGoneBody))
                 }
             },
             scope.launch { for (update in queue) play(update) },
@@ -326,16 +342,32 @@ class CityBazaarMatchViewModel(
                 lastDeck = CityBazaarFeedMapper.deckLabel(event.cardId)
                 lastCardText = CityBazaarCards.find(event.cardId)?.text
             }
-            val line = runCatching { CityBazaarFeedMapper.line(event, m, lastDeck) }
+            var line = runCatching { CityBazaarFeedMapper.line(event, m, lastDeck) }
                 .onFailure { CrashReporter.record(it, "CityBazaarFeed.line") }
                 .getOrNull()
+            // History: one line per move. A roll waits and is told at the end of what it led to
+            // ("… rent for Pune (rolled 4 + 3)"); a roll that led to nothing gets its own line.
+            when {
+                event is CityBazaarEvent.Rolled -> {
+                    flushRoll()
+                    pendingRoll = line
+                    pendingDice = event
+                    line = null
+                }
+                event is CityBazaarEvent.TurnPassed -> flushRoll()
+                line != null && pendingDice != null -> {
+                    pendingDice?.let { dice -> line = line?.let { it.copy(text = it.text + CityBazaarStrings.cbFeedRollSuffix(dice.die1, dice.die2)) } }
+                    pendingRoll = null
+                    pendingDice = null
+                }
+            }
             // One message per event: the user's own as a popup (when on), everyone else's as the
             // bottom snackbar; all in the history. Then a short breath before the next one.
             val mine = involvesMe(event, m)
             val popup = mine && tablePrefs.moneyPopups.value
-            if (popup) CityBazaarUiMapper.notice(m, event)?.let { showTransaction(it) }
+            if (popup) CbNoticeMapper.notice(m, event)?.let { showTransaction(it) }
             line?.let { feed(if (popup) it.copy(quiet = true) else it) }
-            val shown = popup && (event is CityBazaarEvent.Money || CityBazaarUiMapper.notice(m, event) != null) || (line != null && !line.quiet && !popup)
+            val shown = popup && (event is CityBazaarEvent.Money || CbNoticeMapper.notice(m, event) != null) || (line != null && !line.quiet && !popup)
             when (event) {
                 is CityBazaarEvent.Rolled -> {
                     die1 = event.die1
@@ -369,16 +401,16 @@ class CityBazaarMatchViewModel(
                     val name = CityBazaarBoard.tile(event.tile).name
                     val line = event.winner?.let { w ->
                         shownOwners[event.tile] = w
-                        Strings.cbAuctionWon(m.player(w)?.name.orEmpty(), name, CityBazaarUiMapper.rupees(event.amount))
-                    } ?: Strings.cbAuctionBank(name, CityBazaarUiMapper.rupees(event.amount))
+                        CityBazaarStrings.cbAuctionWon(m.player(w)?.name.orEmpty(), name, CbFormat.rupees(event.amount))
+                    } ?: CityBazaarStrings.cbAuctionBank(name, CbFormat.rupees(event.amount))
                     passedAuction = null
                 }
                 else -> Unit
             }
             // Same as the server's pause: 2.5 s per message, at most 8 s per update.
-            if (shown && breathed < AppConstants.CB_EVENT_BREATH_MAX_MS) {
-                delay(AppConstants.CB_EVENT_BREATH_MS)
-                breathed += AppConstants.CB_EVENT_BREATH_MS
+            if (shown && breathed < cbConfig.eventBreathMaxMs()) {
+                delay(cbConfig.eventBreathMs())
+                breathed += cbConfig.eventBreathMs()
             }
         }
         playing = false
@@ -422,13 +454,13 @@ class CityBazaarMatchViewModel(
         event.to?.let { shownCash[it] = (shownCash[it] ?: 0) + event.amount }
         val mine = mySeat != null && (event.from == mySeat || event.to == mySeat)
         if (mine && tablePrefs.moneyPopups.value) {
-            CityBazaarUiMapper.transaction(m, event, seat, before, line, lastDeck, lastCardText)?.let { showTransaction(it) }
+            CbNoticeMapper.transaction(m, event, seat, before, line, lastDeck, lastCardText)?.let { showTransaction(it) }
         } else if (mine && event.reason != MoneyReason.BANKRUPTCY) {
             // Popups off: the amount flies from the payer to the receiver.
             transactionId++
             transactionJob?.cancel()
             transaction = null
-            moneyFlight = CbMoneyFlightUi(transactionId, event.from, event.to, CityBazaarUiMapper.rupees(event.amount))
+            moneyFlight = CbMoneyFlightUi(transactionId, event.from, event.to, CbFormat.rupees(event.amount))
             transactionJob = scope.launch {
                 delay(AppConstants.CB_MONEY_FLIGHT_MS)
                 moneyFlight = null
@@ -444,7 +476,7 @@ class CityBazaarMatchViewModel(
         transaction = tx.copy(id = transactionId)
         transactionJob?.cancel()
         transactionJob = scope.launch {
-            delay(AppConstants.CB_RENT_NOTICE_MS)
+            delay(cbConfig.popupMs())
             transaction = null
             render()
         }
@@ -452,19 +484,19 @@ class CityBazaarMatchViewModel(
     }
 
     private fun reasonLabel(reason: MoneyReason): String = when (reason) {
-        MoneyReason.RENT -> Strings.cbRentLand
-        MoneyReason.TAX -> Strings.cbTaxTitle
-        MoneyReason.CLUB -> Strings.cbClubTitle
-        MoneyReason.JAIL_FINE -> Strings.cbJailFineTitle
-        MoneyReason.LATE_ROLL -> Strings.cbLateFineLabel
-        else -> Strings.cbChange
+        MoneyReason.RENT -> CityBazaarStrings.cbRentLand
+        MoneyReason.TAX -> CityBazaarStrings.cbTaxTitle
+        MoneyReason.CLUB -> CityBazaarStrings.cbClubTitle
+        MoneyReason.JAIL_FINE -> CityBazaarStrings.cbJailFineTitle
+        MoneyReason.LATE_ROLL -> CityBazaarStrings.cbLateFineLabel
+        else -> CityBazaarStrings.cbChange
     }
 
     private suspend fun card(event: CityBazaarEvent.Card, m: CityBazaarMatch) {
         val spec = CityBazaarCards.find(event.cardId) ?: return
-        val deck = if (spec.deck == CardDeck.LUCK) Strings.cbLuckLabel else Strings.cbChestLabel
+        val deck = if (spec.deck == CardDeck.LUCK) CityBazaarStrings.cbLuckLabel else CityBazaarStrings.cbChestLabel
         if (event.seat == m.me?.seat) {
-            cardTitle = Strings.cbCardTitle(deck, spec.text)
+            cardTitle = CityBazaarStrings.cbCardTitle(deck, spec.text)
         } else {
         }
     }
@@ -491,15 +523,15 @@ class CityBazaarMatchViewModel(
         if (!startAnnounced && newMatch.round <= 1 && newMatch.phase != CityBazaarTurnPhase.FINISHED) {
             if (newMatch.turnEndsAt != null) {
                 startAnnounced = true
-                feed(TableFeedLineUi(0, Strings.cbFeedStarted, TableFeedTone.INFO))
+                feed(TableFeedLineUi(0, CityBazaarStrings.cbFeedStarted, TableFeedTone.INFO))
             } else if (!waitAnnounced) {
                 waitAnnounced = true
-                feed(TableFeedLineUi(0, Strings.cbFeedWaiting, TableFeedTone.INFO))
+                feed(TableFeedLineUi(0, CityBazaarStrings.cbFeedWaiting, TableFeedTone.INFO))
             }
         }
         if (justFinished) {
             sound(GameSound.WIN)
-            leaderboard = CityBazaarUiMapper.leaderboard(newMatch, CityBazaarUiMapper.elapsed(clock.now() - newMatch.startedAt))
+            leaderboard = CbResultMapper.leaderboard(newMatch, CbFormat.elapsed(clock.now() - newMatch.startedAt)).copy(shareLink = appConfig.playStoreUrl())
         }
         render()
     }
@@ -519,23 +551,23 @@ class CityBazaarMatchViewModel(
         val now = clock.now()
         val myTurn = me != null && !playing && !me.bankrupt && m.currentSeat == me.seat && !me.autoplay && me.presence == CityBazaarPresence.PLAYING
         val remainingMs = m.turnEndsAt?.let { (it - now).inWholeMilliseconds.coerceAtLeast(0) } ?: 0L
-        val countdown = CityBazaarUiMapper.countdown(remainingMs / MILLIS)
+        val countdown = CbFormat.countdown(remainingMs / MILLIS)
         turnAlarm.update(myTurn, remainingMs)
-        val cards = CityBazaarUiMapper.cards(
+        val cards = CbTableMapper.cards(
             m,
-            CityBazaarUiMapper.CardInputs(talkers, mutedForMe, if (playing) null else remainingMs, CITY_BAZAAR_TURN_SECONDS, shownCash),
+            CbTableMapper.CardInputs(talkers, mutedForMe, if (playing) null else remainingMs, CITY_BAZAAR_TURN_SECONDS, shownCash),
         )
-        val (myCard, left, right) = CityBazaarUiMapper.sides(m, cards)
+        val (myCard, left, right) = CbTableMapper.sides(m, cards)
         val colourOf: (Int) -> CityBazaarColour? = { seat -> m.player(seat)?.colour }
         val shownMe = me?.copy(cash = shownCash[me.seat] ?: me.cash)
         // The user's turn decision, as a balance-sheet dialog.
         val decision: CbModal? = if (myTurn && shownMe != null) {
             when (m.phase) {
-                CityBazaarTurnPhase.BUY -> m.pendingTile?.let { CityBazaarUiMapper.buy(shownMe, it, countdown) }
-                CityBazaarTurnPhase.BUILD -> m.pendingTile?.let { CityBazaarUiMapper.build(m, shownMe, it, countdown) }
-                CityBazaarTurnPhase.JAIL_ROLL -> CityBazaarUiMapper.jailRoll(m, shownMe, countdown)
-                CityBazaarTurnPhase.JAIL_CHOICE -> CityBazaarUiMapper.jailChoice(shownMe, countdown)
-                CityBazaarTurnPhase.DEBT -> CityBazaarUiMapper.debt(m, shownMe, saleSelection, countdown)
+                CityBazaarTurnPhase.BUY -> m.pendingTile?.let { CbPromptMapper.buy(shownMe, it, countdown) }
+                CityBazaarTurnPhase.BUILD -> m.pendingTile?.let { CbPromptMapper.build(m, shownMe, it, countdown) }
+                CityBazaarTurnPhase.JAIL_ROLL -> CbPromptMapper.jailRoll(m, shownMe, countdown)
+                CityBazaarTurnPhase.JAIL_CHOICE -> CbPromptMapper.jailChoice(shownMe, countdown)
+                CityBazaarTurnPhase.DEBT -> CbPromptMapper.debt(m, shownMe, saleSelection, countdown)
                 else -> null
             }
         } else {
@@ -543,30 +575,30 @@ class CityBazaarMatchViewModel(
         }
         // A running auction shows to every player (not to watchers, nor after passing it).
         val auction = m.auction?.takeIf { !playing && shownMe != null && !shownMe.bankrupt && it.tile != passedAuction }?.let { a ->
-            CityBazaarUiMapper.auction(m, a, shownMe!!, CityBazaarUiMapper.countdown((a.endsAt - now).inWholeSeconds))
+            CbPromptMapper.auction(m, a, shownMe!!, CbFormat.countdown((a.endsAt - now).inWholeSeconds))
         }
         // Rounds are over: everyone sees the continue-or-end vote (only players still in can vote).
         val extension = m.extensionVote?.takeIf { m.phase == CityBazaarTurnPhase.EXTENSION_VOTE && !playing }?.let {
-            CityBazaarUiMapper.extensionVote(m, it, CityBazaarUiMapper.countdown((it.endsAt - now).inWholeSeconds.coerceAtLeast(0)))
+            CbPromptMapper.extensionVote(m, it, CbFormat.countdown((it.endsAt - now).inWholeSeconds.coerceAtLeast(0)))
         }
         val modal = vote?.let { CityBazaarModerationUiMapper.vote(it, now) } ?: auction ?: extension ?: decision ?: userModal
-        val panel = panelTile?.let { CityBazaarUiMapper.tileInfo(m, it) }
-            ?: panelSeat?.let { CityBazaarUiMapper.playerPanel(m, it, shownCash[it] ?: 0) }
-            ?: panelDeck?.let { CityBazaarUiMapper.cardTable(it) }
-            ?: (if (panelCities) CityBazaarUiMapper.properties(m, panelGroup) else null)
-            ?: if (panelBank) CityBazaarUiMapper.bankPanel(m) else null
+        val panel = panelTile?.let { CbPropertyMapper.tileInfo(m, it) }
+            ?: panelSeat?.let { CbPropertyMapper.playerPanel(m, it, shownCash[it] ?: 0) }
+            ?: panelDeck?.let { CbPropertyMapper.cardTable(it) }
+            ?: (if (panelCities) CbPropertyMapper.properties(m, panelGroup) else null)
+            ?: if (panelBank) CbPropertyMapper.bankPanel(m) else null
         setState {
             copy(
                 loaded = true,
-                title = Strings.cbTitle,
-                subtitle = m.roundLimit?.let { limit -> m.title + " · " + Strings.cbRoundOf(m.round, limit) } ?: m.title,
-                audience = CityBazaarUiMapper.audience(m, talkers, mutedForMe),
+                title = CityBazaarStrings.cbTitle,
+                subtitle = m.roundLimit?.let { limit -> m.title + " · " + CityBazaarStrings.cbRoundOf(m.round, limit) } ?: m.title,
+                audience = CbTableMapper.audience(m, talkers, mutedForMe),
                 roomMatch = m.isRoomMatch,
                 spectatorCount = m.spectatorCount.toString(),
-                spectatorLabel = Strings.ludoSpectators,
-                elapsed = if (m.phase == CityBazaarTurnPhase.FINISHED && elapsed.isNotEmpty()) elapsed else CityBazaarUiMapper.elapsed(now - m.startedAt),
-                tiles = CityBazaarUiMapper.tiles(shownOwners, shownLevels, colourOf),
-                tokens = CityBazaarUiMapper.tokens(m, shownPositions),
+                spectatorLabel = LudoStrings.ludoSpectators,
+                elapsed = if (m.phase == CityBazaarTurnPhase.FINISHED && elapsed.isNotEmpty()) elapsed else CbFormat.elapsed(now - m.startedAt),
+                tiles = CbTableMapper.tiles(shownOwners, shownLevels, colourOf),
+                tokens = CbTableMapper.tokens(m, shownPositions),
                 highlight = when (modal) {
                     is CbModal.Buy -> setOf(modal.tile)
                     is CbModal.Build -> setOf(modal.tile)
@@ -584,10 +616,10 @@ class CityBazaarMatchViewModel(
                 myCard = myCard,
                 leftCards = left,
                 rightCards = right,
-                stacks = CityBazaarUiMapper.stacks(m),
+                stacks = CbTableMapper.stacks(m),
                 spectating = me == null,
                 canRoll = myTurn && (m.phase == CityBazaarTurnPhase.ROLL || m.phase == CityBazaarTurnPhase.JAIL_ROLL),
-                rollLabel = if (m.phase == CityBazaarTurnPhase.JAIL_ROLL && myTurn) Strings.cbRollDoubles else Strings.cbRollDice,
+                rollLabel = if (m.phase == CityBazaarTurnPhase.JAIL_ROLL && myTurn) CityBazaarStrings.cbRollDoubles else CityBazaarStrings.cbRollDice,
                 // What the user just set wins until the server agrees (no waiting on the round trip).
                 autoplay = autoplayWanted ?: (me?.autoplay == true || me?.presence == CityBazaarPresence.BOT),
                 // The app-wide mic switch, at once (the server catches up through syncMic).
@@ -616,7 +648,7 @@ class CityBazaarMatchViewModel(
             feedSnack = item
             feedJob?.cancel()
             feedJob = scope.launch {
-                delay(AppConstants.CB_TOAST_MS)
+                delay(cbConfig.snackbarMs())
                 feedSnack = null
                 render()
             }
@@ -663,8 +695,8 @@ class CityBazaarMatchViewModel(
             CbModal.Report(
                 people = CityBazaarModerationUiMapper.reportablePeople(m),
                 selectedUserId = selected,
-                warning = Strings.ludoReportWarning(ModerationRules.requiredAgreements(voters)),
-                error = error ?: if (ModerationRules.canReport(voters)) null else Strings.ludoReportNeedPeople,
+                warning = LudoStrings.ludoReportWarning(ModerationRules.requiredAgreements(voters)),
+                error = error ?: if (ModerationRules.canReport(voters)) null else LudoStrings.ludoReportNeedPeople,
             ),
         )
     }
@@ -675,7 +707,7 @@ class CityBazaarMatchViewModel(
         val person = report.people.firstOrNull { it.userId == report.selectedUserId } ?: return
         when (moderation.report(m.matchId, person.userId, person.name, CityBazaarModerationUiMapper.voters(m))) {
             is AppResult.Success -> showModal(null)
-            is AppResult.Failure -> showReport(report.selectedUserId, Strings.ludoReportNeedPeople)
+            is AppResult.Failure -> showReport(report.selectedUserId, LudoStrings.ludoReportNeedPeople)
         }
     }
 
@@ -753,7 +785,7 @@ class CityBazaarMatchViewModel(
         setState { copy(friendAction = action.copy(busy = true, error = null)) }
         when (playerFriends.toggle(action.userId, action.isFriend)) {
             is AppResult.Success -> setState { copy(friendAction = null) }
-            is AppResult.Failure -> setState { copy(friendAction = action.copy(busy = false, error = Strings.playerFriendFailed)) }
+            is AppResult.Failure -> setState { copy(friendAction = action.copy(busy = false, error = TableStrings.playerFriendFailed)) }
         }
     }
 
@@ -800,5 +832,12 @@ class CityBazaarMatchViewModel(
         val justClosed = clock.now() - closedAt < AppConstants.PANEL_RETAP_MS.milliseconds
         return (seat != null && (panelSeat == seat || (justClosed && closedSeat == seat))) ||
             (tile != null && (panelTile == tile || (justClosed && closedTile == tile)))
+    }
+
+    /** A roll that led to nothing to tell: its own history line. */
+    private fun flushRoll() {
+        pendingRoll?.let { feed(it) }
+        pendingRoll = null
+        pendingDice = null
     }
 }

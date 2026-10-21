@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +24,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
@@ -33,13 +34,13 @@ fun TableHistoryDialog(title: String, lines: List<TableFeedLineUi>, onClose: () 
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     ModalCard(
-        surfaceBrush = Brush.verticalGradient(listOf(colors.GlassDialogTop, colors.GlassDialogBottom)),
+        surfaceBrush = AppBrushes.dialogGeneric,
         title = title,
         onClose = onClose,
         modifier = modifier,
     ) {
         if (lines.isEmpty()) {
-            EmptyStateText(text = Strings.tableHistoryEmpty, modifier = Modifier.fillMaxWidth())
+            EmptyStateText(text = TableStrings.tableHistoryEmpty, modifier = Modifier.fillMaxWidth())
         } else {
             val scroll = rememberScrollState()
             Column(

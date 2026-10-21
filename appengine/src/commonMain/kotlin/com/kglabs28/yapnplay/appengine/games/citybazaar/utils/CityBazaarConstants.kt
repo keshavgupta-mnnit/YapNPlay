@@ -1,9 +1,10 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.utils
 
+import com.kglabs28.yapnplay.appengine.games.base.identity.GameIds
 import com.kglabs28.yapnplay.appengine.games.base.rules.HouseRuleOption
 
 // Identity and showcase (shared with the server's game list).
-const val CITY_BAZAAR_ID = "city-bazaar"
+const val CITY_BAZAAR_ID = GameIds.CITY_BAZAAR
 const val CITY_BAZAAR_DISPLAY_NAME = "City Bazaar"
 val CITY_BAZAAR_TAGLINES = listOf("Buy", "Build", "Boss")
 

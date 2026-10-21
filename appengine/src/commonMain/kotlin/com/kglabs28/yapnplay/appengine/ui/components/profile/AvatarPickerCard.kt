@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
+import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 
 /** "Change Avatar": the picked avatar large on the left, every avatar beside it (picked one ringed); Cancel / Save. */
@@ -41,13 +42,13 @@ fun AvatarPickerCard(
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     ModalCard(
-        surfaceBrush = Brush.verticalGradient(listOf(YapNPlayTheme.colors.GlassDialogTop, YapNPlayTheme.colors.GlassDialogBottom)),
-        title = Strings.profileAvatarTitle,
+        surfaceBrush = AppBrushes.dialogGeneric,
+        title = ProfileStrings.profileAvatarTitle,
         onClose = onClose,
         modifier = modifier.width(dimens.avatarPickerWidth),
         actions = {
-            ProfileActionButton(text = Strings.profileCancel, kind = ProfileButtonKind.NEUTRAL, onClick = onClose, modifier = Modifier.weight(1f))
-            ProfileActionButton(text = Strings.profileSave, kind = ProfileButtonKind.CONFIRM, onClick = onSave, enabled = !saving, modifier = Modifier.weight(1f))
+            ProfileActionButton(text = ProfileStrings.profileCancel, kind = ProfileButtonKind.NEUTRAL, onClick = onClose, modifier = Modifier.weight(1f))
+            ProfileActionButton(text = ProfileStrings.profileSave, kind = ProfileButtonKind.CONFIRM, onClick = onSave, enabled = !saving, modifier = Modifier.weight(1f))
         },
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Md)) {

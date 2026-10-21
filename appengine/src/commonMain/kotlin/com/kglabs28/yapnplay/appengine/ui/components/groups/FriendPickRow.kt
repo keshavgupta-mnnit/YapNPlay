@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.groups
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +21,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.ui.components.PresenceDot
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
@@ -49,9 +49,9 @@ fun FriendPickRow(friend: Friend, added: Boolean, onToggle: () -> Unit, modifier
         BasicText(text = friend.name, style = YapNPlayTheme.typography.label.copy(color = colors.TextPrimary), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
         if (friend.online) Box(Modifier.size(dimens.statusDotSmall).background(colors.LiveGreen, CircleShape))
         if (added) {
-            GlassPillButton(text = Strings.groupAdded, onClick = onToggle, leadingIcon = Icons.Rounded.Check, accent = colors.LiveGreen, contentColor = colors.LiveGreen)
+            GlassPillButton(text = RoomStrings.groupAdded, onClick = onToggle, leadingIcon = Icons.Rounded.Check, accent = colors.LiveGreen, contentColor = colors.LiveGreen)
         } else {
-            ProfileActionButton(text = Strings.groupAdd, kind = ProfileButtonKind.CONFIRM, onClick = onToggle, leadingIcon = Icons.Rounded.Add, height = dimens.smallButtonHeight)
+            ProfileActionButton(text = RoomStrings.groupAdd, kind = ProfileButtonKind.CONFIRM, onClick = onToggle, leadingIcon = Icons.Rounded.Add, height = dimens.smallButtonHeight)
         }
     }
 }

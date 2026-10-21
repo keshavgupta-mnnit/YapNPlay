@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.core.designsystem
 
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
@@ -43,8 +44,11 @@ fun YapNPlayTheme(
     content: @Composable () -> Unit,
 ) {
     val tier = tierOverride ?: LayoutTier.M
+    val headline = headlineFontFamily()
+    val body = bodyFontFamily()
+    val data = remember(headline, body) { YapNPlayThemeData(typography = YapNPlayTypography(headline, body)) }
     CompositionLocalProvider(
-        LocalThemeData provides YapNPlayThemeData(),
+        LocalThemeData provides data,
         LocalLayoutTier provides tier,
         content = content,
     )

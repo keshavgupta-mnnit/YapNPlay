@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.DailyBonusDialog
+import androidx.lifecycle.compose.LifecycleStartEffect
+import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,8 +54,10 @@ fun MainScreen(
     playRoomsViewModel: PlayRoomsViewModel? = null,
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: MainState()
-    LaunchedEffect(viewModel) {
+    // Every time home comes back (after a match, from the background): fresh coins and level.
+    LifecycleStartEffect(viewModel) {
         viewModel?.onIntent(MainIntent.LoadProfile)
+        onStopOrDispose { }
     }
     LaunchedEffect(viewModel) {
         viewModel?.effects?.collect { effect ->
@@ -80,10 +86,16 @@ fun MainScreen(
         if (pendingCreateGroupWith != null) viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
     }
 
+    val bonus = state.dailyBonus
+    BlockingOverlay(visible = bonus != null) {
+        if (bonus != null) DailyBonusDialog(amount = bonus, onCollect = { viewModel?.onIntent(MainIntent.CollectDailyBonus) })
+    }
+
     CozyHomeBackground(
         modifier = modifier,
         frosted = state.selectedTab.frostedBackground,
     ) {
+      Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -97,7 +109,9 @@ fun MainScreen(
                 avatarId = state.avatarId,
                 onOpenProfile = onOpenProfile,
                 coinBalance = state.coinBalance,
-                diamondBalance = state.diamondBalance,
+                level = state.level,
+                levelProgress = state.levelProgress,
+                xpLabel = state.xpLabel,
                 selectedTab = state.selectedTab,
                 onSelectTab = { tab ->
                     viewModel?.onIntent(MainIntent.SelectTab(tab))
@@ -163,5 +177,6 @@ fun MainScreen(
                 }
             }
         }
+      }
     }
 }

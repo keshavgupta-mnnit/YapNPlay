@@ -31,7 +31,9 @@ fun AppTopBar(
     online: Boolean,
     profileLoaded: Boolean,
     coinBalance: String,
-    diamondBalance: String,
+    level: String,
+    levelProgress: Float,
+    xpLabel: String,
     selectedTab: AppNavTab,
     onSelectTab: (AppNavTab) -> Unit,
     onOpenSettings: () -> Unit,
@@ -83,7 +85,9 @@ fun AppTopBar(
         ) {
             AppCurrenciesPill(
                 coinBalance = coinBalance,
-                diamondBalance = diamondBalance,
+                level = level,
+                levelProgress = levelProgress,
+                xpLabel = xpLabel,
                 balancesVisible = profileLoaded,
                 modifier = Modifier.padding(end = Spacing.Xxs),
             )

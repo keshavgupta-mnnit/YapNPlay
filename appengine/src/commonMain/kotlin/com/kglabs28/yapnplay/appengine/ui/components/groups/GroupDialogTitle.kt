@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.groups
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicText
@@ -12,7 +13,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
 
 /** A centred two-tone dialog title ("CREATE NEW" white, "GROUP" green) with the close cross on the right. */
@@ -31,7 +31,7 @@ fun GroupDialogTitle(start: String, end: String, onClose: () -> Unit, modifier: 
         )
         GlassIconButton(
             imageVector = Icons.Rounded.Close,
-            contentDescription = Strings.lobbyClose,
+            contentDescription = RoomStrings.lobbyClose,
             onClick = onClose,
             size = dimens.modalCloseButton,
             iconSize = dimens.modalCloseIcon,

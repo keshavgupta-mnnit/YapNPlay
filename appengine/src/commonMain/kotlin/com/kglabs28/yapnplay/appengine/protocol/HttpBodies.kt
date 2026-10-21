@@ -23,8 +23,13 @@ data class Me(
     val xp: Int = 0,
     /** Derived from [xp] by the server. */
     val level: Int = 1,
-    /** Provisional: economy not designed yet. */
+    /** The server's coin balance (new players start at 1000). */
     val coins: Int = 0,
+    /** XP where this level starts / where the next one starts (the level bar). */
+    val levelXp: Int = 0,
+    val nextLevelXp: Int = 0,
+    /** Coins added by this call (the daily bonus: first /me of the day); 0 otherwise. */
+    val dailyBonus: Int = 0,
     /** Provisional: economy not designed yet. */
     val gems: Int = 0,
     /** Shown as "@username"; anyone may pick any (not unique). */

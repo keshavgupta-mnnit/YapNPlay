@@ -1,9 +1,10 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.utils
 
+import com.kglabs28.yapnplay.appengine.games.base.identity.GameIds
 import com.kglabs28.yapnplay.appengine.games.base.rules.HouseRuleOption
 
 // Identity and showcase (shared with the server's game list).
-const val ROYAL_LUDO_ID = "royal-ludo"
+const val ROYAL_LUDO_ID = GameIds.ROYAL_LUDO
 const val ROYAL_LUDO_DISPLAY_NAME = "Royal Ludo"
 val ROYAL_LUDO_TAGLINES = listOf("Roll", "Race", "Rule")
 

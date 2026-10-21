@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players
 
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
+import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,7 +24,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /** The bank, as a black button with a glowing gold rim, a bank icon and gold "BANK". */
@@ -37,7 +38,7 @@ fun CbBankButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
             // Gold light around the black button.
             .shadow(elevation = dimens.bankButtonGlow, shape = shape, ambientColor = gold, spotColor = gold)
             .clip(shape)
-            .background(Brush.verticalGradient(listOf(BLACK_TOP, BLACK_BOTTOM)))
+            .background(AppBrushes.bankButton)
             .border(dimens.borderThin, Brush.verticalGradient(listOf(gold, gold.copy(alpha = RIM_BOTTOM_ALPHA))), shape)
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = Spacing.Sm),
@@ -46,13 +47,11 @@ fun CbBankButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     ) {
         AppIcon(imageVector = Icons.Rounded.AccountBalance, tint = gold, size = dimens.iconMedium)
         BasicText(
-            text = Strings.cbBank,
+            text = CityBazaarStrings.cbBank,
             style = YapNPlayTheme.typography.title.copy(color = gold, fontWeight = FontWeight.Bold, shadow = Shadow(color = gold, blurRadius = TEXT_GLOW)),
         )
     }
 }
 
-private val BLACK_TOP = Color(0xFF1A1A1A)
-private val BLACK_BOTTOM = Color(0xFF050505)
 private const val RIM_BOTTOM_ALPHA = 0.55f
 private const val TEXT_GLOW = 14f

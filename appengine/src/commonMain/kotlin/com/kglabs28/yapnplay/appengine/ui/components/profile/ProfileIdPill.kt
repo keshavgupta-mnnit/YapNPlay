@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /** "YapNPlay ID  K7M2PX ⧉": the ID in a glass pill; a tap copies it ([copied] shows "Copied"). */
@@ -40,15 +40,15 @@ fun ProfileIdPill(
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
         BasicText(
-            text = Strings.profileYapId,
+            text = ProfileStrings.profileYapId,
             style = typography.micro.copy(color = colors.TextSecondary),
             modifier = Modifier.clip(YapNPlayTheme.shapes.pill).background(colors.RoomsSmallButton).padding(horizontal = Spacing.Xs, vertical = Spacing.Xxxs),
         )
         BasicText(text = code, style = typography.sectionTitle.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
         if (copied) {
-            BasicText(text = Strings.profileCopied, style = typography.micro.copy(color = colors.LiveGreen), modifier = Modifier.padding(end = Spacing.Xs))
+            BasicText(text = ProfileStrings.profileCopied, style = typography.micro.copy(color = colors.LiveGreen), modifier = Modifier.padding(end = Spacing.Xs))
         } else {
-            AppIcon(imageVector = Icons.Rounded.ContentCopy, tint = colors.IconMuted, size = YapNPlayTheme.dimens.iconSmall, contentDescription = Strings.profileCopyCode, modifier = Modifier.padding(end = Spacing.Xs))
+            AppIcon(imageVector = Icons.Rounded.ContentCopy, tint = colors.IconMuted, size = YapNPlayTheme.dimens.iconSmall, contentDescription = ProfileStrings.profileCopyCode, modifier = Modifier.padding(end = Spacing.Xs))
         }
     }
 }

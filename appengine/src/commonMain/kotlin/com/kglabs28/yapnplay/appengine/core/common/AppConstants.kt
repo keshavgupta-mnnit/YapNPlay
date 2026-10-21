@@ -25,18 +25,12 @@ object AppConstants {
     const val CB_MONEY_PAUSE_MS = 900L
     /** The "auto-paying rent" notice: how long it stays (its bar fills meanwhile). */
     const val CB_RENT_NOTICE_MS = 3_000L
-    /** After an event that shows a message, the table holds this long (breathing time). */
-    const val CB_EVENT_BREATH_MS = 2_500L
-    /** The most breathing time in one update (the server caps it the same). */
-    const val CB_EVENT_BREATH_MAX_MS = 8_000L
     /** Money popups off: how long the amount takes to fly from payer to receiver. */
     const val CB_MONEY_FLIGHT_MS = 1_100L
     /** City Bazaar: pause on a card draw. */
     const val CB_CARD_PAUSE_MS = 1_300L
     /** City Bazaar: how long a balance-sheet toast stays. */
     const val CB_TOAST_MS = 2_500L
-    /** The last seconds of the user's turn tick (hurry up). */
-    const val TURN_HURRY_SECONDS = 5L
     /** A switch the user flipped shows its new value this long while the server confirms. */
     const val TOGGLE_CONFIRM_MS = 5_000L
     /** A tap within this long after the panel closed counts as the tap that closed it. */
@@ -45,8 +39,6 @@ object AppConstants {
     const val PLAY_GAMES_WEB_CLIENT_ID = "532749629825-lflcpgr3pn64o7emjnvfdld8i0inpqhq.apps.googleusercontent.com"
     /** EXP for 1st, 2nd, 3rd and everyone after, until the server hands it out. */
     val PLACE_EXP = listOf(400, 300, 200, 100)
-    /** The app on Google Play (shared with the leaderboard screenshot). */
-    const val PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.kglabs28.yapnplay"
     /** City Bazaar: a balance counting to its new value. */
     const val CB_CASH_COUNT_MS = 900
     /** In the background this long (not a quick glance) and the server is told the user is away. */

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -14,7 +15,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /** How long the match has been running ("12:05"), in a frosted chip. */
@@ -30,7 +30,7 @@ fun TableMatchClock(
         modifier = modifier
             .tableFrostedGlass(tint = colors.IconMuted, shape = RoundedCornerShape(radius), radius = radius, glow = dimens.zero)
             .padding(horizontal = Spacing.Sm)
-            .semantics(mergeDescendants = true) { contentDescription = Strings.ludoMatchTime },
+            .semantics(mergeDescendants = true) { contentDescription = LudoStrings.ludoMatchTime },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {

@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.kglabs28.yapnplay.appengine.core.designsystem.HeadlineFontFamily
+import com.kglabs28.yapnplay.appengine.core.designsystem.headlineFontFamily
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
@@ -61,7 +61,7 @@ fun PrimaryButton(
         BasicText(
             text = text.uppercase(),
             style = YapNPlayTheme.typography.label.copy(
-                fontFamily = HeadlineFontFamily,
+                fontFamily = headlineFontFamily(),
                 fontWeight = FontWeight.SemiBold,
                 color = content,
             ),

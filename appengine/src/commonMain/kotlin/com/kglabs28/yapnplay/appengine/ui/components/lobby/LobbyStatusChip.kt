@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +19,6 @@ import androidx.compose.ui.draw.clip
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.neonGlow
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.LobbyMemberStatus
 
@@ -36,11 +36,11 @@ fun LobbyStatusChip(
     val dimens = YapNPlayTheme.dimens
     val shape = YapNPlayTheme.shapes.pill
     val (icon, label, color) = when (status) {
-        LobbyMemberStatus.READY -> Triple(Icons.Rounded.Check, Strings.lobbyReady, colors.ReadyGreen)
+        LobbyMemberStatus.READY -> Triple(Icons.Rounded.Check, RoomStrings.lobbyReady, colors.ReadyGreen)
         // Not ready: still reads "Ready", with a red cross.
-        LobbyMemberStatus.NOT_READY -> Triple(Icons.Rounded.Close, Strings.lobbyReady, colors.TextSecondary)
-        LobbyMemberStatus.WATCHING -> Triple(Icons.Rounded.Visibility, Strings.lobbyWatching, colors.Cyan)
-        LobbyMemberStatus.OFFLINE -> Triple(Icons.Rounded.WifiOff, Strings.lobbyOffline, colors.TextDisabled)
+        LobbyMemberStatus.NOT_READY -> Triple(Icons.Rounded.Close, RoomStrings.lobbyReady, colors.TextSecondary)
+        LobbyMemberStatus.WATCHING -> Triple(Icons.Rounded.Visibility, RoomStrings.lobbyWatching, colors.Cyan)
+        LobbyMemberStatus.OFFLINE -> Triple(Icons.Rounded.WifiOff, RoomStrings.lobbyOffline, colors.TextDisabled)
         LobbyMemberStatus.NONE -> return
     }
 

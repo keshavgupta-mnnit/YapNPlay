@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.groups
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,7 +23,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.IconCircle
 import com.kglabs28.yapnplay.appengine.ui.components.profile.ProfileActionButton
@@ -43,11 +43,11 @@ fun GroupCreatedDialog(
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
     GroupDialogFrame(width = dimens.modalWidth * WIDTH_FACTOR, modifier = modifier) {
-        GroupDialogTitle(start = "", end = Strings.groupCreatedTitle, onClose = onClose)
+        GroupDialogTitle(start = "", end = RoomStrings.groupCreatedTitle, onClose = onClose)
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
             IconCircle(imageVector = Icons.Rounded.Check, fill = colors.LiveGreen, tint = colors.CtaGreenContent, size = dimens.groupIconButton, iconSize = dimens.iconMedium)
             BasicText(text = created.body, style = typography.label.copy(color = colors.TextSecondary, textAlign = TextAlign.Center))
-            BasicText(text = Strings.groupCode(created.code), style = typography.sectionTitle.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
+            BasicText(text = RoomStrings.groupCode(created.code), style = typography.sectionTitle.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -59,12 +59,12 @@ fun GroupCreatedDialog(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
                 BasicText(text = created.link, style = typography.micro.copy(color = colors.Cyan), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                AppIcon(imageVector = Icons.Rounded.ContentCopy, tint = colors.IconMuted, size = dimens.iconSmall, contentDescription = Strings.groupCopyLink)
+                AppIcon(imageVector = Icons.Rounded.ContentCopy, tint = colors.IconMuted, size = dimens.iconSmall, contentDescription = RoomStrings.groupCopyLink)
             }
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-            ProfileActionButton(text = Strings.groupShare, kind = ProfileButtonKind.NEUTRAL, onClick = onShare, leadingIcon = Icons.Rounded.Share, modifier = Modifier.weight(1f))
-            ProfileActionButton(text = Strings.groupOpen, kind = ProfileButtonKind.CONFIRM, onClick = onOpen, leadingIcon = Icons.Rounded.ChevronRight, modifier = Modifier.weight(1f))
+            ProfileActionButton(text = RoomStrings.groupShare, kind = ProfileButtonKind.NEUTRAL, onClick = onShare, leadingIcon = Icons.Rounded.Share, modifier = Modifier.weight(1f))
+            ProfileActionButton(text = RoomStrings.groupOpen, kind = ProfileButtonKind.CONFIRM, onClick = onOpen, leadingIcon = Icons.Rounded.ChevronRight, modifier = Modifier.weight(1f))
         }
     }
 }

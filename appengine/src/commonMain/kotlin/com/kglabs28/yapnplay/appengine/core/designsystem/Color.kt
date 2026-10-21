@@ -212,4 +212,19 @@ object YapNPlayColors {
     // Helpers
     val Transparent = Color.Transparent
     val Scrim = Color(0x99050917)
+
+    // ── Role tokens: named by WHERE they are used. Restyle one place here and
+    // every screen using that role follows (e.g. all generic dialogs). ──
+    val BgDialogGenericTop = GlassDialogTop
+    val BgDialogGenericBottom = GlassDialogBottom
+    val BgDialogCreateGroupTop = GlassDialogTop
+    val BgDialogCreateGroupBottom = GlassDialogBottom
+    val BgButtonBankTop = Color(0xFF1A1A1A)
+    val BgButtonBankBottom = Color(0xFF050505)
+    val BgPodiumBaseTop = Color(0xFF2A2F45)
+    val BgPodiumBaseBottom = Color(0xFF12141F)
+    val BgLeaderboardBarTop = Color(0xCC1E2235)
+    val BgLeaderboardBarBottom = Color(0xEE0D0F18)
+    val TextOnPlayAgainButton = Color(0xFF06291E)
+    val TextOnCollectButton = Color(0xFF3A2400)
 }

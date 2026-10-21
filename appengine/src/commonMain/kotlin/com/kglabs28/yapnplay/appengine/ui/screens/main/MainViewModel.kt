@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import kotlinx.coroutines.delay
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.GetActiveMatchUseCase
@@ -52,6 +54,7 @@ class MainViewModel(
     override suspend fun handleIntent(intent: MainIntent) {
         when (intent) {
             is MainIntent.SelectTab -> setState { copy(selectedTab = intent.tab) }
+            MainIntent.CollectDailyBonus -> setState { copy(dailyBonus = null) }
             MainIntent.LoadProfile -> {
                 load()
                 checkActiveMatch()
@@ -120,8 +123,16 @@ class MainViewModel(
                 online = true,
                 profileLoaded = true,
                 coinBalance = TextUtils.groupedThousands(data.profile.coins),
-                diamondBalance = TextUtils.groupedThousands(data.profile.gems),
+                levelProgress = levelProgress(data.profile.xp, data.profile.levelXp, data.profile.nextLevelXp),
+                xpLabel = Strings.topBarXp(TextUtils.groupedThousands(data.profile.xp), TextUtils.groupedThousands(data.profile.nextLevelXp)),
             )
         }
+        // The daily bonus the server just added: say so for a moment.
+        if (data.profile.dailyBonus > 0) {
+            setState { copy(dailyBonus = Strings.dailyBonus(TextUtils.groupedThousands(data.profile.dailyBonus))) }
+        }
     }
+
+    private fun levelProgress(xp: Int, levelXp: Int, nextLevelXp: Int): Float =
+        if (nextLevelXp > levelXp) ((xp - levelXp).toFloat() / (nextLevelXp - levelXp)).coerceIn(0f, 1f) else 0f
 }

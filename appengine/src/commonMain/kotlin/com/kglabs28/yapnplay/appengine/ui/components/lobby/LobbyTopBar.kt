@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,7 +22,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
@@ -60,7 +60,7 @@ fun LobbyTopBar(
     ) {
         GlassIconButton(
             imageVector = Icons.Rounded.ChevronLeft,
-            contentDescription = Strings.lobbyBack,
+            contentDescription = RoomStrings.lobbyBack,
             onClick = onBack,
             size = dimens.lobbyBarHeight,
         )
@@ -91,16 +91,16 @@ fun LobbyTopBar(
         }
         GlassIconButton(
             imageVector = Icons.AutoMirrored.Rounded.Logout,
-            contentDescription = Strings.lobbyLeaveRoom,
+            contentDescription = RoomStrings.lobbyLeaveRoom,
             onClick = onLeave,
             size = dimens.lobbyBarHeight,
             tint = colors.Error,
             glowColor = colors.Error,
         )
         if (showWaitingList) {
-            GlassPillButton(text = Strings.lobbyWaitingList, onClick = onWaitingList, leadingIcon = Icons.Rounded.HowToReg)
+            GlassPillButton(text = RoomStrings.lobbyWaitingList, onClick = onWaitingList, leadingIcon = Icons.Rounded.HowToReg)
         }
-        GlassPillButton(text = Strings.lobbyLeaderboard, onClick = onLeaderboard, leadingIcon = Icons.Rounded.EmojiEvents)
-        GlassPillButton(text = Strings.lobbyShareLink, onClick = onShareLink, leadingIcon = Icons.Rounded.Share)
+        GlassPillButton(text = RoomStrings.lobbyLeaderboard, onClick = onLeaderboard, leadingIcon = Icons.Rounded.EmojiEvents)
+        GlassPillButton(text = RoomStrings.lobbyShareLink, onClick = onShareLink, leadingIcon = Icons.Rounded.Share)
     }
 }

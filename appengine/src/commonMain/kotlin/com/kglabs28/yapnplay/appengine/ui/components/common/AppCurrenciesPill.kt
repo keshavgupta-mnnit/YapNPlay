@@ -1,5 +1,16 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -30,7 +41,9 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
 @Composable
 fun AppCurrenciesPill(
     coinBalance: String,
-    diamondBalance: String,
+    level: String,
+    levelProgress: Float,
+    xpLabel: String,
     balancesVisible: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -51,12 +64,24 @@ fun AppCurrenciesPill(
             balance = coinBalance,
             visible = balancesVisible,
         )
-        CurrencyBalance(
-            icon = Icons.Rounded.Diamond,
-            iconTint = colors.Purple,
-            balance = diamondBalance,
-            visible = balancesVisible,
-        )
+        // Level: a star, "Lv 3" and a thin bar filling towards the next level.
+        Column(modifier = Modifier.revealWhen(balancesVisible), horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
+                // The level number inside the app's hexagon badge.
+                Box(
+                    modifier = Modifier
+                        .size(dimens.levelHexagon)
+                        .background(Brush.verticalGradient(listOf(colors.Gold, colors.Warning)), YapNPlayTheme.shapes.hexagon),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    BasicText(text = level, style = YapNPlayTheme.typography.micro.copy(fontWeight = FontWeight.Black, color = colors.Background))
+                }
+                BasicText(text = xpLabel, style = YapNPlayTheme.typography.micro.copy(fontWeight = FontWeight.SemiBold, color = colors.TextPrimary))
+            }
+            Box(Modifier.fillMaxWidth().height(dimens.levelBarHeight).clip(CircleShape).background(colors.TopBarIcon.copy(alpha = LEVEL_TRACK))) {
+                Box(Modifier.fillMaxHeight().fillMaxWidth(levelProgress).background(Brush.horizontalGradient(listOf(colors.Gold, colors.LiveGreen)), CircleShape))
+            }
+        }
     }
 }
 
@@ -98,3 +123,5 @@ private fun CurrencyBalance(
         )
     }
 }
+
+private const val LEVEL_TRACK = 0.3f

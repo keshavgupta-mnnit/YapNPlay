@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.profile.presentation
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.profile.domain.BlockedUser
@@ -26,14 +27,14 @@ object ProfileUiMapper {
         return state.copy(
             loaded = true,
             name = p.name,
-            username = Strings.profileUsername(p.username),
+            username = ProfileStrings.profileUsername(p.username),
             userCode = p.userCode,
             avatarId = p.avatarId,
             stats = listOf(
-                ProfileStatUi(ProfileStatKind.GAMES, p.gamesPlayed.toString(), Strings.profileStatGames),
-                ProfileStatUi(ProfileStatKind.WINS, p.gamesWon.toString(), Strings.profileStatWins),
-                ProfileStatUi(ProfileStatKind.FRIENDS, friends.size.toString(), Strings.profileStatFriends),
-                ProfileStatUi(ProfileStatKind.LEVEL, p.level.toString(), Strings.profileStatLevel),
+                ProfileStatUi(ProfileStatKind.GAMES, p.gamesPlayed.toString(), ProfileStrings.profileStatGames),
+                ProfileStatUi(ProfileStatKind.WINS, p.gamesWon.toString(), ProfileStrings.profileStatWins),
+                ProfileStatUi(ProfileStatKind.FRIENDS, friends.size.toString(), ProfileStrings.profileStatFriends),
+                ProfileStatUi(ProfileStatKind.LEVEL, p.level.toString(), ProfileStrings.profileStatLevel),
             ),
             friends = friends,
             onlineCount = friends.count { it.online },
@@ -41,9 +42,9 @@ object ProfileUiMapper {
             tabFriends = filter(friends, state.friendsTab),
             allTabFriends = filter(friends, state.allFriendsTab),
             requests = data.requests.map { ProfileRequestUi(it.requestId, person(it.from)) },
-            requestsLabel = Strings.profileRequestsPending(data.requests.size),
+            requestsLabel = ProfileStrings.profileRequestsPending(data.requests.size),
             blocked = data.blocked.map { blocked(it) },
-            blockedLabel = Strings.profileBlockedLabel(data.blocked.size),
+            blockedLabel = ProfileStrings.profileBlockedLabel(data.blocked.size),
         )
     }
 
@@ -56,11 +57,11 @@ object ProfileUiMapper {
     fun person(friend: Friend): ProfilePersonUi = ProfilePersonUi(
         userId = friend.userId,
         name = friend.name,
-        username = Strings.profileUsername(friend.username),
+        username = ProfileStrings.profileUsername(friend.username),
         userCode = friend.userCode,
         avatarId = friend.avatarId,
         online = friend.online,
-        status = if (friend.online) Strings.profileOnline else Strings.profileOffline,
+        status = if (friend.online) ProfileStrings.profileOnline else ProfileStrings.profileOffline,
     )
 
     private fun blocked(user: BlockedUser): ProfileBlockedUi {
@@ -68,21 +69,21 @@ object ProfileUiMapper {
         return ProfileBlockedUi(
             userId = user.userId,
             name = user.name,
-            username = Strings.profileUsername(user.username),
+            username = ProfileStrings.profileUsername(user.username),
             avatarId = user.avatarId,
-            blockedOn = Strings.profileBlockedOn(Strings.shortDate(date.dayOfMonth, date.monthNumber, date.year)),
+            blockedOn = ProfileStrings.profileBlockedOn(Strings.shortDate(date.dayOfMonth, date.monthNumber, date.year)),
         )
     }
 
     /** The line under Add Friend after sending, and whether it's an error. */
     fun outcome(outcome: FriendRequestOutcome, code: String): Pair<String, Boolean> = when (outcome) {
-        FriendRequestOutcome.SENT -> Strings.profileRequestSent(code) to false
-        FriendRequestOutcome.ACCEPTED -> Strings.profileNowFriends to false
-        FriendRequestOutcome.NOT_FOUND -> Strings.profileCodeNotFound to true
-        FriendRequestOutcome.SELF -> Strings.profileOwnCode to true
-        FriendRequestOutcome.ALREADY_FRIENDS -> Strings.profileAlreadyFriends to true
-        FriendRequestOutcome.ALREADY_REQUESTED -> Strings.profileAlreadyRequested to true
-        FriendRequestOutcome.BLOCKED -> Strings.profileBlockedCode to true
+        FriendRequestOutcome.SENT -> ProfileStrings.profileRequestSent(code) to false
+        FriendRequestOutcome.ACCEPTED -> ProfileStrings.profileNowFriends to false
+        FriendRequestOutcome.NOT_FOUND -> ProfileStrings.profileCodeNotFound to true
+        FriendRequestOutcome.SELF -> ProfileStrings.profileOwnCode to true
+        FriendRequestOutcome.ALREADY_FRIENDS -> ProfileStrings.profileAlreadyFriends to true
+        FriendRequestOutcome.ALREADY_REQUESTED -> ProfileStrings.profileAlreadyRequested to true
+        FriendRequestOutcome.BLOCKED -> ProfileStrings.profileBlockedCode to true
     }
 
     /** What's typed into the ID box: upper case, only ID characters, at most the ID's length. */

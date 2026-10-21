@@ -20,4 +20,8 @@ data class UserProfile(
     val avatarId: String = "",
     val gamesPlayed: Int = 0,
     val gamesWon: Int = 0,
+    val levelXp: Int = 0,
+    val nextLevelXp: Int = 0,
+    /** Coins the daily bonus just added (0: none today). */
+    val dailyBonus: Int = 0,
 )

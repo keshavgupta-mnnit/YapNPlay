@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.groups
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +20,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.profile.PresetAvatar
 
@@ -40,7 +40,7 @@ fun SelectedMemberChip(name: String, avatarId: String, isHost: Boolean, onRemove
         BasicText(text = name, style = typography.label.copy(color = colors.TextPrimary), maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (isHost) {
             BasicText(
-                text = Strings.groupHost,
+                text = RoomStrings.groupHost,
                 style = typography.micro.copy(color = colors.TextPrimary),
                 modifier = Modifier.clip(YapNPlayTheme.shapes.pill).background(colors.RoomsInput).padding(horizontal = Spacing.Xs),
             )
@@ -49,7 +49,7 @@ fun SelectedMemberChip(name: String, avatarId: String, isHost: Boolean, onRemove
                 modifier = Modifier.size(dimens.fieldClearButton).clip(CircleShape).background(colors.Error).clickable(onClick = onRemove),
                 contentAlignment = Alignment.Center,
             ) {
-                AppIcon(imageVector = Icons.Rounded.Close, tint = colors.TextPrimary, size = dimens.iconTiny, contentDescription = Strings.groupRemoveMember(name))
+                AppIcon(imageVector = Icons.Rounded.Close, tint = colors.TextPrimary, size = dimens.iconTiny, contentDescription = RoomStrings.groupRemoveMember(name))
             }
         }
     }

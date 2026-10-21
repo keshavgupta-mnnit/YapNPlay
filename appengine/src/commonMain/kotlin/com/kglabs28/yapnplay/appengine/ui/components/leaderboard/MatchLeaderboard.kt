@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.leaderboard
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,14 +42,12 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberImageShare
-import com.kglabs28.yapnplay.appengine.ui.placeholders.HomeLogoArtwork
+import com.kglabs28.yapnplay.appengine.ui.components.home.HomeCenterLogo
 import com.kglabs28.yapnplay.appengine.ui.placeholders.LeaderboardArtwork
 import kotlinx.coroutines.launch
 
@@ -68,7 +68,7 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
     val layer = rememberGraphicsLayer()
     val scope = rememberCoroutineScope()
     val share = rememberImageShare()
-    val shareText = Strings.leaderboardShareWithLink(Strings.leaderboardShareText(board.game, board.myPlace), AppConstants.PLAY_STORE_URL)
+    val shareText = TableStrings.leaderboardShareWithLink(TableStrings.leaderboardShareText(board.game, board.myPlace), board.shareLink)
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -81,17 +81,14 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
         LeaderboardArtwork(modifier = Modifier.fillMaxSize())
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(colors.Background.copy(alpha = SHADE_TOP), colors.Background.copy(alpha = SHADE_BOTTOM)))))
         Column(modifier = Modifier.fillMaxSize()) {
-            Row(modifier = Modifier.weight(1f).fillMaxWidth().padding(start = Spacing.Lg, end = Spacing.Lg, top = Spacing.Sm)) {
+            Row(modifier = Modifier.weight(1f).fillMaxWidth().padding(start = Spacing.Md, end = Spacing.Md, top = Spacing.Xs)) {
                 // Logo, then the podium.
                 Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                    Column {
-                        HomeLogoArtwork(modifier = Modifier.height(dimens.boardLogoHeight))
-                        BasicText(text = Strings.homeLogoTagline, style = typography.micro.copy(color = Color.White))
-                    }
+                    HomeCenterLogo()
                     Row(
-                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        modifier = Modifier.weight(1f).fillMaxWidth().padding(start = dimens.boardGameArt, bottom = Spacing.Xs),
                         verticalAlignment = Alignment.Bottom,
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterHorizontally),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterHorizontally),
                     ) {
                         podium.getOrNull(1)?.let { PodiumSpot(entry = it, medal = colors.AvatarRingSilver, avatarSize = dimens.boardAvatar, baseHeight = dimens.boardBaseSecond) }
                         podium.getOrNull(0)?.let { PodiumSpot(entry = it, medal = colors.Gold, avatarSize = dimens.boardAvatarFirst, baseHeight = dimens.boardBaseFirst) }
@@ -106,13 +103,14 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                             .width(dimens.boardPanelWidth)
                             .fillMaxHeight()
                             .padding(vertical = Spacing.Sm)
+                            .background(Color.Black.copy(alpha = PANEL_DARK), panelShape)
                             .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = PANEL_TOP), Color.White.copy(alpha = PANEL_BOTTOM))), panelShape)
                             .border(dimens.hairline, Color.White.copy(alpha = PANEL_RIM), panelShape)
                             .padding(Spacing.Sm),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
                     ) {
-                        BasicText(text = Strings.leaderboardTitle, style = typography.headline.copy(color = Color.White, fontWeight = FontWeight.Black))
+                        BasicText(text = TableStrings.leaderboardTitle, style = typography.title.copy(color = Color.White, fontWeight = FontWeight.Black))
                         val scroll = rememberScrollState()
                         Column(
                             modifier = Modifier.weight(1f).fillMaxWidth().glassScrollbar(scroll).verticalScroll(scroll).padding(end = dimens.scrollbarWidth * 2),
@@ -124,11 +122,11 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                 }
             }
             // Bottom bar.
-            Box(modifier = Modifier.fillMaxWidth().height(dimens.boardBottomBar)) {
+            Box(modifier = Modifier.fillMaxWidth().height(dimens.boardBottomBar).padding(horizontal = Spacing.Xs)) {
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .background(Brush.verticalGradient(listOf(BAR_TOP, BAR_BOTTOM)))
+                        .background(AppBrushes.leaderboardBar, RoundedCornerShape(topStart = dimens.cardRadius, topEnd = dimens.cardRadius))
                         .border(dimens.hairline, Color.White.copy(alpha = PANEL_RIM), RoundedCornerShape(topStart = dimens.cardRadius, topEnd = dimens.cardRadius)),
                 )
                 Row(
@@ -159,13 +157,13 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterHorizontally),
                     ) {
                         AppIcon(imageVector = Icons.Rounded.Share, tint = colors.LiveGreen, size = dimens.iconMedium)
-                        BasicText(text = Strings.leaderboardShare, style = typography.title.copy(color = colors.LiveGreen, fontWeight = FontWeight.Black))
+                        BasicText(text = TableStrings.leaderboardShare, style = typography.label.copy(color = colors.LiveGreen, fontWeight = FontWeight.Black))
                     }
                     Box(Modifier.weight(1f))
                     Column(horizontalAlignment = Alignment.End) {
                         BasicText(
                             text = buildAnnotatedString {
-                                append(Strings.leaderboardMatchDuration)
+                                append(TableStrings.leaderboardMatchDuration)
                                 withStyle(SpanStyle(color = Color.White, fontWeight = FontWeight.Bold)) { append(board.duration) }
                             },
                             style = typography.label.copy(color = colors.TextSecondary),
@@ -173,7 +171,7 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                         if (board.myExp.isNotEmpty()) {
                             BasicText(
                                 text = buildAnnotatedString {
-                                    append(Strings.leaderboardExpGained)
+                                    append(TableStrings.leaderboardExpGained)
                                     withStyle(SpanStyle(color = colors.LiveGreen, fontWeight = FontWeight.Bold)) { append(board.myExp) }
                                 },
                                 style = typography.label.copy(color = colors.TextSecondary),
@@ -193,8 +191,8 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs, Alignment.CenterHorizontally),
                     ) {
-                        BasicText(text = Strings.leaderboardPlayAgain, style = typography.title.copy(color = PLAY_TEXT, fontWeight = FontWeight.Black))
-                        AppIcon(imageVector = Icons.Rounded.ChevronRight, tint = PLAY_TEXT, size = dimens.iconMedium)
+                        BasicText(text = TableStrings.leaderboardPlayAgain, style = typography.label.copy(color = colors.TextOnPlayAgainButton, fontWeight = FontWeight.Black))
+                        AppIcon(imageVector = Icons.Rounded.ChevronRight, tint = colors.TextOnPlayAgainButton, size = dimens.iconMedium)
                     }
                 }
             }
@@ -205,12 +203,10 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
 private const val PODIUM = 3
 private const val SHADE_TOP = 0.15f
 private const val SHADE_BOTTOM = 0.45f
-private const val PANEL_TOP = 0.12f
+private const val PANEL_DARK = 0.55f
+private const val PANEL_TOP = 0.10f
 private const val PANEL_BOTTOM = 0.05f
 private const val PANEL_RIM = 0.18f
 private const val SHARE_FILL = 0.45f
-private const val LIFT_DIVISOR = 4
+private const val LIFT_DIVISOR = 6
 private const val ART_TILT = -6f
-private val BAR_TOP = Color(0xCC1E2235)
-private val BAR_BOTTOM = Color(0xEE0D0F18)
-private val PLAY_TEXT = Color(0xFF06291E)

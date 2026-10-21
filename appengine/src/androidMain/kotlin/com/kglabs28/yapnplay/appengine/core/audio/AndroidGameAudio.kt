@@ -1,10 +1,17 @@
 package com.kglabs28.yapnplay.appengine.core.audio
 
+import com.kglabs28.yapnplay.appengine.resources.Res
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
+import java.util.concurrent.ConcurrentHashMap
+import java.io.File
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.SoundPool
-import com.kglabs28.yapnplay.appengine.R
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +21,8 @@ import kotlinx.coroutines.flow.update
 /**
  * Android game audio: effects through a [SoundPool] (loaded once, low
  * latency), music through a looping [MediaPlayer] at a quiet volume.
- * The on/off switches are kept in SharedPreferences. Sound files live in
- * res/raw (placeholders; see docs/placeholder-assets.md).
+ * The on/off switches are kept in SharedPreferences. The sound files are
+ * common resources (GameSoundFiles), copied to the cache once.
  */
 class AndroidGameAudio(private val context: Context) : GameAudio {
 
@@ -30,15 +37,29 @@ class AndroidGameAudio(private val context: Context) : GameAudio {
         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
         .build()
     private val pool = SoundPool.Builder().setMaxStreams(MAX_STREAMS).setAudioAttributes(attributes).build()
-    private val ids = mapOf(
-        GameSound.DICE_ROLL to pool.load(context, R.raw.dice_roll, 1),
-        GameSound.HOP to pool.load(context, R.raw.piece_hop, 1),
-        GameSound.CAPTURE to pool.load(context, R.raw.piece_capture, 1),
-        GameSound.WIN to pool.load(context, R.raw.winner, 1),
-        GameSound.YOUR_TURN to pool.load(context, R.raw.your_turn, 1),
-        GameSound.TICK to pool.load(context, R.raw.clock_tick, 1),
-        GameSound.HURRY_TICK to pool.load(context, R.raw.hurry_tick, 1),
-    )
+    /** Sound → SoundPool id, filled once the shared files are copied out (play() skips sounds not loaded yet). */
+    private val ids = ConcurrentHashMap<GameSound, Int>()
+    private var musicFile: File? = null
+
+    init {
+        // The sound files are common resources: copy each to the cache once, then load it.
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            GameSound.entries.forEach { sound ->
+                runCatching { cached(GameSoundFiles.path(sound)) }
+                    .onSuccess { ids[sound] = pool.load(it.path, 1) }
+                    .onFailure { CrashReporter.record(it, "AndroidGameAudio.load:$sound") }
+            }
+            musicFile = runCatching { cached(GameSoundFiles.MUSIC) }.onFailure { CrashReporter.record(it, "AndroidGameAudio.music") }.getOrNull()
+            if (musicWanted) withContext(Dispatchers.Main) { startMusic() }
+        }
+    }
+
+    private suspend fun cached(path: String): File {
+        val file = File(File(context.cacheDir, SOUND_DIR).apply { mkdirs() }, path.substringAfterLast('/'))
+        if (!file.exists()) file.writeBytes(Res.readBytes(path))
+        return file
+    }
+
     private var music: MediaPlayer? = null
     private var musicWanted = false
 
@@ -51,9 +72,13 @@ class AndroidGameAudio(private val context: Context) : GameAudio {
         musicWanted = true
         if (!state.value.musicOn || music != null) return
         try {
-            music = MediaPlayer.create(context, R.raw.music_loop)?.apply {
+            val file = musicFile ?: return
+            music = MediaPlayer().apply {
+                setDataSource(file.path)
+                setAudioAttributes(attributes)
                 isLooping = true
                 setVolume(MUSIC_VOLUME, MUSIC_VOLUME)
+                prepare()
                 start()
             }
         } catch (e: Exception) {
@@ -86,6 +111,7 @@ class AndroidGameAudio(private val context: Context) : GameAudio {
     }
 
     private companion object {
+        const val SOUND_DIR = "sounds"
         const val PREFS = "yapnplay_audio"
         const val KEY_EFFECTS = "effects_on"
         const val KEY_MUSIC = "music_on"

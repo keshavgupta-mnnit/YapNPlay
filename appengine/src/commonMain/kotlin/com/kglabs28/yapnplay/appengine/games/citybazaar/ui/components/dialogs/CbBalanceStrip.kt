@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +27,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 
 /**
  * The designs' balance box: "Current Balance ₹… | Property Cost -₹…" side by
@@ -55,13 +55,13 @@ fun CbBalanceStrip(
         verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs),
     ) {
         Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
-            Figure(label = Strings.cbCurrentBalanceLabel, value = cash, color = colors.Cyan, modifier = Modifier.weight(1f))
+            Figure(label = CityBazaarStrings.cbCurrentBalanceLabel, value = cash, color = colors.Cyan, modifier = Modifier.weight(1f))
             Box(Modifier.width(dimens.hairline * 2).fillMaxHeight().background(Brush.verticalGradient(listOf(Color.Transparent, colors.TextSecondary, Color.Transparent))))
             Figure(label = changeLabel, value = change, color = changeColor, modifier = Modifier.weight(1f))
         }
         BasicText(
             text = buildAnnotatedString {
-                append(Strings.cbRemainingBalance(remaining).removeSuffix(remaining))
+                append(CityBazaarStrings.cbRemainingBalance(remaining).removeSuffix(remaining))
                 withStyle(SpanStyle(color = colors.CbGain, fontWeight = FontWeight.Bold)) { append(remaining) }
             },
             style = typography.micro.copy(color = colors.TextSecondary, textAlign = TextAlign.Center),

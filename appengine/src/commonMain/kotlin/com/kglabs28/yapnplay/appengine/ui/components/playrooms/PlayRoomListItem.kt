@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,7 +26,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
@@ -86,7 +86,7 @@ fun PlayRoomListItem(
                 }
             }
             BasicText(
-                text = Strings.roomMembers(room.memberCount),
+                text = RoomStrings.roomMembers(room.memberCount),
                 style = typography.micro.copy(color = colors.TextSecondary),
                 maxLines = 1,
             )

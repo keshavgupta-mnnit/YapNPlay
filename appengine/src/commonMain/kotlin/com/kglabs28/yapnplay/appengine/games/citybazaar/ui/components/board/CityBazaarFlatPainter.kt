@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board
 
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -17,7 +18,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CardDeck
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CityBazaarBoard
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CityBazaarBoardGeometry
@@ -41,8 +41,8 @@ fun DrawScope.drawCityBazaarFlatBoard(
     highlight: Set<Int> = emptySet(),
 ) {
     drawSlab(p, colours)
-    drawDeck(p, CardDeck.CHEST, colours.chest, Strings.cbChestGlyph, Strings.cbChestLabel, colours, measurer)
-    drawDeck(p, CardDeck.LUCK, colours.luck, Strings.cbLuckGlyph, Strings.cbLuckLabel, colours, measurer)
+    drawDeck(p, CardDeck.CHEST, colours.chest, CityBazaarStrings.cbChestGlyph, CityBazaarStrings.cbChestLabel, colours, measurer)
+    drawDeck(p, CardDeck.LUCK, colours.luck, CityBazaarStrings.cbLuckGlyph, CityBazaarStrings.cbLuckLabel, colours, measurer)
     tiles.forEach { drawTile(p, it, colours, measurer, it.index in highlight) }
 }
 
@@ -116,10 +116,10 @@ private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colo
     when (spec.kind) {
         TileKind.START, TileKind.JAIL, TileKind.CLUB, TileKind.REST_HOUSE -> {
             val name = when (spec.kind) {
-                TileKind.START -> Strings.cbCornerStart
-                TileKind.JAIL -> Strings.cbCornerJail
-                TileKind.CLUB -> Strings.cbCornerClub
-                else -> Strings.cbCornerRest
+                TileKind.START -> CityBazaarStrings.cbCornerStart
+                TileKind.JAIL -> CityBazaarStrings.cbCornerJail
+                TileKind.CLUB -> CityBazaarStrings.cbCornerClub
+                else -> CityBazaarStrings.cbCornerRest
             }
             val colour = when (spec.kind) {
                 TileKind.START -> colours.start
@@ -135,8 +135,8 @@ private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colo
             val colour = if (luck) colours.luck else colours.chest
             val along = u * (depth - TEXT_MARGIN)
             val across = u * (1 - TEXT_MARGIN)
-            val glyph = fitText(measurer, if (luck) Strings.cbLuckGlyph else Strings.cbChestGlyph, TextStyle(color = colour, fontSize = (u * GLYPH_TEXT).toSp(), fontWeight = FontWeight.Bold), along, across * NAME_SHARE)
-            val label = fitText(measurer, if (luck) Strings.cbLuckLabel else Strings.cbChestShort, TextStyle(color = colour, fontSize = (u * PRICE_TEXT).toSp(), fontWeight = FontWeight.Bold), along, across * PRICE_SHARE)
+            val glyph = fitText(measurer, if (luck) CityBazaarStrings.cbLuckGlyph else CityBazaarStrings.cbChestGlyph, TextStyle(color = colour, fontSize = (u * GLYPH_TEXT).toSp(), fontWeight = FontWeight.Bold), along, across * NAME_SHARE)
+            val label = fitText(measurer, if (luck) CityBazaarStrings.cbLuckLabel else CityBazaarStrings.cbChestShort, TextStyle(color = colour, fontSize = (u * PRICE_TEXT).toSp(), fontWeight = FontWeight.Bold), along, across * PRICE_SHARE)
             drawLines(p.project(centre), angle, listOf(glyph, label))
         }
         else -> {
@@ -145,9 +145,9 @@ private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colo
             val across = u * (1 - TEXT_MARGIN)
             val name = fitText(measurer, tileLines(spec.name), TextStyle(color = colours.text, fontSize = (u * NAME_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), along, across * NAME_SHARE)
             val priceText = when {
-                spec.buyable && tile.ownerColour == null -> Strings.cbRupees(RupeeFormat.digits(spec.price))
-                spec.kind == TileKind.TAX && spec.taxPerProperty > 0 -> Strings.cbPerProperty(RupeeFormat.digits(spec.taxPerProperty))
-                spec.kind == TileKind.TAX -> Strings.cbPerBuilding(RupeeFormat.digits(spec.taxPerBuilding))
+                spec.buyable && tile.ownerColour == null -> CityBazaarStrings.cbRupees(RupeeFormat.digits(spec.price))
+                spec.kind == TileKind.TAX && spec.taxPerProperty > 0 -> CityBazaarStrings.cbPerProperty(RupeeFormat.digits(spec.taxPerProperty))
+                spec.kind == TileKind.TAX -> CityBazaarStrings.cbPerBuilding(RupeeFormat.digits(spec.taxPerBuilding))
                 else -> null
             }
             val price = priceText?.let { fitText(measurer, it, TextStyle(color = colours.subText, fontSize = (u * PRICE_TEXT).toSp(), fontWeight = FontWeight.Medium), along, across * PRICE_SHARE, maxLines = 1) }

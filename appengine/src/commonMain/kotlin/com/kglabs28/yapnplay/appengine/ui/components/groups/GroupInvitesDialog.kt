@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.groups
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,7 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
 import com.kglabs28.yapnplay.appengine.ui.components.common.IconCircle
 import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
@@ -42,10 +42,10 @@ fun GroupInvitesDialog(
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
     GroupDialogFrame(width = dimens.profileWideDialogWidth, modifier = modifier) {
-        GroupDialogTitle(start = "", end = Strings.groupInvitesTitle, onClose = onClose)
+        GroupDialogTitle(start = "", end = RoomStrings.groupInvitesTitle, onClose = onClose)
         error?.let { BasicText(text = it, style = typography.micro.copy(color = colors.Error)) }
         if (invites.isEmpty()) {
-            EmptyStateText(text = Strings.groupNoInvites, modifier = Modifier.fillMaxWidth())
+            EmptyStateText(text = RoomStrings.groupNoInvites, modifier = Modifier.fillMaxWidth())
         } else {
             val scroll = rememberScrollState()
             Column(
@@ -64,8 +64,8 @@ fun GroupInvitesDialog(
                             BasicText(text = invite.roomName, style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis)
                             BasicText(text = invite.detail, style = typography.micro.copy(color = colors.TextSecondary), maxLines = 1)
                         }
-                        ProfileActionButton(text = Strings.groupDecline, kind = ProfileButtonKind.NEUTRAL, onClick = { onDecline(invite.inviteId) }, height = dimens.smallButtonHeight)
-                        ProfileActionButton(text = Strings.groupAccept, kind = ProfileButtonKind.CONFIRM, onClick = { onAccept(invite.inviteId) }, height = dimens.smallButtonHeight)
+                        ProfileActionButton(text = RoomStrings.groupDecline, kind = ProfileButtonKind.NEUTRAL, onClick = { onDecline(invite.inviteId) }, height = dimens.smallButtonHeight)
+                        ProfileActionButton(text = RoomStrings.groupAccept, kind = ProfileButtonKind.CONFIRM, onClick = { onAccept(invite.inviteId) }, height = dimens.smallButtonHeight)
                     }
                 }
             }

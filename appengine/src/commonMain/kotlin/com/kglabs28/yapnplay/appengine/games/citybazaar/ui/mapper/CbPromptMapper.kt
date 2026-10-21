@@ -239,7 +239,7 @@ object CbPromptMapper {
             body = if (isSeller) CityBazaarStrings.cbAuctionYours else CityBazaarStrings.cbAuctionBody(seller),
             card = CbPropertyMapper.propertyCard(match, auction.tile),
             colourLines = colourLines,
-            leader = leader?.let { CityBazaarStrings.cbHighest(it) + " · " + CbFormat.rupees(auction.bid) } ?: CityBazaarStrings.cbNoBidsYet,
+            leader = leader?.let { CityBazaarStrings.cbHighestBid(it, CbFormat.rupees(auction.bid)) } ?: CityBazaarStrings.cbNoBidsYet,
             sheet = sheet,
             bidLabel = CityBazaarStrings.cbBid(CbFormat.rupees(auction.nextBid)),
             isSeller = isSeller,

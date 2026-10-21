@@ -1,7 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
-import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardCoins
-import com.kglabs28.yapnplay.appengine.features.matchresult.domain.SeatCoins
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardResult
+import com.kglabs28.yapnplay.appengine.features.matchresult.domain.SeatResult
 import com.kglabs28.yapnplay.appengine.features.matchresult.usecase.ObserveMatchCoinsUseCase
 import com.kglabs28.yapnplay.appengine.core.common.TextUtils
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
@@ -108,8 +108,8 @@ class RoyalLudoMatchViewModel(
     private var penalty: Penalty? = null
     private var foreground = true
     private var leaderboard: LeaderboardUi? = null
-    /** The coins MatchEnded paid (it arrives just after the last snapshot). */
-    private var seatCoins: List<SeatCoins> = emptyList()
+    /** The coins and XP MatchEnded paid (it arrives just after the last snapshot). */
+    private var seatResults: List<SeatResult> = emptyList()
     private val turnAlarm = TurnAlarm(hurrySeconds = { gamesConfig.turnHurrySeconds() }) { if (foreground) audio.play(it) }
     private var awayJob: Job? = null
     private var markedAway = false
@@ -230,7 +230,7 @@ class RoyalLudoMatchViewModel(
                 }
             },
             scope.launch { for (update in queue) play(update) },
-            scope.launch { observeMatchCoins().collect { seatCoins = it; leaderboard = leaderboard?.let { b -> LeaderboardCoins.withCoins(b, it) }; render() } },
+            scope.launch { observeMatchCoins().collect { seatResults = it; leaderboard = leaderboard?.let { b -> LeaderboardResult.withResult(b, it) }; render() } },
             scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
             scope.launch { observeMySpeaking().collect { mySpeaking = it; render() } },
             scope.launch { observeMicOn().collect { micSwitch = it; syncMic() } },
@@ -387,7 +387,7 @@ class RoyalLudoMatchViewModel(
         diceVisible = newMatch.phase == LudoPhase.ROLL
         if (newlyFinished) sound(GameSound.WIN)
         if (newMatch.phase == LudoPhase.FINISHED && leaderboard == null) {
-            leaderboard = LudoMatchUiMapper.leaderboard(newMatch, LudoMatchUiMapper.elapsed(clock.now() - newMatch.startedAt)).copy(shareLink = appConfig.playStoreUrl()).let { LeaderboardCoins.withCoins(it, seatCoins) }
+            leaderboard = LudoMatchUiMapper.leaderboard(newMatch, LudoMatchUiMapper.elapsed(clock.now() - newMatch.startedAt)).copy(shareLink = appConfig.playStoreUrl()).let { LeaderboardResult.withResult(it, seatResults) }
         }
         render()
     }
@@ -470,7 +470,7 @@ class RoyalLudoMatchViewModel(
                 leaderboard = this@RoyalLudoMatchViewModel.leaderboard,
                 loaded = true,
                 title = LudoStrings.ludoTitle,
-                subtitle = m.title + (if (m.pot > 0) " · " + TableStrings.tablePot(TextUtils.groupedThousands(m.pot)) else ""),
+                subtitle = TableStrings.tableSubtitle(listOfNotNull(m.title, if (m.pot > 0) TableStrings.tablePot(TextUtils.groupedThousands(m.pot)) else null)),
                 rotation = rotation,
                 pieces = LudoMatchUiMapper.pieces(m, shown, motions, selectable = if (myTurn && m.phase == LudoPhase.MOVE) m.legalPieces else emptyList()),
                 myCard = cards.firstOrNull { it.isMe },

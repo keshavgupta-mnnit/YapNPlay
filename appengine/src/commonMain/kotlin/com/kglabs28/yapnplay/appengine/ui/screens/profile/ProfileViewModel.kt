@@ -49,7 +49,6 @@ class ProfileViewModel(
             ProfileIntent.Load -> reload()
             ProfileIntent.Back -> emitEffect(ProfileEffect.Close)
             ProfileIntent.OpenSettings -> emitEffect(ProfileEffect.OpenSettings)
-            ProfileIntent.Logout -> showModal(ProfileModal.ConfirmLogout)
             ProfileIntent.EditAvatar -> data?.let { showModal(ProfileModal.AvatarPicker(it.profile.avatarId)) }
             is ProfileIntent.PickAvatar -> (modal as? ProfileModal.AvatarPicker)?.let { showModal(it.copy(selected = intent.avatarId)) }
             ProfileIntent.SaveAvatar -> (modal as? ProfileModal.AvatarPicker)?.let { saveAvatar(it) }
@@ -185,7 +184,6 @@ class ProfileViewModel(
             is ProfileModal.ConfirmRemove -> removeFriend(modal.person.userId)
             is ProfileModal.ConfirmBlock -> blockUser(modal.person.userId)
             is ProfileModal.ConfirmUnblock -> unblockUser(modal.user.userId)
-            // Logging out arrives with sign-in: a guest account can't come back.
             else -> Unit
         }
         showModal(if (modal is ProfileModal.ConfirmUnblock) ProfileModal.BlockList else null)

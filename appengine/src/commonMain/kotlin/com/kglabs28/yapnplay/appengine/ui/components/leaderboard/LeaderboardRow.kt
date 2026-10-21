@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
-/** 4th place onwards, as in the design: place, ringed avatar, NAME, points and the title pill on a frosted row. */
+/** 4th place onwards, as in the design: place, ringed avatar, NAME, coins won and the title pill on a frosted row. */
 @Composable
 fun LeaderboardRow(entry: LeaderboardEntryUi, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
@@ -39,8 +39,7 @@ fun LeaderboardRow(entry: LeaderboardEntryUi, modifier: Modifier = Modifier) {
         LeaderboardAvatar(avatarId = entry.avatarId, size = dimens.boardAvatarRow, micOn = entry.micOn)
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
             BasicText(text = entry.name.uppercase(), style = typography.label.copy(color = if (entry.isMe) colors.Cyan else Color.White, fontWeight = FontWeight.Black), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            BasicText(text = entry.score, style = typography.label.copy(color = colors.Cyan, fontWeight = FontWeight.Bold))
-            if (entry.coins.isNotEmpty()) BasicText(text = entry.coins, style = typography.label.copy(color = colors.Gold, fontWeight = FontWeight.Bold))
+            if (entry.coins.isNotEmpty()) BasicText(text = entry.coins, style = typography.label.copy(color = colors.Cyan, fontWeight = FontWeight.Bold))
             LeaderboardTitleChip(title = entry.title, place = entry.place)
         }
     }

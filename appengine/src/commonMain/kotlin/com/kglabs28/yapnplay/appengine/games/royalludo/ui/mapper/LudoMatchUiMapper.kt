@@ -205,7 +205,7 @@ object LudoMatchUiMapper {
                 )
             }
         }
-        return LeaderboardUi(LudoStrings.ludoTitle, duration, entries, entries.firstOrNull { it.isMe }?.placeLabel.orEmpty(), myExp = entries.firstOrNull { it.isMe }?.let { e -> "+" + AppConstants.PLACE_EXP[(e.place - 1).coerceAtMost(AppConstants.PLACE_EXP.lastIndex)] }.orEmpty())
+        return LeaderboardUi(LudoStrings.ludoTitle, duration, entries, entries.firstOrNull { it.isMe }?.placeLabel.orEmpty(), myExp = entries.firstOrNull { it.isMe }?.let { e -> TableStrings.leaderboardGain(AppConstants.PLACE_EXP[(e.place - 1).coerceAtMost(AppConstants.PLACE_EXP.lastIndex)].toString()) }.orEmpty())
     }
 
     fun resultRows(match: LudoMatch): List<LudoResultRowUi> = match.ranking.mapIndexedNotNull { index, seat ->

@@ -174,9 +174,11 @@ private fun DrawScope.drawTile(p: CityBazaarIsoProjection, tile: CbTileUi, colou
             drawBuildings(p, tile, centre + inward * (depth * BUILDING_INWARD), ix, iy, colours)
             // Companies and taxes: the icon stands on the inner (header) side.
             icon?.let {
-                val at = p.project(centre + inward * (depth / 2 - depth * HEADER / 2))
                 val tint = if (spec.group != null) colours.text else colours.subText
-                drawBoardIcon(it, at - Offset(0f, cell * BAND_ICON_LIFT), cell * BAND_ICON, tint)
+                // Laid on the tile like its text.
+                withTransform({ transform(alongTile(p, centre + inward * (depth / 2 - depth * HEADER / 2), ix, cell)) }) {
+                    drawBoardIcon(it, Offset.Zero, cell * BAND_ICON, tint)
+                }
             }
         }
     }
@@ -204,26 +206,34 @@ private fun DrawScope.drawUpright(at: Offset, lines: List<TextLayoutResult>) {
 
 /** Lines of text laid on the tile's surface: along the ring, reading left to right, tops toward the far side. */
 private fun DrawScope.drawAlongTile(p: CityBazaarIsoProjection, at: Offset, ix: Int, cell: Float, lines: List<TextLayoutResult>) {
-    val origin = p.project(at)
-    // Along the tile's length (toward the middle), so names have room.
-    val along = if (ix != 0) Offset(1f, 0f) else Offset(0f, 1f)
-    val across = Offset(along.y, along.x)
-    val alongScreen = (p.project(at + along) - origin).let { if (it.x >= 0) it else -it }
-    val upScreen = (p.project(at + across) - origin).let { if (it.y <= 0) it else -it }
-    val m = Matrix()
-    m.values[Matrix.ScaleX] = alongScreen.x / cell
-    m.values[Matrix.SkewY] = alongScreen.y / cell
-    m.values[Matrix.SkewX] = -upScreen.x / cell
-    m.values[Matrix.ScaleY] = -upScreen.y / cell
-    m.values[Matrix.TranslateX] = origin.x
-    m.values[Matrix.TranslateY] = origin.y
     val total = lines.sumOf { it.size.height }
-    withTransform({ transform(m) }) {
+    withTransform({ transform(alongTile(p, at, ix, cell)) }) {
         var y = -total / 2f
         lines.forEach {
             drawText(it, topLeft = Offset(-it.size.width / 2f, y))
             y += it.size.height
         }
+    }
+}
+
+/**
+ * Drawing space lying on the board at [at] ([lift] above it): x runs along
+ * the tile's length (toward the middle), y toward the near side, one unit =
+ * one pixel at [cell] size — text and icons drawn in it lie flat like print.
+ */
+private fun alongTile(p: CityBazaarIsoProjection, at: Offset, ix: Int, cell: Float, lift: Float = 0f): Matrix {
+    val origin = p.project(at, lift)
+    val along = if (ix != 0) Offset(1f, 0f) else Offset(0f, 1f)
+    val across = Offset(along.y, along.x)
+    val alongScreen = (p.project(at + along, lift) - origin).let { if (it.x >= 0) it else -it }
+    val upScreen = (p.project(at + across, lift) - origin).let { if (it.y <= 0) it else -it }
+    return Matrix().apply {
+        values[Matrix.ScaleX] = alongScreen.x / cell
+        values[Matrix.SkewY] = alongScreen.y / cell
+        values[Matrix.SkewX] = -upScreen.x / cell
+        values[Matrix.ScaleY] = -upScreen.y / cell
+        values[Matrix.TranslateX] = origin.x
+        values[Matrix.TranslateY] = origin.y
     }
 }
 
@@ -324,16 +334,18 @@ private fun DrawScope.drawDeck(
         drawPath(face, tint, style = Stroke(cell * DECK_EDGE))
         if (top) drawPath(card(p, at, w - CARD_INSET, h - CARD_INSET, c.degrees, lift), tint.copy(alpha = CARD_INNER_ALPHA), style = Stroke(cell * DECK_EDGE / 2))
     }
-    // The top card's face: the symbol in a disc, the name underneath (upright, readable).
+    // The top card's face, printed on the card (lying on the board like the tiles' text): the symbol in a disc, the name underneath.
     val topLift = CbCardPile.cards.size * DECK_STEP
-    val emblem = p.project(centre - Offset(0f, h * EMBLEM_LIFT), topLift)
     val disc = cell * w * EMBLEM_SIZE
-    drawOval(tint, Offset(emblem.x - disc, emblem.y - disc * DISC_FLAT), Size(disc * 2, disc * 2 * DISC_FLAT))
-    val glyphLayout = fitText(measurer, glyph, TextStyle(color = colours.field, fontSize = (cell * DECK_GLYPH).toSp(), fontWeight = FontWeight.Bold), disc * 2, disc * 2 * DISC_FLAT, maxLines = 1)
-    drawUpright(emblem, listOf(glyphLayout))
+    val glyphLayout = fitText(measurer, glyph, TextStyle(color = colours.field, fontSize = (cell * DECK_GLYPH).toSp(), fontWeight = FontWeight.Bold), disc * 2, disc * 2, maxLines = 1)
     val room = cell * w * 2 * DECK_TEXT_ROOM
     val labelLayout = fitText(measurer, tileLines(label), TextStyle(color = tint, fontSize = (cell * DECK_TEXT).toSp(), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), room, cell * h * LABEL_ROOM)
-    drawUpright(p.project(centre + Offset(0f, h * LABEL_DROP), topLift), listOf(labelLayout))
+    withTransform({ transform(alongTile(p, centre, DECK_AXIS, cell, topLift)) }) {
+        val emblem = Offset(0f, -cell * h * EMBLEM_LIFT)
+        drawCircle(tint, disc, emblem)
+        drawText(glyphLayout, topLeft = emblem - Offset(glyphLayout.size.width / 2f, glyphLayout.size.height / 2f))
+        drawText(labelLayout, topLeft = Offset(-labelLayout.size.width / 2f, cell * h * LABEL_DROP - labelLayout.size.height / 2f))
+    }
 }
 
 /** A card [w] × [h] (half sizes, board units) centred on [at], turned [degrees] on the board, [lift] above it. */
@@ -403,7 +415,8 @@ private const val CORNER_ICON_LIFT = 0.3f
 private const val CORNER_TEXT_DROP = 0.28f
 private const val CORNER_TEXT_SHARE = 0.45f
 private const val BAND_ICON = 0.34f
-private const val BAND_ICON_LIFT = 0.12f
+/** The piles' faces read along the board's x axis. */
+private const val DECK_AXIS = 1
 private const val DECK_STEP = 0.05f
 private const val DECK_EDGE = 0.04f
 private const val DECK_GLYPH = 0.55f

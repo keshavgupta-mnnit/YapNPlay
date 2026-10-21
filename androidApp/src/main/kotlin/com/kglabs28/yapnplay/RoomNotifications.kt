@@ -18,7 +18,7 @@ import com.kglabs28.yapnplay.appengine.protocol.PushKeys
 /**
  * Room notifications: activity ("Neha entered College Crew", one per room,
  * replaced as the count changes; a tap opens that room's lobby through
- * yapnplay://room/<roomId>) and group invites ("Keshav invited you to
+ * yapnplay://room/<roomId>) and group invites ("Riya invited you to
  * Hostel Squad"; a tap opens the app, whose Rooms tab shows the invite).
  */
 object RoomNotifications {

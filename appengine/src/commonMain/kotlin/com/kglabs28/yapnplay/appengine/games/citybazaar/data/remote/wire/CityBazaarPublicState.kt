@@ -24,6 +24,8 @@ data class CityBazaarPublicState(
     val round: Int,
     /** House rule debt_auction: in debt, a bare city goes up for auction (false: straight to the bank). */
     val debtAuction: Boolean = true,
+    /** Room house rule money_popups: the user's payments show as a popup (false: a quick coin animation). Quick Play: on. */
+    val moneyPopups: Boolean = true,
     val roundLimit: Int? = null,
     val netWorth: Map<Int, Int>,
     /** Seats from first to last once the match is over. */

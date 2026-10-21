@@ -269,7 +269,7 @@ sealed interface CbModal {
     data class EndVote(val body: String, val tally: String, val status: String?, val canVote: Boolean, val countdown: String) : CbModal
     data object LeaveConfirm : CbModal
     data object MicPermissionNeeded : CbModal
-    data class Settings(val effectsOn: Boolean, val musicOn: Boolean, val moneyPopupsOn: Boolean = true, val canProposeEnd: Boolean = false) : CbModal
+    data class Settings(val effectsOn: Boolean, val musicOn: Boolean, val canProposeEnd: Boolean = false) : CbModal
     data class Report(val people: List<ReportPersonUi>, val selectedUserId: String?, val warning: String, val error: String?) : CbModal
     data class Vote(val reportId: String, val title: String, val body: String, val secondsLeft: String) : CbModal
     data class ReportOutcome(val title: String, val body: String) : CbModal
@@ -321,7 +321,6 @@ sealed interface CityBazaarMatchIntent : UiIntent {
     data object OpenSettings : CityBazaarMatchIntent
     data object ToggleEffects : CityBazaarMatchIntent
     data object ToggleMusic : CityBazaarMatchIntent
-    data object ToggleMoneyPopups : CityBazaarMatchIntent
     data object OpenReport : CityBazaarMatchIntent
     data class SelectReportPerson(val userId: String) : CityBazaarMatchIntent
     data object SubmitReport : CityBazaarMatchIntent

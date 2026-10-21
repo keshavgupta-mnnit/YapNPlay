@@ -83,6 +83,7 @@ class CityBazaarSnapshotMapper(private val json: Json) {
             round = state.round,
             roundLimit = state.roundLimit,
             debtAuction = state.debtAuction,
+            moneyPopups = state.moneyPopups,
             netWorth = state.netWorth,
             ranking = state.ranking,
             pot = snapshot.pot?.total ?: 0,

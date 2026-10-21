@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbOwnedRowUi
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbSheetRowUi
@@ -50,7 +51,7 @@ fun CbPlayerPanel(
             .clip(shape),
         verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
-        BasicText(
+        ShrinkText(
             text = name,
             style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
             modifier = Modifier.fillMaxWidth().background(band).padding(vertical = Spacing.Xxs),

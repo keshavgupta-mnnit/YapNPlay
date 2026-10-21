@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,7 +20,6 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
 fun ProfileTopBar(
     onBack: () -> Unit,
     onSettings: () -> Unit,
-    onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
@@ -30,6 +28,5 @@ fun ProfileTopBar(
         BasicText(text = ProfileStrings.profileTitle, style = YapNPlayTheme.typography.title.copy(color = colors.TextPrimary))
         Spacer(Modifier.weight(1f))
         FrostedIconButton(icon = Icons.Rounded.Settings, description = ProfileStrings.profileSettings, onClick = onSettings)
-        RedGlassButton(text = ProfileStrings.profileLogout, icon = Icons.AutoMirrored.Rounded.Logout, onClick = onLogout)
     }
 }

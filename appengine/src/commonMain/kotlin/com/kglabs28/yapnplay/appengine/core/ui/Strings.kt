@@ -5,27 +5,15 @@ package com.kglabs28.yapnplay.appengine.core.ui
  * never inline a word where the user can see it.
  */
 object Strings {
-    const val appName = "YapNPlay"
 
     const val homeTitle = "YapNPlay"
-    const val homeUserName = "Keshav"
-    const val homeOnlineStatus = "Online"
-    const val homeLevelText = "Level"
-    const val homeLevelValue = "12"
-    const val homeLevelExp = "2450 / 3000"
     const val homeLogoTitle = "YapNPlay"
-    const val homeLogoMark = "🎮"
-    const val homeLogoPart1 = "Yap"
-    const val homeLogoPart2 = "NPlay"
     const val homeLogoTagline = "Talk More. Play Your Way."
-    fun topBarLevel(level: String) = "Lv $level"
     fun topBarXp(xp: String, next: String) = "$xp/$next XP"
     fun dailyBonus(coins: String) = "+$coins"
     const val dailyBonusTitle = "DAILY BONUS"
     const val dailyBonusBody = "Welcome back! Here are your coins for today. Come back tomorrow for more."
     const val dailyBonusCollect = "COLLECT"
-    const val homeCoinBalance = "$ 4,250 +"
-    const val homeDiamondBalance = "120 +"
     const val homeEnterGameZoneTitlePart1 = "ENTER "
     const val homeEnterGameZoneTitlePart2 = "GAME ZONE"
     const val homeEnterGameZoneSubtitle = "Jump into a game, meet new people, and create unforgettable moments!"
@@ -36,7 +24,6 @@ object Strings {
     const val homeFeatureRealPeople = "Real People"
     const val homeFeatureRealPeopleSub = "Chat, Laugh, Repeat"
     const val homeQuickPlay = "QUICK PLAY"
-    const val homeHostLobby = "HOST LOBBY"
     const val homeNavHome = "Home"
     const val homeNavGames = "Games"
     const val homeNavRooms = "Rooms"
@@ -94,47 +81,8 @@ object Strings {
     const val homePlayWithFriendsTitlePart1 = "PLAY WITH "
     const val homePlayWithFriendsTitlePart2 = "FRIENDS"
     const val homePlayWithFriendsSubtitle = "Your crew. Your rooms. Your rules. Create or join a room and keep the fun going!"
-    const val homeInviteFriends = "Invite\nFriends"
     const val homeCreateRoomBannerText = "Create a private room, set your own house rules, and invite your friends to join the fun!"
     const val homeCreateRoom = "Create Room"
-    const val homeOnline = "ONLINE"
-    const val homeOpenGallery = "Component gallery"
-    const val homeOpenAbout = "About"
-
-    const val galleryTitle = "Component gallery"
-    const val galleryShowAll = "All"
-    const val galleryDisabled = "Disabled"
-    const val gallerySampleName = "Neon"
-    const val gallerySampleMember = "NEON_VIPER"
-    const val galleryLongMemberName = "A very long member name that must truncate"
-    const val gallerySampleCode = "AB12"
-    const val galleryCopied = "Room code copied"
-    const val galleryReconnecting = "Reconnecting…"
-    const val galleryStatusReady = "Ready"
-    const val galleryStatusNotReady = "Not Ready"
-    const val galleryLeaveTitle = "Leave room?"
-    const val galleryLeaveBody = "Your seat will be freed for someone else."
-    const val galleryLeaveConfirm = "Leave"
-    const val galleryLeaveDismiss = "Stay"
-
-    const val aboutTitle = "About"
-    const val aboutRetry = "Retry"
-    const val aboutLoading = "Loading…"
-    fun aboutInfo(appName: String, version: String, contract: String): String =
-        "$appName $version · contract $contract"
-
-    const val actionOk = "OK"
-    const val actionCancel = "Cancel"
-    const val actionRetry = "Retry"
-    const val actionSettings = "Settings"
-    const val actionChat = "Chat"
-    const val actionRollDice = "Roll Dice"
-    const val actionAutoplay = "Autoplay"
-    const val actionInviteFriends = "Invite friends"
-    const val actionLeaveRoom = "Leave room"
-
-    const val hintDisplayName = "Display name"
-    const val hintRoomCode = "XXXXXX"
 
     const val keyboardShift = "Shift"
     const val keyboardDelete = "Delete"
@@ -149,5 +97,6 @@ object Strings {
     val monthsShort = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     fun shortDate(day: Int, month: Int, year: Int) = "$day ${monthsShort[month - 1]} $year"
 
-
+    /** The app keyboard's counter: "12/20". */
+    fun keyboardCount(length: Int, max: Int) = "$length/$max"
 }

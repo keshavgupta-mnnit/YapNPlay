@@ -14,7 +14,7 @@ import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 data class ProfileState(
     val loaded: Boolean = false,
     val name: String = "",
-    /** "@keshav_28" (not unique). */
+    /** "@riya_28" (not unique). */
     val username: String = "",
     /** The raw 6-character YapNPlay ID, for showing and copying. */
     val userCode: String = "",
@@ -97,14 +97,12 @@ sealed interface ProfileModal {
     data class ConfirmBlock(val person: ProfilePersonUi) : ProfileModal
     data object BlockList : ProfileModal
     data class ConfirmUnblock(val user: ProfileBlockedUi) : ProfileModal
-    data object ConfirmLogout : ProfileModal
 }
 
 sealed interface ProfileIntent : UiIntent {
     data object Load : ProfileIntent
     data object Back : ProfileIntent
     data object OpenSettings : ProfileIntent
-    data object Logout : ProfileIntent
     data object EditAvatar : ProfileIntent
     data class PickAvatar(val avatarId: String) : ProfileIntent
     data object SaveAvatar : ProfileIntent

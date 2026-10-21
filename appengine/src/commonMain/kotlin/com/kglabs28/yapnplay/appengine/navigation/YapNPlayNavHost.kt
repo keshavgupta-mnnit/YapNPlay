@@ -16,7 +16,6 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CityBaz
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.RoyalLudoMatchScreen
 import com.kglabs28.yapnplay.appengine.core.common.DeepLink
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.PlayRoomLobbyScreen
-import com.kglabs28.yapnplay.appengine.features.about.ui.AboutScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileScreen
@@ -88,12 +87,6 @@ fun YapNPlayNavHost(
                     pendingCreateGroupWith = userId
                     navController.popBackStack(Main, inclusive = false)
                 },
-                viewModel = entry.rememberScreenViewModel(),
-            )
-        }
-        composable<About> { entry ->
-            AboutScreen(
-                onBack = { navController.popBackStack() },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.core.ads.LaunchCoinsOffer
 import com.kglabs28.yapnplay.appengine.features.coins.data.CoinsRepositoryImpl
 import com.kglabs28.yapnplay.appengine.features.coins.data.remote.CoinsClient
 import com.kglabs28.yapnplay.appengine.features.coins.data.remote.CoinsClientImpl
@@ -12,6 +13,7 @@ import org.koin.dsl.module
 val coinsModule = module {
     single<CoinsClient> { CoinsClientImpl(get()) }
     single<CoinsRepository> { CoinsRepositoryImpl(get(), get()) }
+    single { LaunchCoinsOffer() }
     factory { GetCoinLeaguesUseCase(get()) }
     factory { WatchAdForCoinsUseCase(get(), get()) }
 }

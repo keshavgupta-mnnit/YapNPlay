@@ -346,7 +346,6 @@ fun CityBazaarMatchScreen(
                         onOpenAppSettings = { send(CityBazaarMatchIntent.OpenAppSettings) },
                         onToggleEffects = { send(CityBazaarMatchIntent.ToggleEffects) },
                         onToggleMusic = { send(CityBazaarMatchIntent.ToggleMusic) },
-                        onToggleMoneyPopups = { send(CityBazaarMatchIntent.ToggleMoneyPopups) },
                         onOpenReport = { send(CityBazaarMatchIntent.OpenReport) },
                         onSelectReportPerson = { send(CityBazaarMatchIntent.SelectReportPerson(it)) },
                         onSubmitReport = { send(CityBazaarMatchIntent.SubmitReport) },

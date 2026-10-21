@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -49,7 +50,7 @@ fun CbPropertyCard(card: CbPropertyCardUi, modifier: Modifier = Modifier, fillHe
         verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
         Box(Modifier.fillMaxWidth().background(header).padding(vertical = Spacing.Xxs)) {
-            BasicText(
+            ShrinkText(
                 text = card.name.uppercase(),
                 style = typography.label.copy(color = colors.Background, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
                 modifier = Modifier.fillMaxWidth(),
@@ -59,10 +60,10 @@ fun CbPropertyCard(card: CbPropertyCardUi, modifier: Modifier = Modifier, fillHe
         val body = if (fillHeight) Modifier.weight(1f).verticalScroll(rememberScrollState()) else Modifier
         Column(modifier = body.padding(horizontal = Spacing.Xs).padding(bottom = Spacing.Xs), verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
             CbRateTable(rows = card.rows)
-            card.income?.let { BasicText(text = it, style = typography.label.copy(color = colors.CbCash, fontWeight = FontWeight.Bold)) }
-            card.collected?.let { BasicText(text = it, style = typography.label.copy(color = colors.TextSecondary)) }
+            card.income?.let { ShrinkText(text = it, style = typography.label.copy(color = colors.CbCash, fontWeight = FontWeight.Bold)) }
+            card.collected?.let { ShrinkText(text = it, style = typography.label.copy(color = colors.TextSecondary)) }
             card.sale?.let {
-                BasicText(
+                ShrinkText(
                     text = it,
                     style = typography.label.copy(color = colors.CbGain),
                     modifier = Modifier
@@ -75,7 +76,7 @@ fun CbPropertyCard(card: CbPropertyCardUi, modifier: Modifier = Modifier, fillHe
         }
         // Bottom bar: the owner on their colour, or "Available for sale" on dark grey (none for tiles that can't be owned).
         if (card.owner.isNotEmpty()) {
-            BasicText(
+            ShrinkText(
                 text = card.owner,
                 style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
                 modifier = Modifier.fillMaxWidth().background(card.ownerColour?.tint() ?: colors.CbUnownedBar).padding(vertical = Spacing.Xxs),

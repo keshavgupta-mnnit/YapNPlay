@@ -33,6 +33,8 @@ data class CityBazaarMatch(
     val roundLimit: Int?,
     /** In debt, a bare city goes up for auction (house rule on) instead of straight to the bank. */
     val debtAuction: Boolean = true,
+    /** The room's money-popup rule: the user's payments as a popup (off: a quick coin animation). */
+    val moneyPopups: Boolean = true,
     val netWorth: Map<Int, Int>,
     /** Seats from first to last once the match is over. */
     val ranking: List<Int>,

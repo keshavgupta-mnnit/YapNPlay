@@ -17,8 +17,8 @@ import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.PreviewPlayRoo
 import org.koin.dsl.module
 
 /**
- * Rooms bindings: fake-backed client today, real HTTP tomorrow by
- * uncommenting the client calls. Managers and repository stay untouched.
+ * Rooms bindings: the backend's HTTP API behind the remote manager and
+ * repository.
  */
 val playRoomsModule = module {
     single<PlayRoomsApi> { PlayRoomsApiClient(get(), get()) }

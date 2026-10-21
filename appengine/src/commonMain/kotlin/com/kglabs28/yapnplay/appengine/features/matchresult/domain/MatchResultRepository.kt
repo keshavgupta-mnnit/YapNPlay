@@ -4,5 +4,5 @@ import kotlinx.coroutines.flow.Flow
 
 /** The coins paid at the end of a match (any game). */
 interface MatchResultRepository {
-    fun coins(): Flow<List<SeatCoins>>
+    fun coins(): Flow<List<SeatResult>>
 }

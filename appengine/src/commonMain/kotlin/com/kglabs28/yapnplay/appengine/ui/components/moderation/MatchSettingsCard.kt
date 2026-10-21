@@ -1,7 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
 import androidx.compose.material.icons.rounded.SportsScore
-import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,9 +25,6 @@ fun MatchSettingsCard(
     musicOn: Boolean,
     onToggleEffects: () -> Unit,
     onToggleMusic: () -> Unit,
-    /** City Bazaar: money popups on/off; null hides the row. */
-    moneyPopupsOn: Boolean? = null,
-    onToggleMoneyPopups: () -> Unit = {},
     /** Null hides Report (games without voice reports). */
     onReport: (() -> Unit)? = null,
     /** Ask everyone to end the game (a vote); null hides it. */
@@ -41,7 +37,6 @@ fun MatchSettingsCard(
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
             SettingRow(LudoStrings.ludoSoundEffects, effectsOn, onToggleEffects)
             SettingRow(LudoStrings.ludoMusic, musicOn, onToggleMusic)
-            moneyPopupsOn?.let { SettingRow(TableStrings.tableTransactionPopups, it, onToggleMoneyPopups) }
             onEndGame?.let {
                 GlassPillButton(
                     text = endGameLabel,

@@ -1,7 +1,5 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -23,14 +21,7 @@ fun FitText(
         SlidingText(text = text, style = style, modifier = modifier)
         return
     }
-    BasicText(
-        text = text,
-        style = style,
-        modifier = modifier,
-        maxLines = 1,
-        softWrap = false,
-        autoSize = TextAutoSize.StepBased(minFontSize = style.fontSize * minScale, maxFontSize = style.fontSize),
-    )
+    ShrinkText(text = text, style = style, modifier = modifier, minScale = minScale)
 }
 
 private const val MIN_SCALE = 0.6f

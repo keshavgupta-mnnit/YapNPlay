@@ -27,8 +27,8 @@ import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileViewModel
 import org.koin.dsl.module
 
 /**
- * Profile bindings: fake-backed client today, real HTTP tomorrow by
- * swapping one line. Managers and repository stay untouched.
+ * Profile bindings: the backend's HTTP API behind the remote manager,
+ * cached by the local manager, behind the repository.
  */
 val profileModule = module {
     single<ProfileApi> { ProfileApiClient(get()) }

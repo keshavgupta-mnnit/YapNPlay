@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.leaderboard
 
+import androidx.compose.ui.text.style.TextAlign
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
@@ -25,10 +27,11 @@ fun LeaderboardTitleChip(title: String, place: Int, modifier: Modifier = Modifie
         5 -> colors.SocialZoneAccent
         else -> colors.LiveGreen
     }
-    BasicText(
+    // Centred under the name; a long title shrinks to fit instead of being cut.
+    ShrinkText(
         text = title,
-        style = YapNPlayTheme.typography.micro.copy(color = Color.White, fontWeight = FontWeight.Bold),
-        maxLines = 1,
+        style = YapNPlayTheme.typography.micro.copy(color = Color.White, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
+        minScale = CHIP_MIN_SCALE,
         modifier = modifier
             .background(Brush.verticalGradient(listOf(tint.copy(alpha = TOP), tint.copy(alpha = BOTTOM))), CircleShape)
             .border(YapNPlayTheme.dimens.borderThin, tint, CircleShape)
@@ -37,4 +40,5 @@ fun LeaderboardTitleChip(title: String, place: Int, modifier: Modifier = Modifie
 }
 
 private const val TOP = 0.55f
+private const val CHIP_MIN_SCALE = 0.5f
 private const val BOTTOM = 0.25f

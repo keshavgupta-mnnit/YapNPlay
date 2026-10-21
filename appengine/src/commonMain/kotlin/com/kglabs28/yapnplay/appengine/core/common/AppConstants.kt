@@ -21,14 +21,10 @@ object AppConstants {
     const val CB_HOP_MS = 200
     /** City Bazaar: each side column of player pods, as a share of the width. */
     const val CB_SIDE_COLUMN_WEIGHT = 0.21f
-    /** City Bazaar: pause on the user's own balance sheet before play goes on. */
-    const val CB_MONEY_PAUSE_MS = 900L
     /** The "auto-paying rent" notice: how long it stays (its bar fills meanwhile). */
     const val CB_RENT_NOTICE_MS = 3_000L
     /** Money popups off: how long the amount takes to fly from payer to receiver. */
     const val CB_MONEY_FLIGHT_MS = 1_100L
-    /** City Bazaar: pause on a card draw. */
-    const val CB_CARD_PAUSE_MS = 1_300L
     /** City Bazaar: how long a balance-sheet toast stays. */
     const val CB_TOAST_MS = 2_500L
     /** A switch the user flipped shows its new value this long while the server confirms. */
@@ -63,7 +59,6 @@ object AppConstants {
     const val LUDO_SPECTATOR_BOARD_WIDTH_WEIGHT = 0.6f
     /** The exit dialog closes by itself after this long without a choice. */
     const val EXIT_DIALOG_SECONDS = 30L
-    const val LUDO_TALK_BLINK_MS = 520
 
     /** Room-code caret blink (half period). */
     const val CARET_BLINK_MS = 500
@@ -83,25 +78,12 @@ object AppConstants {
     /** Maximum members in a room. */
     const val MAX_MEMBERS = 10
 
-    /** Match-start countdown, in seconds. */
-    const val COUNTDOWN_SECONDS = 10
-
-    /** Content width cap in dp — wider windows centre content instead of stretching. */
-    const val CONTENT_MAX_WIDTH_DP = 1100
-
     /**
      * The hosted backend: the built-in default for AppManager's
      * `server_base_url` Remote Config key, so moving servers (e.g. Render →
      * Oracle) needs no app release. No screen or repository hardcodes a URL.
      */
     const val SERVER_BASE_URL = "https://yapnplay-backend.onrender.com"
-
-    /**
-     * The laptop's backend, for testing a local server: reached from a phone
-     * or emulator through `adb reverse tcp:8080 tcp:8080`. Use it by setting
-     * `server_base_url` to this value (debug builds allow plain http).
-     */
-    const val LOCAL_SERVER_BASE_URL = "http://localhost:8080"
 
     /**
      * Invite links: https://INVITE_HOST/join/<code>. Must match the
@@ -117,7 +99,6 @@ object AppConstants {
     /** Window-width thresholds (dp) for [LayoutTier]. */
     const val TIER_M_MIN_WIDTH_DP = 740
     const val TIER_L_MIN_WIDTH_DP = 960
-
 
     /**
      * Top bar free-space split: the gap before the tab strip is twice

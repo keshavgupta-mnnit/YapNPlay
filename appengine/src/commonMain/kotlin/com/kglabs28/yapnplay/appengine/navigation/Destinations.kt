@@ -9,8 +9,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object Main
 
-@Serializable
-data object About
 
 /** The user's profile and friends (from the Home avatar). */
 @Serializable

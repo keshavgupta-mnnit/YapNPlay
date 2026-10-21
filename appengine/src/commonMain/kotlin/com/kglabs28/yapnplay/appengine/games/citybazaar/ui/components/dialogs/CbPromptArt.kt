@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -63,7 +64,7 @@ fun CbPromptArt(tile: Int, name: String, price: String, tint: Color, withHouse: 
                 style = typography.label.copy(color = Color.White, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, shadow = Shadow(color = Color.Black, blurRadius = TEXT_SHADOW)),
                 maxLines = 2,
             )
-            BasicText(text = "($price)", style = typography.micro.copy(color = Color.White.copy(alpha = SUB_ALPHA)))
+            BasicText(text = CityBazaarStrings.cbPriceTag(price), style = typography.micro.copy(color = Color.White.copy(alpha = SUB_ALPHA)))
         }
         // The city's picture in a glowing disc (with a house when building).
         Box(contentAlignment = Alignment.Center) {

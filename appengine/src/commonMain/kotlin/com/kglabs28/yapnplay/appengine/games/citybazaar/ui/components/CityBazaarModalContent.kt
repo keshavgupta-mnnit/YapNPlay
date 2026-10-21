@@ -186,8 +186,6 @@ fun CityBazaarModalContent(
             musicOn = modal.musicOn,
             onToggleEffects = actions.onToggleEffects,
             onToggleMusic = actions.onToggleMusic,
-            moneyPopupsOn = modal.moneyPopupsOn,
-            onToggleMoneyPopups = actions.onToggleMoneyPopups,
             onReport = actions.onOpenReport,
             onEndGame = if (modal.canProposeEnd) actions.onProposeEnd else null,
             endGameLabel = CityBazaarStrings.cbEndGameButton,

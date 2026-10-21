@@ -166,7 +166,9 @@ private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colo
             icon?.let {
                 val (o, s) = band(p, x0, y0, x1, y1, ix, iy, depth * HEADER)
                 val tint = if (spec.group != null) colours.text else colours.subText
-                drawBoardIcon(it, o + Offset(s.width / 2, s.height / 2), minOf(s.width, s.height) * BAND_ICON, tint)
+                // Turned like the tile's text (upward on the top and bottom rows).
+                val at = o + Offset(s.width / 2, s.height / 2)
+                rotate(angle, at) { drawBoardIcon(it, at, minOf(s.width, s.height) * BAND_ICON, tint) }
             }
         }
     }

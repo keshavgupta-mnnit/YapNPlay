@@ -71,7 +71,7 @@ object CbResultMapper {
             }
         }
         val mine = entries.firstOrNull { it.isMe }?.placeLabel.orEmpty()
-        return LeaderboardUi(CityBazaarStrings.cbTitle, duration, entries, mine, myExp = entries.firstOrNull { it.isMe }?.let { e -> "+" + AppConstants.PLACE_EXP[(e.place - 1).coerceAtMost(AppConstants.PLACE_EXP.lastIndex)] }.orEmpty())
+        return LeaderboardUi(CityBazaarStrings.cbTitle, duration, entries, mine, myExp = entries.firstOrNull { it.isMe }?.let { e -> TableStrings.leaderboardGain(AppConstants.PLACE_EXP[(e.place - 1).coerceAtMost(AppConstants.PLACE_EXP.lastIndex)].toString()) }.orEmpty())
     }
 
     fun result(match: CityBazaarMatch): CbModal.Result = CbModal.Result(

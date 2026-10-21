@@ -33,7 +33,6 @@ object AppManagerKeys {
 
     /** City Bazaar table pacing and messages. */
     object CityBazaar {
-        val MONEY_POPUPS_DEFAULT = ConfigKey("city_bazaar_money_popups_default", true, "Money popups on for players who never changed the setting.")
         val EVENT_BREATH_MS = ConfigKey("city_bazaar_event_breath_ms", 2_500L, "Pause after each event that shows a message (match the server's).")
         val EVENT_BREATH_MAX_MS = ConfigKey("city_bazaar_event_breath_max_ms", 8_000L, "Most pause in one update (match the server's cap).")
         val POPUP_MS = ConfigKey("city_bazaar_popup_ms", 3_000L, "How long the user's money / event popup stays.")
@@ -53,6 +52,7 @@ object AppManagerKeys {
     /** Rewarded ads (AdMob). Defaults are Google's TEST unit: swap in the real one from Remote Config. */
     object Ads {
         val ENABLED = ConfigKey("ads_enabled", true, "Rewarded ads (coins, lifting a play block) offered at all.")
+        val LAUNCH_OFFER = ConfigKey("ads_launch_offer", true, "Offer free coins for a rewarded ad once each time the app opens.")
         val REWARDED_UNIT_ID = ConfigKey("ad_rewarded_unit_id", "ca-app-pub-3940256099942544/5224354917", "AdMob rewarded ad unit id (default: Google's test unit).")
     }
 
@@ -60,8 +60,8 @@ object AppManagerKeys {
     val all: List<ConfigKey<*>> = listOf(
         App.SERVER_BASE_URL, App.UPDATE_CONFIG, App.VOICE_ENABLED, App.PARTY_CHAT_ENABLED, App.MAX_ROOMS_PER_USER, App.PLAY_STORE_URL,
         Games.ROYAL_LUDO_ENABLED, Games.CITY_BAZAAR_ENABLED, Games.TURN_HURRY_SECONDS,
-        CityBazaar.MONEY_POPUPS_DEFAULT, CityBazaar.EVENT_BREATH_MS, CityBazaar.EVENT_BREATH_MAX_MS, CityBazaar.POPUP_MS, CityBazaar.SNACKBAR_MS,
-        Ads.ENABLED, Ads.REWARDED_UNIT_ID,
+        CityBazaar.EVENT_BREATH_MS, CityBazaar.EVENT_BREATH_MAX_MS, CityBazaar.POPUP_MS, CityBazaar.SNACKBAR_MS,
+        Ads.ENABLED, Ads.LAUNCH_OFFER, Ads.REWARDED_UNIT_ID,
         Backgrounds.HOME, Backgrounds.LEADERBOARD, Backgrounds.GAME_ZONE_CARD, Backgrounds.FRIEND_ZONE_CARD, Backgrounds.ROYAL_LUDO_ART, Backgrounds.CITY_BAZAAR_ART,
     )
 

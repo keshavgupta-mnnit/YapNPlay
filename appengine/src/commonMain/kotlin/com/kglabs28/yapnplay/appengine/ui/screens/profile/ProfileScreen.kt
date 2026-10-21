@@ -94,7 +94,6 @@ fun ProfileScreen(
             ProfileTopBar(
                 onBack = { send(ProfileIntent.Back) },
                 onSettings = { send(ProfileIntent.OpenSettings) },
-                onLogout = { send(ProfileIntent.Logout) },
                 modifier = Modifier.fillMaxWidth(),
             )
             Column(

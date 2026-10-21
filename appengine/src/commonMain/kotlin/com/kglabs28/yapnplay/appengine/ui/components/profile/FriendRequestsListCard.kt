@@ -48,7 +48,7 @@ fun FriendRequestsListCard(
                     avatarId = p.avatarId,
                     name = p.name,
                     username = p.username,
-                    detail = ProfileStrings.profileYapId + "  " + p.userCode,
+                    detail = ProfileStrings.profileYapIdLine(p.userCode),
                     modifier = Modifier.fillMaxWidth().clip(rowShape).background(YapNPlayTheme.colors.ListRow).clickable { onOpen(request.requestId) }.padding(Spacing.Xs),
                 ) {
                     ProfileActionButton(text = ProfileStrings.profileDecline, kind = ProfileButtonKind.NEUTRAL, onClick = { onDecline(request.requestId) }, height = dimens.smallButtonHeight)

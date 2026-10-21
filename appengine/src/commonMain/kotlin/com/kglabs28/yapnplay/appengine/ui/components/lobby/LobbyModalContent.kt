@@ -107,7 +107,7 @@ fun LobbyModalContent(
         ) {
             BasicText(text = RoomStrings.lobbyRuleSheetSubtitle, style = typography.micro.copy(color = colors.TextSecondary))
             fixedRules.forEach { rule ->
-                BasicText(text = "•  $rule", style = typography.label.copy(color = colors.TextPrimary))
+                BasicText(text = RoomStrings.lobbyRuleBullet(rule), style = typography.label.copy(color = colors.TextPrimary))
             }
         }
         LobbyModal.WaitingList -> ModalCard(

@@ -118,7 +118,7 @@ object CbPropertyMapper {
             costs = if (spec.buyable) costs else emptyList(),
             owner = when {
                 !spec.buyable -> ""
-                owner != null -> CityBazaarStrings.cbOwnedBy + " " + owner.name
+                owner != null -> CityBazaarStrings.cbOwnedByName(owner.name)
                 else -> CityBazaarStrings.cbUnowned
             },
             ownerColour = owner?.colour,

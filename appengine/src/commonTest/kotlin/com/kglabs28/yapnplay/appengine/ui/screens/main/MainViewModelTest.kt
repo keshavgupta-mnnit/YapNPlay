@@ -15,7 +15,7 @@ import kotlin.test.assertEquals
 private class StubProfileRepository : ProfileRepository {
     override suspend fun fetchProfileData(): AppResult<UserProfile> = AppResult.Success(
         UserProfile(
-            name = "Keshav",
+            name = "Riya",
             level = 12,
             xp = 2450,
             xpMax = 3000,
@@ -48,7 +48,7 @@ class MainViewModelTest {
             assertEquals("", awaitItem().userName)
             vm.onIntent(MainIntent.LoadProfile)
             val loaded = awaitItem()
-            assertEquals("Keshav", loaded.userName)
+            assertEquals("Riya", loaded.userName)
             assertEquals("12", loaded.level)
             assertEquals("4,250", loaded.coinBalance)
             assertEquals("120", loaded.diamondBalance)

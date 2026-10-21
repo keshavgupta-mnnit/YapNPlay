@@ -111,6 +111,5 @@ fun ProfileModalContent(
             modifier = modifier,
         )
         ProfileModal.BlockList -> BlockListCard(blocked = state.blocked, onUnblock = actions.onUnblock, onClose = actions.onDismiss, modifier = modifier)
-        ProfileModal.ConfirmLogout -> LogoutConfirmCard(onConfirm = actions.onConfirm, onCancel = actions.onDismiss, modifier = modifier)
     }
 }

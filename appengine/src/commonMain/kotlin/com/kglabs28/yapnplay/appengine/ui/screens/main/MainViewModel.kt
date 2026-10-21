@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.core.ads.LaunchCoinsOffer
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.AdsAppManagerHelper
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.CollectDailyBonusUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveDailyBonusUseCase
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsUiMapper
@@ -35,7 +37,9 @@ class MainViewModel(
     private val markNotificationsRead: MarkNotificationsReadUseCase,
     private val getActiveMatch: GetActiveMatchUseCase,
     private val watchAdForCoins: WatchAdForCoinsUseCase,
-    observeDailyBonus: ObserveDailyBonusUseCase,
+    private val observeDailyBonus: ObserveDailyBonusUseCase,
+    private val adsConfig: AdsAppManagerHelper,
+    private val launchCoinsOffer: LaunchCoinsOffer,
     private val collectDailyBonus: CollectDailyBonusUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
@@ -69,9 +73,13 @@ class MainViewModel(
     override suspend fun handleIntent(intent: MainIntent) {
         when (intent) {
             is MainIntent.SelectTab -> setState { copy(selectedTab = intent.tab) }
-            MainIntent.CollectDailyBonus -> collectDailyBonus()
+            MainIntent.CollectDailyBonus -> {
+                collectDailyBonus()
+                offerCoinsOnLaunch()
+            }
             MainIntent.LoadProfile -> {
                 load()
+                offerCoinsOnLaunch()
                 checkActiveMatch()
             }
             MainIntent.Rejoin -> state.value.rejoin?.let {
@@ -128,6 +136,16 @@ class MainViewModel(
     private suspend fun checkActiveMatch() {
         val match = (getActiveMatch() as? AppResult.Success)?.data
         setState { copy(rejoin = match?.let { RejoinUi(it.matchId, it.gameId, it.title) }) }
+    }
+
+    /**
+     * Once per app launch, after the daily bonus (if any) is collected: offer
+     * free coins for a rewarded ad. The coins "+" offers the same any time.
+     */
+    private fun offerCoinsOnLaunch() {
+        if (observeDailyBonus().value > 0 || state.value.coinsOffer != null || !state.value.profileLoaded) return
+        if (!adsConfig.isLaunchOfferEnabled() || !launchCoinsOffer.takeIfDue()) return
+        setState { copy(coinsOffer = CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody)) }
     }
 
     private suspend fun load() {

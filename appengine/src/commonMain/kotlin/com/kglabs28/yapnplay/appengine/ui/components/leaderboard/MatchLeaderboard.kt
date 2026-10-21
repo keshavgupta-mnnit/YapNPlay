@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.leaderboard
 
+import androidx.compose.ui.zIndex
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalDensity
@@ -87,15 +89,8 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                 // Logo, then the podium.
                 Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
                     HomeCenterLogo(logoWidth = dimens.boardLogoWidth, logoHeight = dimens.boardLogoLogoHeight)
-                    Row(
-                        modifier = Modifier.weight(1f).fillMaxWidth().padding(start = dimens.boardGameArt, bottom = Spacing.Xs),
-                        verticalAlignment = Alignment.Bottom,
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterHorizontally),
-                    ) {
-                        podium.getOrNull(1)?.let { PodiumSpot(entry = it, medal = colors.MedalSilver, avatarSize = dimens.boardAvatar, baseHeight = dimens.boardBaseSecond) }
-                        podium.getOrNull(0)?.let { PodiumSpot(entry = it, medal = colors.MedalGold, avatarSize = dimens.boardAvatarFirst, baseHeight = dimens.boardBaseFirst) }
-                        podium.getOrNull(2)?.let { PodiumSpot(entry = it, medal = colors.MedalBronze, avatarSize = dimens.boardAvatar, baseHeight = dimens.boardBaseThird) }
-                    }
+                    // Starts right of the game logo, which rises out of the bottom bar.
+                    LeaderboardPodium(podium = podium, modifier = Modifier.weight(1f).fillMaxWidth().padding(start = dimens.boardGameLogo + Spacing.Sm, bottom = Spacing.Xs))
                 }
                 // LEADERBOARD panel: 4th onwards.
                 if (rest.isNotEmpty()) {
@@ -136,9 +131,16 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.Md),
                 ) {
-                    // The game's logo, big and lifting out of the bar, with its name (as in the room).
-                    gameArt(Modifier.offset(y = -dimens.boardGameLogo / LIFT_DIVISOR).size(dimens.boardGameLogo))
-                    GameNameTitle(name = board.game)
+                    // The game's logo, big and rising out of the bar, its name underneath (as in the room).
+                    Column(
+                        // Nudged to the bar's left edge; the name tucks up under the icon so they read as one.
+                        modifier = Modifier.wrapContentHeight(align = Alignment.Bottom, unbounded = true).offset(x = -Spacing.Md).padding(bottom = Spacing.Xxs),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(-Spacing.Sm),
+                    ) {
+                        gameArt(Modifier.size(dimens.boardGameLogo))
+                        GameNameTitle(name = board.game, modifier = Modifier.zIndex(1f))
+                    }
                     // SHARE THIS: a picture of this screen with the app link; glowing green.
                     Row(
                         modifier = Modifier
@@ -164,15 +166,6 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                             },
                             style = typography.label.copy(color = colors.TextSecondary),
                         )
-                        if (board.myCoins.isNotEmpty()) {
-                            BasicText(
-                                text = buildAnnotatedString {
-                                    append(TableStrings.leaderboardCoinsGained)
-                                    withStyle(SpanStyle(color = colors.Gold, fontWeight = FontWeight.Bold)) { append(board.myCoins) }
-                                },
-                                style = typography.label.copy(color = colors.TextSecondary),
-                            )
-                        }
                         if (board.myExp.isNotEmpty()) {
                             BasicText(
                                 text = buildAnnotatedString {
@@ -208,12 +201,11 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
 private const val PODIUM = 3
 private const val SHADE_TOP = 0.15f
 private const val SHADE_BOTTOM = 0.45f
-private const val PANEL_DARK = 0.55f
+private const val PANEL_DARK = 0.78f
 private const val PANEL_TOP = 0.10f
 private const val PANEL_BOTTOM = 0.05f
 private const val PANEL_RIM = 0.18f
 private const val SHARE_FILL = 0.45f
-private const val LIFT_DIVISOR = 5
 
 /** The game's name: white over a glowing accent outline, like the room's game title. */
 @Composable

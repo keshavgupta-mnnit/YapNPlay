@@ -117,7 +117,7 @@ fun AppKeyboard(
                         Box(Modifier.width(dimens.hairline * 2).height(dimens.iconSmall).graphicsLayer { alpha = caretAlpha }.background(colors.Cyan))
                     }
                 }
-                BasicText(text = "${value.length}/${request.maxLength}", style = typography.micro.copy(color = colors.TextSecondary))
+                BasicText(text = Strings.keyboardCount(value.length, request.maxLength), style = typography.micro.copy(color = colors.TextSecondary))
                 if (value.isNotEmpty()) FieldClearButton(onClear = { onType("") })
             }
             GlassIconButton(

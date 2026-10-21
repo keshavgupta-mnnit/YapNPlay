@@ -35,6 +35,8 @@ data class CityBazaarState(
     val bankruptOrder: List<Int> = emptyList(),
     val round: Int = 1,
     val turnCounter: Long = 0,
+    /** Rent each tile has earned its owners this match (tile → ₹); the server fills it, the bot's debt planner reads it. */
+    val rentByTile: Map<Int, Int> = emptyMap(),
 ) : GameState {
     override val rules: GameRules get() = cbRules
     override val turn: TurnState get() = CityBazaarTurnState(SeatNumber(currentSeat), phase.name)

@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.core.network
 
+import com.kglabs28.yapnplay.appengine.protocol.CastEndVote
+import com.kglabs28.yapnplay.appengine.protocol.ProposeEndMatch
+import com.kglabs28.yapnplay.appengine.protocol.MatchEnded
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.protocol.AnswerSeatOffer
 import com.kglabs28.yapnplay.appengine.protocol.ChooseSeatTaker
@@ -10,6 +13,7 @@ import com.kglabs28.yapnplay.appengine.protocol.LeaveSeat
 import com.kglabs28.yapnplay.appengine.protocol.MatchRequestSnapshot
 import com.kglabs28.yapnplay.appengine.protocol.MatchSnapshot
 import com.kglabs28.yapnplay.appengine.protocol.SetAutoplay
+import com.kglabs28.yapnplay.appengine.protocol.VoteExtension
 import com.kglabs28.yapnplay.appengine.protocol.SetMic
 import com.kglabs28.yapnplay.appengine.protocol.SetPresence
 import com.kglabs28.yapnplay.appengine.protocol.TakeSeat
@@ -61,6 +65,12 @@ class MatchChannel(private val realtime: RealtimeConnection) {
         }
     }
 
+    /** `MatchEnded`: the final ranking with each seat's coins (it follows the last snapshot; one match at a time). */
+    fun endings(): Flow<MatchEnded> =
+        realtime.stream(Channel.MATCH)
+            .filter { it.type == MessageType.MATCH_ENDED }
+            .map { realtime.decode(it, MatchEnded.serializer()) }
+
     suspend fun <T> request(type: String, serializer: KSerializer<T>, value: T) {
         realtime.request(Channel.MATCH, type, serializer, value)
     }
@@ -68,6 +78,17 @@ class MatchChannel(private val realtime: RealtimeConnection) {
     /** A game-specific action: [action] carries `"type"` plus its fields. */
     suspend fun gameAction(matchId: String, action: JsonObject) =
         request(MessageType.GAME_ACTION, GameAction.serializer(), GameAction(matchId, action))
+
+    /** The keep-playing vote at a round or time limit. */
+    suspend fun voteExtension(matchId: String, keepPlaying: Boolean) =
+        request(MessageType.VOTE_EXTENSION, VoteExtension.serializer(), VoteExtension(matchId, keepPlaying))
+
+    /** Asks everyone to end the match early (the end-game vote). */
+    suspend fun proposeEnd(matchId: String) =
+        request(MessageType.PROPOSE_END_MATCH, ProposeEndMatch.serializer(), ProposeEndMatch(matchId))
+
+    suspend fun castEndVote(matchId: String, agree: Boolean) =
+        request(MessageType.CAST_END_VOTE, CastEndVote.serializer(), CastEndVote(matchId, agree))
 
     suspend fun setAutoplay(matchId: String, enabled: Boolean) =
         request(MessageType.SET_AUTOPLAY, SetAutoplay.serializer(), SetAutoplay(matchId, enabled))

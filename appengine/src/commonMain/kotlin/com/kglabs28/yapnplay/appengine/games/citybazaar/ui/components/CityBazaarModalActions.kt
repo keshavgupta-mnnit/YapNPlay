@@ -25,5 +25,8 @@ class CityBazaarModalActions(
     val onSelectReportPerson: (userId: String) -> Unit,
     val onSubmitReport: () -> Unit,
     val onVote: (agree: Boolean) -> Unit,
+    val onVoteExtension: (keepPlaying: Boolean) -> Unit,
+    val onVoteEnd: (agree: Boolean) -> Unit,
+    val onProposeEnd: () -> Unit,
     val onWatchAd: () -> Unit,
 )

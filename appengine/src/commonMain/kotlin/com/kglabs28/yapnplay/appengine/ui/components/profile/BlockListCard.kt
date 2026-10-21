@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
+import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
@@ -36,9 +37,9 @@ fun BlockListCard(
     val dimens = YapNPlayTheme.dimens
     val rowShape = RoundedCornerShape(dimens.cbRowRadius)
     ModalCard(
-        surfaceBrush = Brush.verticalGradient(listOf(YapNPlayTheme.colors.GlassDialogTop, YapNPlayTheme.colors.GlassDialogBottom)),title = Strings.profileBlockListTitle, onClose = onClose, modifier = modifier.width(dimens.profileWideDialogWidth)) {
+        surfaceBrush = AppBrushes.dialogGeneric,title = ProfileStrings.profileBlockListTitle, onClose = onClose, modifier = modifier.width(dimens.profileWideDialogWidth)) {
         if (blocked.isEmpty()) {
-            EmptyStateText(text = Strings.profileNoBlocked, modifier = Modifier.fillMaxWidth())
+            EmptyStateText(text = ProfileStrings.profileNoBlocked, modifier = Modifier.fillMaxWidth())
         } else {
             Column(
                 modifier = Modifier.fillMaxWidth().heightIn(max = dimens.profileListMaxHeight).glassScrollbar(listScroll).verticalScroll(listScroll).padding(end = YapNPlayTheme.dimens.scrollbarWidth * 2),
@@ -46,7 +47,7 @@ fun BlockListCard(
             ) {
                 blocked.forEach { user ->
                     PersonRow(avatarId = user.avatarId, name = user.name, username = user.username, detail = user.blockedOn, modifier = Modifier.fillMaxWidth().clip(rowShape).background(YapNPlayTheme.colors.ListRow).padding(Spacing.Xs)) {
-                        GlassPillButton(text = Strings.profileUnblock, onClick = { onUnblock(user.userId) }, accent = colors.SocialZoneAccent)
+                        GlassPillButton(text = ProfileStrings.profileUnblock, onClick = { onUnblock(user.userId) }, accent = colors.SocialZoneAccent)
                     }
                 }
             }

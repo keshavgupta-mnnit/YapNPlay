@@ -12,28 +12,20 @@ object YapNPlayColors {
     val Background = Color(0xFF050917)
     val Panel = Color(0xFF152235)
     val Glass = Color(0xB3233246)
-    val Raised = Color(0xFF323B4D)
     val GlassSurface = Color(0xD9152235)
 
     // Base Accents
     val Cyan = Color(0xFF3ADBED)
-    val ButtonFace = Color(0xFF09FEFE)
-    val Orange = Color(0xFFDF8733)
-    val OrangeCore = Color(0xFFC0671F)
     val Pink = Color(0xFFE64DA0)
     val Purple = Color(0xFFC26FE8)
     val Gold = Color(0xFFFFC700)
 
     // Functional Feature Zone Tokens (Semantic, sampled from the home design)
     val GameZoneAccent = Color(0xFF08F9B5)
-    val GameZoneGlow = Color(0x6608F9B5)
-    val GameZoneBorder = Color(0x8008F9B5)
     val GameZoneSurface = Color(0xFF191934)
     val GameZoneIconFill = Color(0xFF1C4579)
 
     val SocialZoneAccent = Color(0xFFB834F7)
-    val SocialZoneGlow = Color(0x66B834F7)
-    val SocialZoneBorder = Color(0x80B834F7)
     val SocialZoneSurface = Color(0xFF1E1A45)
     val SocialZoneIconFill = Color(0xFF36276C)
 
@@ -85,8 +77,6 @@ object YapNPlayColors {
     val StartButtonDisabledTop = Color(0xFF6B7080)
     /** Neon green of the Ready pill and ON switches. */
     val ReadyGreen = Color(0xFF5CF08A)
-    /** Mic button while the mic is on. */
-    val MicOnPink = Color(0xFFB0246E)
     /** Frosted-white member card (design): top / bottom tint and rim. */
     val MemberCardTop = Color(0x38C9D3EE)
     val MemberCardBottom = Color(0x24A3AECB)
@@ -148,8 +138,6 @@ object YapNPlayColors {
     val PlayerGreen = Color(0xFF2EE86F)
     val PlayerYellow = Color(0xFFFFD43B)
     val PlayerBlue = Color(0xFF3D9BFF)
-    val PlayerPurple = Color(0xFFB45CFF)
-    val PlayerOrange = Color(0xFFFF8A2B)
     // City Bazaar players: deeper than the city groups' colours, so the two don't mix up.
     val CbPlayerRed = Color(0xFFB3132B)
     val CbPlayerGreen = Color(0xFF128A3E)
@@ -211,5 +199,28 @@ object YapNPlayColors {
 
     // Helpers
     val Transparent = Color.Transparent
-    val Scrim = Color(0x99050917)
+
+    // ── Role tokens: named by WHERE they are used. Restyle one place here and
+    // every screen using that role follows (e.g. all generic dialogs). ──
+    val BgDialogGenericTop = GlassDialogTop
+    val BgDialogGenericBottom = GlassDialogBottom
+    val BgDialogCreateGroupTop = GlassDialogTop
+    val BgDialogCreateGroupBottom = GlassDialogBottom
+    val BgButtonBankTop = Color(0xFF1A1A1A)
+    val BgButtonBankBottom = Color(0xFF050505)
+    val BgPodiumBaseTop = Color(0xFF2B2E38)
+    val BgPodiumBaseBottom = Color(0xFF15171D)
+    // Leaderboard podium: frosted name cards and the frosted platform steps the boxes stand in.
+    val BgPodiumCardTop = Color(0xD94A4F61)
+    val BgPodiumCardBottom = Color(0xD92D313E)
+    val BgPodiumStepTop = Color(0xB8474C5C)
+    val BgPodiumStepBottom = Color(0xB8262833)
+    // Same frosted dark as the LEADERBOARD panel, so the art reads through both alike.
+    val BgLeaderboardBarTop = Color(0x9E25272E)
+    val BgLeaderboardBarBottom = Color(0x9E15161B)
+    val MedalGold = Color(0xFFFFC83D)
+    val MedalSilver = Color(0xFFD9DEE8)
+    val MedalBronze = Color(0xFFCD7F32)
+    val TextOnPlayAgainButton = Color(0xFF06291E)
+    val TextOnCollectButton = Color(0xFF3A2400)
 }

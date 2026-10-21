@@ -1,12 +1,12 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.OndemandVideo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
@@ -27,9 +27,9 @@ fun PenaltyCard(
         subtitle = body,
         modifier = modifier,
         actions = {
-            GlassPillButton(text = Strings.ludoOk, onClick = onClose, leadingIcon = Icons.Rounded.Close, height = YapNPlayTheme.dimens.ctaHeight)
+            GlassPillButton(text = LudoStrings.ludoOk, onClick = onClose, leadingIcon = Icons.Rounded.Close, height = YapNPlayTheme.dimens.ctaHeight)
             PillButton(
-                text = if (watchingAd) Strings.ludoWatchingAd else Strings.ludoWatchAd,
+                text = if (watchingAd) LudoStrings.ludoWatchingAd else LudoStrings.ludoWatchAd,
                 onClick = onWatchAd,
                 enabled = !watchingAd,
                 gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),

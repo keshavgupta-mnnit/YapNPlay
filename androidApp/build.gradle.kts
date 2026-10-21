@@ -19,6 +19,8 @@ android {
         // Must match AppConstants.INVITE_HOST / APP_SCHEME (invite + room links).
         manifestPlaceholders["inviteHost"] = "kglabs28-yapnplay.web.app"
         manifestPlaceholders["appScheme"] = "yapnplay"
+        // AdMob app id: -PadmobAppId=ca-app-pub-…~… (or gradle.properties); default is Google's test app.
+        manifestPlaceholders["admobAppId"] = (project.findProperty("admobAppId") as String?) ?: "ca-app-pub-3940256099942544~3347511713"
     }
 
     

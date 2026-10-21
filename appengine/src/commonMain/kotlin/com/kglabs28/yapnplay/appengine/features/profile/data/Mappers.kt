@@ -24,6 +24,9 @@ fun Me.toDomain(): UserProfile = UserProfile(
     avatarId = avatarId,
     gamesPlayed = gamesPlayed,
     gamesWon = gamesWon,
+    levelXp = levelXp,
+    nextLevelXp = nextLevelXp,
+    dailyBonus = dailyBonus,
 )
 
 fun FriendSummary.toDomain(): Friend = Friend(

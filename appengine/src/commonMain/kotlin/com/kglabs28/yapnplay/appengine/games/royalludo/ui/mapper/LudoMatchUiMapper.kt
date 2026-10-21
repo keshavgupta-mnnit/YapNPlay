@@ -1,7 +1,12 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.mapper
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import androidx.compose.ui.graphics.Color
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardEntryUi
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
 import com.kglabs28.yapnplay.appengine.ui.components.profile.AvatarPresets
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoColour
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoMatch
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoPhase
@@ -70,8 +75,8 @@ object LudoMatchUiMapper {
             LudoPlayerCardUi(
                 seat = player.seat,
                 userId = player.userId,
-                name = if (cpuPlays && !player.isCpu) Strings.seatBot else player.name,
-                avatarId = if (cpuPlays && !player.isCpu) AvatarPresets.CPU else player.avatarId,
+                name = if (cpuPlays && !player.isCpu && !player.isMe) TableStrings.seatBot else player.name,
+                avatarId = if (cpuPlays && !player.isCpu && !player.isMe) AvatarPresets.CPU else player.avatarId,
                 // CPUs have no level.
                 level = if (cpuPlays) "" else player.level.toString(),
                 colour = player.colour,
@@ -81,11 +86,11 @@ object LudoMatchUiMapper {
                 talking = player.userId in inputs.speaking && player.micOn && !muted,
                 timerFraction = if (isTurn) left.toFloat() / totalMs else 0f,
                 left = player.removed,
-                placeLabel = if (place >= 0) Strings.ludoPlace(place + 1) else null,
+                placeLabel = if (place >= 0) LudoStrings.ludoPlace(place + 1) else null,
                 mutedForMe = muted,
                 canSpeak = !cpuPlays,
                 statusLabel = if (match.seatOffer?.seat == player.seat) seatStatus(match.seatOffer.stage) else when (player.presence) {
-                    LudoPresence.AWAY -> Strings.ludoAway
+                    LudoPresence.AWAY -> LudoStrings.ludoAway
                     LudoPresence.BOT -> null
                     LudoPresence.PLAYING -> null
                 },
@@ -97,21 +102,21 @@ object LudoMatchUiMapper {
 
     /** "1st", "2nd"… inside each finished player's base. */
     fun basePlaces(match: LudoMatch): Map<LudoColour, String> = match.finishedSeats.mapIndexedNotNull { index, seat ->
-        match.players.firstOrNull { it.seat == seat }?.let { it.colour to Strings.ludoPlace(index + 1) }
+        match.players.firstOrNull { it.seat == seat }?.let { it.colour to LudoStrings.ludoPlace(index + 1) }
     }.toMap()
 
     /** Match clock text, "m:ss". */
     fun elapsed(time: Duration): String {
         val total = time.inWholeSeconds.coerceAtLeast(0)
-        return Strings.ludoClock(total / SECONDS_PER_MINUTE, total % SECONDS_PER_MINUTE)
+        return LudoStrings.ludoClock(total / SECONDS_PER_MINUTE, total % SECONDS_PER_MINUTE)
     }
 
-    private fun seatStatus(stage: SeatOfferStage) = if (stage is SeatOfferStage.ConfirmingAbsence) Strings.seatIdle else Strings.seatOffered
+    private fun seatStatus(stage: SeatOfferStage) = if (stage is SeatOfferStage.ConfirmingAbsence) TableStrings.seatIdle else TableStrings.seatOffered
 
     fun leaveBody(match: LudoMatch): String = when {
-        match.me == null -> Strings.seatSpectatorLeaveBody
-        match.isRoomMatch -> Strings.seatLeaveBody
-        else -> Strings.ludoLeaveBody
+        match.me == null -> TableStrings.seatSpectatorLeaveBody
+        match.isRoomMatch -> TableStrings.seatLeaveBody
+        else -> LudoStrings.ludoLeaveBody
     }
 
     /** Spectator layout: the cards for the houses on the board's left (or right) side, the upper house first. */
@@ -143,8 +148,8 @@ object LudoMatchUiMapper {
                 null
             } else {
                 LudoMatchModal.AbsenceCheck(
-                    title = Strings.seatInactiveTitle,
-                    body = Strings.seatAbsenceBody(SeatHandoverRules.IDLE_TURNS_BEFORE_CHECK, match.isRoomMatch),
+                    title = TableStrings.seatInactiveTitle,
+                    body = TableStrings.seatAbsenceBody(SeatHandoverRules.IDLE_TURNS_BEFORE_CHECK, match.isRoomMatch),
                     countdown = countdown,
                     // The bot first and picked by default; spectators only in a room match.
                     options = SeatHandoverUiMapper.options(if (match.isRoomMatch) spectatorNames else emptyList(), withBot = true),
@@ -154,14 +159,14 @@ object LudoMatchUiMapper {
             is SeatOfferStage.ToSpectator -> if (stage.userId != match.viewerUserId) {
                 null
             } else {
-                LudoMatchModal.SeatOfferPrompt(Strings.seatPromptTitle(offer.leaverName), Strings.seatPromptBody(offer.leaverName), Strings.seatTake(seconds))
+                LudoMatchModal.SeatOfferPrompt(TableStrings.seatPromptTitle(offer.leaverName), TableStrings.seatPromptBody(offer.leaverName), TableStrings.seatTake(seconds))
             }
             is SeatOfferStage.LeaderChoosing -> if (stage.leaderUserId != match.viewerUserId) {
                 null
             } else {
                 LudoMatchModal.LeaderSeatChoice(
-                    title = Strings.seatOpenTitle,
-                    body = Strings.seatLeaderBody(offer.leaverName),
+                    title = TableStrings.seatOpenTitle,
+                    body = TableStrings.seatLeaderBody(offer.leaverName),
                     countdown = countdown,
                     // The bot is a button here, not a tile.
                     options = SeatHandoverUiMapper.options(spectatorNames, withBot = false),
@@ -171,7 +176,7 @@ object LudoMatchUiMapper {
             SeatOfferStage.OpenToAll -> if (match.me != null || offer.seat == declinedSeat) {
                 null
             } else {
-                LudoMatchModal.SeatInvite(offer.seat, Strings.seatInviteTitle(offer.leaverName), Strings.seatInviteBody, Strings.seatTake(seconds))
+                LudoMatchModal.SeatInvite(offer.seat, TableStrings.seatInviteTitle(offer.leaverName), TableStrings.seatInviteBody, TableStrings.seatTake(seconds))
             }
         }
     }
@@ -180,8 +185,31 @@ object LudoMatchUiMapper {
     fun audience(match: LudoMatch, speaking: Set<String>, mutedForMe: Set<String>): List<TableAvatarUi> =
         match.spectators.map { TableAvatarUi(it.userId, it.name, ring(it.userId in speaking && it.userId !in mutedForMe, it.micOn)) }
 
+    /** The end-of-match leaderboard: finishing order, a title, points and EXP for each place. */
+    fun leaderboard(match: LudoMatch, duration: String): LeaderboardUi {
+        val count = match.ranking.size
+        val entries = match.ranking.mapIndexedNotNull { index, seat ->
+            match.players.firstOrNull { it.seat == seat }?.let { p ->
+                LeaderboardEntryUi(
+                    place = index + 1,
+                    placeLabel = LudoStrings.ludoPlace(index + 1),
+                    name = p.name,
+                    avatarId = p.avatarId,
+                    title = LudoStrings.ludoPlaceTitles[index.coerceAtMost(LudoStrings.ludoPlaceTitles.lastIndex)],
+                    score = TableStrings.leaderboardPts(AppConstants.PLACE_EXP[index.coerceAtMost(AppConstants.PLACE_EXP.lastIndex)]),
+                    exp = TableStrings.leaderboardExp(AppConstants.PLACE_EXP[index.coerceAtMost(AppConstants.PLACE_EXP.lastIndex)]),
+                    micOn = p.micOn,
+                    tint = Color.Unspecified,
+                    isMe = p.isMe,
+                    seat = seat,
+                )
+            }
+        }
+        return LeaderboardUi(LudoStrings.ludoTitle, duration, entries, entries.firstOrNull { it.isMe }?.placeLabel.orEmpty(), myExp = entries.firstOrNull { it.isMe }?.let { e -> TableStrings.leaderboardGain(AppConstants.PLACE_EXP[(e.place - 1).coerceAtMost(AppConstants.PLACE_EXP.lastIndex)].toString()) }.orEmpty())
+    }
+
     fun resultRows(match: LudoMatch): List<LudoResultRowUi> = match.ranking.mapIndexedNotNull { index, seat ->
-        match.players.firstOrNull { it.seat == seat }?.let { LudoResultRowUi(Strings.ludoPlace(index + 1), it.name, it.colour) }
+        match.players.firstOrNull { it.seat == seat }?.let { LudoResultRowUi(LudoStrings.ludoPlace(index + 1), it.name, it.colour) }
     }
 
     private fun ring(talking: Boolean, micOn: Boolean) = when {
@@ -192,5 +220,6 @@ object LudoMatchUiMapper {
 
     private const val MILLIS = 1_000L
     private const val CORNERS = 4
+    private const val POINTS_PER_PLACE = 100
     private const val SECONDS_PER_MINUTE = 60L
 }

@@ -1,5 +1,10 @@
 package com.kglabs28.yapnplay.appengine.features.playrooms.data
 
+import com.kglabs28.yapnplay.appengine.features.profile.data.toDomain
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.CreatedPlayRoom
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomInvite
+import com.kglabs28.yapnplay.appengine.protocol.RoomInfo
+import com.kglabs28.yapnplay.appengine.protocol.RoomInviteSummary
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.JoinOutcome
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
@@ -38,3 +43,14 @@ fun RoomPreview.toDomain(): PlayRoomPreview = PlayRoomPreview(
     onlineCount = onlineCount,
     isMember = isMember,
 )
+
+fun RoomInviteSummary.toDomain(): PlayRoomInvite = PlayRoomInvite(
+    inviteId = inviteId,
+    roomId = roomId,
+    roomName = roomName,
+    icon = PlayRoomIcon.fromKey(roomIcon),
+    memberCount = memberCount,
+    invitedBy = invitedBy.toDomain(),
+)
+
+fun RoomInfo.toCreated(): CreatedPlayRoom = CreatedPlayRoom(roomId = id, name = name, code = code)

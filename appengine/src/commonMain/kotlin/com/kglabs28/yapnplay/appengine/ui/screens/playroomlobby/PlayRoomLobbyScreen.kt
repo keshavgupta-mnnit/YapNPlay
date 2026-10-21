@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,7 +31,6 @@ import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
@@ -156,14 +156,14 @@ fun PlayRoomLobbyScreen(
                         )
                         LobbyVoiceToggle(
                             icon = Icons.Rounded.Mic,
-                            label = Strings.lobbyMic,
+                            label = RoomStrings.lobbyMic,
                             on = state.micOn,
                             accent = colors.Pink,
                             onToggle = { send(PlayRoomLobbyIntent.ToggleMic(micPermission.isGranted())) },
                         )
                         LobbyVoiceToggle(
                             icon = Icons.AutoMirrored.Rounded.VolumeUp,
-                            label = Strings.lobbySpeaker,
+                            label = RoomStrings.lobbySpeaker,
                             on = state.speakerOn,
                             accent = colors.Cyan,
                             onToggle = { send(PlayRoomLobbyIntent.ToggleSpeaker) },
@@ -215,7 +215,7 @@ fun PlayRoomLobbyScreen(
                             if (state.isLeader) {
                                 // Belongs to the game, so game-gold rather than menu purple.
                                 GlassPillButton(
-                                    text = Strings.lobbyChangeGame,
+                                    text = RoomStrings.lobbyChangeGame,
                                     onClick = { send(PlayRoomLobbyIntent.ChangeGame) },
                                     leadingIcon = Icons.Rounded.SwapHoriz,
                                     accent = colors.StartButtonGlow,

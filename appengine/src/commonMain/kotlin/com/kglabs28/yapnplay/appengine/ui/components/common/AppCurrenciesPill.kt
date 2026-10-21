@@ -1,5 +1,19 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.clickable
+import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -30,9 +44,12 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
 @Composable
 fun AppCurrenciesPill(
     coinBalance: String,
-    diamondBalance: String,
+    level: String,
+    levelProgress: Float,
+    xpLabel: String,
     balancesVisible: Boolean,
     modifier: Modifier = Modifier,
+    onAddCoins: () -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -50,13 +67,29 @@ fun AppCurrenciesPill(
             iconTint = colors.Gold,
             balance = coinBalance,
             visible = balancesVisible,
+            onAdd = onAddCoins,
         )
-        CurrencyBalance(
-            icon = Icons.Rounded.Diamond,
-            iconTint = colors.Purple,
-            balance = diamondBalance,
-            visible = balancesVisible,
-        )
+        // Level: the hexagon shield, then the XP text over a bar as wide as the text.
+        Row(
+            modifier = Modifier.revealWhen(balancesVisible),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(dimens.levelHexagon)
+                    .background(Brush.verticalGradient(listOf(colors.Gold, colors.Warning)), YapNPlayTheme.shapes.hexagon),
+                contentAlignment = Alignment.Center,
+            ) {
+                BasicText(text = level, style = YapNPlayTheme.typography.micro.copy(fontWeight = FontWeight.Black, color = colors.Background))
+            }
+            Column(modifier = Modifier.width(IntrinsicSize.Max), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
+                BasicText(text = xpLabel, style = YapNPlayTheme.typography.micro.copy(fontWeight = FontWeight.SemiBold, color = colors.TextPrimary), maxLines = 1)
+                Box(Modifier.fillMaxWidth().height(dimens.levelBarHeight).clip(CircleShape).background(colors.TopBarIcon.copy(alpha = LEVEL_TRACK))) {
+                    Box(Modifier.fillMaxHeight().fillMaxWidth(levelProgress).background(Brush.horizontalGradient(listOf(colors.Gold, colors.LiveGreen)), CircleShape))
+                }
+            }
+        }
     }
 }
 
@@ -66,13 +99,14 @@ private fun CurrencyBalance(
     iconTint: Color,
     balance: String,
     visible: Boolean,
+    onAdd: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
 
     Row(
-        modifier = modifier,
+        modifier = modifier.clickable(role = Role.Button, onClick = onAdd),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
@@ -98,3 +132,5 @@ private fun CurrencyBalance(
         )
     }
 }
+
+private const val LEVEL_TRACK = 0.3f

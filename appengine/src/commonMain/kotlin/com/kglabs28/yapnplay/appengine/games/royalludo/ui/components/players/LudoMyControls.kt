@@ -1,12 +1,13 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableGlassButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.OnOffSwitch
 
@@ -31,7 +32,7 @@ fun LudoMyControls(
     val smoke = listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom)
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
         TableGlassButton(
-            text = Strings.lobbyMic,
+            text = RoomStrings.lobbyMic,
             onClick = onToggleMic,
             fill = smoke,
             textColor = if (micOn) colors.TextPrimary else colors.TextSecondary,
@@ -40,7 +41,7 @@ fun LudoMyControls(
             OnOffSwitch(on = micOn, onToggle = onToggleMic)
         }
         TableGlassButton(
-            text = Strings.ludoAutoplay,
+            text = LudoStrings.ludoAutoplay,
             onClick = onToggleAutoplay,
             fill = smoke,
             textColor = if (autoplay) colors.TextPrimary else colors.TextSecondary,
@@ -49,7 +50,7 @@ fun LudoMyControls(
             OnOffSwitch(on = autoplay, onToggle = onToggleAutoplay)
         }
         TableGlassButton(
-            text = moveHint ?: Strings.ludoRollDice,
+            text = moveHint ?: LudoStrings.ludoRollDice,
             onClick = onRoll,
             fill = listOf(colors.LudoSilverTop, colors.LudoSilverMid, colors.LudoSilverBottom),
             textColor = colors.LudoSilverText,

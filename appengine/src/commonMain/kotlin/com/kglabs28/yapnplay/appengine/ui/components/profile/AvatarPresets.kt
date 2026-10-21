@@ -2,7 +2,7 @@ package com.kglabs28.yapnplay.appengine.ui.components.profile
 
 /**
  * The app's avatars a user picks from: "a01" … "a18" (art in
- * androidMain/res/drawable/ic_avatar_NN.webp; a09 and a18 are the bot
+ * commonMain/composeResources/drawable/ic_avatar_NN.webp; a09 and a18 are the bot
  * characters). The id is what the server stores.
  */
 object AvatarPresets {

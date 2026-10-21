@@ -31,4 +31,6 @@ enum class MatchmakingCancelReason {
     GAME_UNAVAILABLE,
     LEFT_QUEUE,
     CONNECTION_FAILED,
+    /** The user can't pay the league's entry fee. */
+    NOT_ENOUGH_COINS,
 }

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,7 +33,6 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
 
@@ -59,10 +60,10 @@ fun FriendCodeKeyboard(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
             AppIcon(imageVector = Icons.Rounded.Keyboard, tint = colors.IconMuted, size = dimens.iconSmall)
-            BasicText(text = Strings.profileKeyboardTitle, style = YapNPlayTheme.typography.label.copy(color = colors.TextPrimary), modifier = Modifier.weight(1f))
+            BasicText(text = ProfileStrings.profileKeyboardTitle, style = YapNPlayTheme.typography.label.copy(color = colors.TextPrimary), modifier = Modifier.weight(1f))
             GlassIconButton(
                 imageVector = Icons.Rounded.Close,
-                contentDescription = Strings.lobbyClose,
+                contentDescription = RoomStrings.lobbyClose,
                 onClick = onClose,
                 size = dimens.smallButtonHeight,
                 iconSize = dimens.iconSmall,
@@ -73,14 +74,14 @@ fun FriendCodeKeyboard(
             KeyRow {
                 row.forEach { key -> LetterKey(key = key, onClick = { onKey(key) }) }
                 if (index == KEY_ROWS.lastIndex) {
-                    IconKey(Icons.AutoMirrored.Rounded.Backspace, Strings.profileKeyboardDelete, colors.IconMuted, onBackspace)
+                    IconKey(Icons.AutoMirrored.Rounded.Backspace, ProfileStrings.profileKeyboardDelete, colors.IconMuted, onBackspace)
                     IconKey(
                         icon = Icons.Rounded.PersonAdd,
-                        description = Strings.profileAddButton,
+                        description = ProfileStrings.profileAddButton,
                         tint = if (addEnabled) colors.ReadyGreen else colors.TextDisabled,
                         onClick = onAdd,
                         enabled = addEnabled,
-                        label = Strings.profileAddButton,
+                        label = ProfileStrings.profileAddButton,
                         weight = ADD_KEY_WEIGHT,
                     )
                 }

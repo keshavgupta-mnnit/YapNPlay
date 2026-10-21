@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.playrooms.data
 
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomInvite
+import com.kglabs28.yapnplay.appengine.features.playrooms.domain.CreatedPlayRoom
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.local.PlayRoomsLocalManager
@@ -46,6 +48,20 @@ class PlayRoomsRepositoryImpl(
             }
         }
 
-    override suspend fun createRoom(name: String?): AppResult<String> =
-        withContext(dispatchers.io) { remote.createRoom(name) }
+    override suspend fun createRoom(name: String?, icon: String, inviteUserIds: List<String>): AppResult<CreatedPlayRoom> =
+        withContext(dispatchers.io) { remote.createRoom(name, icon, inviteUserIds) }
+
+    override suspend fun inviteToRoom(roomId: String, userIds: List<String>): AppResult<List<String>> =
+        withContext(dispatchers.io) { remote.inviteToRoom(roomId, userIds) }
+
+    override suspend fun getInvites(): AppResult<List<PlayRoomInvite>> =
+        withContext(dispatchers.io) { remote.fetchInvites() }
+
+    override suspend fun acceptInvite(inviteId: String): AppResult<PlayRoom> =
+        withContext(dispatchers.io) {
+            remote.acceptInvite(inviteId).also { if (it is AppResult.Success) local.addRoom(it.data) }
+        }
+
+    override suspend fun declineInvite(inviteId: String): AppResult<Unit> =
+        withContext(dispatchers.io) { remote.declineInvite(inviteId) }
 }

@@ -6,8 +6,8 @@ import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomsData
 import com.kglabs28.yapnplay.appengine.features.playrooms.repository.PlayRoomsRepository
 
 /**
- * Loads the Rooms tab in one call: the user's rooms plus friends who are
- * online now. Both halves are best-effort — a failure yields an empty
+ * Loads the Rooms tab in one call: the user's rooms, friends who are
+ * online now, and group invites waiting for them. Both halves are best-effort — a failure yields an empty
  * list and the screen shows its empty text, never a broken tab.
  */
 class GetPlayRoomsScreenDataUseCase(
@@ -24,6 +24,7 @@ class GetPlayRoomsScreenDataUseCase(
             is AppResult.Failure -> emptyList()
             is AppResult.Success -> result.data.filter { it.online }
         }
-        return PlayRoomsData(rooms = rooms, onlineFriends = onlineFriends)
+        val invites = (roomsRepository.getInvites() as? AppResult.Success)?.data.orEmpty()
+        return PlayRoomsData(rooms = rooms, onlineFriends = onlineFriends, invites = invites)
     }
 }

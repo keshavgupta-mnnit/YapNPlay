@@ -10,7 +10,7 @@ import com.kglabs28.yapnplay.appengine.features.playroomlobby.usecase.SendLobbyC
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.PlayRoomLobbyViewModel
 import org.koin.dsl.module
 
-/** Play-room lobby: fake server today, WebSocket room channel later. */
+/** Play-room lobby over the backend's ROOM WebSocket channel. */
 val playRoomLobbyModule = module {
     single<LobbyRealtimeClient> { LobbyRealtimeClientImpl(get(), get(), get(), get()) }
     single<PlayRoomLobbyRepository> { PlayRoomLobbyRepositoryImpl(get(), get(), get()) }

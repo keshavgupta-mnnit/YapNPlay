@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
@@ -7,7 +8,6 @@ import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.DropdownPicker
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
@@ -32,13 +32,13 @@ fun ReportPlayerCard(
     val typography = YapNPlayTheme.typography
 
     ModalCard(
-        title = Strings.ludoReportTitle,
-        subtitle = Strings.ludoReportBody,
+        title = LudoStrings.ludoReportTitle,
+        subtitle = LudoStrings.ludoReportBody,
         onClose = onClose,
         modifier = modifier,
         actions = {
             PillButton(
-                text = Strings.ludoReportSend,
+                text = LudoStrings.ludoReportSend,
                 onClick = onSubmit,
                 enabled = selectedIndex != null && error == null,
                 gradient = listOf(colors.Error, colors.Error.copy(alpha = GRADIENT_END)),
@@ -49,7 +49,7 @@ fun ReportPlayerCard(
             )
         },
     ) {
-        DropdownPicker(options = options, selectedIndex = selectedIndex, placeholder = Strings.ludoReportPick, onSelect = onSelect)
+        DropdownPicker(options = options, selectedIndex = selectedIndex, placeholder = LudoStrings.ludoReportPick, onSelect = onSelect)
         BasicText(text = error ?: warning, style = typography.label.copy(color = if (error != null) colors.Error else colors.TextSecondary))
     }
 }

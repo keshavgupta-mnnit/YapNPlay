@@ -7,14 +7,18 @@ import com.kglabs28.yapnplay.appengine.features.playrooms.data.remote.PlayRoomsA
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.remote.PlayRoomsRemoteManager
 import com.kglabs28.yapnplay.appengine.features.playrooms.repository.PlayRoomsRepository
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.CreatePlayRoomUseCase
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.GetGroupInvitesUseCase
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.GetMyGroupsUseCase
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.InviteFriendsToGroupUseCase
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.RespondToGroupInviteUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.GetPlayRoomsScreenDataUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.JoinPlayRoomByCodeUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.PreviewPlayRoomUseCase
 import org.koin.dsl.module
 
 /**
- * Rooms bindings: fake-backed client today, real HTTP tomorrow by
- * uncommenting the client calls. Managers and repository stay untouched.
+ * Rooms bindings: the backend's HTTP API behind the remote manager and
+ * repository.
  */
 val playRoomsModule = module {
     single<PlayRoomsApi> { PlayRoomsApiClient(get(), get()) }
@@ -25,4 +29,8 @@ val playRoomsModule = module {
     factory { JoinPlayRoomByCodeUseCase(get(), get()) }
     factory { PreviewPlayRoomUseCase(get()) }
     factory { CreatePlayRoomUseCase(get()) }
+    factory { InviteFriendsToGroupUseCase(get()) }
+    factory { GetGroupInvitesUseCase(get()) }
+    factory { RespondToGroupInviteUseCase(get()) }
+    factory { GetMyGroupsUseCase(get()) }
 }

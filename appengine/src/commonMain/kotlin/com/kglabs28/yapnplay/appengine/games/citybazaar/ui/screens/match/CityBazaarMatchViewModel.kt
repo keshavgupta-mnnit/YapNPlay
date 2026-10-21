@@ -1,5 +1,32 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardResult
+import com.kglabs28.yapnplay.appengine.features.matchresult.domain.SeatResult
+import com.kglabs28.yapnplay.appengine.features.matchresult.usecase.ObserveMatchCoinsUseCase
+import com.kglabs28.yapnplay.appengine.core.common.TextUtils
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbFormat
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbNoticeMapper
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbPromptMapper
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbPropertyMapper
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbResultMapper
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbTableMapper
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.AppManagerHelper
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.GamesAppManagerHelper
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.CityBazaarAppManagerHelper
+import kotlin.time.Duration.Companion.milliseconds
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbMoneyFlightUi
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbTransactionUi
+import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CityBazaarFeedMapper
+import com.kglabs28.yapnplay.appengine.core.audio.TurnAlarm
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedTone
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedLineUi
+import com.kglabs28.yapnplay.appengine.ui.components.table.PlayerFriendActionUi
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.PlayerFriendUseCases
 import com.kglabs28.yapnplay.appengine.core.network.MatchGoneException
 import com.kglabs28.yapnplay.appengine.core.audio.GameAudio
 import com.kglabs28.yapnplay.appengine.core.audio.GameSound
@@ -8,7 +35,6 @@ import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.moderation.domain.ModerationRules
 import com.kglabs28.yapnplay.appengine.features.moderation.domain.Penalty
 import com.kglabs28.yapnplay.appengine.features.moderation.domain.ReportVoteRequest
@@ -38,7 +64,6 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.MoneyReason
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TileKind
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TILE_COUNT
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CityBazaarModerationUiMapper
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CityBazaarUiMapper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -65,7 +90,12 @@ class CityBazaarMatchViewModel(
     private val observeMicOn: ObserveMicOnUseCase,
     private val setMicOn: SetMicOnUseCase,
     private val moderation: ModerationUseCases,
+    private val playerFriends: PlayerFriendUseCases,
     private val audio: GameAudio,
+    private val cbConfig: CityBazaarAppManagerHelper,
+    private val appConfig: AppManagerHelper,
+    private val gamesConfig: GamesAppManagerHelper,
+    private val observeMatchCoins: ObserveMatchCoinsUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<CityBazaarMatchState, CityBazaarMatchIntent, CityBazaarMatchEffect>(CityBazaarMatchState(), dispatchers) {
@@ -95,6 +125,7 @@ class CityBazaarMatchViewModel(
     private var panelSeat: Int? = null
     private var panelDeck: CardDeck? = null
     private var panelCities = false
+    private var panelBank = false
     private var panelGroup: CityGroup? = null
     private var vote: ReportVoteRequest? = null
     private var penalty: Penalty? = null
@@ -104,6 +135,28 @@ class CityBazaarMatchViewModel(
     private var toast: CbToastUi? = null
     private var toastId = 0L
     private var toastJob: Job? = null
+    private var transaction: CbTransactionUi? = null
+    private var transactionId = 0L
+    private var transactionJob: Job? = null
+    private var moneyFlight: CbMoneyFlightUi? = null
+    /** Every event line so far, newest first; the latest one shows as a snackbar for a moment. */
+    private val history = ArrayDeque<TableFeedLineUi>()
+    private var feedId = 0L
+    private var feedSnack: TableFeedLineUi? = null
+    private var feedJob: Job? = null
+    private var historyOpen = false
+    private var startAnnounced = false
+    private var waitAnnounced = false
+    private var leaderboard: LeaderboardUi? = null
+    /** The coins and XP MatchEnded paid (it arrives just after the last snapshot). */
+    private var seatResults: List<SeatResult> = emptyList()
+    /** The deck of the last card drawn (its money event names it). */
+    private var lastDeck: String? = null
+    private var lastCardText: String? = null
+    /** A roll not told yet (it joins the next line of the history). */
+    private var pendingRoll: TableFeedLineUi? = null
+    private var pendingDice: CityBazaarEvent.Rolled? = null
+    private val turnAlarm = TurnAlarm(hurrySeconds = { gamesConfig.turnHurrySeconds() }) { sound(it) }
     /** The card the user just drew, so the money that follows is titled with it. */
     private var cardTitle: String? = null
     private var foreground = true
@@ -128,16 +181,16 @@ class CityBazaarMatchViewModel(
             }
             CityBazaarMatchIntent.ConfirmSale -> {
                 // Buildings first: a city can only be sold bare.
-                val picked = saleSelection.sortedBy { if (CityBazaarUiMapper.isBuilding(it)) 0 else 1 }
+                val picked = saleSelection.sortedBy { if (CbPromptMapper.isBuilding(it)) 0 else 1 }
                 saleSelection = emptySet()
                 picked.forEach { id ->
-                    val tile = CityBazaarUiMapper.assetTile(id)
-                    send(if (CityBazaarUiMapper.isBuilding(id)) CityBazaarCommand.SellBuilding(tile) else CityBazaarCommand.SellTile(tile))
+                    val tile = CbPromptMapper.assetTile(id)
+                    send(if (CbPromptMapper.isBuilding(id)) CityBazaarCommand.SellBuilding(tile) else CityBazaarCommand.SellTile(tile))
                 }
             }
-            CityBazaarMatchIntent.StartAuction -> saleSelection.singleOrNull()?.takeIf { !CityBazaarUiMapper.isBuilding(it) }?.let {
+            CityBazaarMatchIntent.StartAuction -> saleSelection.singleOrNull()?.takeIf { !CbPromptMapper.isBuilding(it) }?.let {
                 saleSelection = emptySet()
-                send(CityBazaarCommand.StartAuction(CityBazaarUiMapper.assetTile(it)))
+                send(CityBazaarCommand.StartAuction(CbPromptMapper.assetTile(it)))
             }
             CityBazaarMatchIntent.Bid -> send(CityBazaarCommand.Bid)
             CityBazaarMatchIntent.PassAuction -> {
@@ -147,21 +200,32 @@ class CityBazaarMatchViewModel(
             CityBazaarMatchIntent.DeclareBankruptcy -> send(CityBazaarCommand.DeclareBankruptcy)
             is CityBazaarMatchIntent.TileClicked -> match?.let { m ->
                 if (state.value.modal != null) return@let
+                if (isShowing(tile = intent.tile)) {
+                    showPanel()
+                    return@let
+                }
                 // In the side panel: Luck / Shagun Chest tiles their 2–12 table, others their card.
                 when (CityBazaarBoard.tile(intent.tile).kind) {
                     TileKind.LUCK -> showPanel(deck = CardDeck.LUCK)
                     TileKind.CHEST -> showPanel(deck = CardDeck.CHEST)
-                    else -> if (CityBazaarUiMapper.tileInfo(m, intent.tile) != null) showPanel(tile = intent.tile, seat = null)
+                    else -> if (CbPropertyMapper.tileInfo(m, intent.tile) != null) showPanel(tile = intent.tile, seat = null)
                 }
             }
             is CityBazaarMatchIntent.OpenStack -> showPanel(cities = true, group = intent.group)
             is CityBazaarMatchIntent.OpenDeck -> showPanel(deck = intent.deck)
-            is CityBazaarMatchIntent.PlayerClicked -> showPanel(tile = null, seat = intent.seat)
+            // A second tap on the same card closes its panel.
+            is CityBazaarMatchIntent.PlayerClicked -> if (isShowing(seat = intent.seat)) showPanel() else showPanel(tile = null, seat = intent.seat)
             is CityBazaarMatchIntent.PanelPropertyClicked -> showPanel(tile = intent.tile, seat = null)
-            CityBazaarMatchIntent.DismissPanel -> showPanel(tile = null, seat = null)
+            CityBazaarMatchIntent.DismissPanel -> {
+                // The tap that closed it may also land on the same card / tile: that tap must not reopen it.
+                closedSeat = panelSeat
+                closedTile = panelTile
+                closedAt = clock.now()
+                showPanel(tile = null, seat = null)
+            }
             CityBazaarMatchIntent.ToggleView -> setState { copy(threeD = !threeD) }
             CityBazaarMatchIntent.OpenMyCities -> showPanel(cities = true)
-            CityBazaarMatchIntent.ToggleAutoplay -> send(CityBazaarCommand.SetAutoplay(!state.value.autoplay))
+            CityBazaarMatchIntent.ToggleAutoplay -> toggleAutoplay((match?.me?.let { it.autoplay || it.presence == CityBazaarPresence.BOT } == true)) { send(CityBazaarCommand.SetAutoplay(it)) }
             // The mic switch is the user's, everywhere: this table follows it.
             is CityBazaarMatchIntent.ToggleMic -> when {
                 micSwitch -> setMicOn(false)
@@ -175,6 +239,27 @@ class CityBazaarMatchViewModel(
                 emitEffect(CityBazaarMatchEffect.OpenAppSettings)
             }
             is CityBazaarMatchIntent.ToggleHear -> match?.player(intent.seat)?.let { setMuted(it.userId, it.userId !in mutedForMe) }
+            // Not the user, a CPU or a seat the CPU plays for someone who left.
+            is CityBazaarMatchIntent.PlayerLongPressed -> match?.player(intent.seat)
+                ?.takeIf { !it.isMe && !it.isCpu && it.presence != CityBazaarPresence.BOT }
+                ?.let { openFriendAction(it.userId, it.name, it.avatarId) }
+            CityBazaarMatchIntent.ConfirmFriendAction -> confirmFriendAction()
+            CityBazaarMatchIntent.DismissFriendAction -> setState { copy(friendAction = null) }
+            CityBazaarMatchIntent.OpenBank -> showPanel(bank = true)
+            is CityBazaarMatchIntent.VoteExtension -> send(CityBazaarCommand.VoteExtension(intent.keepPlaying))
+            CityBazaarMatchIntent.ProposeEnd -> {
+                showModal(null)
+                send(CityBazaarCommand.ProposeEnd)
+            }
+            is CityBazaarMatchIntent.VoteEnd -> send(CityBazaarCommand.VoteEnd(intent.agree))
+            CityBazaarMatchIntent.OpenHistory -> {
+                historyOpen = true
+                render()
+            }
+            CityBazaarMatchIntent.DismissHistory -> {
+                historyOpen = false
+                render()
+            }
             CityBazaarMatchIntent.ExitClicked -> showModal(CbModal.LeaveConfirm)
             CityBazaarMatchIntent.ConfirmLeave -> {
                 showModal(null)
@@ -202,6 +287,7 @@ class CityBazaarMatchViewModel(
             CityBazaarMatchIntent.WatchAd -> watchAd()
             is CityBazaarMatchIntent.ScreenVisible -> onScreenVisible(intent.visible)
             CityBazaarMatchIntent.Done -> emitEffect(CityBazaarMatchEffect.Close)
+            CityBazaarMatchIntent.ShareResult -> leaderboard?.let { emitEffect(CityBazaarMatchEffect.ShareText(TableStrings.leaderboardShareText(it.game, it.myPlace))) }
         }
     }
 
@@ -219,10 +305,11 @@ class CityBazaarMatchViewModel(
                 } catch (e: MatchGoneException) {
                     // The server lost the match (e.g. it restarted): say so, then close the table.
                     matchGone = true
-                    showModal(CbModal.ReportOutcome(Strings.matchGoneTitle, Strings.matchGoneBody))
+                    showModal(CbModal.ReportOutcome(TableStrings.matchGoneTitle, TableStrings.matchGoneBody))
                 }
             },
             scope.launch { for (update in queue) play(update) },
+            scope.launch { observeMatchCoins().collect { seatResults = it; leaderboard = leaderboard?.let { b -> LeaderboardResult.withResult(b, it) }; render() } },
             scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
             scope.launch { observeMySpeaking().collect { mySpeaking = it; render() } },
             scope.launch { observeMicOn().collect { micSwitch = it; syncMic() } },
@@ -256,7 +343,38 @@ class CityBazaarMatchViewModel(
         }
         playing = true
         val m = update.match
+        var breathed = 0L
         for (event in update.events) {
+            if (event is CityBazaarEvent.Card) {
+                lastDeck = CityBazaarFeedMapper.deckLabel(event.cardId)
+                lastCardText = CityBazaarCards.find(event.cardId)?.text
+            }
+            var line = runCatching { CityBazaarFeedMapper.line(event, m, lastDeck) }
+                .onFailure { CrashReporter.record(it, "CityBazaarFeed.line") }
+                .getOrNull()
+            // History: one line per move. A roll waits and is told at the end of what it led to
+            // ("… rent for Pune (rolled 4 + 3)"); a roll that led to nothing gets its own line.
+            when {
+                event is CityBazaarEvent.Rolled -> {
+                    flushRoll()
+                    pendingRoll = line
+                    pendingDice = event
+                    line = null
+                }
+                event is CityBazaarEvent.TurnPassed -> flushRoll()
+                line != null && pendingDice != null -> {
+                    pendingDice?.let { dice -> line = line?.let { it.copy(text = it.text + CityBazaarStrings.cbFeedRollSuffix(dice.die1, dice.die2)) } }
+                    pendingRoll = null
+                    pendingDice = null
+                }
+            }
+            // One message per event: the user's own as a popup (when on), everyone else's as the
+            // bottom snackbar; all in the history. Then a short breath before the next one.
+            val mine = involvesMe(event, m)
+            val popup = mine && m.moneyPopups
+            if (popup) CbNoticeMapper.notice(m, event)?.let { showTransaction(it) }
+            line?.let { feed(if (popup) it.copy(quiet = true) else it) }
+            val shown = popup && (event is CityBazaarEvent.Money || CbNoticeMapper.notice(m, event) != null) || (line != null && !line.quiet && !popup)
             when (event) {
                 is CityBazaarEvent.Rolled -> {
                     die1 = event.die1
@@ -268,7 +386,7 @@ class CityBazaarMatchViewModel(
                     delay(AppConstants.DICE_ROLL_MS + AppConstants.LUDO_DICE_REST_MS)
                 }
                 is CityBazaarEvent.Moved -> walk(event)
-                is CityBazaarEvent.Money -> money(event, m)
+                is CityBazaarEvent.Money -> money(event, m, line?.text)
                 is CityBazaarEvent.Card -> card(event, m)
                 is CityBazaarEvent.Bought -> {
                     shownOwners[event.tile] = event.seat
@@ -285,26 +403,21 @@ class CityBazaarMatchViewModel(
                 }
                 is CityBazaarEvent.Jailed -> {
                     sound(GameSound.CAPTURE)
-                    if (event.seat == m.me?.seat) showToast(CityBazaarUiMapper.noteToast(Strings.cbSentToJail, Strings.cbJailedBody, gain = false))
                 }
-                is CityBazaarEvent.CantAfford -> if (event.seat == m.me?.seat) {
-                    val spec = CityBazaarBoard.tile(event.tile)
-                    showToast(CityBazaarUiMapper.noteToast(Strings.cbNotEnoughTitle, Strings.cbCantBuy(spec.name, CityBazaarUiMapper.rupees(spec.price)), gain = false))
-                }
-                is CityBazaarEvent.Freed -> if (event.seat == m.me?.seat) showToast(CityBazaarUiMapper.noteToast(Strings.cbFreedTitle, Strings.cbFreedBody))
                 is CityBazaarEvent.AuctionEnded -> {
                     val name = CityBazaarBoard.tile(event.tile).name
                     val line = event.winner?.let { w ->
                         shownOwners[event.tile] = w
-                        Strings.cbAuctionWon(m.player(w)?.name.orEmpty(), name, CityBazaarUiMapper.rupees(event.amount))
-                    } ?: Strings.cbAuctionBank(name, CityBazaarUiMapper.rupees(event.amount))
+                        CityBazaarStrings.cbAuctionWon(m.player(w)?.name.orEmpty(), name, CbFormat.rupees(event.amount))
+                    } ?: CityBazaarStrings.cbAuctionBank(name, CbFormat.rupees(event.amount))
                     passedAuction = null
-                    showToast(CityBazaarUiMapper.noteToast(Strings.cbAuctionEnded, line))
-                }
-                is CityBazaarEvent.Bankrupt -> m.player(event.seat)?.let {
-                    showToast(CityBazaarUiMapper.noteToast(Strings.cbWentBankrupt(it.name), Strings.cbBankruptBody, gain = false))
                 }
                 else -> Unit
+            }
+            // Same as the server's pause: 2.5 s per message, at most 8 s per update.
+            if (shown && breathed < cbConfig.eventBreathMaxMs()) {
+                delay(cbConfig.eventBreathMs())
+                breathed += cbConfig.eventBreathMs()
             }
         }
         playing = false
@@ -331,64 +444,68 @@ class CityBazaarMatchViewModel(
     }
 
     /** Money moves on the cards; the user's own (rent, tax, cards, START, fines) shows as a balance sheet. */
-    private suspend fun money(event: CityBazaarEvent.Money, m: CityBazaarMatch) {
+    /**
+     * Money moves on the cards, and every transfer (between players or with
+     * the bank) shows as the transaction popup for a few seconds, from the
+     * user's side when it's theirs.
+     */
+    private suspend fun money(event: CityBazaarEvent.Money, m: CityBazaarMatch, line: String?) {
         val mySeat = m.me?.seat
-        val mine = mySeat != null && (event.from == mySeat || event.to == mySeat)
-        val before = mySeat?.let { shownCash[it] } ?: 0
+        val seat = when {
+            mySeat != null && (event.from == mySeat || event.to == mySeat) -> mySeat
+            event.from != null -> event.from
+            else -> event.to
+        }
+        val before = seat?.let { shownCash[it] } ?: 0
         event.from?.let { shownCash[it] = (shownCash[it] ?: 0) - event.amount }
         event.to?.let { shownCash[it] = (shownCash[it] ?: 0) + event.amount }
-        if (event.reason in QUIET) {
-            render()
-            return
-        }
-        if (!mine) {
-            // Everyone sees who paid whom (rent, taxes, fees, fines).
-            val payer = event.from?.let { m.player(it)?.name }
-            if (payer != null && event.reason in PAYMENTS) {
-                val tileName = event.tile?.let { CityBazaarBoard.tile(it).name }
-                val reason = tileName ?: reasonLabel(event.reason)
-                showToast(CityBazaarUiMapper.paymentToast(payer, event.to?.let { m.player(it)?.name }, reason, event.amount))
+        val mine = mySeat != null && (event.from == mySeat || event.to == mySeat)
+        if (mine && m.moneyPopups) {
+            CbNoticeMapper.transaction(m, event, seat, before, line, lastDeck, lastCardText)?.let { showTransaction(it) }
+        } else if (mine && event.reason != MoneyReason.BANKRUPTCY) {
+            // Popups off: the amount flies from the payer to the receiver.
+            transactionId++
+            transactionJob?.cancel()
+            transaction = null
+            moneyFlight = CbMoneyFlightUi(transactionId, event.from, event.to, CbFormat.rupees(event.amount))
+            transactionJob = scope.launch {
+                delay(AppConstants.CB_MONEY_FLIGHT_MS)
+                moneyFlight = null
+                render()
             }
+        }
+        render()
+    }
+
+    /** Shows [tx] as the popup for a few seconds (a newer one replaces it). */
+    private fun showTransaction(tx: CbTransactionUi) {
+        transactionId++
+        transaction = tx.copy(id = transactionId)
+        transactionJob?.cancel()
+        transactionJob = scope.launch {
+            delay(cbConfig.popupMs())
+            transaction = null
             render()
-            return
         }
-        val gain = event.to == mySeat
-        val tileName = event.tile?.let { CityBazaarBoard.tile(it).name }.orEmpty()
-        val other = (if (gain) event.from else event.to)?.let { m.player(it)?.name }.orEmpty()
-        val (title, label) = when (event.reason) {
-            MoneyReason.RENT -> if (gain) Strings.cbPaidYouRent(other, tileName) to Strings.cbRentFrom(other)
-            else Strings.cbLandedOnOwned(tileName, other) to Strings.cbRentPaidTo(other)
-            MoneyReason.TAX -> Strings.cbTaxTitle to tileName
-            MoneyReason.CLUB -> Strings.cbClubTitle to Strings.cbCornerClub
-            MoneyReason.START -> Strings.cbStartTitle to Strings.cbCornerStart
-            MoneyReason.JAIL_FINE -> Strings.cbJailFineTitle to Strings.cbCornerJail
-            MoneyReason.LATE_ROLL -> Strings.cbLateFineTitle to Strings.cbLateFineLabel
-            MoneyReason.AUCTION -> Strings.cbAuctionEnded to tileName
-            else -> (cardTitle ?: Strings.cbChange) to Strings.cbChange
-        }
-        showToast(CityBazaarUiMapper.moneyToast(title, before, label, event.amount, gain))
-        delay(AppConstants.CB_MONEY_PAUSE_MS)
+        render()
     }
 
     private fun reasonLabel(reason: MoneyReason): String = when (reason) {
-        MoneyReason.RENT -> Strings.cbRentLand
-        MoneyReason.TAX -> Strings.cbTaxTitle
-        MoneyReason.CLUB -> Strings.cbClubTitle
-        MoneyReason.JAIL_FINE -> Strings.cbJailFineTitle
-        MoneyReason.LATE_ROLL -> Strings.cbLateFineLabel
-        else -> Strings.cbChange
+        MoneyReason.RENT -> CityBazaarStrings.cbRentLand
+        MoneyReason.TAX -> CityBazaarStrings.cbTaxTitle
+        MoneyReason.CLUB -> CityBazaarStrings.cbClubTitle
+        MoneyReason.JAIL_FINE -> CityBazaarStrings.cbJailFineTitle
+        MoneyReason.LATE_ROLL -> CityBazaarStrings.cbLateFineLabel
+        else -> CityBazaarStrings.cbChange
     }
 
     private suspend fun card(event: CityBazaarEvent.Card, m: CityBazaarMatch) {
         val spec = CityBazaarCards.find(event.cardId) ?: return
-        val deck = if (spec.deck == CardDeck.LUCK) Strings.cbLuckLabel else Strings.cbChestLabel
+        val deck = if (spec.deck == CardDeck.LUCK) CityBazaarStrings.cbLuckLabel else CityBazaarStrings.cbChestLabel
         if (event.seat == m.me?.seat) {
-            cardTitle = Strings.cbCardTitle(deck, spec.text)
-            showToast(CityBazaarUiMapper.noteToast(deck, spec.text))
+            cardTitle = CityBazaarStrings.cbCardTitle(deck, spec.text)
         } else {
-            showToast(CityBazaarUiMapper.noteToast(Strings.cbSomeoneDrew(m.player(event.seat)?.name.orEmpty(), deck), spec.text))
         }
-        delay(AppConstants.CB_CARD_PAUSE_MS)
     }
 
     /** Shows the server's table as it is (after any animation). */
@@ -409,9 +526,19 @@ class CityBazaarMatchViewModel(
         shownLevels.putAll(newMatch.levels)
         diceSeat = newMatch.currentSeat
         if (newMatch.phase != CityBazaarTurnPhase.DEBT) saleSelection = emptySet()
+        // Round 1: "waiting for everyone" while the server holds the start, then "the game has started".
+        if (!startAnnounced && newMatch.round <= 1 && newMatch.phase != CityBazaarTurnPhase.FINISHED) {
+            if (newMatch.turnEndsAt != null) {
+                startAnnounced = true
+                feed(TableFeedLineUi(0, CityBazaarStrings.cbFeedStarted, TableFeedTone.INFO))
+            } else if (!waitAnnounced) {
+                waitAnnounced = true
+                feed(TableFeedLineUi(0, CityBazaarStrings.cbFeedWaiting, TableFeedTone.INFO))
+            }
+        }
         if (justFinished) {
             sound(GameSound.WIN)
-            userModal = CityBazaarUiMapper.result(newMatch)
+            leaderboard = CbResultMapper.leaderboard(newMatch, CbFormat.elapsed(clock.now() - newMatch.startedAt)).copy(shareLink = appConfig.playStoreUrl()).let { LeaderboardResult.withResult(it, seatResults) }
         }
         render()
     }
@@ -419,6 +546,7 @@ class CityBazaarMatchViewModel(
     private fun render() {
         val m = match ?: return
         val me = m.me
+        if (autoplayWanted != null && autoplayWanted == (me?.let { it.autoplay || it.presence == CityBazaarPresence.BOT } == true)) autoplayWanted = null
         // The mic listens only while it's on at the table and the app is in front.
         val wantMic = foreground && (me?.micOn == true)
         if (wantMic != micOpen) {
@@ -430,22 +558,23 @@ class CityBazaarMatchViewModel(
         val now = clock.now()
         val myTurn = me != null && !playing && !me.bankrupt && m.currentSeat == me.seat && !me.autoplay && me.presence == CityBazaarPresence.PLAYING
         val remainingMs = m.turnEndsAt?.let { (it - now).inWholeMilliseconds.coerceAtLeast(0) } ?: 0L
-        val countdown = CityBazaarUiMapper.countdown(remainingMs / MILLIS)
-        val cards = CityBazaarUiMapper.cards(
+        val countdown = CbFormat.countdown(remainingMs / MILLIS)
+        turnAlarm.update(myTurn, remainingMs)
+        val cards = CbTableMapper.cards(
             m,
-            CityBazaarUiMapper.CardInputs(talkers, mutedForMe, if (playing) null else remainingMs, CITY_BAZAAR_TURN_SECONDS, shownCash),
+            CbTableMapper.CardInputs(talkers, mutedForMe, if (playing) null else remainingMs, CITY_BAZAAR_TURN_SECONDS, shownCash),
         )
-        val (myCard, left, right) = CityBazaarUiMapper.sides(m, cards)
+        val (myCard, left, right) = CbTableMapper.sides(m, cards)
         val colourOf: (Int) -> CityBazaarColour? = { seat -> m.player(seat)?.colour }
         val shownMe = me?.copy(cash = shownCash[me.seat] ?: me.cash)
         // The user's turn decision, as a balance-sheet dialog.
         val decision: CbModal? = if (myTurn && shownMe != null) {
             when (m.phase) {
-                CityBazaarTurnPhase.BUY -> m.pendingTile?.let { CityBazaarUiMapper.buy(shownMe, it, countdown) }
-                CityBazaarTurnPhase.BUILD -> m.pendingTile?.let { CityBazaarUiMapper.build(m, shownMe, it, countdown) }
-                CityBazaarTurnPhase.JAIL_ROLL -> CityBazaarUiMapper.jailRoll(m, countdown)
-                CityBazaarTurnPhase.JAIL_CHOICE -> CityBazaarUiMapper.jailChoice(shownMe, countdown)
-                CityBazaarTurnPhase.DEBT -> CityBazaarUiMapper.debt(m, shownMe, saleSelection, countdown)
+                CityBazaarTurnPhase.BUY -> m.pendingTile?.let { CbPromptMapper.buy(shownMe, it, countdown) }
+                CityBazaarTurnPhase.BUILD -> m.pendingTile?.let { CbPromptMapper.build(m, shownMe, it, countdown) }
+                CityBazaarTurnPhase.JAIL_ROLL -> CbPromptMapper.jailRoll(m, shownMe, countdown)
+                CityBazaarTurnPhase.JAIL_CHOICE -> CbPromptMapper.jailChoice(shownMe, countdown)
+                CityBazaarTurnPhase.DEBT -> CbPromptMapper.debt(m, shownMe, saleSelection, countdown)
                 else -> null
             }
         } else {
@@ -453,25 +582,38 @@ class CityBazaarMatchViewModel(
         }
         // A running auction shows to every player (not to watchers, nor after passing it).
         val auction = m.auction?.takeIf { !playing && shownMe != null && !shownMe.bankrupt && it.tile != passedAuction }?.let { a ->
-            CityBazaarUiMapper.auction(m, a, shownMe!!, CityBazaarUiMapper.countdown((a.endsAt - now).inWholeSeconds))
+            CbPromptMapper.auction(m, a, shownMe!!, CbFormat.countdown((a.endsAt - now).inWholeSeconds))
         }
-        val modal = vote?.let { CityBazaarModerationUiMapper.vote(it, now) } ?: auction ?: decision ?: userModal
-        val panel = panelTile?.let { CityBazaarUiMapper.tileInfo(m, it) }
-            ?: panelSeat?.let { CityBazaarUiMapper.playerPanel(m, it, shownCash[it] ?: 0) }
-            ?: panelDeck?.let { CityBazaarUiMapper.cardTable(it) }
-            ?: if (panelCities) CityBazaarUiMapper.properties(m, panelGroup) else null
+        // Rounds are over: everyone sees the continue-or-end vote (only players still in can vote).
+        val extension = m.extensionVote?.takeIf { m.phase == CityBazaarTurnPhase.EXTENSION_VOTE && !playing }?.let {
+            CbPromptMapper.extensionVote(m, it, CbFormat.countdown((it.endsAt - now).inWholeSeconds.coerceAtLeast(0)))
+        }
+        // Someone asked to end the game: everyone sees it while play is paused.
+        val endVote = m.endVote?.let { CbPromptMapper.endVote(m, it, CbFormat.countdown((it.endsAt - now).inWholeSeconds.coerceAtLeast(0))) }
+        val modal = vote?.let { CityBazaarModerationUiMapper.vote(it, now) } ?: endVote ?: auction ?: extension ?: decision ?: userModal
+        val panel = panelTile?.let { CbPropertyMapper.tileInfo(m, it) }
+            ?: panelSeat?.let { CbPropertyMapper.playerPanel(m, it, shownCash[it] ?: 0) }
+            ?: panelDeck?.let { CbPropertyMapper.cardTable(it) }
+            ?: (if (panelCities) CbPropertyMapper.properties(m, panelGroup) else null)
+            ?: if (panelBank) CbPropertyMapper.bankPanel(m) else null
         setState {
             copy(
                 loaded = true,
-                title = Strings.cbTitle,
-                subtitle = m.roundLimit?.let { limit -> m.title + " · " + Strings.cbRoundOf(m.round, limit) } ?: m.title,
-                audience = CityBazaarUiMapper.audience(m, talkers, mutedForMe),
+                title = CityBazaarStrings.cbTitle,
+                subtitle = TableStrings.tableSubtitle(
+                    listOfNotNull(
+                        m.title,
+                        m.roundLimit?.let { limit -> CityBazaarStrings.cbRoundOf(m.round, limit) },
+                        if (m.pot > 0) TableStrings.tablePot(TextUtils.groupedThousands(m.pot)) else null,
+                    ),
+                ),
+                audience = CbTableMapper.audience(m, talkers, mutedForMe),
                 roomMatch = m.isRoomMatch,
                 spectatorCount = m.spectatorCount.toString(),
-                spectatorLabel = Strings.ludoSpectators,
-                elapsed = if (m.phase == CityBazaarTurnPhase.FINISHED && elapsed.isNotEmpty()) elapsed else CityBazaarUiMapper.elapsed(now - m.startedAt),
-                tiles = CityBazaarUiMapper.tiles(shownOwners, shownLevels, colourOf),
-                tokens = CityBazaarUiMapper.tokens(m, shownPositions),
+                spectatorLabel = LudoStrings.ludoSpectators,
+                elapsed = if (m.phase == CityBazaarTurnPhase.FINISHED && elapsed.isNotEmpty()) elapsed else CbFormat.elapsed(now - m.startedAt),
+                tiles = CbTableMapper.tiles(shownOwners, shownLevels, colourOf),
+                tokens = CbTableMapper.tokens(m, shownPositions),
                 highlight = when (modal) {
                     is CbModal.Buy -> setOf(modal.tile)
                     is CbModal.Build -> setOf(modal.tile)
@@ -479,6 +621,7 @@ class CityBazaarMatchViewModel(
                     else -> when (panel) {
                         is CbPanel.Property -> setOf(panel.card.tile)
                         is CbPanel.Player -> panel.cities.map { it.tile }.toSet()
+                        is CbPanel.Bank -> panel.cities.map { it.tile }.toSet()
                         is CbPanel.Cities -> panel.cities.map { it.tile }.toSet()
                         is CbPanel.Deck -> CityBazaarBoard.tilesOf(if (panel.deck == CardDeck.LUCK) TileKind.LUCK else TileKind.CHEST).toSet()
                         null -> emptySet()
@@ -488,17 +631,44 @@ class CityBazaarMatchViewModel(
                 myCard = myCard,
                 leftCards = left,
                 rightCards = right,
-                stacks = CityBazaarUiMapper.stacks(m),
+                stacks = CbTableMapper.stacks(m),
                 spectating = me == null,
                 canRoll = myTurn && (m.phase == CityBazaarTurnPhase.ROLL || m.phase == CityBazaarTurnPhase.JAIL_ROLL),
-                rollLabel = if (m.phase == CityBazaarTurnPhase.JAIL_ROLL && myTurn) Strings.cbRollDoubles else Strings.cbRollDice,
-                autoplay = me?.autoplay == true || me?.presence == CityBazaarPresence.BOT,
-                micOn = me?.micOn == true,
-                toast = toast,
+                rollLabel = if (m.phase == CityBazaarTurnPhase.JAIL_ROLL && myTurn) CityBazaarStrings.cbRollDoubles else CityBazaarStrings.cbRollDice,
+                // What the user just set wins until the server agrees (no waiting on the round trip).
+                autoplay = autoplayWanted ?: (me?.autoplay == true || me?.presence == CityBazaarPresence.BOT),
+                // The app-wide mic switch, at once (the server catches up through syncMic).
+                micOn = me != null && micSwitch,
+                // The view model's own values (inside copy, bare names would be the old state's).
+                toast = this@CityBazaarMatchViewModel.toast,
+                transaction = this@CityBazaarMatchViewModel.transaction,
+                moneyFlight = this@CityBazaarMatchViewModel.moneyFlight,
+                feedSnack = this@CityBazaarMatchViewModel.feedSnack,
+                history = this@CityBazaarMatchViewModel.history.toList(),
+                historyOpen = this@CityBazaarMatchViewModel.historyOpen,
+                leaderboard = this@CityBazaarMatchViewModel.leaderboard,
                 modal = modal,
                 panel = panel,
             )
         }
+    }
+
+    /** Adds [line] to the history and (unless it's quiet) shows it at the bottom for a moment. */
+    private fun feed(line: TableFeedLineUi) {
+        feedId++
+        val item = line.copy(id = feedId)
+        history.addFirst(item)
+        while (history.size > HISTORY_LIMIT) history.removeLast()
+        if (!item.quiet) {
+            feedSnack = item
+            feedJob?.cancel()
+            feedJob = scope.launch {
+                delay(cbConfig.snackbarMs())
+                feedSnack = null
+                render()
+            }
+        }
+        render()
     }
 
     private fun showToast(next: CbToastUi) {
@@ -513,7 +683,8 @@ class CityBazaarMatchViewModel(
         render()
     }
 
-    private fun showPanel(tile: Int? = null, seat: Int? = null, deck: CardDeck? = null, cities: Boolean = false, group: CityGroup? = null) {
+    private fun showPanel(tile: Int? = null, seat: Int? = null, deck: CardDeck? = null, cities: Boolean = false, group: CityGroup? = null, bank: Boolean = false) {
+        panelBank = bank
         panelTile = tile
         panelSeat = seat
         panelDeck = deck
@@ -529,7 +700,12 @@ class CityBazaarMatchViewModel(
 
     private fun showSettings() {
         val s = audio.settings.value
-        showModal(CbModal.Settings(effectsOn = s.effectsOn, musicOn = s.musicOn))
+        // Ending by vote: a player still at the table, playing for themselves, while nothing else is being decided.
+        val m = match
+        val me = m?.me
+        val canProposeEnd = m != null && me != null && !me.isCpu && !me.bankrupt && me.presence == CityBazaarPresence.PLAYING &&
+            m.phase != CityBazaarTurnPhase.FINISHED && m.phase != CityBazaarTurnPhase.EXTENSION_VOTE && m.auction == null && m.endVote == null
+        showModal(CbModal.Settings(effectsOn = s.effectsOn, musicOn = s.musicOn, canProposeEnd = canProposeEnd))
     }
 
     private fun showReport(selected: String?, error: String?) {
@@ -539,8 +715,8 @@ class CityBazaarMatchViewModel(
             CbModal.Report(
                 people = CityBazaarModerationUiMapper.reportablePeople(m),
                 selectedUserId = selected,
-                warning = Strings.ludoReportWarning(ModerationRules.requiredAgreements(voters)),
-                error = error ?: if (ModerationRules.canReport(voters)) null else Strings.ludoReportNeedPeople,
+                warning = LudoStrings.ludoReportWarning(ModerationRules.requiredAgreements(voters)),
+                error = error ?: if (ModerationRules.canReport(voters)) null else LudoStrings.ludoReportNeedPeople,
             ),
         )
     }
@@ -551,7 +727,7 @@ class CityBazaarMatchViewModel(
         val person = report.people.firstOrNull { it.userId == report.selectedUserId } ?: return
         when (moderation.report(m.matchId, person.userId, person.name, CityBazaarModerationUiMapper.voters(m))) {
             is AppResult.Success -> showModal(null)
-            is AppResult.Failure -> showReport(report.selectedUserId, Strings.ludoReportNeedPeople)
+            is AppResult.Failure -> showReport(report.selectedUserId, LudoStrings.ludoReportNeedPeople)
         }
     }
 
@@ -613,6 +789,75 @@ class CityBazaarMatchViewModel(
         /** Money the dialogs already showed (buying, building, selling). */
         val QUIET = setOf(MoneyReason.BUY, MoneyReason.BUILD, MoneyReason.SELL, MoneyReason.BANKRUPTCY)
         /** Payments everyone is told about. */
+        const val HISTORY_LIMIT = 150
         val PAYMENTS = setOf(MoneyReason.RENT, MoneyReason.TAX, MoneyReason.CLUB, MoneyReason.JAIL_FINE, MoneyReason.LATE_ROLL, MoneyReason.CARD, MoneyReason.AUCTION)
+    }
+
+    /** Long press on [player]'s card: confirm adding them (or removing them if already a friend). */
+    private suspend fun openFriendAction(userId: String, name: String, avatarId: String) {
+        val isFriend = userId in playerFriends.friendIds()
+        setState { copy(friendAction = PlayerFriendActionUi(userId, name, avatarId, isFriend)) }
+    }
+
+    private suspend fun confirmFriendAction() {
+        val action = state.value.friendAction ?: return
+        if (action.busy) return
+        setState { copy(friendAction = action.copy(busy = true, error = null)) }
+        when (playerFriends.toggle(action.userId, action.isFriend)) {
+            is AppResult.Success -> setState { copy(friendAction = null) }
+            is AppResult.Failure -> setState { copy(friendAction = action.copy(busy = false, error = TableStrings.playerFriendFailed)) }
+        }
+    }
+
+    /** Autoplay as the user just set it, shown at once until the server agrees (or gives up after a few seconds). */
+    private var autoplayWanted: Boolean? = null
+    private var autoplayJob: Job? = null
+
+    private suspend fun toggleAutoplay(serverValue: Boolean, send: suspend (Boolean) -> Unit) {
+        val next = !(autoplayWanted ?: serverValue)
+        autoplayWanted = next
+        autoplayJob?.cancel()
+        autoplayJob = scope.launch {
+            delay(AppConstants.TOGGLE_CONFIRM_MS)
+            autoplayWanted = null
+            render()
+        }
+        render()
+        send(next)
+    }
+
+    /** Whether [event] is about the user (their money, card, jail, rest…). */
+    private fun involvesMe(event: CityBazaarEvent, m: CityBazaarMatch): Boolean {
+        val me = m.me?.seat ?: return false
+        return when (event) {
+            is CityBazaarEvent.Money -> event.from == me || event.to == me
+            is CityBazaarEvent.Card -> event.seat == me
+            is CityBazaarEvent.Jailed -> event.seat == me
+            is CityBazaarEvent.Freed -> event.seat == me
+            is CityBazaarEvent.Rested -> event.seat == me
+            is CityBazaarEvent.Bankrupt -> event.seat == me
+            is CityBazaarEvent.Built -> event.seat == me
+            is CityBazaarEvent.HalfRent -> event.seat == me
+            is CityBazaarEvent.CantAfford -> event.seat == me
+            else -> false
+        }
+    }
+
+    /** The panel [seat] / [tile] was just closed (a moment ago, by this same tap) or is open now. */
+    private var closedSeat: Int? = null
+    private var closedTile: Int? = null
+    private var closedAt = kotlinx.datetime.Instant.DISTANT_PAST
+
+    private fun isShowing(seat: Int? = null, tile: Int? = null): Boolean {
+        val justClosed = clock.now() - closedAt < AppConstants.PANEL_RETAP_MS.milliseconds
+        return (seat != null && (panelSeat == seat || (justClosed && closedSeat == seat))) ||
+            (tile != null && (panelTile == tile || (justClosed && closedTile == tile)))
+    }
+
+    /** A roll that led to nothing to tell: its own history line. */
+    private fun flushRoll() {
+        pendingRoll?.let { feed(it) }
+        pendingRoll = null
+        pendingDice = null
     }
 }

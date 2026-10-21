@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players
 
+import com.kglabs28.yapnplay.appengine.ui.components.table.TablePlayerCard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoPlayerCardUi
@@ -17,7 +18,14 @@ fun LudoMyCard(
     onToggleMic: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LudoPlayerCard(card = card, modifier = modifier) {
+    TablePlayerCard(
+        card = card,
+        tint = card.colour.tint(),
+        faded = card.left,
+        badge = card.placeLabel ?: card.statusLabel,
+        badgeTint = card.badgeTint(),
+        modifier = modifier,
+    ) {
         LudoMyControls(
             canRoll = canRoll,
             moveHint = moveHint,

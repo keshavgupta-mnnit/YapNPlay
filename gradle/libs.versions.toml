@@ -8,18 +8,19 @@ appcompat = "1.8.0"
 material = "1.14.0"
 
 # KMP + contracts
-kotlin = "2.0.21"
+kotlin = "2.2.21"
 kotlinxSerialization = "1.7.3"
 kotlinxCoroutines = "1.9.0"
 kotlinxDatetime = "0.6.1"
 junitJupiter = "5.11.2"
 
 # Phase 7: Android app (all stable releases)
-composeMultiplatform = "1.7.3"
-koin = "4.0.0"
-navigation = "2.9.0-beta03"
-lifecycle = "2.8.4"
+composeMultiplatform = "1.10.3"
+koin = "4.1.1"
+navigation = "2.9.1"
+lifecycle = "2.9.6"
 ktor = "3.0.0"
+coil = "3.4.0"
 datastore = "1.1.0"
 tink = "1.15.0"
 mockk = "1.13.12"
@@ -29,7 +30,7 @@ activityCompose = "1.9.0"
 googleservices = "4.4.2"
 crashlyticsPlugin = "3.0.3"
 firebaseBom = "34.0.0"
-# Live voice (LiveKit Cloud free tier); built with Kotlin 1.9, readable by our 2.0 compiler.
+# Live voice (LiveKit Cloud free tier); built with Kotlin 1.9, readable by our 2.2 compiler.
 livekit = "2.29.0"
 
 [libraries]
@@ -58,6 +59,8 @@ koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation" }
 lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
@@ -82,6 +85,8 @@ firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics", ve
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 livekit-android = { module = "io.livekit:livekit-android", version.ref = "livekit" }
 play-app-update = { module = "com.google.android.play:app-update-ktx", version = "2.1.0" }
+play-games-v2 = { module = "com.google.android.gms:play-services-games-v2", version = "20.1.2" }
+play-services-ads = { module = "com.google.android.gms:play-services-ads", version = "24.4.0" }
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutines" }
 
 [plugins]

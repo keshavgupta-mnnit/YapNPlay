@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,24 +51,24 @@ fun LudoMatchModalContent(
 
     when (modal) {
         is LudoMatchModal.LeaveConfirm -> SeatPickerDialog(
-            title = Strings.ludoLeaveTitle,
+            title = LudoStrings.ludoLeaveTitle,
             message = modal.body,
             countdown = modal.countdown,
             options = modal.seatOptions,
             selectedIndex = modal.selectedIndex,
             onSelect = actions.onPickSeatTaker,
-            secondaryLabel = Strings.seatCancel,
+            secondaryLabel = TableStrings.seatCancel,
             onSecondary = onDismiss,
-            primaryLabel = Strings.seatExit,
+            primaryLabel = TableStrings.seatExit,
             onPrimary = actions.onConfirmLeave,
             modifier = modifier,
         )
         is LudoMatchModal.Result -> ModalCard(
-            title = Strings.ludoResultTitle,
+            title = LudoStrings.ludoResultTitle,
             modifier = modifier,
             actions = {
                 PillButton(
-                    text = Strings.ludoDone,
+                    text = LudoStrings.ludoDone,
                     onClick = actions.onDone,
                     gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),
                     contentColor = colors.CtaGreenContent,
@@ -111,7 +113,7 @@ fun LudoMatchModalContent(
             modifier = modifier,
         )
         is LudoMatchModal.Report -> ReportPlayerCard(
-            options = modal.people.map { Strings.ludoReportOption(it.name, it.role) },
+            options = modal.people.map { LudoStrings.ludoReportOption(it.name, it.role) },
             selectedIndex = modal.people.indexOfFirst { it.userId == modal.selectedUserId }.takeIf { it >= 0 },
             warning = modal.warning,
             error = modal.error,
@@ -157,9 +159,9 @@ fun LudoMatchModalContent(
             selectedIndex = modal.selectedIndex,
             onSelect = actions.onPickSeatTaker,
             countdown = modal.countdown,
-            secondaryLabel = Strings.seatImHere,
+            secondaryLabel = TableStrings.seatImHere,
             onSecondary = actions.onStillHere,
-            primaryLabel = Strings.seatSpectate,
+            primaryLabel = TableStrings.seatSpectate,
             onPrimary = actions.onSpectate,
             modifier = modifier,
         )
@@ -178,9 +180,9 @@ fun LudoMatchModalContent(
             selectedIndex = modal.selectedIndex,
             onSelect = actions.onPickSeatTaker,
             countdown = modal.countdown,
-            secondaryLabel = Strings.seatOfferToBot,
+            secondaryLabel = TableStrings.seatOfferToBot,
             onSecondary = actions.onOfferSeatToBot,
-            primaryLabel = Strings.seatInviteToSeat,
+            primaryLabel = TableStrings.seatInviteToSeat,
             onPrimary = actions.onInviteToSeat,
             primaryEnabled = modal.selectedIndex != null,
             modifier = modifier,

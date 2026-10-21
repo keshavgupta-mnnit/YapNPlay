@@ -1,4 +1,4 @@
-# YapNPlay — Backend API contract (v0.3.1)
+# YapNPlay — Backend API contract (v0.4.3)
 
 What the Android app expects from the Ktor server. The Kotlin types are
 the source of truth: `appengine/.../protocol/` (wire messages, bodies)
@@ -30,9 +30,15 @@ decisions that win).
 ## Versioning
 
 `CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
-**0.3.1**. Patch: optional field / new message. Minor: new required
+**0.4.3**. Patch: optional field / new message. Minor: new required
 field, channel or game-interface member. Major: breaking change.
 Every bump is announced in `docs/decisions.md`.
+
+0.4.1 added: groups (= rooms) with invites — `CreateRoom.icon` +
+`inviteUserIds`; `POST /rooms/{roomId}/invites`, `GET /rooms/invites`,
+accept / decline; FCM `room_invite`; error `NOT_FRIEND`. See
+"Groups and invites" below. 0.4.0 (server-side notes) is in the backend
+repo's `CONTRACT-0.4.0.md`.
 
 0.3.1 added: profile and friends — `Me`/`FriendSummary` fields `username`,
 `userCode`, `avatarId` (+ `Me.gamesPlayed`, `gamesWon`); `PATCH /me` takes
@@ -245,6 +251,62 @@ server). The descriptor gives everything matchmaking and rooms need:
 A game can be switched off without a release through a remote flag
 (`royal_ludo_enabled`, or `game_enabled_<id>` for others); the server
 must honour the same switch (`GAME_UNAVAILABLE`).
+
+## Google Play Games sign-in (0.4.3)
+
+Players start as a guest; Play Games links the account so it can be
+restored on a new phone or after a reinstall (as in Clash of Clans).
+
+- **Link / restore:** `POST /auth/play-games` `PlayGamesSignInBody(serverAuthCode)`,
+  sent with the current guest's bearer (no bearer is also accepted). The
+  server exchanges the code with Google (OAuth, web client
+  `PLAY_GAMES_CLIENT_ID` / `PLAY_GAMES_CLIENT_SECRET`) and reads the stable
+  `playerId` from `games/v1/players/me`.
+  - playerId already linked to an account → that account's credentials,
+    `restored = true` when it differs from the caller (no merge).
+  - not linked → linked to the caller (or a new account without a bearer),
+    the caller's credentials, `restored = false`.
+- Reply `PlayGamesSignedIn(userId, secret, restored)`; the app saves it.
+- Errors: `BAD_REQUEST` 400 (blank code), `NOT_AUTHENTICATED` 401 (Google
+  refused the code), `PLAY_GAMES_UNAVAILABLE` 503 (server not configured).
+- One Play Games player ↔ one account. The server keeps only a hash of
+  each secret, so a restore issues a **new secret**: another phone still
+  holding the old one gets 401 on its next call. On a 401 the app runs
+  Play Games sign-in again; it never silently creates a new guest.
+
+## Groups and invites (0.4.1)
+
+In the app a room is called a **group**. Creating one, inviting friends,
+and answering invites:
+
+- **Create:** WebSocket `CreateRoom(name?, icon?, inviteUserIds)` →
+  `RoomSnapshot` as before. The creator is member, leader and admin.
+  `icon` ∈ `group | dice | family | gamepad` (unknown → `group`). Each id
+  in `inviteUserIds` that is the creator's friend (and not blocked either
+  way) gets a **room invite**; others are skipped silently. Invites past
+  the limit (members + pending invites ≤ 10) are skipped.
+- **Invite later:** `POST /rooms/{roomId}/invites` `InviteToRoomBody(userIds)`
+  → `InviteToRoomReply(invited, skipped)`. Any member may invite their
+  own friends (`NOT_MEMBER` otherwise). Skipped: not a friend, blocked,
+  already a member, already invited, or no room left.
+- **My invites:** `GET /rooms/invites` → `RoomInvites(invites:
+  [RoomInviteSummary(inviteId, roomId, roomName, roomIcon, memberCount,
+  invitedBy: FriendSummary, invitedAt)])`, newest first.
+- **Accept:** `POST /rooms/invites/{inviteId}/accept` → `RoomSummary`. The
+  invite is the approval: the user becomes a member at once (no Waiting
+  List). Errors: `NOT_FOUND`, `ROOM_FULL`, `ROOM_LIMIT_REACHED`. Present
+  members get a fresh `RoomSnapshot`.
+- **Decline:** `POST /rooms/invites/{inviteId}/decline` → 204. The inviter
+  isn't told.
+- An invite disappears when it's answered, when the user joins the room
+  some other way, or when the room is deleted. A user's own join by code
+  is unchanged (`PENDING_APPROVAL` → the admin's Waiting List).
+- **Push:** FCM data `type=room_invite, inviteId, roomId, roomName,
+  title="<inviter> invited you to <room>", body="Tap to answer"`.
+
+**Friend actions from a game:** a long press on a player card sends
+`POST /friends/requests` with `SendFriendRequestBody(userId)` (already in
+the contract); removing is `DELETE /friends/{userId}`.
 
 ## Invite links and pushes
 

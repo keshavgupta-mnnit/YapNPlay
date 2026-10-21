@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,7 +30,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.PresenceDot
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.IconCircle
@@ -101,7 +101,7 @@ fun LobbyMemberRow(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 BasicText(
-                    text = if (member.isMe) "${member.name} (${Strings.lobbyYou})" else member.name,
+                    text = if (member.isMe) "${member.name} (${RoomStrings.lobbyYou})" else member.name,
                     style = YapNPlayTheme.typography.title.copy(color = colors.TextPrimary),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -153,7 +153,7 @@ private fun MemberAvatar(
                 imageVector = Icons.Rounded.WorkspacePremium,
                 tint = colors.Gold,
                 size = dimens.crownSize,
-                contentDescription = Strings.lobbyAdmin,
+                contentDescription = RoomStrings.lobbyAdmin,
                 modifier = Modifier.align(Alignment.TopCenter),
             )
         }
@@ -172,7 +172,7 @@ private fun MicOffBadge() {
         size = dimens.memberVoiceIcon,
         iconSize = dimens.iconTiny,
         rimColor = colors.Error.copy(alpha = 0.6f),
-        modifier = Modifier.semantics { contentDescription = Strings.lobbyMicOff },
+        modifier = Modifier.semantics { contentDescription = RoomStrings.lobbyMicOff },
     )
 }
 

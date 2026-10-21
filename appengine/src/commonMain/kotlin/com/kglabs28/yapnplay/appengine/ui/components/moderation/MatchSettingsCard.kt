@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
+import androidx.compose.material.icons.rounded.SportsScore
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.OnOffSwitch
@@ -26,16 +27,30 @@ fun MatchSettingsCard(
     onToggleMusic: () -> Unit,
     /** Null hides Report (games without voice reports). */
     onReport: (() -> Unit)? = null,
+    /** Ask everyone to end the game (a vote); null hides it. */
+    onEndGame: (() -> Unit)? = null,
+    endGameLabel: String = "",
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ModalCard(title = Strings.ludoSettings, onClose = onClose, modifier = modifier) {
+    ModalCard(title = LudoStrings.ludoSettings, onClose = onClose, modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-            SettingRow(Strings.ludoSoundEffects, effectsOn, onToggleEffects)
-            SettingRow(Strings.ludoMusic, musicOn, onToggleMusic)
+            SettingRow(LudoStrings.ludoSoundEffects, effectsOn, onToggleEffects)
+            SettingRow(LudoStrings.ludoMusic, musicOn, onToggleMusic)
+            onEndGame?.let {
+                GlassPillButton(
+                    text = endGameLabel,
+                    onClick = it,
+                    leadingIcon = Icons.Rounded.SportsScore,
+                    accent = YapNPlayTheme.colors.Warning,
+                    contentColor = YapNPlayTheme.colors.Warning,
+                    height = YapNPlayTheme.dimens.ctaHeight,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
             onReport?.let {
                 GlassPillButton(
-                    text = Strings.ludoReport,
+                    text = LudoStrings.ludoReport,
                     onClick = it,
                     leadingIcon = Icons.Rounded.Flag,
                     accent = YapNPlayTheme.colors.Error,

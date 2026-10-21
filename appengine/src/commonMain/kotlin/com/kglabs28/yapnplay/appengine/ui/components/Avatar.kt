@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import com.kglabs28.yapnplay.appengine.core.designsystem.HeadlineFontFamily
+import com.kglabs28.yapnplay.appengine.core.designsystem.headlineFontFamily
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
 /**
@@ -45,7 +45,7 @@ fun Avatar(
             BasicText(
                 text = initials.take(2).uppercase(),
                 style = YapNPlayTheme.typography.title.copy(
-                    fontFamily = HeadlineFontFamily,
+                    fontFamily = headlineFontFamily(),
                     fontWeight = FontWeight.SemiBold,
                     color = YapNPlayTheme.colors.TextPrimary,
                     textAlign = TextAlign.Center,

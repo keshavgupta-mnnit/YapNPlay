@@ -241,6 +241,39 @@ These rules apply to **every line of code** in this project. No exceptions, no s
 - **No string concatenation** for user-visible text. Formatting lives in
   `Strings.kt` functions (e.g. `aboutInfo(...)`).
 
+### 5.9 Game bots decide like a person (every game)
+
+Every computer decision — CPU seats, Autoplay, away or bot-held seats, in
+every game now and later — weighs **profit, loss and risk**, never a plain
+if/else or a single fixed threshold:
+
+- List the options the rules allow at that moment (move this piece or
+  that, buy or pass, build or skip, bid or pass, pay or stay, which thing
+  to sell…).
+- Give each one an **expected value**: what it is likely to earn from now
+  on, minus what it costs or gives up now, minus the risk it adds (the
+  chance of a loss times how big that loss would be — being captured,
+  paying rent, going broke). Use the game's real odds (dice, cards,
+  squares ahead) and what has happened so far in the match (which
+  squares are busy, which earn).
+- Pick the highest value. Cash cushions and reserves are part of the
+  risk term, not stand-alone rules.
+- The bot follows the match's own rules (house rules included); it never
+  counts on a rule that is switched off.
+- Every weight is a runtime setting (admin page), never a literal.
+- The server owns the bot; the app's engine copy mirrors it exactly.
+- Each bot ships with tests that read like a person's choice ("with
+  ₹10,000 and hotels ahead it doesn't buy the ₹8,500 city").
+- **Shared shape:** options → evaluate (gain, cost, risk) → pick. A
+  *standing* factor scales risk: a bot far behind takes chances, a leader
+  plays safe.
+- **Explainable:** each bot decision records its top options and scores
+  (debug log, admin page), so odd moves can be traced and tuned.
+- **Tuned by self-play:** an offline bot-vs-bot arena compares setting
+  sets over many games; the winners become the defaults.
+- New situations a game's rules create (taxes, cards, auctions, blocks,
+  extra turns, endgame) are added to its evaluation, not special-cased.
+
 ---
 
 ## 6. Instructions for AI agents

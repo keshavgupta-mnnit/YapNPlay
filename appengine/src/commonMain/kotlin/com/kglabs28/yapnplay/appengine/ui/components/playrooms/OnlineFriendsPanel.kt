@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +24,6 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
@@ -57,14 +57,14 @@ fun OnlineFriendsPanel(
     ) {
         SectionHeader(
             icon = Icons.Rounded.Groups,
-            title = Strings.roomsOnlineFriendsTitle,
-            subtitle = Strings.roomsOnlineFriendsSubtitle,
+            title = RoomStrings.roomsOnlineFriendsTitle,
+            subtitle = RoomStrings.roomsOnlineFriendsSubtitle,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
                 GlassIconButton(
                     imageVector = Icons.Rounded.ChevronLeft,
-                    contentDescription = Strings.roomsPreviousFriends,
+                    contentDescription = RoomStrings.roomsPreviousFriends,
                     onClick = {
                         scope.launch {
                             listState.animateScrollToItem(
@@ -78,7 +78,7 @@ fun OnlineFriendsPanel(
                 )
                 GlassIconButton(
                     imageVector = Icons.Rounded.ChevronRight,
-                    contentDescription = Strings.roomsNextFriends,
+                    contentDescription = RoomStrings.roomsNextFriends,
                     onClick = {
                         scope.launch {
                             listState.animateScrollToItem(
@@ -100,7 +100,7 @@ fun OnlineFriendsPanel(
         ) {
             if (loaded && friends.isEmpty()) {
                 EmptyStateText(
-                    text = Strings.roomsNoFriends,
+                    text = RoomStrings.roomsNoFriends,
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {

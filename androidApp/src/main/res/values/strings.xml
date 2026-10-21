@@ -3,4 +3,6 @@
     <string name="app_name">YapNPlay</string>
     <string name="notification_channel_rooms">Room activity</string>
     <string name="notification_channel_rooms_description">When friends enter your rooms</string>
+    <!-- Play Games Services project ID (Play Console → Play Games Services → Configuration). -->
+    <string name="game_services_project_id" translatable="false">532749629825</string>
 </resources>

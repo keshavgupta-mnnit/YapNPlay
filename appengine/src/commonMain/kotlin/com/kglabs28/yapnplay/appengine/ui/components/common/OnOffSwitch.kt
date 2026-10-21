@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,7 +17,6 @@ import androidx.compose.ui.semantics.Role
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.neonGlow
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 
 /**
  * Pill ON/OFF switch (house rules, mic, speaker): neon green with the knob on
@@ -52,7 +52,7 @@ fun OnOffSwitch(
             .padding(horizontal = Spacing.Xxs),
     ) {
         BasicText(
-            text = if (on) Strings.lobbyOn else Strings.lobbyOff,
+            text = if (on) RoomStrings.lobbyOn else RoomStrings.lobbyOff,
             style = YapNPlayTheme.typography.micro.copy(
                 color = if (on) colors.ReadyGreen else colors.TextSecondary,
             ),

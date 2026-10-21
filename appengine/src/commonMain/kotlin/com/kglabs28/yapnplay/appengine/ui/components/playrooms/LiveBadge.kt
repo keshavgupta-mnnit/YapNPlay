@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 
 /**
  * Green "● 6 live" chip: how many members are in the room right now.
@@ -42,7 +42,7 @@ fun LiveBadge(
                 .background(colors.LiveGreen),
         )
         BasicText(
-            text = Strings.roomLive(count),
+            text = RoomStrings.roomLive(count),
             style = YapNPlayTheme.typography.micro.copy(color = colors.LiveGreen),
             maxLines = 1,
         )

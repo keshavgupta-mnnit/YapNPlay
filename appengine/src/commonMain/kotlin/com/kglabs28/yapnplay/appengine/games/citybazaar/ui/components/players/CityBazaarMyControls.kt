@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
@@ -7,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.OnOffSwitch
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableGlassButton
 
@@ -28,7 +29,7 @@ fun CityBazaarMyControls(
     val smoke = listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom)
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
         TableGlassButton(
-            text = Strings.lobbyMic,
+            text = RoomStrings.lobbyMic,
             onClick = onToggleMic,
             fill = smoke,
             textColor = if (micOn) colors.TextPrimary else colors.TextSecondary,
@@ -38,7 +39,7 @@ fun CityBazaarMyControls(
             OnOffSwitch(on = micOn, onToggle = onToggleMic)
         }
         TableGlassButton(
-            text = Strings.ludoAutoplay,
+            text = LudoStrings.ludoAutoplay,
             onClick = onToggleAutoplay,
             fill = smoke,
             textColor = if (autoplay) colors.TextPrimary else colors.TextSecondary,

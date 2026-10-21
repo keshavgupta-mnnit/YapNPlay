@@ -1,9 +1,10 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.utils
 
+import com.kglabs28.yapnplay.appengine.games.base.identity.GameIds
 import com.kglabs28.yapnplay.appengine.games.base.rules.HouseRuleOption
 
 // Identity and showcase (shared with the server's game list).
-const val CITY_BAZAAR_ID = "city-bazaar"
+const val CITY_BAZAAR_ID = GameIds.CITY_BAZAAR
 const val CITY_BAZAAR_DISPLAY_NAME = "City Bazaar"
 val CITY_BAZAAR_TAGLINES = listOf("Buy", "Build", "Boss")
 
@@ -13,13 +14,15 @@ const val CITY_BAZAAR_MAX_PLAYERS = 6
 const val CITY_BAZAAR_QUICK_PLAY_SEATS = 4
 const val CITY_BAZAAR_SEARCH_SECONDS = 30L
 /** Seconds per decision before the turn plays itself. */
-const val CITY_BAZAAR_TURN_SECONDS = 20L
+const val CITY_BAZAAR_TURN_SECONDS = 10L
 
 // Money (₹). Starting cash and the limits are AppManager values; these are the defaults.
 const val STARTING_CASH = 20_000
 const val START_BONUS = 1_500
 const val JAIL_FINE = 500
 const val CLUB_FEE = 500
+/** Club: the lander pays each other player this; Rest House: each other player pays the lander. */
+const val CLUB_REST_EACH = 50
 /** Property tax (a Shagun Chest result): per property owned. */
 const val PROPERTY_TAX_PER = 50
 /** Wealth Tax tile: per building owned (each house and each hotel). */
@@ -58,8 +61,10 @@ const val BOT_JAIL_FINE_CASH = 6_000
 // Lobby: house-rule toggles (keys match CityBazaarHouseRules) and the fixed rule sheet.
 val CITY_BAZAAR_HOUSE_RULES = listOf(
     HouseRuleOption("set_double_rent", "Colour Bonus", "3 cities of one colour: their rent doubles", true),
-    HouseRuleOption("rest_house_skip", "Rest House Rest", "Landing on Rest House skips your next turn", true),
-    HouseRuleOption("club_fee", "Club Fee", "Landing on Club costs ₹500", true),
+    HouseRuleOption("rest_house_skip", "Rest House Treat", "Land on Rest House: every other player pays you ₹50", true),
+    HouseRuleOption("club_fee", "Club Party", "Land on Club: you pay every other player ₹50", true),
+    HouseRuleOption("money_popups", "Money Popups", "Show a popup for every payment (off: a quick coin animation)", true),
+    HouseRuleOption("debt_auction", "Auction to Pay Debts", "In debt, a city you sell goes up for auction instead of straight to the bank", true),
     HouseRuleOption("round_limit", "Round Limit", "End after the set number of rounds; richest wins", true),
     HouseRuleOption("time_limit", "Time Limit", "End when the match time is up; richest wins", true),
 )

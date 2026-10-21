@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.AppManagerHelper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -36,12 +37,13 @@ import org.koin.compose.koinInject
 fun UpdateGate(
     modifier: Modifier = Modifier,
     appManager: AppManager = koinInject(),
+    appConfig: AppManagerHelper = koinInject(),
     content: @Composable () -> Unit,
 ) {
     val updater = rememberAppUpdater()
     // Re-read the rule whenever Remote Config values arrive.
     val revision by appManager.revision.collectAsState()
-    val rule = remember(revision) { UpdateRule.parse(appManager.updateConfig()) }
+    val rule = remember(revision) { UpdateRule.parse(appConfig.updateConfig()) }
     val need = rule.need(updater.versionName)
     var optionalDismissed by rememberSaveable { mutableStateOf(false) }
 

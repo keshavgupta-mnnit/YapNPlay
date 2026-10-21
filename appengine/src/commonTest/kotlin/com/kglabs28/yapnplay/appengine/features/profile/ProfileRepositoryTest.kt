@@ -16,8 +16,8 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 private val mockProfileDto = ProfileDto(
-    userId = "user-keshav",
-    displayName = "Keshav",
+    userId = "user-riya",
+    displayName = "Riya",
     level = 12,
     xp = 2450,
     xpMax = 3000,
@@ -60,7 +60,7 @@ class ProfileRepositoryTest {
     fun `profile maps dto to domain`() = runTest {
         val result = repository().fetchProfileData()
         assertIs<AppResult.Success<UserProfile>>(result)
-        assertEquals("Keshav", result.data.name)
+        assertEquals("Riya", result.data.name)
         assertEquals(12, result.data.level)
         assertEquals(2450, result.data.xp)
         assertEquals(4250, result.data.coins)
@@ -85,7 +85,7 @@ class ProfileRepositoryTest {
         val offline = ProfileRepositoryImpl(ProfileRemoteManager(StubApi(fail = true)), local)
         val profile = offline.fetchProfileData()
         assertIs<AppResult.Success<UserProfile>>(profile)
-        assertEquals("Keshav", profile.data.name)
+        assertEquals("Riya", profile.data.name)
         val friends = offline.getFriendList()
         assertIs<AppResult.Success<List<Friend>>>(friends)
         assertEquals(2, friends.data.size)

@@ -29,4 +29,14 @@ enum class ErrorCode {
     SEAT_TAKEN,
     /** Voice is not set up on this server. */
     VOICE_UNAVAILABLE,
+    /** Only friends can be invited to a room. */
+    NOT_FRIEND,
+    /** The match hasn't started: it's waiting for every player to open the table. */
+    MATCH_ON_HOLD,
+    /** The server can't check Play Games sign-ins (not configured). */
+    PLAY_GAMES_UNAVAILABLE,
+    /** CreateRoom: the creator already has a group with exactly these members; the message is its name. */
+    GROUP_EXISTS,
+    /** JoinQueue: the user can't pay the league's entry fee. */
+    NOT_ENOUGH_COINS,
 }

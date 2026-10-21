@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
@@ -7,7 +8,6 @@ import androidx.compose.material.icons.rounded.GroupAdd
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
@@ -34,13 +34,13 @@ fun JoinRoomPromptCard(
         modifier = modifier,
         actions = {
             GlassPillButton(
-                text = Strings.roomsJoinCancel,
+                text = RoomStrings.roomsJoinCancel,
                 onClick = onCancel,
                 leadingIcon = Icons.Rounded.Close,
                 height = YapNPlayTheme.dimens.ctaHeight,
             )
             PillButton(
-                text = Strings.roomsJoinYes,
+                text = RoomStrings.roomsJoinYes,
                 onClick = onJoin,
                 gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),
                 contentColor = colors.CtaGreenContent,

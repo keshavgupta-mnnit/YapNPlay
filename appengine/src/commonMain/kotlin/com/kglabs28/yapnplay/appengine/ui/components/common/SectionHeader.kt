@@ -37,20 +37,8 @@ fun SectionHeader(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs),
         ) {
-            BasicText(
-                text = title,
-                style = typography.sectionTitle.copy(color = colors.TextPrimary),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            subtitle?.let {
-                BasicText(
-                    text = it,
-                    style = typography.micro.copy(color = colors.TextSecondary),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            FitText(text = title, style = typography.sectionTitle.copy(color = colors.TextPrimary))
+            subtitle?.let { SlidingText(text = it, style = typography.micro.copy(color = colors.TextSecondary)) }
         }
         actions()
     }

@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.Flow
  * found or the search ends; stop collecting to leave the queue.
  */
 interface MatchmakingRepository {
-    fun findMatch(gameId: String): Flow<MatchmakingStatus>
+    /** [entryCoins]: the league's fee (0 = Starter, free). */
+    fun findMatch(gameId: String, entryCoins: Int): Flow<MatchmakingStatus>
     suspend fun leaveQueue()
     suspend fun onlinePlayerCount(): AppResult<Int>
     /** The unfinished match the user can rejoin, or null. */

@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -70,24 +71,24 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 object PodiumSizes {
     /** Every box is this wide; a player's card is a little narrower, so neighbours never touch. */
     val width: Dp = 124.dp
-    val cardWidth: Dp = 102.dp
+    val cardWidth: Dp = 110.dp
     /** The box heights: 1st, 2nd, 3rd. */
     fun boxHeight(place: Int): Dp = when (place) {
         1 -> 132.dp
         2 -> 100.dp
-        else -> 75.dp
+        else -> 83.dp
     }
     /** The outer glass cube's top face (the card stands on it, hiding its far edge). */
     val topFace: Dp = 18.dp
     /** How far the card comes down over the box's top face. */
     val cardOverTop: Dp = 12.dp
-    val cardHeight: Dp = 96.dp
-    val avatar: Dp = 52.dp
+    val cardHeight: Dp = 112.dp
+    val avatar: Dp = 68.dp
     /** How much of the avatar rises above the card. */
-    val avatarAbove: Dp = 30.dp
-    val crown: Dp = 28.dp
-    /** How much of the crown rises above the avatar. */
-    val crownAbove: Dp = 16.dp
+    val avatarAbove: Dp = 40.dp
+    val crown: Dp = 32.dp
+    /** The crown sits wholly above the avatar, its foot on the avatar's top edge. */
+    val crownAbove: Dp = 38.dp
     /** The tallest stack (1st): crown, avatar, card (over the top face), box. */
     val tallest: Dp get() = crownAbove + avatarAbove + cardHeight - cardOverTop + boxHeight(1)
 }
@@ -146,7 +147,7 @@ fun PodiumPlayerCard(entry: LeaderboardEntryUi, isFirst: Boolean, modifier: Modi
                 AppIcon(imageVector = Icons.Rounded.GraphicEq, tint = colors.LiveGreen, size = SIGNAL)
                 BasicText(
                     text = entry.name.uppercase(),
-                    style = typography.micro.copy(color = if (entry.isMe) colors.Cyan else Color.White, fontWeight = FontWeight.Black, textAlign = TextAlign.Center),
+                    style = typography.label.copy(color = if (entry.isMe) colors.Cyan else Color.White, fontWeight = FontWeight.Black, textAlign = TextAlign.Center),
                     maxLines = if (sliding) 1 else NAME_LINES,
                     overflow = if (sliding) TextOverflow.Clip else TextOverflow.Ellipsis,
                     modifier = Modifier
@@ -158,10 +159,11 @@ fun PodiumPlayerCard(entry: LeaderboardEntryUi, isFirst: Boolean, modifier: Modi
             }
             BasicText(
                 text = entry.coins.ifEmpty { TableStrings.leaderboardNoCoins },
-                style = typography.label.copy(color = colors.LiveGreen, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
+                // A lost stake in red.
+                style = typography.title.copy(color = if (entry.coins.startsWith("-")) colors.PlayerRed else colors.LiveGreen, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
                 maxLines = 1,
             )
-            LeaderboardTitleChip(title = entry.title, place = entry.place)
+            LeaderboardTitleChip(title = entry.title, place = entry.place, textStyle = typography.label)
         }
         Box(modifier = Modifier.zIndex(1f), contentAlignment = Alignment.TopCenter) {
             LeaderboardAvatar(avatarId = entry.avatarId, size = PodiumSizes.avatar, micOn = false, medal = medal)
@@ -182,7 +184,7 @@ private fun Crown() {
     BasicText(
         text = CROWN,
         style = YapNPlayTheme.typography.headline.copy(fontSize = fontSize),
-        modifier = Modifier.offset(y = -PodiumSizes.crownAbove - PodiumSizes.crown * CROWN_SIT + YapNPlayTheme.dimens.boardRing * bob).zIndex(2f),
+        modifier = Modifier.offset(y = -PodiumSizes.crownAbove + YapNPlayTheme.dimens.boardRing * bob).zIndex(2f),
     )
 }
 
@@ -192,8 +194,8 @@ private fun Crown() {
  * 124 dp wide) — a lit top face running back, the front below, rounded
  * corners — whose side touching a neighbour has no edge (2nd's right,
  * 3rd's left, both of 1st's), so the three glass cubes merge into one
- * platform. Inside it, 8 dp in, the medal cube: its own lit top face, the
- * smoky front, one rounded outline and the place in metal.
+ * platform. Inside it, 8 dp in, a flat rounded plate of glassy black with
+ * a medal outline, and the place in metal.
  */
 @Composable
 fun PodiumBox(place: Int, modifier: Modifier = Modifier) {
@@ -210,32 +212,17 @@ fun PodiumBox(place: Int, modifier: Modifier = Modifier) {
             .padding(start = STEP_INSET, end = STEP_INSET, top = PodiumSizes.topFace + STEP_INSET / 2, bottom = STEP_INSET),
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val w = size.width
-            val top = INNER_TOP.toPx()
-            val inset = w * TOP_INSET
-            val round = PathEffect.cornerPathEffect(CORNER.toPx())
             val line = dimens.boardBoxFrame.toPx() * if (place == 1) WINNER_RIM else 1f
-            // Top face: lit, narrowing away.
-            val face = Path().apply { moveTo(inset, 0f); lineTo(w - inset, 0f); lineTo(w, top); lineTo(0f, top); close() }
-            drawPath(face, Brush.verticalGradient(listOf(medal.copy(alpha = TOP_FAR), medal.copy(alpha = TOP_NEAR)), 0f, top))
-            // Front face.
-            drawRoundRect(
-                Brush.verticalGradient(listOf(YapNPlayColors.BgPodiumBaseTop, YapNPlayColors.BgPodiumBaseBottom), top, size.height),
-                topLeft = Offset(0f, top),
-                size = Size(w, size.height - top),
-                cornerRadius = CornerRadius(CORNER.toPx()),
-            )
-            // One rounded outline round the whole cube, then the ridge where the faces meet.
+            val corner = CornerRadius(PLATE_CORNER.toPx())
+            drawRoundRect(Brush.verticalGradient(listOf(YapNPlayColors.SnackGlassTop, YapNPlayColors.SnackGlassBottom)), cornerRadius = corner)
+            // A soft sheen over the plate's upper half, so it reads as glass.
+            drawRoundRect(Brush.verticalGradient(listOf(Color.White.copy(alpha = PLATE_SHEEN), Color.Transparent), 0f, size.height / 2), cornerRadius = corner)
             val rim = Brush.verticalGradient(listOf(Color.White.copy(alpha = RIM_SHINE), medal, medal.copy(alpha = METAL_DEEP)))
-            val outline = Path().apply {
-                moveTo(inset, 0f); lineTo(w - inset, 0f); lineTo(w, top); lineTo(w, size.height); lineTo(0f, size.height); lineTo(0f, top); close()
-            }
-            drawPath(outline, rim, style = Stroke(line, join = StrokeJoin.Round, pathEffect = round))
-            drawLine(Color.White.copy(alpha = RIDGE_ALPHA), Offset(line, top), Offset(w - line, top), strokeWidth = line)
+            drawRoundRect(rim, topLeft = Offset(line / 2, line / 2), size = Size(size.width - line, size.height - line), cornerRadius = corner, style = Stroke(line))
         }
-        // The place, centred on the front face.
-        Box(modifier = Modifier.fillMaxSize().padding(top = INNER_TOP), contentAlignment = Alignment.Center) {
-            val front = height - PodiumSizes.topFace - STEP_INSET * 1.5f - INNER_TOP
+        // The place, centred on the plate.
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            val front = height - PodiumSizes.topFace - STEP_INSET * 1.5f
             val placeSize = with(LocalDensity.current) { minOf(typography.headline.fontSize.toPx() * PLACE_SCALE, front.toPx() * PLACE_OF_BOX).toSp() }
             val label = placeLabel(place)
             val number = place.toString()
@@ -256,18 +243,26 @@ fun PodiumBox(place: Int, modifier: Modifier = Modifier) {
 }
 
 /**
- * The outer glass cube in [tint]: a lit top face (its far edge open) and
- * the front, both see-through, rounded; edges only on the bottom and the
- * sides asked for, so neighbouring cubes merge.
+ * The outer glass cube in [tint]: a lit top face and the front, both
+ * see-through. Where a neighbour stands the top face runs straight up
+ * (no slant), so the faces of neighbouring cubes meet without a gap and
+ * the three merge into one platform; only the open sides slant back, get
+ * an edge, and round their bottom corner.
  */
 private fun DrawScope.drawGlassCube(tint: Color, showLeft: Boolean, showRight: Boolean, top: Float, corner: Float) {
     val w = size.width
     val h = size.height
     val inset = w * OUTER_TOP_INSET
+    val leftInset = if (showLeft) inset else 0f
+    val rightInset = if (showRight) inset else 0f
     val round = PathEffect.cornerPathEffect(corner)
-    val face = Path().apply { moveTo(inset, 0f); lineTo(w - inset, 0f); lineTo(w, top); lineTo(0f, top); close() }
+    val face = Path().apply { moveTo(leftInset, 0f); lineTo(w - rightInset, 0f); lineTo(w, top); lineTo(0f, top); close() }
     drawPath(face, Brush.verticalGradient(listOf(tint.copy(alpha = GLASS_TOP_FAR), tint.copy(alpha = GLASS_TOP_NEAR)), 0f, top))
-    val front = Path().apply { moveTo(0f, top); lineTo(w, top); lineTo(w, h); lineTo(0f, h); close() }
+    val bl = if (showLeft) corner else 0f
+    val br = if (showRight) corner else 0f
+    val front = Path().apply {
+        addRoundRect(RoundRect(0f, top, w, h, bottomLeftCornerRadius = CornerRadius(bl), bottomRightCornerRadius = CornerRadius(br)))
+    }
     drawPath(front, Brush.verticalGradient(listOf(tint.copy(alpha = GLASS_FRONT_TOP), tint.copy(alpha = GLASS_FRONT_BOTTOM)), top, h))
     // A sheen across the glass's upper half.
     drawPath(front, Brush.verticalGradient(listOf(Color.White.copy(alpha = GLASS_SHEEN), Color.Transparent), top, top + (h - top) / 2))
@@ -275,13 +270,19 @@ private fun DrawScope.drawGlassCube(tint: Color, showLeft: Boolean, showRight: B
     val line = GLASS_LINE * density
     // The near edge of the top face, the bottom, and only the sides that don't meet a neighbour.
     drawLine(Color.White.copy(alpha = GLASS_RIDGE), Offset(0f, top), Offset(w, top), line)
-    drawLine(rim, Offset(0f, h - line / 2), Offset(w, h - line / 2), line)
-    if (showLeft) {
-        drawPath(Path().apply { moveTo(inset, 0f); lineTo(0f, top); lineTo(0f, h) }, rim, style = Stroke(line, pathEffect = round))
+    // The bottom edge, turning up the open sides round their rounded corners.
+    val edge = Path().apply {
+        if (showLeft) {
+            moveTo(inset, 0f); lineTo(0f, top); lineTo(0f, h - line / 2)
+        } else {
+            moveTo(0f, h - line / 2)
+        }
+        lineTo(w, h - line / 2)
+        if (showRight) {
+            lineTo(w, top); lineTo(w - inset, 0f)
+        }
     }
-    if (showRight) {
-        drawPath(Path().apply { moveTo(w - inset, 0f); lineTo(w, top); lineTo(w, h) }, rim, style = Stroke(line, pathEffect = round))
-    }
+    drawPath(edge, rim, style = Stroke(line, join = StrokeJoin.Round, pathEffect = round))
 }
 
 /** Gold, silver, bronze. */
@@ -299,18 +300,13 @@ private fun placeLabel(place: Int): String = when (place) {
 }
 
 private const val CROWN = "👑"
-/** How much of the crown sits down over the avatar's head (× its size). */
-private const val CROWN_SIT = 0.1f
 private const val NAME_LINES = 2
-private val SIGNAL = 12.dp
+private val SIGNAL = 15.dp
 private val STEP_INSET = 8.dp
-/** The inner medal cube's top face, and the corner rounding of both cubes. */
-private val INNER_TOP = 12.dp
-private val CORNER = 6.dp
-private const val TOP_INSET = 0.08f
-private const val TOP_FAR = 0.25f
-private const val TOP_NEAR = 0.6f
-private const val RIDGE_ALPHA = 0.7f
+/** The corner rounding of the glass, and of the plate inside. */
+private val CORNER = 8.dp
+private val PLATE_CORNER = 8.dp
+private const val PLATE_SHEEN = 0.08f
 private const val RIM_SHINE = 0.6f
 /** The outer glass cube: how much narrower its top face's far edge is, its tint at each part, its lines. */
 private const val OUTER_TOP_INSET = 0.07f

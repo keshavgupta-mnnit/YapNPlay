@@ -30,9 +30,15 @@ decisions that win).
 ## Versioning
 
 `CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
-**0.9.0**. Patch: optional field / new message. Minor: new required
+**0.10.0**. Patch: optional field / new message. Minor: new required
 field, channel or game-interface member. Major: breaking change.
 Every bump is announced in `docs/decisions.md`.
+
+0.10.0 added: `RankedSeat.stake` (the entry each seat put in; the bank's for a
+CPU; 0 when free or unpaid). `RankedSeat.coinsWon` now shows every seat's
+place share as if a person held it, CPUs and leavers included (display only:
+only paying humans still at the table are credited; nobody gets a CPU's or
+leaver's share). CPUs also show the `completionCoins` a person would get.
 
 0.9.0 added: `RenameRoom(name)` (admin only) and `InviteToRoomBody.userCodes`
 (invite by player code). See the room messages and "Invite later" below.

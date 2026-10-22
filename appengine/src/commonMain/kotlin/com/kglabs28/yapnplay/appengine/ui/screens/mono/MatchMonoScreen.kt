@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetContent
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetUi
+import com.kglabs28.yapnplay.appengine.ui.components.seat.LeaveMatchDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -43,7 +46,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.MatchLeaderboard
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoAnchors
-import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCallButton
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCallButtons
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCardFace
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoColourPicker
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoDrawButton
@@ -88,7 +91,6 @@ fun MatchMonoScreen(
         viewModel?.effects?.collect { effect ->
             when (effect) {
                 MatchMonoEffect.LeaveMatch -> onClose()
-                MatchMonoEffect.OpenSettingsDialog -> Unit
                 is MatchMonoEffect.Fly -> flights.launch(effect.flights)
             }
         }
@@ -179,9 +181,10 @@ fun MatchMonoContent(
                 )
             },
             callButton = {
-                // One button for both: it calls MONO when the user can, else CAUGHT on whoever is open.
-                MonoCallButton(
-                    onClick = { send(if (state.canCallMono) MatchMonoIntent.CallMono else MatchMonoIntent.Caught) },
+                // CAUGHT first, then MONO, then the hand and Draw along the bottom.
+                MonoCallButtons(
+                    onCaught = { send(MatchMonoIntent.Caught) },
+                    onMono = { send(MatchMonoIntent.CallMono) },
                 )
             },
             hand = { MonoHand(state = state, send = send, anchors = anchors, flights = flights) },
@@ -189,25 +192,31 @@ fun MatchMonoContent(
         )
 
         state.finishBanner?.let { MonoFinishBanner(it, Modifier.align(Alignment.Center)) }
-        if (state.confirmingExit) {
+        state.sheet?.let { sheet ->
+            // A report to vote on needs an answer; the rest close on a tap outside.
+            BlockingOverlay(visible = true, onDismiss = if (sheet is TableSheetUi.Vote) null else ({ send(MatchMonoIntent.CloseSheet) })) {
+                TableSheetContent(
+                    sheet = sheet,
+                    onToggleEffects = { send(MatchMonoIntent.ToggleEffects) },
+                    onToggleMusic = { send(MatchMonoIntent.ToggleMusic) },
+                    onOpenReport = { send(MatchMonoIntent.OpenReport) },
+                    onSelectReportPerson = { send(MatchMonoIntent.SelectReportPerson(it)) },
+                    onSubmitReport = { send(MatchMonoIntent.SubmitReport) },
+                    onVote = { send(MatchMonoIntent.Vote(it)) },
+                    onClose = { send(MatchMonoIntent.CloseSheet) },
+                )
+            }
+        }
+        state.leaveDialog?.let { dialog ->
             BlockingOverlay(visible = true, onDismiss = { send(MatchMonoIntent.CancelExit) }) {
-                ModalCard(
-                    title = MonoStrings.monoLeaveTitle,
-                    subtitle = MonoStrings.monoLeaveBody,
-                    actions = {
-                        TableGlassButton(
-                            text = MonoStrings.monoStay,
-                            onClick = { send(MatchMonoIntent.CancelExit) },
-                            fill = listOf(YapNPlayTheme.colors.Panel, YapNPlayTheme.colors.GlassSurface),
-                            textColor = YapNPlayTheme.colors.TextPrimary,
-                        )
-                        TableGlassButton(
-                            text = MonoStrings.monoLeave,
-                            onClick = { send(MatchMonoIntent.ConfirmExit) },
-                            fill = listOf(YapNPlayTheme.colors.ArenaCallFillTop, YapNPlayTheme.colors.ArenaCallFillBottom),
-                            textColor = YapNPlayTheme.colors.TextPrimary,
-                        )
-                    },
+                LeaveMatchDialog(
+                    onStay = { send(MatchMonoIntent.CancelExit) },
+                    onLeave = { send(MatchMonoIntent.ConfirmExit) },
+                    message = dialog.message,
+                    options = dialog.options,
+                    selectedIndex = dialog.selectedIndex,
+                    onSelect = { send(MatchMonoIntent.PickSeatTaker(it)) },
+                    countdown = dialog.countdown,
                 )
             }
         }

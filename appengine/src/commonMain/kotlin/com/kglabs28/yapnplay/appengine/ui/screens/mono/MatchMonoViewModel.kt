@@ -1,5 +1,11 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import kotlin.time.Duration.Companion.milliseconds
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.ReportPersonUi
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetController
+import com.kglabs28.yapnplay.appengine.features.moderation.usecase.ModerationUseCases
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogState
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.GamesAppManagerHelper
 import com.kglabs28.yapnplay.appengine.core.audio.GameAudio
 import com.kglabs28.yapnplay.appengine.features.matchresult.domain.SeatResult
@@ -45,6 +51,7 @@ class MatchMonoViewModel(
     audio: GameAudio,
     gamesConfig: GamesAppManagerHelper,
     private val observeMatchCoins: ObserveMatchCoinsUseCase,
+    moderation: ModerationUseCases,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MatchMonoState, MatchMonoIntent, MatchMonoEffect>(
     MatchMonoState(), dispatchers,
@@ -60,6 +67,12 @@ class MatchMonoViewModel(
     /** The latest finisher's banner and when it went up; the final board waits for it. */
     private var banner: Pair<String, Instant>? = null
     private var jobs: List<Job> = emptyList()
+    /** Settings (sound, music), Report and report votes, as Royal Ludo has them. */
+    private val sheets = TableSheetController(moderation, audio, scope) { render() }
+    /** The turn (seat, deadline) the user was last drawn for automatically. */
+    private var autoDrewFor: Pair<Int, Any?>? = null
+    /** The shared exit dialog (who takes the seat, its countdown). */
+    private val leave = LeaveDialogState()
     private val director = MonoTableDirector(audio, gamesConfig, chaos = false)
 
     override suspend fun handleIntent(intent: MatchMonoIntent) {
@@ -93,14 +106,34 @@ class MatchMonoViewModel(
             }
             is MatchMonoIntent.SetAutoplay -> send(MonoCommand.SetAutoplay(intent.enabled))
             is MatchMonoIntent.SetMic -> send(MonoCommand.SetMic(intent.on))
-            MatchMonoIntent.OpenSettings -> emitEffect(MatchMonoEffect.OpenSettingsDialog)
+            MatchMonoIntent.OpenSettings -> sheets.openSettings()
+            MatchMonoIntent.ToggleEffects -> sheets.toggleEffects()
+            MatchMonoIntent.ToggleMusic -> sheets.toggleMusic()
+            MatchMonoIntent.OpenReport -> match?.let { sheets.openReport(reportable(it), voters(it)) }
+            is MatchMonoIntent.SelectReportPerson -> match?.let { sheets.selectReportPerson(intent.userId, voters(it)) }
+            MatchMonoIntent.SubmitReport -> match?.let { sheets.submitReport(it.matchId, voters(it)) }
+            is MatchMonoIntent.Vote -> sheets.vote(intent.agree)
+            MatchMonoIntent.CloseSheet -> sheets.close()
             // Leaving hands the seat to a bot (null), then closes the table.
             // Exit asks first; leaving hands the seat to a bot (null), then closes the table.
-            MatchMonoIntent.ExitClicked -> setState { copy(confirmingExit = true) }
-            MatchMonoIntent.CancelExit -> setState { copy(confirmingExit = false) }
+            MatchMonoIntent.ExitClicked -> {
+                leave.open(clock.now())
+                render()
+            }
+            MatchMonoIntent.CancelExit -> {
+                leave.close()
+                setState { copy(leaveDialog = null) }
+            }
+            is MatchMonoIntent.PickSeatTaker -> {
+                leave.pick(intent.index)
+                render()
+            }
             MatchMonoIntent.ConfirmExit -> {
-                setState { copy(confirmingExit = false) }
-                send(MonoCommand.Leave(null))
+                // Only a player has a seat to hand on (to the picked spectator, or a CPU).
+                val giveTo = if (match?.me != null) leave.giveTo(match?.spectators?.map { it.userId }.orEmpty()) else null
+                leave.close()
+                setState { copy(leaveDialog = null) }
+                send(MonoCommand.Leave(giveTo))
                 emitEffect(MatchMonoEffect.LeaveMatch)
             }
             is MatchMonoIntent.Leave -> {
@@ -116,7 +149,7 @@ class MatchMonoViewModel(
         if (matchId == id) return
         matchId = id
         jobs.forEach { it.cancel() }
-        jobs = listOf(
+        jobs = sheets.start() + listOf(
             scope.launch {
                 try {
                     observeMatch(id).collect { onUpdate(it) }
@@ -214,6 +247,8 @@ class MatchMonoViewModel(
         director.turn(myTurn, if (remaining == Long.MAX_VALUE) 0L else remaining)
         setState {
             copy(
+                leaveDialog = leave.ui(now, m.spectators.map { it.name }, m.me != null, roomMatch = m.roomId != null),
+                sheet = sheets.current(now),
                 loaded = true,
                 error = null,
                 match = m,
@@ -255,6 +290,7 @@ class MatchMonoViewModel(
                 selectedCardIndex = selectedCardIndex?.takeIf { it < (me?.hand?.size ?: 0) },
             )
         }
+        autoDraw(m)
     }
 
     /**
@@ -303,6 +339,27 @@ class MatchMonoViewModel(
         return MonoUiMapper.leaderboard(MonoStrings.monoTitle, m.ranking.map { it.seat }, standings, monoElapsed(m.startedAt, now))
     }
 
+    /**
+     * No card the user can play: the table draws for them (or, under a
+     * stack, takes it), once per turn and after a short beat so they see
+     * why. A drawn card that can be played is then theirs to play or pass.
+     */
+    private fun autoDraw(m: MonoMatch) {
+        val shown = state.value
+        val playing = m.phase == MonoPhase.AWAITING_PLAY.name || shown.canStack
+        if (!shown.myTurn || !playing || shown.canPass || shown.playableIndexes.isNotEmpty()) return
+        val turn = m.currentSeat to m.turnEndsAt
+        if (autoDrewFor == turn) return
+        autoDrewFor = turn
+        scope.launch {
+            delay(AUTO_DRAW_DELAY)
+            val now = state.value
+            if (now.myTurn && !now.canPass && now.playableIndexes.isEmpty() && match?.let { it.currentSeat to it.turnEndsAt } == turn) {
+                send(if (now.canStack) MonoCommand.AcceptStack else MonoCommand.DrawCard)
+            }
+        }
+    }
+
     private suspend fun send(command: MonoCommand) {
         if (matchId.isEmpty()) return
         sendCommand(matchId, command)
@@ -317,4 +374,17 @@ class MatchMonoViewModel(
         val BANNER_TIME = 3.seconds
         const val MILLIS = 1_000L
     }
+
+    /** Who the user may report: the other players (not CPUs) and the spectators. */
+    private fun reportable(m: MonoMatch): List<ReportPersonUi> =
+        m.players.filter { !it.isMe && !it.removed && it.userId != null }.map { ReportPersonUi(it.userId.orEmpty(), it.name, LudoStrings.ludoRolePlayer) } +
+            m.spectators.filter { it.userId != m.viewerUserId }.map { ReportPersonUi(it.userId, it.name, LudoStrings.ludoRoleSpectator) }
+
+    /** Who would vote on a report: everyone at the table but the reporter and the reported. */
+    private fun voters(m: MonoMatch): Int =
+        (m.players.count { !it.removed && it.userId != null } + m.spectators.size - REPORT_INVOLVED).coerceAtLeast(0)
 }
+
+private const val REPORT_INVOLVED = 2
+/** The beat before the table draws for a user with nothing to play. */
+private val AUTO_DRAW_DELAY = 700.milliseconds

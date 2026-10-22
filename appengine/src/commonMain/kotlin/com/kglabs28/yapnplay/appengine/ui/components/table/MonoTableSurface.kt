@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import kotlin.math.PI
+import kotlin.math.atan2
+import androidx.compose.ui.graphics.Brush
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -55,21 +57,18 @@ fun MonoTurnRing(
     }
 }
 
-/** One arc as a run of short segments, each coloured by where the wave is; an arrowhead at the leading end. */
+/**
+ * One arc drawn as a single smooth stroke (a soft glow under a bright core)
+ * whose colour runs along it through a sweep gradient, then an arrowhead
+ * at the leading end in the colour arriving there.
+ */
 private fun DrawScope.drawWaveArc(c: Offset, rx: Float, ry: Float, startDeg: Float, sweepDeg: Float, clockwise: Boolean, stroke: Float, base: Color, phase: Float) {
     val box = Offset(c.x - rx, c.y - ry)
     val oval = Size(rx * 2, ry * 2)
-    val step = sweepDeg / SEGMENTS
-    var headColour = base
-    for (i in 0 until SEGMENTS) {
-        // Position along the arrow, tail (0) to head (1).
-        val along = if (clockwise) i / (SEGMENTS - 1f) else 1f - i / (SEGMENTS - 1f)
-        val colour = chaseColour(base, along, phase)
-        // A soft glow under a bright core; the segments overlap a little so the line stays unbroken.
-        drawArc(colour.copy(alpha = GLOW_ALPHA), startDeg + i * step, step + SEG_OVERLAP, false, box, oval, style = Stroke(stroke * ARROW_GLOW, cap = StrokeCap.Butt))
-        drawArc(colour, startDeg + i * step, step + SEG_OVERLAP, false, box, oval, style = Stroke(stroke, cap = StrokeCap.Butt))
-        if (along >= 1f - 1f / SEGMENTS) headColour = colour
-    }
+    val brush = waveBrush(c, rx, ry, startDeg, sweepDeg, clockwise, base, phase)
+    drawArc(brush, startDeg, sweepDeg, false, box, oval, alpha = GLOW_ALPHA, style = Stroke(stroke * ARROW_GLOW, cap = StrokeCap.Round))
+    drawArc(brush, startDeg, sweepDeg, false, box, oval, style = Stroke(stroke, cap = StrokeCap.Round))
+    val headColour = chaseColour(base, 1f, phase)
     // Clockwise (screen angles grow clockwise) the head sits at the sweep's end; otherwise at its start.
     val headDeg = if (clockwise) startDeg + sweepDeg else startDeg
     val t = headDeg * PI.toFloat() / HALF_TURN
@@ -89,6 +88,31 @@ private fun DrawScope.drawWaveArc(c: Offset, rx: Float, ry: Float, startDeg: Flo
         close()
     }
     drawPath(path, headColour)
+}
+
+/**
+ * A sweep gradient round [c] that gives each point of the arc the chase
+ * colour for its place along the arrow. Samples are taken along the arc
+ * and placed by their angle round the centre (the gradient's own measure);
+ * an arc crossing the 0° line gets the colour there at both ends of the
+ * gradient, so it stays seamless.
+ */
+private fun waveBrush(c: Offset, rx: Float, ry: Float, startDeg: Float, sweepDeg: Float, clockwise: Boolean, base: Color, phase: Float): Brush {
+    val stops = (0..SAMPLES).map { i ->
+        val t = (startDeg + sweepDeg * i / SAMPLES) * PI.toFloat() / HALF_TURN
+        var at = atan2(ry * sin(t), rx * cos(t)) / (2 * PI.toFloat())
+        if (at < 0f) at += 1f
+        val along = if (clockwise) i / SAMPLES.toFloat() else 1f - i / SAMPLES.toFloat()
+        at to chaseColour(base, along, phase)
+    }.toMutableList()
+    // Where the arc crosses 0°, both ends of the gradient take the colour found there.
+    val wrap = stops.zipWithNext().firstOrNull { (p, q) -> kotlin.math.abs(p.first - q.first) > HALF }
+    if (wrap != null) {
+        val there = lerp(wrap.first.second, wrap.second.second, HALF)
+        stops += 0f to there
+        stops += 1f to there
+    }
+    return Brush.sweepGradient(*stops.sortedBy { it.first }.toTypedArray(), center = c)
 }
 
 /**
@@ -117,13 +141,13 @@ private const val RIGHT_START = -40f
 private const val ARC_SWEEP = 80f
 private const val HALF_TURN = 180f
 /**
- * The chase: segments per arrow; how far the band runs per cycle (past the
- * head, so the trail clears before it starts again); how long its trail is
- * (fraction of the arrow); how much it whitens; how dim the rest is; one
- * cycle's length.
+ * The chase: colour samples along each arrow; how far the band runs per
+ * cycle (past the head, so the trail clears before it starts again); how
+ * long its trail is (fraction of the arrow); how much it whitens; how dim
+ * the rest is; one cycle's length.
  */
-private const val SEGMENTS = 28
-private const val SEG_OVERLAP = 0.6f
+private const val SAMPLES = 48
+private const val HALF = 0.5f
 private const val CHASE_RUN = 1.5f
 private const val CHASE_TRAIL = 0.55f
 private const val CHASE_WHITE = 0.55f

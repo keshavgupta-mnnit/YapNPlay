@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogUi
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedLineUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.TablePlayerCardUi
@@ -267,7 +268,8 @@ sealed interface CbModal {
     data class ExtensionVote(val body: String, val tally: String, val status: String?, val canVote: Boolean, val countdown: String) : CbModal
     /** Someone asked to end the game: end or keep playing (play is paused). */
     data class EndVote(val body: String, val tally: String, val status: String?, val canVote: Boolean, val countdown: String) : CbModal
-    data object LeaveConfirm : CbModal
+    /** The shared exit dialog. */
+    data class LeaveConfirm(val dialog: LeaveDialogUi) : CbModal
     data object MicPermissionNeeded : CbModal
     data class Settings(val effectsOn: Boolean, val musicOn: Boolean, val canProposeEnd: Boolean = false) : CbModal
     data class Report(val people: List<ReportPersonUi>, val selectedUserId: String?, val warning: String, val error: String?) : CbModal
@@ -298,6 +300,8 @@ sealed interface CityBazaarMatchIntent : UiIntent {
     data object OpenHistory : CityBazaarMatchIntent
     data object OpenBank : CityBazaarMatchIntent
     data class VoteExtension(val keepPlaying: Boolean) : CityBazaarMatchIntent
+    /** The exit dialog's pick of who takes the seat (a CPU first, then each spectator). */
+    data class PickSeatTaker(val index: Int) : CityBazaarMatchIntent
     /** Settings: ask everyone to end the game. */
     data object ProposeEnd : CityBazaarMatchIntent
     data class VoteEnd(val agree: Boolean) : CityBazaarMatchIntent

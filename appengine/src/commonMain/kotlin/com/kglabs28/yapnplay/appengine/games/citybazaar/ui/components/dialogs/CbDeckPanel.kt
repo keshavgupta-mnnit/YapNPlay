@@ -18,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.ui.components.table.tableFrostedGlass
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbPanel
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CardDeck
 
@@ -36,8 +35,7 @@ fun CbDeckPanel(panel: CbPanel.Deck, modifier: Modifier = Modifier) {
     val tint = if (panel.deck == CardDeck.LUCK) colors.CbLuck else colors.CbChest
     Column(
         modifier = modifier
-            .background(colors.Background, shape)
-            .tableFrostedGlass(tint = colors.AvatarRingSilver, shape = shape, radius = dimens.cbRowRadius, glow = dimens.zero)
+            .cbGlassBlack(shape)
             .clip(shape),
         verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {

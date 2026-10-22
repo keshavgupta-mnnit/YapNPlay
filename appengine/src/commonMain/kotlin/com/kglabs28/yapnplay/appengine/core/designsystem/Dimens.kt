@@ -245,6 +245,19 @@ class YapNPlayDimens {
     val cbAssetCardWidth: Dp get() = 108.dp.scaled()
     val cbHeaderChip: Dp get() = 14.dp.scaled()
     val cbControlHeight: Dp get() = 34.dp.scaled()
+    /** 3D City Royale: a seat card round the board and its avatar, My Properties in the bottom bar. */
+    val cb3dSeatWidth: Dp get() = 150.dp.scaled()
+    val cb3dSeatAvatar: Dp get() = 42.dp.scaled()
+    val cb3dPropertiesWidth: Dp get() = 100.dp.scaled()
+    /** 3D City Royale: how far the board sits below the top bar, and the bottom bar's height (seats keep above it). */
+    val cb3dBoardDrop: Dp get() = 34.dp.scaled()
+    val cb3dBarHeight: Dp get() = 76.dp.scaled()
+    /** 3D City Royale: the snackbar's band at the top, which the top seats keep below. */
+    val cb3dSnackReserve: Dp get() = 44.dp.scaled()
+    /** 3D City Royale: how far the turn dialogs and payment popups sit above centre, clear of the bottom bar. */
+    val cb3dDialogLift: Dp get() = 28.dp.scaled()
+    /** 3D City Royale: the gap between the info panel and the board's left corner. */
+    val cb3dPanelGap: Dp get() = 3.dp.scaled()
     val cbRowRadius: Dp get() = 8.dp.scaled()
 
     // Profile screen.

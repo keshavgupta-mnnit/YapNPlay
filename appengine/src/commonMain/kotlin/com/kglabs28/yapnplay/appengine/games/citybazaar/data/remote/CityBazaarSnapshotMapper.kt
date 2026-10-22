@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.data.remote
 
+import com.kglabs28.yapnplay.appengine.protocol.MatchSeatStatus
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarEndVoteInfo
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarBankInfo
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarExtensionVoteInfo
@@ -57,6 +58,7 @@ class CityBazaarSnapshotMapper(private val json: Json) {
                     inJail = wallet?.inJail == true,
                     halfRent = wallet?.halfRent == true,
                     bankrupt = wallet?.bankrupt == true,
+                    removed = seat.status == MatchSeatStatus.REMOVED,
                     rentCollected = wallet?.rentCollected ?: 0,
                     rentPaid = wallet?.rentPaid ?: 0,
                     isCpu = seat.cpu,

@@ -87,7 +87,8 @@ fun LobbyTopBar(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        GlassPillButton(text = RoomStrings.lobbyLeaderboard, onClick = onLeaderboard, leadingIcon = Icons.Rounded.EmojiEvents)
+        // As tall as the room name's pill beside it.
+        GlassPillButton(text = RoomStrings.lobbyLeaderboard, onClick = onLeaderboard, leadingIcon = Icons.Rounded.EmojiEvents, height = dimens.lobbyBarHeight)
         Box {
             GlassIconButton(
                 imageVector = Icons.Rounded.MoreVert,

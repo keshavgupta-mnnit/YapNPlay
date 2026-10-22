@@ -37,8 +37,9 @@ fun MonoLocalPod(
             autoplay = autoplay,
             onToggleMic = onToggleMic,
             onToggleAutoplay = onToggleAutoplay,
-            // As wide as the pill: from the avatar's middle to the seat's end.
-            modifier = Modifier.padding(start = dimens.monoSeatAvatar / 2).fillMaxWidth(),
+            // Centred under the whole seat, sized to it and clear of the avatar's badge.
+            size = seatSwitchSize(dimens.monoSeatAvatar),
+            modifier = Modifier.fillMaxWidth().padding(top = Spacing.Xxs),
         )
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -38,6 +39,8 @@ fun CityBazaarOwnedStacks(
     stacks: List<CbStackUi>,
     onOpen: (CityGroup) -> Unit,
     modifier: Modifier = Modifier,
+    /** A fixed square size (the row then takes only what its stacks need); null fits five to the width. */
+    cardSize: Dp? = null,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -45,7 +48,7 @@ fun CityBazaarOwnedStacks(
     BoxWithConstraints(modifier = modifier) {
     val gap = Spacing.Xs
     // Room for the deepest stack's offset layers inside each slot.
-    val card = ((maxWidth - gap * (PER_ROW - 1)) / PER_ROW) - dimens.cbStackOffset * (MAX_LAYERS - 1)
+    val card = cardSize ?: (((maxWidth - gap * (PER_ROW - 1)) / PER_ROW) - dimens.cbStackOffset * (MAX_LAYERS - 1))
     FlowRow(
         maxItemsInEachRow = PER_ROW,
         horizontalArrangement = Arrangement.spacedBy(gap),

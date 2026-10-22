@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.LeaveMatchDialog
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbEndVotePrompt
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
@@ -152,16 +153,14 @@ fun CityBazaarModalContent(
                 }
             }
         }
-        CbModal.LeaveConfirm -> SeatPickerDialog(
-            title = LudoStrings.ludoLeaveTitle,
-            message = CityBazaarStrings.cbLeaveBody,
-            options = emptyList(),
-            selectedIndex = null,
-            onSelect = {},
-            secondaryLabel = TableStrings.seatCancel,
-            onSecondary = actions.onDismiss,
-            primaryLabel = TableStrings.seatExit,
-            onPrimary = actions.onConfirmLeave,
+        is CbModal.LeaveConfirm -> LeaveMatchDialog(
+            onStay = actions.onDismiss,
+            onLeave = actions.onConfirmLeave,
+            message = modal.dialog.message,
+            options = modal.dialog.options,
+            selectedIndex = modal.dialog.selectedIndex,
+            onSelect = actions.onPickSeatTaker,
+            countdown = modal.dialog.countdown,
             modifier = modifier,
         )
         CbModal.MicPermissionNeeded -> ModalCard(

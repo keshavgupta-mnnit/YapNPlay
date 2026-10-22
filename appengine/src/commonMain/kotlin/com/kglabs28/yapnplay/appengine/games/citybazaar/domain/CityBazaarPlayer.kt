@@ -16,6 +16,8 @@ data class CityBazaarPlayer(
     val inJail: Boolean = false,
     val halfRent: Boolean = false,
     val bankrupt: Boolean = false,
+    /** Left a Quick Play match: out of the game, so no seat at the table. */
+    val removed: Boolean = false,
     val avatarId: String = "",
     /** A CPU filling an empty Quick Play seat (no level shown). */
     val isCpu: Boolean = false,

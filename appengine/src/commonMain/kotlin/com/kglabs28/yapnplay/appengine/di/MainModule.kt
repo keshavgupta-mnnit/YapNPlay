@@ -9,7 +9,7 @@ import org.koin.dsl.module
  * Dashboard bindings: scaffold plus the Game Zone and Rooms tabs.
  */
 val mainModule = module {
-    factory { MainViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-    factory { GameZoneViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { MainViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { GameZoneViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { PlayRoomsViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

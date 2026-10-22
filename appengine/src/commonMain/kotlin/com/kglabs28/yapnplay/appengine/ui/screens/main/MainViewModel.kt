@@ -8,6 +8,7 @@ import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveDailyBonu
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsUiMapper
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferUi
 import com.kglabs28.yapnplay.appengine.core.ui.CoinsStrings
+import com.kglabs28.yapnplay.appengine.features.coins.usecase.IsRewardedAdReadyUseCase
 import com.kglabs28.yapnplay.appengine.features.coins.usecase.WatchAdForCoinsUseCase
 import kotlinx.coroutines.delay
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
@@ -43,6 +44,7 @@ class MainViewModel(
     private val launchCoinsOffer: LaunchCoinsOffer,
     private val getAdLimitStatus: GetAdLimitStatusUseCase,
     private val collectDailyBonus: CollectDailyBonusUseCase,
+    private val isAdReady: IsRewardedAdReadyUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MainState, MainIntent, MainEffect>(MainState(), dispatchers) {
@@ -89,7 +91,11 @@ class MainViewModel(
                 emitEffect(MainEffect.OpenMatch(it.gameId, it.matchId))
             }
             MainIntent.DismissRejoin -> setState { copy(rejoin = null) }
-            MainIntent.OpenGetCoins -> setState { copy(coinsOffer = CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody)) }.also { refreshAdLimits() }
+            // Only when an ad can play now: an offer that ends in "no ad" is worse than none.
+            MainIntent.OpenGetCoins -> if (isAdReady()) {
+                setState { copy(coinsOffer = CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody)) }
+                refreshAdLimits()
+            }
             MainIntent.CloseGetCoins -> setState { copy(coinsOffer = null) }
             MainIntent.WatchAdForCoins -> watchAd()
             MainIntent.OpenSettings -> emitEffect(MainEffect.OpenSettingsDialog)
@@ -146,7 +152,7 @@ class MainViewModel(
      */
     private suspend fun offerCoinsOnLaunch() {
         if (observeDailyBonus().value > 0 || state.value.coinsOffer != null || !state.value.profileLoaded) return
-        if (!adsConfig.isLaunchOfferEnabled() || !launchCoinsOffer.takeIfDue()) return
+        if (!adsConfig.isLaunchOfferEnabled() || !isAdReady() || !launchCoinsOffer.takeIfDue()) return
         // Only when an ad can pay now (no cooldown, ads left today); an older server without limits: always.
         val status = (getAdLimitStatus() as? AppResult.Success)?.data
         if (status != null && !status.canWatch(clock.now())) return
@@ -179,6 +185,8 @@ class MainViewModel(
     /** Ad watched to the end → the server adds coins; the balance updates and the dialog says how many. */
     private suspend fun watchAd() {
         val offer = state.value.coinsOffer
+        // Extra taps while one ad is loading or playing do nothing (one ad per tap).
+        if (offer?.watchingAd == true) return
         // A cooldown or today's limit: say so rather than play nothing.
         if (offer != null && !offer.canWatch) {
             setState { copy(coinsOffer = coinsOffer?.copy(message = offer.note ?: CoinsStrings.adLimit)) }

@@ -24,7 +24,8 @@ fun LeaderboardPodium(podium: List<LeaderboardEntryUi>, modifier: Modifier = Mod
     BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.BottomCenter) {
         val width = PodiumSizes.width * SPOTS
         val height = PodiumSizes.tallest
-        val scale = minOf(1f, maxWidth / width, maxHeight / height)
+        // Drawn 20% over its designed size when there's room (never past what fits).
+        val scale = minOf(GROW, maxWidth / width, maxHeight / height)
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
             Row(
                 // Laid out at its designed size, then drawn [scale] times smaller and reported at that
@@ -54,3 +55,4 @@ fun LeaderboardPodium(podium: List<LeaderboardEntryUi>, modifier: Modifier = Mod
 }
 
 private const val SPOTS = 3
+private const val GROW = 1.2f

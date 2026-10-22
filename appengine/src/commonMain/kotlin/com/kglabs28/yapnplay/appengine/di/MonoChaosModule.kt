@@ -24,5 +24,5 @@ val monoChaosModule = module {
     factory { ObserveMonoChaosMatchUseCase(get()) }
     factory { SendMonoChaosCommandUseCase(get()) }
     factory { ObserveMonoChaosSpeakingUseCase(get()) }
-    factory { MatchMonoChaosViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { MatchMonoChaosViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

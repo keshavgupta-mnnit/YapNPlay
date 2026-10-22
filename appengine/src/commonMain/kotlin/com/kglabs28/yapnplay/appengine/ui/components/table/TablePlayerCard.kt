@@ -10,11 +10,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -50,7 +53,7 @@ fun TablePlayerCard(
     avatarSize: Dp = YapNPlayTheme.dimens.ludoCardAvatar,
     density: TableCardDensity = TableCardDensity.ROOMY,
     details: (@Composable ColumnScope.() -> Unit)? = null,
-    controls: @Composable ColumnScope.() -> Unit = {},
+    controls: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -92,20 +95,27 @@ fun TablePlayerCard(
                     null
                 },
             )
-            // The user's switches right under the pill, as wide as it.
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(start = avatar / 2),
-                verticalArrangement = Arrangement.spacedBy(gap),
-                content = controls,
-            )
+            // The user's switches under the card, centred on it, sized to it and clear of the avatar's badge.
+            if (controls != null) {
+                CompositionLocalProvider(LocalSeatSwitchSize provides seatSwitchSize(avatar)) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(top = Spacing.Xxs),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(gap),
+                        content = controls,
+                    )
+                }
+            }
         }
         badge?.let { label ->
             BasicText(
                 text = label,
                 style = typography.micro.copy(color = colors.TextPrimary),
                 maxLines = 1,
+                // Tucked right under the pill, just past the avatar: no gap, no drift to the middle.
                 modifier = Modifier
-                    .padding(start = avatar, top = Spacing.Xs)
+                    .padding(start = avatar * BADGE_START)
+                    .offset(y = -Spacing.Xxs)
                     .clip(YapNPlayTheme.shapes.pill)
                     .background(lerp(badgeTint, colors.Background, BADGE_DARKEN))
                     .border(dimens.hairline, badgeTint, YapNPlayTheme.shapes.pill)
@@ -117,4 +127,6 @@ fun TablePlayerCard(
 
 private const val FADED_ALPHA = 0.4f
 private const val BADGE_DARKEN = 0.45f
+/** Where the status badge starts (× the avatar): just inside its right edge. */
+private const val BADGE_START = 0.8f
 private const val MUTE_SHARE = 0.55f

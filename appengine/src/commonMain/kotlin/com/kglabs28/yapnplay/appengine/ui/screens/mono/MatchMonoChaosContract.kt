@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetUi
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogUi
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
@@ -73,8 +75,10 @@ data class MatchMonoChaosState(
     val talking: Set<String> = emptySet(),
     /** The keep-playing vote, once two or more have finished. */
     val vote: MonoVoteUi? = null,
-    /** Exit was tapped: "Leave the match?" waits for an answer. */
-    val confirmingExit: Boolean = false,
+    /** Settings (sound, music, report), a report to vote on, or its outcome; null when none is open. */
+    val sheet: TableSheetUi? = null,
+    /** Exit was tapped: "Leave the match?" waits for an answer (and who takes the seat). */
+    val leaveDialog: LeaveDialogUi? = null,
     /** The final board, once the match is over (after the winner's banner has shown). */
     val leaderboard: LeaderboardUi? = null,
     /** "🏆 Riya finishes 1st!" for a few seconds after someone empties their hand. */
@@ -85,7 +89,8 @@ data class MatchMonoChaosState(
     val handOrder: List<Int>
         get() = MonoUiMapper.handOrder(hand, { it.playColor()?.ordinal }, { it !is MonoChaosCard.NumberCard }, { (it as? MonoChaosCard.NumberCard)?.number ?: 0 })
     /** Everyone else, clockwise from the user's seat (the order turns go round the table). */
-    val opponents get() = MonoUiMapper.clockwise(match?.players.orEmpty().filter { !it.isMe }, match?.me?.seat) { it.seat }
+    /** Everyone else still in the game, clockwise from the user (a player who left takes no seat). */
+    val opponents get() = MonoUiMapper.clockwise(match?.players.orEmpty().filter { !it.isMe && !it.removed }, match?.me?.seat) { it.seat }
 }
 
 sealed interface MatchMonoChaosIntent : UiIntent {
@@ -112,10 +117,19 @@ sealed interface MatchMonoChaosIntent : UiIntent {
     data class SetAutoplay(val enabled: Boolean) : MatchMonoChaosIntent
     data class SetMic(val on: Boolean) : MatchMonoChaosIntent
     data object OpenSettings : MatchMonoChaosIntent
+    data object ToggleEffects : MatchMonoChaosIntent
+    data object ToggleMusic : MatchMonoChaosIntent
+    data object OpenReport : MatchMonoChaosIntent
+    data class SelectReportPerson(val userId: String) : MatchMonoChaosIntent
+    data object SubmitReport : MatchMonoChaosIntent
+    data class Vote(val agree: Boolean) : MatchMonoChaosIntent
+    data object CloseSheet : MatchMonoChaosIntent
     data object ExitClicked : MatchMonoChaosIntent
     /** "Leave the match?" answered: leave, or stay. */
     data object ConfirmExit : MatchMonoChaosIntent
     data object CancelExit : MatchMonoChaosIntent
+    /** The exit dialog's pick of who takes the seat (a CPU first, then each spectator). */
+    data class PickSeatTaker(val index: Int) : MatchMonoChaosIntent
     data class Leave(val giveToUserId: String?) : MatchMonoChaosIntent
     data object StillHere : MatchMonoChaosIntent
     /** The screen went to the background: tell the server to play for the user. */
@@ -123,7 +137,6 @@ sealed interface MatchMonoChaosIntent : UiIntent {
 }
 
 sealed interface MatchMonoChaosEffect : UiEffect {
-    data object OpenSettingsDialog : MatchMonoChaosEffect
     data object LeaveMatch : MatchMonoChaosEffect
     /** Cards to fly across the table (plays, draws, penalties). */
     data class Fly(val flights: List<MonoFlight>) : MatchMonoChaosEffect

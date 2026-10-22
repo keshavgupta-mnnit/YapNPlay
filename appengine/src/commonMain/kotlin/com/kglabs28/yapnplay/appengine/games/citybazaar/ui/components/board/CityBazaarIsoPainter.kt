@@ -169,7 +169,9 @@ private fun DrawScope.drawTile(p: CityBazaarIsoProjection, tile: CbTileUi, colou
                 else -> null
             }
             val price = priceText?.let { fitText(measurer, it, TextStyle(color = colours.subText, fontSize = (cell * PRICE_TEXT).toSp(), fontWeight = FontWeight.Medium), along, across * PRICE_SHARE, maxLines = 1) }
-            val textAt = centre - inward * (depth * TEXT_OUTWARD)
+            // Centred in the tile's free space: between the colour header (or icon) and the owner band.
+            val ownerBand = if (tile.ownerColour != null) OWNER_BAND else 0f
+            val textAt = centre - inward * (depth * (HEADER - ownerBand) / 2)
             drawAlongTile(p, textAt, ix, cell, listOfNotNull(name, price))
             drawBuildings(p, tile, centre + inward * (depth * BUILDING_INWARD), ix, iy, colours)
             // Companies and taxes: the icon stands on the inner (header) side.
@@ -384,7 +386,6 @@ private const val PRICE_TEXT = 0.19f
 private const val TEXT_MARGIN = 0.18f
 private const val NAME_SHARE = 0.62f
 private const val PRICE_SHARE = 0.34f
-private const val TEXT_OUTWARD = 0.14f
 private const val BUILDING_INWARD = 0.2f
 private const val HOUSE_SIZE = 0.22f
 private const val HOUSE_HEIGHT = 0.16f

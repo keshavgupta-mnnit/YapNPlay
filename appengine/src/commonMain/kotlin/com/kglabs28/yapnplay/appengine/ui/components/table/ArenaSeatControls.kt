@@ -35,6 +35,8 @@ import androidx.compose.material.icons.rounded.MicOff
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -59,9 +61,13 @@ fun ArenaSeatSwitches(
     onToggleMic: () -> Unit,
     onToggleAutoplay: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The space between the two buttons. */
+    gap: Dp = Spacing.Xs,
+    /** Each button's size: under a seat card, sized to that card (see [seatSwitchSize]). */
+    size: Dp = LocalSeatSwitchSize.current ?: YapNPlayTheme.dimens.arenaSwitchMax,
 ) {
     val colors = YapNPlayTheme.colors
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(Spacing.Lg, Alignment.CenterHorizontally)) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(gap, Alignment.CenterHorizontally)) {
         ArenaRoundSwitch(
             icon = if (micOn) Icons.Rounded.Mic else Icons.Rounded.MicOff,
             description = MonoStrings.monoMic,
@@ -69,6 +75,7 @@ fun ArenaSeatSwitches(
             fill = colors.ArenaSwitchOn,
             rim = colors.ArenaSwitchOnRim,
             onClick = onToggleMic,
+            size = size,
         )
         ArenaRoundSwitch(
             icon = Icons.Rounded.Bolt,
@@ -77,19 +84,28 @@ fun ArenaSeatSwitches(
             fill = colors.ArenaAutoOn,
             rim = colors.ArenaAutoOnRim,
             onClick = onToggleAutoplay,
+            size = size,
         )
     }
 }
 
+/** The Mic / Auto buttons' size under a seat card with an [avatar] that big. */
+fun seatSwitchSize(avatar: Dp): Dp = avatar * SWITCH_OF_AVATAR
+
+/** The size of the switches under the seat card being drawn; null outside one. */
+val LocalSeatSwitchSize = staticCompositionLocalOf<Dp?> { null }
+
+private const val SWITCH_OF_AVATAR = 0.62f
+
 /** A round glass switch: [fill] while on. */
 @Composable
-private fun ArenaRoundSwitch(icon: ImageVector, description: String, on: Boolean, fill: Color, rim: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ArenaRoundSwitch(icon: ImageVector, description: String, on: Boolean, fill: Color, rim: Color, onClick: () -> Unit, size: Dp, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Box(
             modifier = Modifier
-                .size(dimens.arenaSwitchMax)
+                .size(size)
                 .clip(CircleShape)
                 .background(if (on) fill else colors.ArenaGlassBottom)
                 .border(dimens.borderThin, if (on) rim else colors.ArenaGlassRim, CircleShape)
@@ -115,6 +131,8 @@ fun ArenaDiceButton(
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The label pill beside the die instead of under it (a bottom bar). */
+    labelBeside: Boolean = false,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -125,17 +143,14 @@ fun ArenaDiceButton(
         0f
     }
     val pill = RoundedCornerShape(percent = 50)
-    Column(
-        modifier = modifier
-            // Faded as one flat picture: plain transparency let the die's side show through its face (looked chipped).
-            .graphicsLayer {
-                alpha = if (enabled) 1f else DISABLED_ALPHA
-                compositingStrategy = CompositingStrategy.Offscreen
-            }
-            .clickable(enabled = enabled, role = Role.Button, interactionSource = null, indication = null, onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
-    ) {
+    val press = modifier
+        // Faded as one flat picture: plain transparency let the die's side show through its face (looked chipped).
+        .graphicsLayer {
+            alpha = if (enabled) 1f else DISABLED_ALPHA
+            compositingStrategy = CompositingStrategy.Offscreen
+        }
+        .clickable(enabled = enabled, role = Role.Button, interactionSource = null, indication = null, onClick = onClick)
+    val die: @Composable () -> Unit = {
         Canvas(
             modifier = Modifier
                 .size(dimens.arenaDiceIcon)
@@ -144,6 +159,8 @@ fun ArenaDiceButton(
                     translationY = -bob * dimens.arenaDiceIcon.toPx() * DICE_HOP
                 },
         ) { drawFunDice(colors.ArenaDrawFillTop) }
+    }
+    val text: @Composable () -> Unit = {
         BasicText(
             text = label,
             style = YapNPlayTheme.typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Black),
@@ -154,6 +171,17 @@ fun ArenaDiceButton(
                 .border(dimens.borderThin, colors.ArenaDrawRim, pill)
                 .padding(horizontal = Spacing.Md, vertical = Spacing.Xxs),
         )
+    }
+    if (labelBeside) {
+        Row(modifier = press, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+            die()
+            text()
+        }
+    } else {
+        Column(modifier = press, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+            die()
+            text()
+        }
     }
 }
 

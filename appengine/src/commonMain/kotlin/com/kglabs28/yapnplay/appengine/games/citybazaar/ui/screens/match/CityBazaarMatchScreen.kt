@@ -1,5 +1,11 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import androidx.compose.foundation.layout.Box
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.CityBazaarIsoProjection
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalDensity
+import com.kglabs28.yapnplay.appengine.ui.components.table.monoScaled
+import com.kglabs28.yapnplay.appengine.ui.components.table.tableSeatScale
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CityBazaarArtwork
@@ -36,9 +42,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.GlassDiceState
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -72,6 +82,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaDiceButton
 import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaSeatSwitches
 import androidx.compose.foundation.layout.Spacer
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityBazaarOwnedStacks
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityRoyaleSeatRing
 import kotlinx.coroutines.launch
 
 /**
@@ -92,11 +103,8 @@ fun CityBazaarMatchScreen(
     viewModel: CityBazaarMatchViewModel? = null,
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: CityBazaarMatchState()
-    // Where each card (and the bank) is, for the coin animation when money popups are off.
-    val anchors = remember { mutableStateMapOf<Int, Offset>() }
-    // Player colours for the coloured names in the snackbar and history.
+    // Player colours for the coloured names in the history.
     val playerTints = CityBazaarColour.entries.map { it.tint() }
-    var boardOrigin by remember { mutableStateOf(Offset.Zero) }
     val send: (CityBazaarMatchIntent) -> Unit = { viewModel?.onIntent(it) }
     val micPermission = rememberPermissionRequester(AppPermission.MICROPHONE)
     val die1 = rememberGlassDiceState()
@@ -130,170 +138,7 @@ fun CityBazaarMatchScreen(
     }
 
     GameArenaBackground(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = Spacing.Md, vertical = Spacing.Xs)
-                .revealWhen(state.loaded),
-            verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
-        ) {
-            ArenaTopBar(
-                title = state.title,
-                subtitle = state.subtitle,
-                audience = state.audience,
-                showAudience = state.roomMatch,
-                spectatorLabel = "${state.spectatorCount} ${state.spectatorLabel}",
-                elapsed = state.elapsed,
-                onSettings = { send(CityBazaarMatchIntent.OpenSettings) },
-                onExit = { send(CityBazaarMatchIntent.ExitClicked) },
-                logo = { CityBazaarArtwork(modifier = it) },
-                // The view to switch to.
-                switchLabel = if (state.threeD) CityBazaarStrings.cbView2d else CityBazaarStrings.cbView3d,
-                onSwitch = { send(CityBazaarMatchIntent.ToggleView) },
-                onHistory = { send(CityBazaarMatchIntent.OpenHistory) },
-            )
-            val panelOpen = state.panel != null
-            BoxWithConstraints(
-                modifier = Modifier
-                    .onGloballyPositioned { boardOrigin = it.positionInRoot() }
-                    .weight(1f)
-                    .fillMaxWidth()
-                    // A touch outside the info panel closes it, and still does what it touched (Trade, a tile…).
-                    .pointerInput(panelOpen) {
-                        if (!panelOpen) return@pointerInput
-                        awaitEachGesture {
-                            val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-                            if (down.position.x > size.width * AppConstants.CB_SIDE_COLUMN_WEIGHT) send(CityBazaarMatchIntent.DismissPanel)
-                        }
-                    },
-            ) {
-                val side = maxWidth * AppConstants.CB_SIDE_COLUMN_WEIGHT
-                val palette = cityBazaarDicePalette(state.dice.colour)
-                val colors = YapNPlayTheme.colors
-                val smoke = listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom)
-                // Side buttons as wide as the user's pod, as tall as its Mic / Autoplay / Roll rows.
-                val buttonSize = Modifier.fillMaxWidth().height(YapNPlayTheme.dimens.cbControlHeight)
-                CityBazaarBoardView(
-                    tiles = state.tiles,
-                    tokens = state.tokens,
-                    onTileClick = { send(CityBazaarMatchIntent.TileClicked(it)) },
-                    onDeckClick = { send(CityBazaarMatchIntent.OpenDeck(it)) },
-                    highlight = state.highlight,
-                    threeD = state.threeD,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .fillMaxHeight()
-                        .width(maxWidth - side * 2),
-                ) { left, right ->
-                    // Tap the dice to roll (no press highlight), when it's the user's roll.
-                    val tap = if (state.canRoll) Modifier.clickable(interactionSource = null, indication = null) { send(CityBazaarMatchIntent.Roll) } else Modifier
-                    GlassDice(state = die1, palette = palette, grounded = false, modifier = left.then(tap))
-                    GlassDice(state = die2, palette = palette, grounded = false, modifier = right.then(tap))
-                }
-                // Every other player on the left (hidden while the info panel takes their place).
-                if (state.panel == null) {
-                    CityBazaarCardColumn(
-                        cards = state.leftCards,
-                        onToggleHear = { send(CityBazaarMatchIntent.ToggleHear(it)) },
-                        onCardClick = { send(CityBazaarMatchIntent.PlayerClicked(it)) },
-                        onCardLongPress = { send(CityBazaarMatchIntent.PlayerLongPressed(it)) },
-                        cardModifier = { seat -> Modifier.onGloballyPositioned { anchors[seat] = it.boundsInRoot().center } },
-                        modifier = Modifier.align(Alignment.CenterStart).width(side),
-                    )
-                }
-                // The user on the right: their pod, My Properties, then their properties by colour.
-                Column(
-                    modifier = Modifier.align(Alignment.CenterEnd).width(side).fillMaxHeight(),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
-                ) {
-                    state.rightCards.forEach { card ->
-                        TablePlayerCard(
-                            card = card,
-                            tint = card.colour.tint(),
-                            faded = card.out,
-                            badge = card.status,
-                            avatarSize = YapNPlayTheme.dimens.cbCardAvatar,
-                            density = TableCardDensity.DENSE,
-                            details = { CbCashLine(cash = card.cash, compact = false) },
-                            onToggleHear = { send(CityBazaarMatchIntent.ToggleHear(card.seat)) },
-                            onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
-                            onLongPress = { send(CityBazaarMatchIntent.PlayerLongPressed(card.seat)) },
-                            modifier = Modifier.fillMaxWidth().onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
-                        )
-                    }
-                    // The bank: above the user's own card: its money and every property nobody owns.
-                    CbBankButton(onClick = { send(CityBazaarMatchIntent.OpenBank) }, modifier = buttonSize.onGloballyPositioned { anchors[BANK_ANCHOR] = it.boundsInRoot().center })
-                    state.myCard?.let { card ->
-                        TablePlayerCard(
-                            card = card,
-                            tint = card.colour.tint(),
-                            faded = card.out,
-                            badge = card.status,
-                            avatarSize = YapNPlayTheme.dimens.cbCardAvatar,
-                            density = TableCardDensity.DENSE,
-                            details = { CbCashLine(cash = card.cash, compact = false) },
-                            onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
-                            modifier = Modifier.fillMaxWidth().onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
-                        ) {
-                            ArenaSeatSwitches(
-                                micOn = state.micOn,
-                                autoplay = state.autoplay,
-                                onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micPermission.isGranted())) },
-                                onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
-                            )
-                        }
-                    }
-                    if (!state.spectating) {
-                        TableGlassButton(
-                            text = CityBazaarStrings.cbMyCities,
-                            onClick = { send(CityBazaarMatchIntent.OpenMyCities) },
-                            fill = smoke,
-                            textColor = colors.TextPrimary,
-                            enabled = state.stacks.isNotEmpty(),
-                            modifier = buttonSize,
-                        )
-                    }
-                    // Five colours to a row, as wide as My Properties, so every colour stays in sight.
-                    CityBazaarOwnedStacks(
-                        stacks = state.stacks,
-                        onOpen = { send(CityBazaarMatchIntent.OpenStack(it)) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    if (!state.spectating) {
-                        Spacer(Modifier.weight(1f))
-                        // Roll Dice: the big dice at the bottom right.
-                        ArenaDiceButton(
-                            label = state.rollLabel,
-                            enabled = state.canRoll,
-                            onClick = { send(CityBazaarMatchIntent.Roll) },
-                            modifier = Modifier.align(Alignment.End),
-                        )
-                    }
-                }
-                if (state.spectating) {
-                    TableSpectatorMicButton(
-                        micOn = state.micOn,
-                        onToggle = { send(CityBazaarMatchIntent.ToggleMic(micPermission.isGranted())) },
-                        modifier = Modifier.align(Alignment.BottomCenter),
-                    )
-                }
-                state.panel?.let { panel ->
-                    CityBazaarSidePanel(
-                        panel = panel,
-                        onPropertyClick = { send(CityBazaarMatchIntent.PanelPropertyClicked(it)) },
-                        modifier = Modifier.align(Alignment.CenterStart).width(side).fillMaxHeight(),
-                    )
-                }
-                state.toast?.let { CbMoneyToast(toast = it, modifier = Modifier.align(Alignment.TopCenter)) }
-                state.transaction?.let { CbTransactionNotice(tx = it, modifier = Modifier.align(Alignment.Center)) }
-                state.moneyFlight?.let { flight ->
-                    val from = anchors[flight.fromSeat ?: BANK_ANCHOR]
-                    val to = anchors[flight.toSeat ?: BANK_ANCHOR]
-                    if (from != null && to != null) CbMoneyFlight(flight = flight, from = from - boardOrigin, to = to - boardOrigin)
-                }
-                state.feedSnack?.let { TableFeedSnackbar(line = it, playerTints = playerTints, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = Spacing.Sm)) }
-            }
-        }
+        CityBazaarMatchContent(state = state, send = send, die1 = die1, die2 = die2, micGranted = { micPermission.isGranted() })
 
         val board = state.leaderboard
         BlockingOverlay(visible = board != null) {
@@ -351,6 +196,7 @@ fun CityBazaarMatchScreen(
                         onPassAuction = { send(CityBazaarMatchIntent.PassAuction) },
                         onDeclareBankruptcy = { send(CityBazaarMatchIntent.DeclareBankruptcy) },
                         onConfirmLeave = { send(CityBazaarMatchIntent.ConfirmLeave) },
+                        onPickSeatTaker = { send(CityBazaarMatchIntent.PickSeatTaker(it)) },
                         onDone = { send(CityBazaarMatchIntent.Done) },
                         onOpenAppSettings = { send(CityBazaarMatchIntent.OpenAppSettings) },
                         onToggleEffects = { send(CityBazaarMatchIntent.ToggleEffects) },
@@ -361,11 +207,343 @@ fun CityBazaarMatchScreen(
                         onVote = { send(CityBazaarMatchIntent.Vote(it)) },
                         onWatchAd = { send(CityBazaarMatchIntent.WatchAd) },
                     ),
+                    // In 3D, raised clear of the bottom bar.
+                    modifier = if (state.threeD) Modifier.offset(y = -YapNPlayTheme.dimens.cb3dDialogLift) else Modifier,
                 )
             }
         }
     }
 }
+
+/**
+ * The table itself: the top bar, the board, every player's card, the
+ * user's controls, the info panel and the passing notes (everything but
+ * the dialogs).
+ */
+@Composable
+fun CityBazaarMatchContent(
+    state: CityBazaarMatchState,
+    send: (CityBazaarMatchIntent) -> Unit,
+    die1: GlassDiceState,
+    die2: GlassDiceState,
+    micGranted: () -> Boolean,
+    modifier: Modifier = Modifier,
+) {
+    // Where each card (and the bank) is, for the coin animation when money popups are off.
+    val anchors = remember { mutableStateMapOf<Int, Offset>() }
+    // Player colours for the coloured names in the snackbar and history.
+    val playerTints = CityBazaarColour.entries.map { it.tint() }
+    var boardOrigin by remember { mutableStateOf(Offset.Zero) }
+    // The info panel's right edge (px), so a touch past it closes the panel.
+    var panelEdge by remember { mutableStateOf(0f) }
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = Spacing.Md, vertical = Spacing.Xs)
+            .revealWhen(state.loaded),
+        verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+    ) {
+        ArenaTopBar(
+            title = state.title,
+            subtitle = state.subtitle,
+            audience = state.audience,
+            showAudience = state.roomMatch,
+            spectatorLabel = "${state.spectatorCount} ${state.spectatorLabel}",
+            elapsed = state.elapsed,
+            onSettings = { send(CityBazaarMatchIntent.OpenSettings) },
+            onExit = { send(CityBazaarMatchIntent.ExitClicked) },
+            logo = { CityBazaarArtwork(modifier = it) },
+            // The view to switch to.
+            switchLabel = if (state.threeD) CityBazaarStrings.cbView2d else CityBazaarStrings.cbView3d,
+            onSwitch = { send(CityBazaarMatchIntent.ToggleView) },
+            onHistory = { send(CityBazaarMatchIntent.OpenHistory) },
+        )
+        val panelOpen = state.panel != null
+        BoxWithConstraints(
+            modifier = Modifier
+                .onGloballyPositioned { boardOrigin = it.positionInRoot() }
+                .weight(1f)
+                .fillMaxWidth()
+                // A touch outside the info panel closes it, and still does what it touched (Trade, a tile…).
+                .pointerInput(panelOpen) {
+                    if (!panelOpen) return@pointerInput
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                        if (down.position.x > panelEdge) send(CityBazaarMatchIntent.DismissPanel)
+                    }
+                },
+        ) {
+            val side = maxWidth * AppConstants.CB_SIDE_COLUMN_WEIGHT
+            val density = LocalDensity.current
+            // The 3D diamond's corners where the board draws it (it sits a little below the top).
+            val drop = with(density) { YapNPlayTheme.dimens.cb3dBoardDrop.toPx() }
+            val tips = CityBazaarIsoProjection.tips(Size(constraints.maxWidth.toFloat(), constraints.maxHeight - drop))
+            // In 3D the info panel reaches to just short of the board's left corner; in 2D it is the side column.
+            val panelWidth = if (state.threeD) {
+                with(density) { (tips[0].x.toDp() - YapNPlayTheme.dimens.cb3dPanelGap).coerceAtLeast(side) }
+            } else {
+                side
+            }
+            // In 3D the snackbar is centred in the band between the top bar and the board's top corner.
+            val boardTopCorner = with(density) { (tips[1].y + drop).toDp() }
+            panelEdge = with(density) { panelWidth.toPx() }
+            val palette = cityBazaarDicePalette(state.dice.colour)
+            val colors = YapNPlayTheme.colors
+            val smoke = listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom)
+            // Side buttons as wide as the user's pod, as tall as its Mic / Autoplay / Roll rows.
+            val buttonSize = Modifier.fillMaxWidth().height(YapNPlayTheme.dimens.cbControlHeight)
+            CityBazaarBoardView(
+                tiles = state.tiles,
+                tokens = state.tokens,
+                onTileClick = { send(CityBazaarMatchIntent.TileClicked(it)) },
+                onDeckClick = { send(CityBazaarMatchIntent.OpenDeck(it)) },
+                highlight = state.highlight,
+                threeD = state.threeD,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxHeight()
+                    .width(if (state.threeD) maxWidth else maxWidth - side * 2)
+                    .padding(top = if (state.threeD) YapNPlayTheme.dimens.cb3dBoardDrop else YapNPlayTheme.dimens.zero),
+            ) { left, right ->
+                // Tap the dice to roll (no press highlight), when it's the user's roll.
+                val tap = if (state.canRoll) Modifier.clickable(interactionSource = null, indication = null) { send(CityBazaarMatchIntent.Roll) } else Modifier
+                GlassDice(state = die1, palette = palette, grounded = false, modifier = left.then(tap))
+                GlassDice(state = die2, palette = palette, grounded = false, modifier = right.then(tap))
+            }
+            if (state.threeD) {
+                CityRoyale3dSeats(state = state, send = send, micGranted = micGranted, anchors = anchors)
+            } else {
+                // Every other player on the left (hidden while the info panel takes their place).
+                if (state.panel == null) {
+                    CityBazaarCardColumn(
+                        cards = state.leftCards,
+                        onToggleHear = { send(CityBazaarMatchIntent.ToggleHear(it)) },
+                        onCardClick = { send(CityBazaarMatchIntent.PlayerClicked(it)) },
+                        onCardLongPress = { send(CityBazaarMatchIntent.PlayerLongPressed(it)) },
+                        cardModifier = { seat -> Modifier.onGloballyPositioned { anchors[seat] = it.boundsInRoot().center } },
+                        modifier = Modifier.align(Alignment.CenterStart).width(side),
+                    )
+                }
+                // The user on the right: their pod, My Properties, then their properties by colour.
+                Column(
+                    modifier = Modifier.align(Alignment.CenterEnd).width(side).fillMaxHeight(),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                ) {
+                    state.rightCards.forEach { card ->
+                        TablePlayerCard(
+                            card = card,
+                            tint = card.colour.tint(),
+                            faded = card.out,
+                            badge = card.status,
+                            avatarSize = YapNPlayTheme.dimens.cbCardAvatar,
+                            density = TableCardDensity.DENSE,
+                            details = { CbCashLine(cash = card.cash, compact = false) },
+                            onToggleHear = { send(CityBazaarMatchIntent.ToggleHear(card.seat)) },
+                            onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
+                            onLongPress = { send(CityBazaarMatchIntent.PlayerLongPressed(card.seat)) },
+                            modifier = Modifier.fillMaxWidth().onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
+                        )
+                    }
+                    // The bank: above the user's own card: its money and every property nobody owns.
+                    CbBankButton(onClick = { send(CityBazaarMatchIntent.OpenBank) }, modifier = buttonSize.onGloballyPositioned { anchors[BANK_ANCHOR] = it.boundsInRoot().center })
+                    state.myCard?.let { card ->
+                        TablePlayerCard(
+                            card = card,
+                            tint = card.colour.tint(),
+                            faded = card.out,
+                            badge = card.status,
+                            avatarSize = YapNPlayTheme.dimens.cbCardAvatar,
+                            density = TableCardDensity.DENSE,
+                            details = { CbCashLine(cash = card.cash, compact = false) },
+                            onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
+                            modifier = Modifier.fillMaxWidth().onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
+                        ) {
+                            ArenaSeatSwitches(
+                                micOn = state.micOn,
+                                autoplay = state.autoplay,
+                                onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
+                                onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
+                            )
+                        }
+                    }
+                    if (!state.spectating) {
+                        TableGlassButton(
+                            text = CityBazaarStrings.cbMyCities,
+                            onClick = { send(CityBazaarMatchIntent.OpenMyCities) },
+                            fill = smoke,
+                            textColor = colors.TextPrimary,
+                            enabled = state.stacks.isNotEmpty(),
+                            modifier = buttonSize,
+                        )
+                    }
+                    // Five colours to a row, as wide as My Properties, so every colour stays in sight.
+                    CityBazaarOwnedStacks(
+                        stacks = state.stacks,
+                        onOpen = { send(CityBazaarMatchIntent.OpenStack(it)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (!state.spectating) {
+                        Spacer(Modifier.weight(1f))
+                        // Roll Dice: the big dice at the bottom right.
+                        ArenaDiceButton(
+                            label = state.rollLabel,
+                            enabled = state.canRoll,
+                            onClick = { send(CityBazaarMatchIntent.Roll) },
+                            modifier = Modifier.align(Alignment.End),
+                        )
+                    }
+                }
+            }
+            if (state.spectating) {
+                TableSpectatorMicButton(
+                    micOn = state.micOn,
+                    onToggle = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+            }
+            state.panel?.let { panel ->
+                CityBazaarSidePanel(
+                    panel = panel,
+                    onPropertyClick = { send(CityBazaarMatchIntent.PanelPropertyClicked(it)) },
+                    modifier = Modifier.align(Alignment.CenterStart).width(panelWidth).fillMaxHeight(),
+                )
+            }
+            state.toast?.let { CbMoneyToast(toast = it, modifier = Modifier.align(Alignment.TopCenter)) }
+            state.transaction?.let {
+                val lift = if (state.threeD) YapNPlayTheme.dimens.cb3dDialogLift else YapNPlayTheme.dimens.zero
+                CbTransactionNotice(tx = it, modifier = Modifier.align(Alignment.Center).offset(y = -lift))
+            }
+            state.moneyFlight?.let { flight ->
+                val from = anchors[flight.fromSeat ?: BANK_ANCHOR]
+                val to = anchors[flight.toSeat ?: BANK_ANCHOR]
+                if (from != null && to != null) CbMoneyFlight(flight = flight, from = from - boardOrigin, to = to - boardOrigin)
+            }
+            state.feedSnack?.let {
+                if (state.threeD) {
+                    // Centred on the board's top corner (the board is centred), halfway down to it.
+                    Box(modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().height(boardTopCorner), contentAlignment = Alignment.Center) {
+                        TableFeedSnackbar(line = it, playerTints = playerTints)
+                    }
+                } else {
+                    TableFeedSnackbar(line = it, playerTints = playerTints, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = Spacing.Sm))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The 3D table's seats, round the diamond (as in the design). Along the
+ * bottom, split by the diamond's bottom tip: on the left the bank, My
+ * Properties and the user's cities by colour; on the right the user's
+ * card, Mic, Auto and Roll Dice (the die above its label). The bank, the
+ * switches, My Properties and the colour stacks share one height; the card
+ * and the die stand taller. Everyone else is seated round the board,
+ * clockwise from the user, each where the board leaves room
+ * ([CityRoyaleSeatRing]).
+ */
+@Composable
+private fun BoxScope.CityRoyale3dSeats(
+    state: CityBazaarMatchState,
+    send: (CityBazaarMatchIntent) -> Unit,
+    micGranted: () -> Boolean,
+    anchors: MutableMap<Int, Offset>,
+) {
+    val dimens = YapNPlayTheme.dimens
+    val colors = YapNPlayTheme.colors
+    val rowHeight = dimens.arenaSwitchMax
+    // Fewer players, bigger cards (the board stays the same size).
+    val seatScale = tableSeatScale((state.leftCards + state.rightCards).size)
+    CityRoyaleSeatRing(
+        cards = state.leftCards + state.rightCards,
+        boardDrop = dimens.cb3dBoardDrop,
+        barHeight = dimens.cb3dBarHeight,
+        // The snackbar shows at the top centre: seats there keep below it.
+        topReserve = dimens.cb3dSnackReserve,
+    ) { card ->
+        TablePlayerCard(
+            card = card,
+            tint = card.colour.tint(),
+            faded = card.out,
+            badge = card.status,
+            avatarSize = dimens.cb3dSeatAvatar,
+            density = TableCardDensity.DENSE,
+            details = { CbCashLine(cash = card.cash, compact = false) },
+            onToggleHear = { send(CityBazaarMatchIntent.ToggleHear(card.seat)) },
+            onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
+            onLongPress = { send(CityBazaarMatchIntent.PlayerLongPressed(card.seat)) },
+            modifier = Modifier.onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center }.monoScaled(seatScale).width(dimens.cb3dSeatWidth),
+        )
+    }
+
+    // Bottom left: the bank, My Properties, the cities by colour.
+    Row(
+        modifier = Modifier.align(Alignment.BottomStart),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
+    ) {
+        CbBankButton(
+            onClick = { send(CityBazaarMatchIntent.OpenBank) },
+            modifier = Modifier.height(rowHeight).onGloballyPositioned { anchors[BANK_ANCHOR] = it.boundsInRoot().center },
+        )
+        if (!state.spectating) {
+            TableGlassButton(
+                text = CityBazaarStrings.cbMyCities,
+                onClick = { send(CityBazaarMatchIntent.OpenMyCities) },
+                fill = listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom),
+                textColor = colors.TextPrimary,
+                enabled = state.stacks.isNotEmpty(),
+                modifier = Modifier.height(rowHeight).width(dimens.cb3dPropertiesWidth),
+            )
+            if (state.stacks.isNotEmpty()) {
+                CityBazaarOwnedStacks(
+                    stacks = state.stacks,
+                    onOpen = { send(CityBazaarMatchIntent.OpenStack(it)) },
+                    // Squares just under the row's height, taking only the room they need; centred on the row.
+                    cardSize = rowHeight - dimens.cbStackOffset * STACK_LAYERS,
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                )
+            }
+        }
+    }
+    // Bottom right: the user's card, Mic, Auto, Roll Dice — on the bottom edge, level with the bank's row.
+    state.myCard?.let { card ->
+        Row(
+            modifier = Modifier.align(Alignment.BottomEnd),
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
+        ) {
+            TablePlayerCard(
+                card = card,
+                tint = card.colour.tint(),
+                faded = card.out,
+                badge = card.status,
+                avatarSize = dimens.cbCardAvatar,
+                density = TableCardDensity.DENSE,
+                details = { CbCashLine(cash = card.cash, compact = false) },
+                onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
+                modifier = Modifier.width(dimens.cb3dSeatWidth).onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
+            )
+            ArenaSeatSwitches(
+                micOn = state.micOn,
+                autoplay = state.autoplay,
+                onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
+                onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
+                gap = Spacing.Xs,
+                // Centred on the card beside them.
+                modifier = Modifier.align(Alignment.CenterVertically),
+            )
+            ArenaDiceButton(
+                label = state.rollLabel,
+                enabled = state.canRoll,
+                onClick = { send(CityBazaarMatchIntent.Roll) },
+            )
+        }
+    }
+}
+
+/** The deepest colour stack's offset layers (4 cities), kept inside the bar's row height. */
+private const val STACK_LAYERS = 3
 
 /** The bank's key among the card positions. */
 private const val BANK_ANCHOR = -1

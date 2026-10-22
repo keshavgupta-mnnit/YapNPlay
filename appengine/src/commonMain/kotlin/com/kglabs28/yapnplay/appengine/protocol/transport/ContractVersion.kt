@@ -27,5 +27,8 @@ package com.kglabs28.yapnplay.appengine.protocol.transport
  * fewest cards, then knockouts.
  * 0.9.0 — room channel RenameRoom (admin); InviteToRoomBody gains
  * userCodes (invite by player code, friends or not).
+ * 0.10.0 — MatchEnded RankedSeat: coinsWon is every seat's place share
+ * (CPUs and leavers too, shown not credited); new stake (the entry put
+ * in); CPUs show the flat completion bonus.
  */
-const val CONTRACT_VERSION: String = "0.9.0"
+const val CONTRACT_VERSION: String = "0.10.0"

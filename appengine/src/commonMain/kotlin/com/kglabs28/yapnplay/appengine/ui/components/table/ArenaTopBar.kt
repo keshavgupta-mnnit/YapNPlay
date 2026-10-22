@@ -111,20 +111,20 @@ fun ArenaTopBar(
                     AppIcon(imageVector = Icons.Rounded.WorkspacePremium, tint = colors.ArenaCrown, size = dimens.iconMedium)
                 }
             }
-            Column(verticalArrangement = Arrangement.Center) {
-                BasicText(
-                    text = title,
-                    style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Black),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                BasicText(
-                    text = subtitle,
-                    style = typography.micro.copy(color = colors.TextSecondary),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            // The wide bar reads in one line: the game's name, big and bold, at the start; the mode and round at the end.
+            BasicText(
+                text = title,
+                style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Black, fontSize = typography.title.fontSize * TITLE_GROW),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            BasicText(
+                text = subtitle,
+                style = typography.label.copy(color = colors.TextSecondary, fontWeight = FontWeight.SemiBold, fontSize = typography.label.fontSize * SUBTITLE_GROW),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
 
         // Who is watching.
@@ -224,3 +224,6 @@ private const val SQUARE_RADIUS = 0.28f
 private const val RIM_ALPHA = 0.7f
 private const val CROWN_BACK_ALPHA = 0.55f
 private const val LOGO_RADIUS = 0.24f
+/** The bar's game name and its mode / round line, a size up from their styles. */
+private const val TITLE_GROW = 1.25f
+private const val SUBTITLE_GROW = 1.15f

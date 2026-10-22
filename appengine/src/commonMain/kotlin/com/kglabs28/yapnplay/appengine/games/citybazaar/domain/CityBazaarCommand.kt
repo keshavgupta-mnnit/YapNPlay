@@ -27,5 +27,6 @@ sealed interface CityBazaarCommand {
     /** The app went to the background (true) or came back (false). */
     data class SetAway(val away: Boolean) : CityBazaarCommand
     /** Leave the match; the bot plays the seat. */
-    data object Leave : CityBazaarCommand
+    /** Leave; the seat goes to [giveToUserId] (a spectator) or, when null, a CPU. */
+    data class Leave(val giveToUserId: String?) : CityBazaarCommand
 }

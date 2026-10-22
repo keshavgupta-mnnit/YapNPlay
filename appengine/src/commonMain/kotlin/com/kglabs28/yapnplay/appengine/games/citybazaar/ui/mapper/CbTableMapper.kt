@@ -108,7 +108,8 @@ object CbTableMapper {
     fun sides(match: CityBazaarMatch, cards: List<CbPlayerCardUi>): Triple<CbPlayerCardUi?, List<CbPlayerCardUi>, List<CbPlayerCardUi>> {
         val mine = cards.firstOrNull { it.isMe }
         val start = match.me?.seat ?: 0
-        val others = cards.filterNot { it.isMe }.sortedBy { (it.seat - start + match.players.size) % match.players.size }
+        // A player who left takes no seat; everyone else spreads out round the table again.
+        val others = cards.filterNot { it.isMe || match.player(it.seat)?.removed == true }.sortedBy { (it.seat - start + match.players.size) % match.players.size }
         if (mine != null) return Triple(mine, others, emptyList())
         val rightCount = (others.size + 1) / 2
         return Triple(null, others.drop(rightCount), others.take(rightCount))

@@ -17,6 +17,9 @@ object TableStrings {
     const val seatImHere = "I'm Here"
     const val seatSpectate = "Spectate"
     const val seatSpectatorLeaveBody = "You're watching as a spectator."
+    const val leaveMatchTitle = "Leave the match?"
+    const val leaveMatchBody = "A CPU will play your seat for the rest of the match."
+    const val leaveQuickPlayBody = "If you leave, you're out of this match: your pieces, cards or properties leave the game and your entry is lost."
     const val seatCancel = "Cancel"
     const val seatExit = "Exit"
     const val seatOfferToBot = "Give to CPU"
@@ -41,11 +44,11 @@ object TableStrings {
     fun leaderboardPts(points: Int) = "+$points PTS"
     fun leaderboardCoins(coins: String) = "+$coins coins"
     const val leaderboardNoCoins = "0 coins"
+    fun leaderboardLost(coins: String) = "-$coins coins"
     /** "+300": an amount gained, in the leaderboard's bottom bar. */
     fun leaderboardGain(amount: String) = "+$amount"
     /** The table's subtitle: its parts (title, round, pot) joined with a dot. */
     fun tableSubtitle(parts: List<String>) = parts.joinToString(" · ")
-    fun tablePot(coins: String) = "Pot $coins"
     fun leaderboardShareWithLink(text: String, link: String) = "$text\n$link"
     const val leaderboardPlayAgain = "PLAY AGAIN"
     fun leaderboardShareText(game: String, place: String) = "I just finished $place in $game on YapNPlay! Play and talk with me there."

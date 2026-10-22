@@ -68,7 +68,7 @@ fun MonoTableShell(
 ) {
     val dimens = YapNPlayTheme.dimens
     // Every opponent's seat, shrunk together as the table fills.
-    val seatScale = monoSeatScale(leftPods.size + topPods.size + rightPods.size)
+    val seatScale = tableSeatScale(leftPods.size + topPods.size + rightPods.size)
     // The bands the layers keep clear of each other.
     val side = dimens.monoPodWidthCompact + Spacing.Sm
     val topBand = if (topPods.isEmpty()) Spacing.Xs else dimens.monoTopBandHeight
@@ -177,7 +177,8 @@ fun MonoTableShell(
                     modifier = Modifier.align(Alignment.BottomStart),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
                 ) {
-                    localPod()
+                    // The user's own seat grows and shrinks with the table like everyone's.
+                    Box(modifier = Modifier.monoScaled(seatScale)) { localPod() }
                     callButton()
                 }
 
@@ -221,14 +222,16 @@ fun <T> monoTableZones(opponents: List<T>): Triple<List<T>, List<T>, List<T>> {
 }
 
 /**
- * How big each opponent's seat is drawn for [opponents] of them: the
- * whole seat (avatar, pill, name, speaker, fan) shrinks together as the
- * table fills, so every seat fits whole and the table doesn't crowd.
+ * How big each opponent's seat is drawn, in every game, for [opponents] of
+ * them: the board or table stays the same size, so the whole seat (avatar,
+ * pill, name, speaker, fan) grows when few play and shrinks together as
+ * the table fills — every seat fits whole and the table never crowds.
  */
-fun monoSeatScale(opponents: Int): Float = when {
+fun tableSeatScale(opponents: Int): Float = when {
     opponents >= CROWDED -> SCALE_CROWDED
     opponents >= BUSY -> SCALE_BUSY
-    else -> 1f
+    opponents >= FEW -> SCALE_FEW
+    else -> SCALE_ROOMY
 }
 
 /** Draws the content at [scale] of its size, taking only that much room (anchored top-left). */
@@ -248,9 +251,12 @@ fun Modifier.monoScaled(scale: Float): Modifier = if (scale == 1f) this else lay
     }
 }
 
-/** Opponent counts from which seats shrink, and how much. */
+/** Opponent counts from which seats change size, and how much: 1–2 roomy, 3 a little less, 4–5 smaller, 6+ smallest. */
+private const val FEW = 3
 private const val BUSY = 4
 private const val CROWDED = 6
+private const val SCALE_ROOMY = 1.2f
+private const val SCALE_FEW = 1.1f
 private const val SCALE_BUSY = 0.85f
 private const val SCALE_CROWDED = 0.72f
 

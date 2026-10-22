@@ -7,6 +7,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferUi
 import com.kglabs28.yapnplay.appengine.core.ui.CoinsStrings
 import com.kglabs28.yapnplay.appengine.features.matchmaking.domain.MatchmakingCancelReason
 import com.kglabs28.yapnplay.appengine.features.coins.domain.CoinLeagues
+import com.kglabs28.yapnplay.appengine.features.coins.usecase.IsRewardedAdReadyUseCase
 import com.kglabs28.yapnplay.appengine.features.coins.usecase.WatchAdForCoinsUseCase
 import com.kglabs28.yapnplay.appengine.features.coins.usecase.GetCoinLeaguesUseCase
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
@@ -49,6 +50,7 @@ class GameZoneViewModel(
     private val getCoinLeagues: GetCoinLeaguesUseCase,
     private val watchAdForCoins: WatchAdForCoinsUseCase,
     private val getAdLimitStatus: GetAdLimitStatusUseCase,
+    private val isAdReady: IsRewardedAdReadyUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<GameZoneState, GameZoneIntent, GameZoneEffect>(GameZoneState(), dispatchers) {
@@ -152,6 +154,7 @@ class GameZoneViewModel(
                         title = CoinsStrings.notEnoughTitle,
                         body = CoinsStrings.notEnoughBody(league.name, TextUtils.groupedThousands(league.entryCoins)),
                         offerFree = true,
+                        adReady = isAdReady(),
                     ),
                 )
             }
@@ -165,6 +168,8 @@ class GameZoneViewModel(
     /** Ad watched to the end → the server adds coins; the picker reopens with the new balance. */
     private suspend fun watchAdThenReload() {
         val offer = state.value.coinsOffer
+        // Extra taps while one ad is loading or playing do nothing (one ad per tap).
+        if (offer?.watchingAd == true) return
         // A cooldown or today's limit: say so rather than play nothing.
         if (offer != null && !offer.canWatch) {
             setState { copy(coinsOffer = coinsOffer?.copy(message = offer.note ?: CoinsStrings.adLimit)) }
@@ -201,7 +206,7 @@ class GameZoneViewModel(
                     is MatchmakingStatus.Cancelled -> {
                         tickJob?.cancel()
                         if (status.reason == MatchmakingCancelReason.NOT_ENOUGH_COINS) {
-                            setState { copy(search = null, coinsOffer = CoinsOfferUi(CoinsStrings.notEnoughTitle, CoinsStrings.notEnoughBodyGeneric, offerFree = true)) }
+                            setState { copy(search = null, coinsOffer = CoinsOfferUi(CoinsStrings.notEnoughTitle, CoinsStrings.notEnoughBodyGeneric, offerFree = true, adReady = isAdReady())) }
                             refreshAdLimits()
                         } else {
                             setState { copy(search = null, searchMessage = Strings.gameZoneNoMatch) }

@@ -26,6 +26,10 @@ object CityBazaarFeedMapper {
     fun line(event: CityBazaarEvent, m: CityBazaarMatch, lastDeck: String?): TableFeedLineUi? =
         plainLine(event, m, lastDeck)?.let { it.copy(spans = highlights(it.text, m)) }
 
+    /** [line] reworded to [text], its highlights found afresh in the new words. */
+    fun reworded(line: TableFeedLineUi, text: String, m: CityBazaarMatch): TableFeedLineUi =
+        line.copy(text = text, spans = highlights(text, m))
+
     /** Players (by colour), amounts, tile names and card piles in [text], left to right, never overlapping. */
     private fun highlights(text: String, m: CityBazaarMatch): List<TableFeedSpan> {
         val found = mutableListOf<TableFeedSpan>()

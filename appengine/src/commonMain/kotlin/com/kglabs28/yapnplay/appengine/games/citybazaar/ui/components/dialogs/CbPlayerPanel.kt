@@ -21,13 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.ui.components.table.tableFrostedGlass
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CbCityCard
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbPanel
 
 /**
- * A player (or the bank) at a glance, on frosted white: the name on a band
+ * A player (or the bank) at a glance, on glassy black: the name on a band
  * of their colour, balance and worth, then each property on a row of its group's
  * colour with the rent it earns now (a tap opens its card).
  */
@@ -46,8 +45,7 @@ fun CbPlayerPanel(
     val shape = RoundedCornerShape(dimens.cbRowRadius)
     Column(
         modifier = modifier
-            .background(colors.Background, shape)
-            .tableFrostedGlass(tint = colors.AvatarRingSilver, shape = shape, radius = dimens.cbRowRadius, glow = dimens.zero)
+            .cbGlassBlack(shape)
             .clip(shape),
         verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {

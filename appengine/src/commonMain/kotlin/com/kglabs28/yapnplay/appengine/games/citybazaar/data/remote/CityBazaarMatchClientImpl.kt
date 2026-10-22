@@ -37,7 +37,7 @@ class CityBazaarMatchClientImpl(
             is CityBazaarCommand.SetAutoplay -> match.setAutoplay(matchId, command.enabled)
             is CityBazaarCommand.SetMic -> match.setMic(matchId, command.on)
             is CityBazaarCommand.SetAway -> match.setAway(matchId, command.away)
-            CityBazaarCommand.Leave -> match.leave(matchId, giveToUserId = null)
+            is CityBazaarCommand.Leave -> match.leave(matchId, giveToUserId = command.giveToUserId)
             is CityBazaarCommand.VoteExtension -> match.voteExtension(matchId, command.keepPlaying)
             CityBazaarCommand.ProposeEnd -> match.proposeEnd(matchId)
             is CityBazaarCommand.VoteEnd -> match.castEndVote(matchId, command.agree)
@@ -64,7 +64,7 @@ class CityBazaarMatchClientImpl(
         is CityBazaarCommand.SetAutoplay,
         is CityBazaarCommand.SetMic,
         is CityBazaarCommand.SetAway,
-        CityBazaarCommand.Leave,
+        is CityBazaarCommand.Leave,
         is CityBazaarCommand.VoteExtension,
         CityBazaarCommand.ProposeEnd,
         is CityBazaarCommand.VoteEnd,

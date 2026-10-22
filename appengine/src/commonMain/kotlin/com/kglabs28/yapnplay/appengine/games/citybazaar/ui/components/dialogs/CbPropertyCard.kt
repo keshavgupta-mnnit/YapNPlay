@@ -22,13 +22,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.ui.components.table.tableFrostedGlass
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tileHeaderTint
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbPropertyCardUi
 
 /**
- * A city's title card, one frosted-white card as wide as its content: its colour header with the name, rent per tier
+ * A city's title card, one glassy black card as wide as its content: its colour header with the name, rent per tier
  * (current one highlighted), what it earns now (2X with 3 of a colour),
  * what the next sale brings (highlighted), its costs, and its owner in a
  * bold bar of their colour.
@@ -43,9 +42,9 @@ fun CbPropertyCard(card: CbPropertyCardUi, modifier: Modifier = Modifier, fillHe
     Column(
         modifier = modifier
             .widthIn(min = dimens.cbPropertyCardMinWidth)
-            .width(IntrinsicSize.Max)
-            .background(colors.Background, shape)
-            .tableFrostedGlass(tint = colors.AvatarRingSilver, shape = shape, radius = dimens.cbRowRadius, glow = dimens.zero)
+            // As wide as its content, except in the side column, which it fills edge to edge.
+            .then(if (fillHeight) Modifier else Modifier.width(IntrinsicSize.Max))
+            .cbGlassBlack(shape)
             .clip(shape),
         verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {

@@ -16,7 +16,8 @@ object MonoStrings {
 
     const val monoCalled = "MONO!"
     /** The one callout button: calls MONO for the user, or CAUGHT on whoever just went down to one card. */
-    const val monoCallButton = "MONO/CAUGHT"
+    const val monoCaughtButton = "CAUGHT"
+    const val monoMonoButton = "MONO"
     const val monoDrawButton = "Draw Card"
     fun monoTakeButton(penalty: Int) = "Take +$penalty"
     fun monoSpectatorCount(count: Int) = if (count == 1) "1 Spectator" else "$count Spectators"
@@ -48,10 +49,6 @@ object MonoStrings {
     /** The banner when a player empties their hand. */
     fun monoFinishBanner(name: String, place: String) = "🏆 $name finishes $place!"
     fun monoYouFinishBanner(place: String) = "🏆 You finish $place!"
-    const val monoLeaveTitle = "Leave the match?"
-    const val monoLeaveBody = "A CPU will play your seat for the rest of the match."
-    const val monoStay = "STAY"
-    const val monoLeave = "LEAVE"
     const val monoVoteTitle = "Keep playing?"
     fun monoVoteBody(seconds: Long) = "Winners are in. Play on for the next places? ${seconds}s"
     fun monoVoteCount(yes: Int, no: Int, voters: Int) = "$yes keep · $no end · $voters voting"

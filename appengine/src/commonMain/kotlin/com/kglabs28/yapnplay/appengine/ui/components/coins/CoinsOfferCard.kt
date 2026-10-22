@@ -68,7 +68,7 @@ fun CoinsOfferCard(
             if (offer.offerFree) {
                 GlassPillButton(text = CoinsStrings.playFree, onClick = onPlayFree, leadingIcon = Icons.Rounded.SportsEsports, height = YapNPlayTheme.dimens.ctaHeight)
             }
-            PillButton(
+            if (offer.adReady) PillButton(
                 text = when {
                     offer.watchingAd -> CoinsStrings.watchingAd
                     next != null -> CoinsStrings.watchAdFor(TextUtils.groupedThousands(next))
@@ -85,14 +85,14 @@ fun CoinsOfferCard(
             )
         },
     ) {
-        if (offer.rewards.isNotEmpty()) {
+        if (offer.adReady && offer.rewards.isNotEmpty()) {
             CoinsAdProgress(watched = offer.adsWatched, total = offer.rewards.size)
             CoinsAdLadder(rewards = offer.rewards, watched = offer.adsWatched)
         }
         offer.message?.let {
             BasicText(text = it, style = YapNPlayTheme.typography.label.copy(color = colors.Gold, fontWeight = FontWeight.SemiBold))
         }
-        offer.note?.let {
+        offer.note?.takeIf { offer.adReady }?.let {
             BasicText(text = it, style = YapNPlayTheme.typography.label.copy(color = if (offer.canWatch) colors.TextSecondary else colors.Warning))
         }
     }
@@ -134,7 +134,7 @@ private fun CoinsAdProgress(watched: Int, total: Int) {
                         .fillMaxWidth(fill)
                         .fillMaxHeight()
                         .clip(shape)
-                        .background(Brush.horizontalGradient(ladderColours())),
+                        .background(Brush.horizontalGradient(listOf(colors.Gold, colors.CoinsLadder3))),
                 )
             }
             // A divider between each ad's stretch, so the bar reads in steps.

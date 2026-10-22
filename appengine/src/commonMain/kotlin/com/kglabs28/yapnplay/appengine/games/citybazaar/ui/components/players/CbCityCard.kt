@@ -21,12 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
-import com.kglabs28.yapnplay.appengine.ui.components.table.tableFrostedGlass
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.cbGlassBlack
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tileHeaderTint
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbOwnedRowUi
 
 /**
- * A property as a compact frosted-white card: border and name in its
+ * A property as a compact glassy black card: border and name in its
  * group's colour, its worth on the left and the rent it earns now on the
  * right. A tap opens its full card.
  */
@@ -41,8 +41,7 @@ fun CbCityCard(city: CbOwnedRowUi, onClick: () -> Unit, modifier: Modifier = Mod
         modifier = modifier
             .fillMaxWidth()
             .height(dimens.cbCityCardHeight)
-            .background(colors.Background, shape)
-            .tableFrostedGlass(tint = colors.AvatarRingSilver, shape = shape, radius = dimens.ludoCardRadius, glow = dimens.zero)
+            .cbGlassBlack(shape)
             .border(dimens.ludoTimerStroke, tint, shape)
             .clip(shape)
             .clickable(onClick = onClick)

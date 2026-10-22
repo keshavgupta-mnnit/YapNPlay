@@ -7,6 +7,7 @@ import com.kglabs28.yapnplay.appengine.features.coins.data.remote.CoinsClient
 import com.kglabs28.yapnplay.appengine.features.coins.data.remote.CoinsClientImpl
 import com.kglabs28.yapnplay.appengine.features.coins.domain.CoinsRepository
 import com.kglabs28.yapnplay.appengine.features.coins.usecase.GetCoinLeaguesUseCase
+import com.kglabs28.yapnplay.appengine.features.coins.usecase.IsRewardedAdReadyUseCase
 import com.kglabs28.yapnplay.appengine.features.coins.usecase.WatchAdForCoinsUseCase
 import org.koin.dsl.module
 
@@ -18,4 +19,5 @@ val coinsModule = module {
     factory { GetCoinLeaguesUseCase(get()) }
     factory { GetAdLimitStatusUseCase(get()) }
     factory { WatchAdForCoinsUseCase(get(), get()) }
+    factory { IsRewardedAdReadyUseCase(get()) }
 }

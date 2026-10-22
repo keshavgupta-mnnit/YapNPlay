@@ -2,6 +2,9 @@ package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.GamesAppManagerHelper
 import com.kglabs28.yapnplay.appengine.core.audio.GameAudio
+import com.kglabs28.yapnplay.appengine.features.matchresult.domain.SeatResult
+import com.kglabs28.yapnplay.appengine.features.matchresult.usecase.ObserveMatchCoinsUseCase
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardResult
 import com.kglabs28.yapnplay.appengine.core.audio.GameSound
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
@@ -41,6 +44,7 @@ class MatchMonoViewModel(
     private val clock: AppClock,
     audio: GameAudio,
     gamesConfig: GamesAppManagerHelper,
+    private val observeMatchCoins: ObserveMatchCoinsUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MatchMonoState, MatchMonoIntent, MatchMonoEffect>(
     MatchMonoState(), dispatchers,
@@ -49,6 +53,10 @@ class MatchMonoViewModel(
     private var matchId: String = ""
     private var match: MonoMatch? = null
     private var talking: Set<String> = emptySet()
+    /** What MatchEnded paid each seat (CPUs included, display only); it arrives just after the last snapshot. */
+    private var seatResults: List<SeatResult> = emptyList()
+    /** The final board, built once (so its clock stops); the coins go on as they arrive. */
+    private var finalBoard: LeaderboardUi? = null
     /** The latest finisher's banner and when it went up; the final board waits for it. */
     private var banner: Pair<String, Instant>? = null
     private var jobs: List<Job> = emptyList()
@@ -87,7 +95,11 @@ class MatchMonoViewModel(
             is MatchMonoIntent.SetMic -> send(MonoCommand.SetMic(intent.on))
             MatchMonoIntent.OpenSettings -> emitEffect(MatchMonoEffect.OpenSettingsDialog)
             // Leaving hands the seat to a bot (null), then closes the table.
-            MatchMonoIntent.ExitClicked -> {
+            // Exit asks first; leaving hands the seat to a bot (null), then closes the table.
+            MatchMonoIntent.ExitClicked -> setState { copy(confirmingExit = true) }
+            MatchMonoIntent.CancelExit -> setState { copy(confirmingExit = false) }
+            MatchMonoIntent.ConfirmExit -> {
+                setState { copy(confirmingExit = false) }
                 send(MonoCommand.Leave(null))
                 emitEffect(MatchMonoEffect.LeaveMatch)
             }
@@ -113,6 +125,7 @@ class MatchMonoViewModel(
                 }
             },
             scope.launch { observeSpeaking(id).collect { talking = it; render() } },
+            scope.launch { observeMatchCoins().collect { seatResults = it; render() } },
             // The turn timer and the callout window run on the clock.
             scope.launch {
                 while (true) {
@@ -235,7 +248,9 @@ class MatchMonoViewModel(
                 vote = MonoUiMapper.vote(m.continueVote, me?.seat, now),
                 // The finisher's banner shows first; the board follows once it has had its moment.
                 finishBanner = banner?.takeIf { now - it.second < BANNER_TIME }?.first,
-                leaderboard = leaderboard ?: board(m, now)?.takeIf { banner?.let { now - it.second >= BANNER_TIME } ?: true },
+                // The winner's banner first; then the board, with the coins each seat won.
+                leaderboard = (finalBoard ?: board(m, now)?.takeIf { banner?.let { now - it.second >= BANNER_TIME } ?: true }?.also { finalBoard = it })
+                    ?.let { LeaderboardResult.withResult(it, seatResults) },
                 // A selection the table has moved past is no longer offered.
                 selectedCardIndex = selectedCardIndex?.takeIf { it < (me?.hand?.size ?: 0) },
             )

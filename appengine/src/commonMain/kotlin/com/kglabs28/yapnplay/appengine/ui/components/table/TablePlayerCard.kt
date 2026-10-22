@@ -68,7 +68,6 @@ fun TablePlayerCard(
                 .fillMaxWidth()
                 .graphicsLayer { alpha = if (faded) FADED_ALPHA else 1f }
                 .then(press),
-            verticalArrangement = Arrangement.spacedBy(gap),
         ) {
             ArenaSeatHeader(
                 name = card.name,
@@ -93,9 +92,9 @@ fun TablePlayerCard(
                     null
                 },
             )
-            // The user's switches under the pill, clear of the level badge under the avatar.
+            // The user's switches right under the pill, as wide as it.
             Column(
-                modifier = Modifier.padding(start = avatar, top = Spacing.Xxs),
+                modifier = Modifier.fillMaxWidth().padding(start = avatar / 2),
                 verticalArrangement = Arrangement.spacedBy(gap),
                 content = controls,
             )

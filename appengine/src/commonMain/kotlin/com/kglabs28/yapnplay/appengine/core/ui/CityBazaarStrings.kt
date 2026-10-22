@@ -144,7 +144,7 @@ object CityBazaarStrings {
     const val cbBankUnknown = "—"
 
     // Titles by finishing place, until the server hands them out.
-    val cbPlaceTitles = listOf("👑 Royale Baadshah", "🏙️ Property Shark", "💸 Vasooli Bhai", "🧾 Rent Bharne Wala", "🎲 Pure Luck", "🪙 Kadka")
+    val cbPlaceTitles = listOf("👑 Baadshah", "🦈 Shark", "💸 Vasooli", "🧾 Rent Payer", "🎲 Lucky", "🪙 Kadka")
     const val cbLandedOn = "LANDED ON "
     const val cbUpgradeProperty = "UPGRADE PROPERTY: "
     fun cbBuyHeadline(land: String, house: String) = "Rent $land  ·  with 1 house $house"

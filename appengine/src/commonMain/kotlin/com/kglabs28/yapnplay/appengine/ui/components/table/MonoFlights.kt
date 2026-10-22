@@ -38,6 +38,8 @@ sealed interface MonoSpot {
     data object Discard : MonoSpot
     /** The local player's hand along the bottom. */
     data object Hand : MonoSpot
+    /** The card the user just tapped to play, where it sat in the hand. */
+    data object PlayedCard : MonoSpot
     /** Another player's seat (their fan). */
     data class Seat(val seat: Int) : MonoSpot
 }
@@ -66,6 +68,15 @@ class MonoAnchors {
 
 @Composable
 fun rememberMonoAnchors(): MonoAnchors = remember { MonoAnchors() }
+
+/** Notes where [spot] is right now (a tapped card, just before it's played). */
+fun MonoAnchors.mark(spot: MonoSpot, rect: Rect) {
+    rects[spot] = rect
+}
+
+/** The faces of the cards still flying into the user's hand (the hand keeps their places empty until they land). */
+val MonoFlightState.arrivingInHand: List<MonoCardLook>
+    get() = flights.filter { it.to == MonoSpot.Hand }.mapNotNull { it.look }
 
 /** Marks this element as [spot], so cards can fly to and from it. */
 fun Modifier.monoAnchor(anchors: MonoAnchors?, spot: MonoSpot): Modifier =
@@ -113,7 +124,8 @@ fun MonoFlightLayer(
     ) {
         state.flights.forEach { flight ->
             key(flight.id) {
-                val from = anchors.rects[flight.from]
+                // A played card with no tap on record (autoplay) leaves from the hand.
+                val from = anchors.rects[flight.from] ?: if (flight.from == MonoSpot.PlayedCard) anchors.rects[MonoSpot.Hand] else null
                 val to = anchors.rects[flight.to]
                 if (from == null || to == null) {
                     LaunchedEffect(Unit) { state.done(flight.id) }
@@ -167,6 +179,7 @@ private fun FlyingCard(flight: MonoFlight, from: Rect, to: Rect, onLanded: () ->
 private fun scaleAt(spot: MonoSpot, rect: Rect, cardPx: Float): Float = when (spot) {
     MonoSpot.Deck, MonoSpot.Discard -> (rect.width / cardPx).coerceIn(MIN_SCALE, MAX_SCALE)
     MonoSpot.Hand -> HAND_SCALE
+    MonoSpot.PlayedCard -> (rect.width / cardPx).coerceIn(MIN_SCALE, MAX_SCALE)
     is MonoSpot.Seat -> SEAT_SCALE
 }
 

@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlin.math.roundToInt
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.graphics.TransformOrigin
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.placeholders.GameTableArenaArtwork
@@ -27,8 +31,7 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.GameTableArenaArtwork
  *      column, along the top row (their fans beside them, off the table),
  *      down the right column (clockwise);
  *    - the arena with the two piles in the middle, always given the room
- *      between the U and the hand (the hand overlaps the table's near edge,
- *      as in the design);
+ *      between the U and the hand's own band (they never overlap);
  *    - bottom left, the user's seat over the MONO · CAUGHT button; bottom
  *      centre, the hand; bottom right, the Draw button.
  *  - A prompt the table waits on (colour, swap, vote) sits over the piles
@@ -64,10 +67,13 @@ fun MonoTableShell(
     drawButton: @Composable () -> Unit,
 ) {
     val dimens = YapNPlayTheme.dimens
+    // Every opponent's seat, shrunk together as the table fills.
+    val seatScale = monoSeatScale(leftPods.size + topPods.size + rightPods.size)
     // The bands the layers keep clear of each other.
     val side = dimens.monoPodWidthCompact + Spacing.Sm
     val topBand = if (topPods.isEmpty()) Spacing.Xs else dimens.monoTopBandHeight
-    val handBand = dimens.monoHandCardWidth / CARD_W_PER_H * HAND_OVER_TABLE
+    // The hand's own band: a card's height plus its lift, so it never reaches the piles.
+    val handBand = dimens.monoHandCardWidth / CARD_W_PER_H + dimens.monoCardLift + Spacing.Xs
 
     Box(modifier = modifier.fillMaxSize()) {
         GameTableArenaArtwork(modifier = Modifier.fillMaxSize())
@@ -108,14 +114,17 @@ fun MonoTableShell(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(horizontal = side),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.Lg, Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.spacedBy(if (seatScale < 1f) Spacing.Sm else Spacing.Lg, Alignment.CenterHorizontally),
                 ) {
                     // Their fans sit beside them, so nothing of theirs lies on the table.
                     topPods.forEach { pod ->
                         MonoPlayerPod(
                             card = pod,
                             fanBeside = true,
-                            modifier = Modifier.width(dimens.monoPodWidth + dimens.monoSideFanWidth).monoAnchor(anchors, MonoSpot.Seat(pod.seat)),
+                            modifier = Modifier
+                                .monoAnchor(anchors, MonoSpot.Seat(pod.seat))
+                                .monoScaled(seatScale)
+                                .width(dimens.monoPodWidth + dimens.monoSideFanWidth),
                         )
                     }
                 }
@@ -133,7 +142,10 @@ fun MonoTableShell(
                         MonoPlayerPod(
                             card = pod,
                             compact = true,
-                            modifier = Modifier.fillMaxWidth().monoAnchor(anchors, MonoSpot.Seat(pod.seat)),
+                            modifier = Modifier
+                                .monoAnchor(anchors, MonoSpot.Seat(pod.seat))
+                                .monoScaled(seatScale)
+                                .width(dimens.monoPodWidthCompact),
                         )
                     }
                 }
@@ -146,12 +158,16 @@ fun MonoTableShell(
                         .fillMaxHeight()
                         .padding(bottom = dimens.arenaActionHeight + Spacing.Sm),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterVertically),
+                    horizontalAlignment = Alignment.End,
                 ) {
                     rightPods.forEach { pod ->
                         MonoPlayerPod(
                             card = pod,
                             compact = true,
-                            modifier = Modifier.fillMaxWidth().monoAnchor(anchors, MonoSpot.Seat(pod.seat)),
+                            modifier = Modifier
+                                .monoAnchor(anchors, MonoSpot.Seat(pod.seat))
+                                .monoScaled(seatScale)
+                                .width(dimens.monoPodWidthCompact),
                         )
                     }
                 }
@@ -189,20 +205,54 @@ fun MonoTableShell(
 /**
  * Splits the opponents (in turn order from the user) across the three
  * rails of the U — left column (drawn bottom-up), top row, right column —
- * so the table reads clockwise. Seven opponents fill it exactly: three
- * left, two top, two right.
+ * so the table reads clockwise. Up to five opponents: one left, up to two
+ * right, the rest along the top; six or seven (seats shrunk, see
+ * [monoSeatScale]): two left, two right, the rest along the top.
  */
 fun <T> monoTableZones(opponents: List<T>): Triple<List<T>, List<T>, List<T>> {
-    val leftCount = (opponents.size + 2) / 3
-    val topCount = (opponents.size + 1) / 3
-    val rightCount = opponents.size - leftCount - topCount
+    val leftCount = minOf(if (opponents.size >= CROWDED) 2 else 1, opponents.size)
+    val rest = opponents.size - leftCount
+    val rightCount = minOf(2, rest / 2)
+    val topCount = rest - rightCount
     val left = opponents.take(leftCount)
     val top = opponents.drop(leftCount).take(topCount)
     val right = opponents.drop(leftCount + topCount).take(rightCount)
     return Triple(left, top, right)
 }
 
+/**
+ * How big each opponent's seat is drawn for [opponents] of them: the
+ * whole seat (avatar, pill, name, speaker, fan) shrinks together as the
+ * table fills, so every seat fits whole and the table doesn't crowd.
+ */
+fun monoSeatScale(opponents: Int): Float = when {
+    opponents >= CROWDED -> SCALE_CROWDED
+    opponents >= BUSY -> SCALE_BUSY
+    else -> 1f
+}
+
+/** Draws the content at [scale] of its size, taking only that much room (anchored top-left). */
+fun Modifier.monoScaled(scale: Float): Modifier = if (scale == 1f) this else layout { measurable, constraints ->
+    val placeable = measurable.measure(
+        Constraints(
+            maxWidth = if (constraints.hasBoundedWidth) (constraints.maxWidth / scale).toInt() else Constraints.Infinity,
+            maxHeight = if (constraints.hasBoundedHeight) (constraints.maxHeight / scale).toInt() else Constraints.Infinity,
+        ),
+    )
+    layout((placeable.width * scale).roundToInt(), (placeable.height * scale).roundToInt()) {
+        placeable.placeWithLayer(0, 0) {
+            scaleX = scale
+            scaleY = scale
+            transformOrigin = TransformOrigin(0f, 0f)
+        }
+    }
+}
+
+/** Opponent counts from which seats shrink, and how much. */
+private const val BUSY = 4
+private const val CROWDED = 6
+private const val SCALE_BUSY = 0.85f
+private const val SCALE_CROWDED = 0.72f
+
 /** Same as a card: width ÷ height. */
 private const val CARD_W_PER_H = 0.68f
-/** How much of the hand's height the arena keeps clear of (the rest overlaps the table's near edge). */
-private const val HAND_OVER_TABLE = 0.55f

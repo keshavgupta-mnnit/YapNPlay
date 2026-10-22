@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -109,7 +110,9 @@ fun MonoPlayerPod(
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = avatar * FAN_START, top = Spacing.Xxs),
+                        // Tucked up under the pill, so the seat covers less of the table.
+                        .pullUp(avatar * FAN_TUCK)
+                        .padding(start = avatar * FAN_START),
                 ) {
                     MonoCardFan(
                         count = card.cards,
@@ -449,6 +452,8 @@ private fun seatOutline(size: Size, pillHeight: Float): Path {
 private const val PILL_SHARE = 0.84f
 private const val PILL_CAP = 0.95f
 private const val FAN_START = 0.75f
+/** How far the fan under a seat tucks up towards the pill (× avatar). */
+private const val FAN_TUCK = 0.1f
 private const val CALLED_SHIFT = 0.7f
 private const val ICON_SHARE = 0.55f
 private const val LEVEL_BADGE_SHARE = 0.42f
@@ -467,3 +472,10 @@ private const val FAN_MAX_STEP = 0.5f
 private const val ELIMINATED_ALPHA = 0.4f
 private const val PULSE_MIN = 0.45f
 private const val PULSE_MS = 700
+
+/** Lays the content [by] higher than it would sit, and takes that much less room. */
+private fun Modifier.pullUp(by: Dp): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+    val up = by.roundToPx().coerceAtMost(placeable.height)
+    layout(placeable.width, placeable.height - up) { placeable.place(0, -up) }
+}

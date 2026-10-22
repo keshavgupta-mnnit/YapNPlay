@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -115,8 +115,12 @@ fun MonoCardFace(
     val shaped = modifier
         .aspectRatio(CARD_RATIO)
         .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-        // A card the table would refuse is pushed back, never hidden.
-        .alpha(if (isPlayable || faceDown) 1f else DIM_ALPHA)
+        // Not playable now (not the user's turn): a dark veil — the card stays solid, just dimmer.
+        .drawWithContent {
+            drawContent()
+            val corner = CornerRadius(size.width * CORNER_RADIUS)
+            if (!isPlayable && !faceDown) drawRoundRect(YapNPlayColors.MonoCardVeil, cornerRadius = corner)
+        }
         // A selected card stands up out of the hand.
         .graphicsLayer { translationY = if (isSelected) -liftPx else 0f }
 
@@ -654,7 +658,6 @@ private const val DOT = 0.018f
 private const val DOT_ALPHA = 0.8f
 
 // Behaviour.
-private const val DIM_ALPHA = 0.38f
 private const val MIN_TEXT_PX = 4f
 private const val FIT_STEP = 0.92f
 private val SMALL_CARD = 40.dp

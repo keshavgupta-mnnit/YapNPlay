@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -21,6 +22,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -33,7 +35,6 @@ import androidx.compose.material.icons.rounded.MicOff
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -46,9 +47,10 @@ import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /**
- * The user's two switches just under their seat's pill (design): Mic and
- * Auto, each a round icon with its name beside it, filled dark pink while
- * on.
+ * The user's two switches just under their seat's pill (design): a row as
+ * wide as the pill (give it the pill's width through [modifier]) with Mic
+ * and Auto as two round buttons, a gap between them, centred. On, Mic fills
+ * dark pink and Auto dark blue.
  */
 @Composable
 fun ArenaSeatSwitches(
@@ -58,51 +60,45 @@ fun ArenaSeatSwitches(
     onToggleAutoplay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(Spacing.Md)) {
+    val colors = YapNPlayTheme.colors
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(Spacing.Lg, Alignment.CenterHorizontally)) {
         ArenaRoundSwitch(
             icon = if (micOn) Icons.Rounded.Mic else Icons.Rounded.MicOff,
-            label = MonoStrings.monoMicShort,
             description = MonoStrings.monoMic,
             on = micOn,
+            fill = colors.ArenaSwitchOn,
+            rim = colors.ArenaSwitchOnRim,
             onClick = onToggleMic,
         )
         ArenaRoundSwitch(
             icon = Icons.Rounded.Bolt,
-            label = MonoStrings.monoAutoShort,
             description = MonoStrings.monoAutoplay,
             on = autoplay,
+            fill = colors.ArenaAutoOn,
+            rim = colors.ArenaAutoOnRim,
             onClick = onToggleAutoplay,
         )
     }
 }
 
-/** A round glass switch with its name beside it: filled dark pink when on. */
+/** A round glass switch: [fill] while on. */
 @Composable
-private fun ArenaRoundSwitch(icon: ImageVector, label: String, description: String, on: Boolean, onClick: () -> Unit) {
+private fun ArenaRoundSwitch(icon: ImageVector, description: String, on: Boolean, fill: Color, rim: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
-    Row(
-        modifier = Modifier
-            .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = description },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
-    ) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Box(
             modifier = Modifier
-                .size(dimens.arenaSwitchSize)
+                .size(dimens.arenaSwitchMax)
                 .clip(CircleShape)
-                .background(if (on) colors.ArenaSwitchOn else colors.ArenaGlassBottom)
-                .border(dimens.borderThin, if (on) colors.ArenaSwitchOnRim else colors.ArenaGlassRim, CircleShape),
+                .background(if (on) fill else colors.ArenaGlassBottom)
+                .border(dimens.borderThin, if (on) rim else colors.ArenaGlassRim, CircleShape)
+                .clickable(role = Role.Button, onClick = onClick)
+                .semantics { contentDescription = description },
             contentAlignment = Alignment.Center,
         ) {
             AppIcon(imageVector = icon, tint = if (on) colors.TextPrimary else colors.IconMuted, size = dimens.iconMedium)
         }
-        BasicText(
-            text = label,
-            style = YapNPlayTheme.typography.label.copy(color = if (on) colors.TextPrimary else colors.TextSecondary, fontWeight = FontWeight.Bold),
-            maxLines = 1,
-        )
     }
 }
 
@@ -131,7 +127,11 @@ fun ArenaDiceButton(
     val pill = RoundedCornerShape(percent = 50)
     Column(
         modifier = modifier
-            .alpha(if (enabled) 1f else DISABLED_ALPHA)
+            // Faded as one flat picture: plain transparency let the die's side show through its face (looked chipped).
+            .graphicsLayer {
+                alpha = if (enabled) 1f else DISABLED_ALPHA
+                compositingStrategy = CompositingStrategy.Offscreen
+            }
             .clickable(enabled = enabled, role = Role.Button, interactionSource = null, indication = null, onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.Xs),

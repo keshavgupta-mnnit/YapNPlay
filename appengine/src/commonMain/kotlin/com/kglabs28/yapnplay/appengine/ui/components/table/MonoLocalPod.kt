@@ -2,6 +2,7 @@ package com.kglabs28.yapnplay.appengine.ui.components.table
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -27,7 +28,7 @@ fun MonoLocalPod(
     val dimens = YapNPlayTheme.dimens
     Column(
         modifier = modifier.width(dimens.monoLocalPodWidth),
-        verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
+        // The switches sit right under the pill.
     ) {
         // No speaker on the user's own pill.
         MonoPlayerPod(card = card, showFan = false, trailing = {})
@@ -36,7 +37,8 @@ fun MonoLocalPod(
             autoplay = autoplay,
             onToggleMic = onToggleMic,
             onToggleAutoplay = onToggleAutoplay,
-            modifier = Modifier.padding(start = dimens.monoSeatAvatar),
+            // As wide as the pill: from the avatar's middle to the seat's end.
+            modifier = Modifier.padding(start = dimens.monoSeatAvatar / 2).fillMaxWidth(),
         )
     }
 }

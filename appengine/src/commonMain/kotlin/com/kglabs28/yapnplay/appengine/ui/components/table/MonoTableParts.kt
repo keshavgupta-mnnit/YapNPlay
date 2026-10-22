@@ -21,6 +21,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -68,10 +75,17 @@ fun MonoTableArena(
     faceCard: @Composable () -> Unit,
 ) {
     val colors = YapNPlayTheme.colors
-    // The piles always fit the arena, however short it is.
-    BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.Center) {
-        // Lying back, a card looks about 0.8 of its height, so it may use the arena's full height — but never below a readable size.
-        val cardWidth = minOf(cardWidth, maxHeight * PILE_OF_ARENA * CARD_W_PER_H).coerceAtLeast(MIN_PILE_WIDTH)
+    val density = LocalDensity.current
+    // The screen's size: the table picture covers it, so it fixes where the picture's rings land.
+    var screen by remember { mutableStateOf(IntSize.Zero) }
+    BoxWithConstraints(
+        modifier = modifier.onGloballyPositioned { screen = it.findRootCoordinates().size },
+        contentAlignment = Alignment.Center,
+    ) {
+        // The piles stay inside the table's innermost ring, and inside the arena, however short it is.
+        val ring = with(density) { innerRingSize(screen).let { Size(it.width.toDp().value, it.height.toDp().value) } }
+        val byRing = if (ring.width > 0f) minOf(ring.height * RING_FILL_H * CARD_W_PER_H, (ring.width * RING_FILL_W - Spacing.Xl.value) / 2).dp else cardWidth
+        val cardWidth = minOf(cardWidth, byRing, maxHeight * PILE_OF_ARENA * CARD_W_PER_H).coerceAtLeast(MIN_PILE_WIDTH)
         MonoTurnRing(
             hue = hue,
             clockwise = clockwise,
@@ -224,9 +238,20 @@ fun MonoStackCounter(
 }
 
 /**
+ * The table picture's innermost ring on a screen of [screen] px: the
+ * picture covers the screen (cropped), so the ring scales with it.
+ */
+private fun innerRingSize(screen: IntSize): Size {
+    if (screen.width == 0 || screen.height == 0) return Size.Zero
+    val scale = maxOf(screen.width / TABLE_IMAGE_W, screen.height / TABLE_IMAGE_H)
+    return Size(TABLE_IMAGE_W * INNER_RING_W * scale, TABLE_IMAGE_H * INNER_RING_H * scale)
+}
+
+/**
  * The local player's hand, fanned. Cards overlap as the hand grows so a
  * big hand still shows every corner index; past the point where the
- * overlap stops being readable the row scrolls. Exactly one card is
+ * overlap stops being readable the row scrolls. A playable card rises
+ * well past the fan's own dip, so it never reads as just a middle card. Exactly one card is
  * drawn per hand index, so the screen decides selection and playability.
  */
 @Composable
@@ -290,7 +315,15 @@ private const val FAN_MARGIN = 0.6f
 /** A pile may take this much of the arena's height (tilted, it looks shorter); a card is 0.68 as wide as tall. */
 private const val PILE_OF_ARENA = 1f
 /** The smallest a pile's card may get, however short the arena. */
-private val MIN_PILE_WIDTH = 58.dp
+private val MIN_PILE_WIDTH = 34.dp
+/** The table picture (bg_game_table_arena) and its innermost ring, as fractions of the picture. */
+private const val TABLE_IMAGE_W = 2752f
+private const val TABLE_IMAGE_H = 1536f
+private const val INNER_RING_W = 0.274f
+private const val INNER_RING_H = 0.177f
+/** How much of the ring's height a pile's card may take (lying back it looks ~0.8 as tall), and of its width the two piles may. */
+private const val RING_FILL_H = 0.85f
+private const val RING_FILL_W = 0.8f
 private const val CARD_W_PER_H = 0.68f
 /** The piles lie back on the table and turn slightly, as in the table design. */
 private const val TABLE_TILT = 38f
@@ -305,4 +338,4 @@ private const val GLOW_ALPHA = 0.45f
 private const val GLOW_REACH = 0.9f
 private const val GLOW_SPREAD = 0.35f
 /** The tightest a fanned hand may get before it scrolls instead. */
-private const val MIN_STEP = 0.34f
+private const val MIN_STEP = 0.45f

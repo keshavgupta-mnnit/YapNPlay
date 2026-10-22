@@ -254,6 +254,14 @@ object YapNPlayColors {
     val BoardGlassBottom = Color(0xCC211538)
     val BoardGlassRim = Color(0x669C86E0)
     val BoardGlassSheen = Color(0x24FFFFFF)
+    /** SHARE: bluish glass. PLAY AGAIN: dark reddish glass. */
+    val BoardShareTop = Color(0xCC2A4FA8)
+    val BoardShareBottom = Color(0xCC14275C)
+    val BoardShareRim = Color(0xFF6FA8FF)
+    val BoardShareText = Color(0xFFD6E6FF)
+    val BoardAgainTop = Color(0xCC8A1734)
+    val BoardAgainBottom = Color(0xCC420A19)
+    val BoardAgainRim = Color(0xFFFF5A7A)
 
     // ── League rows: cheap leagues plain, dearer ones richer, the top one royal ──
     val LeagueStarterTop = Color(0xFF2A3340)
@@ -284,6 +292,16 @@ object YapNPlayColors {
     /** A seat switch (Mic / Auto) while it's on: the app's dark pink. */
     val ArenaSwitchOn = Color(0xFFA0216A)
     val ArenaSwitchOnRim = Color(0xFFFF4FB8)
+    /** The Auto switch while it's on: dark blue. */
+    val ArenaAutoOn = Color(0xFF1F3B9E)
+    val ArenaAutoOnRim = Color(0xFF6B95FF)
+    /** The table's event snackbar: glassy black. */
+    val SnackGlassTop = Color(0xE01A1A22)
+    val SnackGlassBottom = Color(0xE0050508)
+    /** A dimmed card (not the user's turn): a dark veil over it. */
+    val MonoCardVeil = Color(0x73000000)
+    /** The rim round a card the user can play now. */
+    val MonoCardPlayableRim = Color(0xFFFFFFFF)
     /** The red MONO / CAUGHT button and the purple Draw button. */
     val ArenaCallFillTop = Color(0xFF5A0B1E)
     val ArenaCallFillBottom = Color(0xFF2A0610)

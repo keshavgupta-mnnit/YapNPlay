@@ -16,7 +16,7 @@ object MonoStrings {
 
     const val monoCalled = "MONO!"
     /** The one callout button: calls MONO for the user, or CAUGHT on whoever just went down to one card. */
-    const val monoCallButton = "MONO · CAUGHT"
+    const val monoCallButton = "MONO/CAUGHT"
     const val monoDrawButton = "Draw Card"
     fun monoTakeButton(penalty: Int) = "Take +$penalty"
     fun monoSpectatorCount(count: Int) = if (count == 1) "1 Spectator" else "$count Spectators"
@@ -48,6 +48,10 @@ object MonoStrings {
     /** The banner when a player empties their hand. */
     fun monoFinishBanner(name: String, place: String) = "🏆 $name finishes $place!"
     fun monoYouFinishBanner(place: String) = "🏆 You finish $place!"
+    const val monoLeaveTitle = "Leave the match?"
+    const val monoLeaveBody = "A CPU will play your seat for the rest of the match."
+    const val monoStay = "STAY"
+    const val monoLeave = "LEAVE"
     const val monoVoteTitle = "Keep playing?"
     fun monoVoteBody(seconds: Long) = "Winners are in. Play on for the next places? ${seconds}s"
     fun monoVoteCount(yes: Int, no: Int, voters: Int) = "$yes keep · $no end · $voters voting"
@@ -57,7 +61,7 @@ object MonoStrings {
     const val monoFinished = "Finished"
     fun monoCardsLeft(cards: Int) = if (cards == 1) "1 card left" else "$cards cards left"
     const val monoKnockedOutScore = "Knocked out"
-    val monoPlaceTitles = listOf("👑 MONO Master", "🃏 Card Shark", "🎯 Sharp Shooter", "🔥 Close Call", "🙂 Good Try", "🎲 Lucky Next Time", "🫠 Card Collector", "🐢 Slow Starter")
+    val monoPlaceTitles = listOf("👑 Master", "🃏 Card Shark", "🎯 Sharpshot", "🔥 Close Call", "🙂 Good Try", "🎲 Next Time", "🫠 Hoarder", "🐢 Slowpoke")
 
     fun monoPlace(place: Int) = when (place) {
         1 -> "1st"

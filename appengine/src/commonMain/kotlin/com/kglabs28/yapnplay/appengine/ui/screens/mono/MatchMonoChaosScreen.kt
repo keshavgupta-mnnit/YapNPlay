@@ -13,6 +13,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import com.kglabs28.yapnplay.appengine.games.monochaos.ui.components.look
+import com.kglabs28.yapnplay.appengine.ui.components.table.mark
+import com.kglabs28.yapnplay.appengine.ui.components.table.arrivingInHand
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoSpot
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.draw.alpha
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -30,6 +40,7 @@ import com.kglabs28.yapnplay.appengine.games.monochaos.identity.MonoChaosConstan
 import com.kglabs28.yapnplay.appengine.games.monochaos.ui.components.MonoChaosCardView
 import com.kglabs28.yapnplay.appengine.games.monochaos.ui.components.hue
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
+import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.MatchLeaderboard
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoAnchors
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCallButton
@@ -86,6 +97,19 @@ fun MatchMonoChaosScreen(
         onStopOrDispose { send(MatchMonoChaosIntent.ScreenVisible(false)) }
     }
 
+    MatchMonoChaosContent(state = state, send = send, onClose = onClose, anchors = anchors, flights = flights, modifier = modifier)
+}
+
+/** The table itself, drawn from [state] alone (the screen above wires it to its view model). */
+@Composable
+fun MatchMonoChaosContent(
+    state: MatchMonoChaosState,
+    send: (MatchMonoChaosIntent) -> Unit,
+    onClose: () -> Unit,
+    anchors: MonoAnchors,
+    flights: MonoFlightState,
+    modifier: Modifier = Modifier,
+) {
     Box(modifier = modifier.fillMaxSize()) {
         val match = state.match
         val currentSeat = match?.currentSeat ?: 0
@@ -161,11 +185,33 @@ fun MatchMonoChaosScreen(
                     onClick = { send(if (state.canCallMono) MatchMonoChaosIntent.CallMono else MatchMonoChaosIntent.Caught) },
                 )
             },
-            hand = { MonoChaosHand(state = state, send = send) },
+            hand = { MonoChaosHand(state = state, send = send, anchors = anchors, flights = flights) },
             drawButton = { MonoChaosDrawControls(state = state, send = send) },
         )
 
         state.finishBanner?.let { MonoFinishBanner(it, Modifier.align(Alignment.Center)) }
+        if (state.confirmingExit) {
+            BlockingOverlay(visible = true, onDismiss = { send(MatchMonoChaosIntent.CancelExit) }) {
+                ModalCard(
+                    title = MonoStrings.monoLeaveTitle,
+                    subtitle = MonoStrings.monoLeaveBody,
+                    actions = {
+                        TableGlassButton(
+                            text = MonoStrings.monoStay,
+                            onClick = { send(MatchMonoChaosIntent.CancelExit) },
+                            fill = listOf(YapNPlayTheme.colors.Panel, YapNPlayTheme.colors.GlassSurface),
+                            textColor = YapNPlayTheme.colors.TextPrimary,
+                        )
+                        TableGlassButton(
+                            text = MonoStrings.monoLeave,
+                            onClick = { send(MatchMonoChaosIntent.ConfirmExit) },
+                            fill = listOf(YapNPlayTheme.colors.ArenaCallFillTop, YapNPlayTheme.colors.ArenaCallFillBottom),
+                            textColor = YapNPlayTheme.colors.TextPrimary,
+                        )
+                    },
+                )
+            }
+        }
         state.leaderboard?.let { board ->
             BlockingOverlay(visible = true) {
                 MatchLeaderboard(board = board, gameArt = { MonoChaosArtwork(modifier = it) }, onPlayAgain = onClose)
@@ -205,25 +251,46 @@ private fun MonoChaosArena(state: MatchMonoChaosState, anchors: MonoAnchors, fli
     }
 }
 
-/** The user's hand, fanned. */
+/**
+ * The user's hand, fanned and sorted by colour (power cards last). Off
+ * their turn every card is dimmed and can't be tapped; on it, the cards
+ * they can play rise a little with a bright rim. A big hand uses smaller
+ * cards and scrolls rather than hiding numbers. A card still flying in
+ * keeps its place empty until it lands; a tapped card notes where it is,
+ * so its flight to the pile starts there.
+ */
 @Composable
-private fun MonoChaosHand(state: MatchMonoChaosState, send: (MatchMonoChaosIntent) -> Unit) {
+private fun MonoChaosHand(state: MatchMonoChaosState, send: (MatchMonoChaosIntent) -> Unit, anchors: MonoAnchors, flights: MonoFlightState) {
     val dimens = YapNPlayTheme.dimens
     val order = state.handOrder
+    val width = if (state.hand.size > AppConstants.MONO_BIG_HAND) dimens.monoHandCardWidthSmall else dimens.monoHandCardWidth
+    val spots = remember { mutableMapOf<Int, Rect>() }
+    // Slots whose card is still in the air, matched by face.
+    val arriving = flights.arrivingInHand.toMutableList()
+    val hidden = order.filter { index -> arriving.remove(state.hand[index].look()) }.toSet()
     MonoHandRow(
         handSize = state.hand.size,
-        cardWidth = dimens.monoHandCardWidth,
+        cardWidth = width,
         modifier = Modifier.fillMaxWidth(),
     ) { slot ->
         // Shown sorted by colour; a tap still plays the card's real index.
         val index = order[slot]
         MonoChaosCardView(
             card = state.hand[index],
-            // Every card stays bright; on the user's turn the ones they can play rise a little.
             isSelected = state.myTurn && index in state.playableIndexes,
-            isPlayable = true,
-            onClick = { send(MatchMonoChaosIntent.TapCard(index)) },
-            modifier = Modifier.width(dimens.monoHandCardWidth),
+            isPlayable = state.myTurn,
+            onClick = if (state.myTurn) {
+                {
+                    spots[index]?.let { anchors.mark(MonoSpot.PlayedCard, it) }
+                    send(MatchMonoChaosIntent.TapCard(index))
+                }
+            } else {
+                null
+            },
+            modifier = Modifier
+                .width(width)
+                .alpha(if (index in hidden) 0f else 1f)
+                .onGloballyPositioned { spots[index] = it.boundsInRoot() },
         )
     }
 }

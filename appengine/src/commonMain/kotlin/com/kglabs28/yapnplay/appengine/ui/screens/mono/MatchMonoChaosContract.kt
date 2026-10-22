@@ -73,6 +73,8 @@ data class MatchMonoChaosState(
     val talking: Set<String> = emptySet(),
     /** The keep-playing vote, once two or more have finished. */
     val vote: MonoVoteUi? = null,
+    /** Exit was tapped: "Leave the match?" waits for an answer. */
+    val confirmingExit: Boolean = false,
     /** The final board, once the match is over (after the winner's banner has shown). */
     val leaderboard: LeaderboardUi? = null,
     /** "🏆 Riya finishes 1st!" for a few seconds after someone empties their hand. */
@@ -111,6 +113,9 @@ sealed interface MatchMonoChaosIntent : UiIntent {
     data class SetMic(val on: Boolean) : MatchMonoChaosIntent
     data object OpenSettings : MatchMonoChaosIntent
     data object ExitClicked : MatchMonoChaosIntent
+    /** "Leave the match?" answered: leave, or stay. */
+    data object ConfirmExit : MatchMonoChaosIntent
+    data object CancelExit : MatchMonoChaosIntent
     data class Leave(val giveToUserId: String?) : MatchMonoChaosIntent
     data object StillHere : MatchMonoChaosIntent
     /** The screen went to the background: tell the server to play for the user. */

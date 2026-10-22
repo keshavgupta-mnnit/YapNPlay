@@ -190,9 +190,11 @@ class YapNPlayDimens {
     val cbCityCardHeight: Dp get() = 56.dp.scaled()
     // MONO (cards are 2:3 portrait everywhere they appear).
     /** A card in the local player's hand. */
-    val monoHandCardWidth: Dp get() = 62.dp.scaled()
+    val monoHandCardWidth: Dp get() = 50.dp.scaled()
+    /** A hand card once the hand is big (more than [com.kglabs28.yapnplay.appengine.core.common.AppConstants.MONO_BIG_HAND] cards). */
+    val monoHandCardWidthSmall: Dp get() = 44.dp.scaled()
     /** A card on the centre pile, or an opponent's face-down card. */
-    val monoPileCardWidth: Dp get() = 82.dp.scaled()
+    val monoPileCardWidth: Dp get() = 68.dp.scaled()
     /** The wide frosted pod across the top of the table. */
     val monoPodWidth: Dp get() = 132.dp.scaled()
     val monoPodWidthCompact: Dp get() = 122.dp.scaled()
@@ -201,7 +203,7 @@ class YapNPlayDimens {
     /** One colour choice in the Prism picker. */
     val monoColourChip: Dp get() = 44.dp.scaled()
     /** How far a selected card rises out of the hand. */
-    val monoCardLift: Dp get() = 10.dp.scaled()
+    val monoCardLift: Dp get() = 24.dp.scaled()
     /** A seat: the round avatar, and the name pill beside it (as tall as this share of the avatar). */
     val monoSeatAvatar: Dp get() = 50.dp.scaled()
     val monoSeatAvatarCompact: Dp get() = 44.dp.scaled()
@@ -227,8 +229,12 @@ class YapNPlayDimens {
     val arenaDrawWidth: Dp get() = 150.dp.scaled()
     /** The round mic / autoplay switches under the user's seat. */
     val arenaSwitchSize: Dp get() = 36.dp.scaled()
+    /** The most a Mic / Auto button grows to (it fills half the pill's width up to this). */
+    val arenaSwitchMax: Dp get() = 39.dp.scaled()
     /** The dice icon on the bottom-right Roll Dice button. */
-    val arenaDiceIcon: Dp get() = 64.dp.scaled()
+    val arenaDiceIcon: Dp get() = 44.dp.scaled()
+    /** Kept free under the Ludo board, so the user's card and its switches fit by the bottom base. */
+    val ludoBoardBottomStrip: Dp get() = 0.dp
     /** The game's logo beside the top bar (larger than the bar). */
     val arenaLogoSize: Dp get() = 58.dp.scaled()
     val cbRollBadge: Dp get() = 22.dp.scaled()

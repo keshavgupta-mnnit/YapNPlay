@@ -142,6 +142,8 @@ object AppConstants {
 
     /** Game grid columns (Grid View). */
     const val GAME_GRID_COLUMNS = 6
+    /** A MONO hand bigger than this uses the smaller card size. */
+    const val MONO_BIG_HAND = 12
     /** The room lobby's game grid: fewer columns, so its tiles are bigger. */
     const val LOBBY_GAME_GRID_COLUMNS = 3
 

@@ -73,7 +73,8 @@ class MonoTableDirector(
                     sound(GameSound.CARD_PLAY)
                     flights += MonoFlight(
                         id = nextId++,
-                        from = spotOf(cue.seat, mySeat),
+                        // The user's own card leaves from where they tapped it.
+                        from = if (cue.seat == mySeat) MonoSpot.PlayedCard else spotOf(cue.seat, mySeat),
                         to = MonoSpot.Discard,
                         look = cue.look,
                         delayMs = delay,

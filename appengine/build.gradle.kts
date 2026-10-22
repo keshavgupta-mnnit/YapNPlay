@@ -6,6 +6,9 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
 }
 
+// The desktop Compose runtime, only for the screen renderer (renderScreens).
+val composeDesktopRuntime = org.jetbrains.compose.ComposePlugin.DesktopDependencies.currentOs
+
 // Single appengine library. Everything below is a plain source folder,
 // not a Gradle module: core/, games/base/, games/common/, games/*,
 // protocol/, ui/, di/, navigation/.
@@ -27,6 +30,15 @@ kotlin {
     jvm {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
+        // The screen renderer (renderScreens): its own source set (src/jvmPreview),
+        // apart from the tests, drawing Compose screens on the desktop JVM.
+        val jvmCompilations = compilations
+        jvmCompilations.create("preview") {
+            associateWith(jvmCompilations.getByName("main"))
+            defaultSourceSet.dependencies {
+                implementation(composeDesktopRuntime)
+            }
         }
     }
 
@@ -118,4 +130,16 @@ tasks.register("guidelineCheck", Test::class) {
     filter {
         include("com.kglabs28.yapnplay.appengine.guards.*")
     }
+}
+
+// Draws key screens with sample data to build/screens/*.png at a phone's
+// size, to check layouts by eye. Not a test: nothing passes or fails.
+tasks.register<JavaExec>("renderScreens") {
+    group = "verification"
+    description = "Renders key screens with sample data to build/screens (layout check)."
+    val preview = kotlin.jvm().compilations.getByName("preview")
+    dependsOn(preview.compileTaskProvider, "jvmProcessResources")
+    classpath = files(preview.output.allOutputs, preview.runtimeDependencyFiles)
+    mainClass.set("com.kglabs28.yapnplay.appengine.preview.RenderScreensKt")
+    args(layout.buildDirectory.dir("screens").get().asFile.absolutePath)
 }

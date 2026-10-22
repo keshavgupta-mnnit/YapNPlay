@@ -49,6 +49,6 @@ object LudoStrings {
         3 -> "3rd"
         else -> "${place}th"
     }
-    val ludoPlaceTitles = listOf("🔥 Chaos King", "⚡ Speed Runner", "🎯 Token Hunter", "🐢 Slow & Steady", "🎲 Pure Luck", "👀 Pro Spectator")
+    val ludoPlaceTitles = listOf("🔥 Chaos King", "⚡ Speedy", "🎯 Hunter", "🐢 Slowpoke", "🎲 Lucky", "👀 Spectator")
 
 }

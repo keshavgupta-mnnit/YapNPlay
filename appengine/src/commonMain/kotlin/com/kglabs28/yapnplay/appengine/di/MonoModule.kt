@@ -23,5 +23,5 @@ val monoModule = module {
     factory { ObserveMonoMatchUseCase(get()) }
     factory { SendMonoCommandUseCase(get()) }
     factory { ObserveMonoSpeakingUseCase(get()) }
-    factory { MatchMonoViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    factory { MatchMonoViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
 }

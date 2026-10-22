@@ -23,6 +23,9 @@ object AppBrushes {
     val podiumCard: Brush get() = Brush.verticalGradient(listOf(YapNPlayColors.BgPodiumCardTop, YapNPlayColors.BgPodiumCardBottom))
 
 
+    /** Leaderboard podium: the frosted platform step behind each box. */
+    val podiumStep: Brush get() = Brush.verticalGradient(listOf(YapNPlayColors.BgPodiumStepTop, YapNPlayColors.BgPodiumStepBottom))
+
     /** Leaderboard bottom bar. */
     val leaderboardBar: Brush get() = Brush.verticalGradient(listOf(YapNPlayColors.BoardGlassTop, YapNPlayColors.BoardGlassBottom))
 

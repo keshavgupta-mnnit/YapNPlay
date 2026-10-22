@@ -3,8 +3,11 @@ package com.kglabs28.yapnplay.appengine.ui.screens.mono
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
+import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosCard
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosMatch
 import com.kglabs28.yapnplay.appengine.games.monochaos.identity.MonoChaosConstants
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoFlight
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableAvatarUi
 
 /**
@@ -39,8 +42,10 @@ data class MatchMonoChaosState(
     /** True while the Roulette victim is naming the colour to inflict. */
     val awaitingRouletteChoice: Boolean = false,
     val activeStackPenalty: Int = 0,
-    /** The MONO! callout is open and the user is down to one card. */
+    /** The user may call MONO now (their turn on two cards, or just down to one without a call). */
     val canCallMono: Boolean = false,
+    /** Someone just went down to one card and the user may press CAUGHT on them. */
+    val canCatch: Boolean = false,
     /** The user drew a playable card and may decline to play it. */
     val canPass: Boolean = false,
     /** "1st", "2nd"… as seats finish; seat → label. */
@@ -64,9 +69,21 @@ data class MatchMonoChaosState(
     val finished: Boolean = false,
     val micOn: Boolean = false,
     val autoplay: Boolean = false,
+    /** User ids talking right now (the blue-pink glow behind their seat). */
+    val talking: Set<String> = emptySet(),
+    /** The keep-playing vote, once two or more have finished. */
+    val vote: MonoVoteUi? = null,
+    /** The final board, once the match is over (after the winner's banner has shown). */
+    val leaderboard: LeaderboardUi? = null,
+    /** "🏆 Riya finishes 1st!" for a few seconds after someone empties their hand. */
+    val finishBanner: String? = null,
 ) : UiState {
     val hand get() = match?.me?.hand.orEmpty()
-    val opponents get() = match?.players.orEmpty().filter { !it.isMe }
+    /** The hand sorted by colour, power cards last (indexes into [hand]). */
+    val handOrder: List<Int>
+        get() = MonoUiMapper.handOrder(hand, { it.playColor()?.ordinal }, { it !is MonoChaosCard.NumberCard }, { (it as? MonoChaosCard.NumberCard)?.number ?: 0 })
+    /** Everyone else, clockwise from the user's seat (the order turns go round the table). */
+    val opponents get() = MonoUiMapper.clockwise(match?.players.orEmpty().filter { !it.isMe }, match?.me?.seat) { it.seat }
 }
 
 sealed interface MatchMonoChaosIntent : UiIntent {
@@ -79,6 +96,10 @@ sealed interface MatchMonoChaosIntent : UiIntent {
     /** Prism Color Roulette: the user names the colour to inflict. */
     data class ChooseRouletteColor(val color: MonoChaosConstants.Color) : MatchMonoChaosIntent
     data object CallMono : MatchMonoChaosIntent
+    /** Call out the seat that just went down to one card without calling MONO. */
+    data object Caught : MatchMonoChaosIntent
+    /** The keep-playing vote: true keeps the match going. */
+    data class VoteContinue(val keepPlaying: Boolean) : MatchMonoChaosIntent
     /** Plays [index] as a stack onto the penalty already on the table. */
     data class StackDraw(val index: Int) : MatchMonoChaosIntent
     data object AcceptStack : MatchMonoChaosIntent
@@ -99,4 +120,6 @@ sealed interface MatchMonoChaosIntent : UiIntent {
 sealed interface MatchMonoChaosEffect : UiEffect {
     data object OpenSettingsDialog : MatchMonoChaosEffect
     data object LeaveMatch : MatchMonoChaosEffect
+    /** Cards to fly across the table (plays, draws, penalties). */
+    data class Fly(val flights: List<MonoFlight>) : MatchMonoChaosEffect
 }

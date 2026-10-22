@@ -6,6 +6,7 @@ import com.kglabs28.yapnplay.appengine.games.mono.data.remote.wire.MonoCardWire
 import com.kglabs28.yapnplay.appengine.games.mono.data.remote.wire.MonoPublicState
 import com.kglabs28.yapnplay.appengine.games.mono.data.remote.wire.MonoWireEvent
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoCard
+import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoContinueVote
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoEvent
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoMatch
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoPlayer
@@ -79,6 +80,13 @@ class MonoSnapshotMapper(private val json: Json) {
             seatOffer = snapshot.seatOffer?.let {
                 MonoSeatOffer(offeredBy = it.seat, offeredTo = it.userId, expiresAt = toLocal(it.endsAt))
             },
+            catchSeat = state.catchSeat,
+            catchClosedFor = state.catchClosedFor,
+            continueVote = state.continueVote?.let { MonoContinueVote(toLocal(it.endsAt), it.voters, it.yes, it.no) },
+            caughtPenaltyCards = state.caughtPenaltyCards,
+            falseCatchPenaltyCards = state.falseCatchPenaltyCards,
+            callBeforePlay = state.callBeforePlay,
+            noPowerFinish = state.noPowerFinish,
             roomId = snapshot.roomId,
             viewerUserId = myUserId,
         )
@@ -112,6 +120,10 @@ class MonoSnapshotMapper(private val json: Json) {
         is MonoWireEvent.ColorChosen -> MonoEvent.ColorChosen(SeatNumber(seat), color.toColor() ?: MonoConstants.Color.RED)
         is MonoWireEvent.MonoCalled -> MonoEvent.MonoCalled(SeatNumber(seat))
         is MonoWireEvent.MonoMissed -> MonoEvent.MonoMissed(SeatNumber(seat), penaltyCards)
+        is MonoWireEvent.MonoCaught -> MonoEvent.MonoCaught(SeatNumber(catcher), SeatNumber(seat), penaltyCards)
+        is MonoWireEvent.FalseCatch -> MonoEvent.FalseCatch(SeatNumber(seat), SeatNumber(target), penaltyCards)
+        is MonoWireEvent.ContinueVoted -> MonoEvent.ContinueVoted(continued, yes, voters)
+        is MonoWireEvent.DeckReshuffled -> MonoEvent.DeckReshuffled(drawPileCount)
         is MonoWireEvent.HandSwapped -> MonoEvent.HandSwapped(SeatNumber(from), SeatNumber(to))
         is MonoWireEvent.HandsPassed -> MonoEvent.HandsPassed(direction)
         is MonoWireEvent.TurnPassed -> MonoEvent.TurnPassed(SeatNumber(seat))

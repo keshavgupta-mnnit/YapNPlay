@@ -58,8 +58,9 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableGlassButton
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorMicButton
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableTopBar
-import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
+import com.kglabs28.yapnplay.appengine.ui.placeholders.CityBazaarArtwork
+import com.kglabs28.yapnplay.appengine.ui.placeholders.GameArenaBackground
+import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaTopBar
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.CityBazaarModalActions
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.CityBazaarModalContent
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.CityBazaarBoardView
@@ -67,12 +68,14 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.city
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbMoneyToast
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CityBazaarSidePanel
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityBazaarCardColumn
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityBazaarMyControls
+import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaDiceButton
+import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaSeatSwitches
+import androidx.compose.foundation.layout.Spacer
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityBazaarOwnedStacks
 import kotlinx.coroutines.launch
 
 /**
- * City Bazaar table (design): top bar (game, spectators in room matches,
+ * City Royale table (arena design): top bar (game, spectators in room matches,
  * match clock, 2D / 3D switch, settings, exit); the board with two dice in
  * the middle; every other player's pod on the left (sized to fit however
  * many there are); the user's pod top-right with Mic, Autoplay and Roll
@@ -126,7 +129,7 @@ fun CityBazaarMatchScreen(
         }
     }
 
-    CozyHomeBackground(modifier = modifier, frosted = true) {
+    GameArenaBackground(modifier = modifier) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -134,22 +137,20 @@ fun CityBazaarMatchScreen(
                 .revealWhen(state.loaded),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
         ) {
-            TableTopBar(
+            ArenaTopBar(
                 title = state.title,
                 subtitle = state.subtitle,
                 audience = state.audience,
                 showAudience = state.roomMatch,
-                spectatorCount = state.spectatorCount,
-                spectatorLabel = state.spectatorLabel,
+                spectatorLabel = "${state.spectatorCount} ${state.spectatorLabel}",
                 elapsed = state.elapsed,
                 onSettings = { send(CityBazaarMatchIntent.OpenSettings) },
                 onExit = { send(CityBazaarMatchIntent.ExitClicked) },
+                logo = { CityBazaarArtwork(modifier = it) },
                 // The view to switch to.
                 switchLabel = if (state.threeD) CityBazaarStrings.cbView2d else CityBazaarStrings.cbView3d,
                 onSwitch = { send(CityBazaarMatchIntent.ToggleView) },
                 onHistory = { send(CityBazaarMatchIntent.OpenHistory) },
-                // As wide as the player cards below.
-                titleWidthFraction = AppConstants.CB_SIDE_COLUMN_WEIGHT,
             )
             val panelOpen = state.panel != null
             BoxWithConstraints(
@@ -234,14 +235,11 @@ fun CityBazaarMatchScreen(
                             onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
                             modifier = Modifier.fillMaxWidth().onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
                         ) {
-                            CityBazaarMyControls(
-                                canRoll = state.canRoll,
-                                rollLabel = state.rollLabel,
-                                autoplay = state.autoplay,
+                            ArenaSeatSwitches(
                                 micOn = state.micOn,
-                                onRoll = { send(CityBazaarMatchIntent.Roll) },
-                                onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
+                                autoplay = state.autoplay,
                                 onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micPermission.isGranted())) },
+                                onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
                             )
                         }
                     }
@@ -255,11 +253,22 @@ fun CityBazaarMatchScreen(
                             modifier = buttonSize,
                         )
                     }
+                    // Five colours to a row, as wide as My Properties, so every colour stays in sight.
                     CityBazaarOwnedStacks(
                         stacks = state.stacks,
                         onOpen = { send(CityBazaarMatchIntent.OpenStack(it)) },
                         modifier = Modifier.fillMaxWidth(),
                     )
+                    if (!state.spectating) {
+                        Spacer(Modifier.weight(1f))
+                        // Roll Dice: the big dice at the bottom right.
+                        ArenaDiceButton(
+                            label = state.rollLabel,
+                            enabled = state.canRoll,
+                            onClick = { send(CityBazaarMatchIntent.Roll) },
+                            modifier = Modifier.align(Alignment.End),
+                        )
+                    }
                 }
                 if (state.spectating) {
                     TableSpectatorMicButton(

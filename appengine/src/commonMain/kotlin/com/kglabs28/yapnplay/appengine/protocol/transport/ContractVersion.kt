@@ -12,5 +12,20 @@ package com.kglabs28.yapnplay.appengine.protocol.transport
  * approval (ApproveJoin, DeclineJoin, RoomInfo.waitingList, JoinApproved);
  * error codes BLOCKED, SEAT_TAKEN, VOICE_UNAVAILABLE; JoinRoomResult reply type.
  * 0.3.0 — Quick Play matchmaking, lobby, CPU seats.
+ * 0.6.0 — MONO and Complete Chaos: the Caught action; MonoCaught,
+ * FalseCatch and DeckReshuffled events (MonoMissed no longer sent); public
+ * state gains catchSeat, catchClosedFor, caughtPenaltyCards,
+ * falseCatchPenaltyCards, callBeforePlay, noPowerFinish. Room house rules
+ * no_power_finish, call_before_play, strict_catch; stacking_allowed now
+ * stacks upward.
+ * 0.7.0 — MONO catch penalties fixed in every mode (MONO 5/2, Chaos 7/4);
+ * strict_catch removed. AdRewardStatus and CoinsReward gain adRewards
+ * (the day's ladder); coinsPerAd / granted are the next / paid step.
+ * 0.8.0 — MONO plays on past the first finisher: continueVote in public
+ * state, VoteContinue action, ContinueVoted event (vote from the 2nd
+ * finisher, the 3rd in rooms of 5+); ranking adds unfinished seats by
+ * fewest cards, then knockouts.
+ * 0.9.0 — room channel RenameRoom (admin); InviteToRoomBody gains
+ * userCodes (invite by player code, friends or not).
  */
-const val CONTRACT_VERSION: String = "0.4.4"
+const val CONTRACT_VERSION: String = "0.9.0"

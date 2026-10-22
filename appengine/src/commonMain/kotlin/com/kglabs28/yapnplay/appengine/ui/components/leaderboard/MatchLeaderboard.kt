@@ -100,9 +100,8 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                             .width(dimens.boardPanelWidth)
                             .fillMaxHeight()
                             .padding(vertical = Spacing.Sm)
-                            .background(Color.Black.copy(alpha = PANEL_DARK), panelShape)
-                            .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = PANEL_TOP), Color.White.copy(alpha = PANEL_BOTTOM))), panelShape)
-                            .border(dimens.hairline, Color.White.copy(alpha = PANEL_RIM), panelShape)
+                            .background(AppBrushes.leaderboardPanel, panelShape)
+                            .border(dimens.hairline, colors.BoardGlassRim, panelShape)
                             .padding(Spacing.Sm),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
@@ -124,7 +123,7 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                     Modifier
                         .fillMaxSize()
                         .background(AppBrushes.leaderboardBar, RoundedCornerShape(topStart = dimens.cardRadius, topEnd = dimens.cardRadius))
-                        .border(dimens.hairline, Color.White.copy(alpha = PANEL_RIM), RoundedCornerShape(topStart = dimens.cardRadius, topEnd = dimens.cardRadius)),
+                        .border(dimens.hairline, colors.BoardGlassRim, RoundedCornerShape(topStart = dimens.cardRadius, topEnd = dimens.cardRadius)),
                 )
                 Row(
                     modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.Lg),
@@ -148,7 +147,9 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                             .height(dimens.neonButtonHeight)
                             .shadow(elevation = dimens.neonButtonGlow, shape = CircleShape, ambientColor = colors.LiveGreen, spotColor = colors.LiveGreen)
                             .clip(CircleShape)
+                            // Smoked glass with a light across its top, as in the design.
                             .background(Color.Black.copy(alpha = SHARE_FILL))
+                            .background(AppBrushes.glassSheen)
                             .border(dimens.promptRim, colors.LiveGreen, CircleShape)
                             .clickable(role = Role.Button) { scope.launch { share(layer.toImageBitmap(), shareText) } },
                         verticalAlignment = Alignment.CenterVertically,
@@ -185,6 +186,8 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                             .shadow(elevation = dimens.neonButtonGlow, shape = CircleShape, ambientColor = colors.LiveGreen, spotColor = colors.LiveGreen)
                             .clip(CircleShape)
                             .background(Brush.horizontalGradient(listOf(colors.LiveGreen, colors.Cyan)))
+                            .background(AppBrushes.glassSheen)
+                            .border(dimens.hairline, Color.White.copy(alpha = GLASS_RIM), CircleShape)
                             .clickable(role = Role.Button, onClick = onPlayAgain),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs, Alignment.CenterHorizontally),
@@ -201,10 +204,8 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
 private const val PODIUM = 3
 private const val SHADE_TOP = 0.15f
 private const val SHADE_BOTTOM = 0.45f
-private const val PANEL_DARK = 0.78f
-private const val PANEL_TOP = 0.10f
-private const val PANEL_BOTTOM = 0.05f
 private const val PANEL_RIM = 0.18f
+private const val GLASS_RIM = 0.45f
 private const val SHARE_FILL = 0.45f
 
 /** The game's name: white over a glowing accent outline, like the room's game title. */

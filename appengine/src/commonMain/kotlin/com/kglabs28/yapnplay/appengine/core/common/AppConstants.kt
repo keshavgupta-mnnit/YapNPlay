@@ -51,12 +51,6 @@ object AppConstants {
     const val LUDO_NEON_BREATH_MS = 1_600
     const val LUDO_TIMER_TICK_MS = 100L
 
-    /** Ludo table: width share of each player-card column, talking glow blink. */
-    const val LUDO_CARD_COLUMN_WEIGHT = 0.2f
-    /** Board width share: it sits right of the user's card, before the opponents. */
-    const val LUDO_BOARD_WIDTH_WEIGHT = 0.68f
-    /** Spectating: a column of cards on each side, the board centred between them. */
-    const val LUDO_SPECTATOR_BOARD_WIDTH_WEIGHT = 0.6f
     /** The exit dialog closes by itself after this long without a choice. */
     const val EXIT_DIALOG_SECONDS = 30L
 
@@ -148,6 +142,8 @@ object AppConstants {
 
     /** Game grid columns (Grid View). */
     const val GAME_GRID_COLUMNS = 6
+    /** The room lobby's game grid: fewer columns, so its tiles are bigger. */
+    const val LOBBY_GAME_GRID_COLUMNS = 3
 
     /** Game Zone QUICK PLAY button width as a share of the screen. */
     const val GAME_ZONE_CTA_WIDTH_FRACTION = 0.36f

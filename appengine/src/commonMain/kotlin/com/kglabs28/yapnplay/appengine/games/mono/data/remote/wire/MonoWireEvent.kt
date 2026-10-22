@@ -27,6 +27,22 @@ sealed interface MonoWireEvent {
     @Serializable @SerialName("MonoMissed")
     data class MonoMissed(val seat: Int, val penaltyCards: Int) : MonoWireEvent
 
+    /** [catcher] caught [seat] on one card without a call; [seat] drew [penaltyCards]. */
+    @Serializable @SerialName("MonoCaught")
+    data class MonoCaught(val catcher: Int, val seat: Int, val penaltyCards: Int) : MonoWireEvent
+
+    /** [seat] pressed CAUGHT on [target], who had called; [seat] drew [penaltyCards]. */
+    @Serializable @SerialName("FalseCatch")
+    data class FalseCatch(val seat: Int, val target: Int, val penaltyCards: Int) : MonoWireEvent
+
+    /** The draw pile ran out: the discard pile (all but its top card) was shuffled into a new one. */
+    /** The keep-playing vote closed: [continued] or the match ends. */
+    @Serializable @SerialName("ContinueVoted")
+    data class ContinueVoted(val continued: Boolean, val yes: Int, val voters: Int) : MonoWireEvent
+
+    @Serializable @SerialName("DeckReshuffled")
+    data class DeckReshuffled(val drawPileCount: Int) : MonoWireEvent
+
     /** The Rule of 7: two seats traded hands. */
     @Serializable @SerialName("HandSwapped")
     data class HandSwapped(val from: Int, val to: Int) : MonoWireEvent

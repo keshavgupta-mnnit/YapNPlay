@@ -30,9 +30,33 @@ decisions that win).
 ## Versioning
 
 `CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
-**0.4.3**. Patch: optional field / new message. Minor: new required
+**0.9.0**. Patch: optional field / new message. Minor: new required
 field, channel or game-interface member. Major: breaking change.
 Every bump is announced in `docs/decisions.md`.
+
+0.9.0 added: `RenameRoom(name)` (admin only) and `InviteToRoomBody.userCodes`
+(invite by player code). See the room messages and "Invite later" below.
+
+0.8.0 added: MONO plays on after the first finisher, with a continue vote from
+the 2nd finisher on (`continueVote`, `VoteContinue`, `ContinueVoted`), and a new
+final ranking. See "MONO match additions" below.
+
+0.7.0 added: MONO catch penalties are fixed in every mode (MONO: caught 5,
+wrong catch 2; Complete Chaos: 7 / 4) and the `strict_catch` house rule is gone
+(ignored if sent). Rewarded ads pay a rising ladder: `GET /coins/ad-status`
+(`AdRewardStatus`) and `POST /coins/ad-reward` (`CoinsReward`) gain
+`adRewards: List<Int>` (the day's ladder in order, default
+[200, 300, 400, 500, 700], runtime setting `coins.ad_rewards`). `coinsPerAd` is
+the next ad's reward (0 when none are left); `granted` is the step just paid.
+
+0.6.0 added: MONO catching. A `Caught` action; `MonoCaught`, `FalseCatch` and
+`DeckReshuffled` events; `catchSeat`, `catchClosedFor`, `caughtPenaltyCards`,
+`falseCatchPenaltyCards`, `callBeforePlay` and `noPowerFinish` on both MONO
+public states; MONO room house rules `no_power_finish`, `call_before_play` and
+`strict_catch`. `MonoMissed` is no longer sent. See "MONO match additions" below.
+
+0.5.0 added: coins and leagues, the keep-playing and end-game votes, rewarded-ad
+limits (`/coins/ad-status`), and the two MONO games hosted by the server.
 
 0.4.1 added: groups (= rooms) with invites — `CreateRoom.icon` +
 `inviteUserIds`; `POST /rooms/{roomId}/invites`, `GET /rooms/invites`,
@@ -135,7 +159,9 @@ or disabled game), **`SetBotFill(enabled)`** (leader only), `SetReady(ready)`,
 Lobby messages (all ROOM channel): `SetHouseRule(key, enabled)` and
 `SelectGame(null)` ("Change game") are leader-only (`NOT_LEADER`);
 `TransferLeader(userId)` leader-only, `TransferAdmin(userId)` and
-`RemoveMember(userId)` admin-only (`NOT_ADMIN`); `SetWatching(watching)` and `SetVoiceState(micOn,
+`RemoveMember(userId)` and (0.9.0) `RenameRoom(name)` admin-only (`NOT_ADMIN`;
+a name is trimmed, 1..30 characters, else `BAD_REQUEST`; everyone gets the
+next `RoomInfo` with the new name, and `/rooms/mine` shows it); `SetWatching(watching)` and `SetVoiceState(micOn,
 speakerOn)` for yourself. `RoomInfo` carries `adminId`, `description`,
 `houseRules` (key → on/off, defaults from the game's `houseRuleOptions`,
 reset on every game change together with everyone's ready/watching);
@@ -285,10 +311,13 @@ and answering invites:
   in `inviteUserIds` that is the creator's friend (and not blocked either
   way) gets a **room invite**; others are skipped silently. Invites past
   the limit (members + pending invites ≤ 10) are skipped.
-- **Invite later:** `POST /rooms/{roomId}/invites` `InviteToRoomBody(userIds)`
-  → `InviteToRoomReply(invited, skipped)`. Any member may invite their
-  own friends (`NOT_MEMBER` otherwise). Skipped: not a friend, blocked,
-  already a member, already invited, or no room left.
+- **Invite later:** `POST /rooms/{roomId}/invites` `InviteToRoomBody(userIds,
+  userCodes)` → `InviteToRoomReply(invited, skipped)`. Any member may
+  invite (`NOT_MEMBER` otherwise): `userIds` must be their friends;
+  `userCodes` (0.9.0, the 6-character player code typed in the room) need
+  not be. Skipped: not a friend (`userIds` only), blocked, already a member,
+  already invited, or no room left. An unknown code is skipped as the code
+  itself.
 - **My invites:** `GET /rooms/invites` → `RoomInvites(invites:
   [RoomInviteSummary(inviteId, roomId, roomName, roomIcon, memberCount,
   invitedBy: FriendSummary, invitedAt)])`, newest first.
@@ -377,6 +406,80 @@ the contract); removing is `DELETE /friends/{userId}`.
 - **Timeouts:** a seat whose 20 s runs out is played by the engine's
   cautious bot (rolls, never buys or builds). CPU seats, Autoplay and away
   seats use the full bot.
+
+## MONO match additions (0.5.0, catching 0.6.0, fixed penalties 0.7.0, play-on 0.8.0)
+
+Both games (`mono`, `mono-chaos`) run on the server. Wire classes are in the
+backend's `contract/mono/MonoWire.kt` (same names as the app's `wire` packages).
+
+- **Actions** (`GameAction.action`, `{"type": …}`):
+  - MONO: `PlayCard(handIndex)`, `DrawCard`, `ChooseColor(color)`, `CallMono`,
+    `AcceptStack`, `Pass`, `ChooseSwapTarget(seat)`, `Caught`.
+  - Complete Chaos: the same, with `DrawUntilPlayable` instead of `DrawCard`,
+    plus `ChooseRouletteColor(color)` and `StackDraw(handIndex)`.
+- **Phase checks:** every move is accepted only in its own phase, otherwise
+  it is refused with `BAD_PHASE`. You can't draw or pass under a stack, and
+  `Pass` needs a drawn card.
+- **Hidden hands:** `hands` holds only the viewer's own cards. `CardDrawn` goes
+  only to the player who drew; everyone else gets `CardsDrawn(seat, count)`.
+- **MONO! and Caught:**
+  - When a seat goes down to one card, a catch window opens on it
+    (`catchSeat`). It stays open until the next seat has finished its turn,
+    or until that hand is no longer one card.
+  - `CallMono` works on your own turn while holding two cards (before
+    playing), or while your own window is open. Under `call_before_play`
+    (rooms) only the first is allowed.
+  - Any other seat may send `Caught` while the window is open:
+    - No shield (`monoCalledSeat` ≠ `catchSeat`): the target draws
+      `caughtPenaltyCards` (`MonoCaught`) and the window closes.
+    - Shield: the presser draws `falseCatchPenaltyCards` (`FalseCatch`) and
+      can't press again in this window (`catchClosedFor`).
+  - Penalties, the same in every mode (Quick Play too): MONO 5 / 2, Chaos 7 / 4
+    (runtime settings `mono.penalty_cards`, `mono.false_catch_cards`,
+    `chaos.penalty_cards`, `chaos.false_catch_cards`). In Chaos either draw can
+    knock the drawer out.
+  - Bots call MONO! before playing their second-last card, and press Caught
+    after a short reaction time (never falsely: the shield is visible).
+- **MONO room house rules** (Quick Play uses none of them):
+  - `stacking_allowed`: stack upward (+2 on +2, +4 on +2 or +4).
+  - `no_power_finish`: the last card must be a number card. Holding only a
+    power card means you draw; after that, any legal card may be played.
+  - `call_before_play`.
+  - `seven_swap`, `zero_pass`.
+- **Chaos:**
+  - Stacking ignores colour: +2 < +4 = Wild Reverse +4 < +6 < +10.
+    Roulette never stacks.
+  - Knockout at `knockoutThreshold` (25) cards, including right after a
+    swap or pass.
+  - Discard All sends `CardsDiscarded(seat, count)`.
+- **Play on (0.8.0):**
+  - A seat that empties its hand finishes (`SeatFinished(seat, place)`,
+    listed in `finishedSeats` in finish order). Play goes on without it. Its
+    last card still takes effect, except a 7 swap or 0 pass. After a last
+    wild, it still names the colour.
+  - The match ends when one seat or none is still holding cards, so a
+    2-player table ends at the first finisher.
+  - From the 2nd finisher on (the 3rd in room matches of more than 4
+    seats), after each new finisher, while 2+ seats still hold cards: a
+    continue vote opens (`continueVote: MonoContinueVoteWire?`
+    with `endsAt`, `voters`, `yes`, `no`).
+    - Play, turn timers and bots stand still meanwhile; only `VoteContinue`
+      (`{"type":"VoteContinue","keepPlaying":true|false}`) is accepted.
+    - Voters: every human at the table, finished ones included (never CPUs,
+      leavers or seats handed to the bot).
+    - The vote closes after `match.vote_seconds` or once everyone voted, and
+      sends `ContinueVoted(continued, yes, voters)`.
+    - The votes cast decide: a tie keeps playing; no votes at all ends the
+      match, and so does a table with no humans.
+    - An "end" result ends the match (`MatchEnded`).
+  - Finished seats can't press `Caught` or be picked for a 7 swap.
+- **Ranking** (`ranking`, `MatchEnded.finishingOrder`, coins and XP):
+  - Finished seats in the order they finished.
+  - Then everyone still holding cards, by fewest cards. A tie goes to
+    whoever plays sooner from the current turn.
+  - Then, in Chaos, knocked-out seats (latest knockout higher).
+- **Other events:** `DeckReshuffled(drawPileCount)` when the discard pile
+  (minus its top card) becomes the new draw pile.
 
 ## Presence and seat handover (every game)
 

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.monochaos.data.remote.wire
 
+import com.kglabs28.yapnplay.appengine.games.mono.data.remote.wire.MonoContinueVoteWire
+
 import kotlinx.serialization.Serializable
 
 /**
@@ -52,4 +54,12 @@ data class MonoChaosPublicState(
     val ranking: List<Int> = emptyList(),
     /** Holding this many cards knocks a seat out (a room / admin setting). */
     val knockoutThreshold: Int = 25,
+    /** The seat that just went down to one card; CAUGHT is open on them until the next seat's turn ends. */
+    val catchSeat: Int? = null,
+    /** Seats that already paid a false catch in this window (one penalty per player). */
+    val catchClosedFor: List<Int> = emptyList(),
+    /** Two or more have finished: the humans still seated vote to keep playing or end; null when none is open. */
+    val continueVote: MonoContinueVoteWire? = null,
+    val caughtPenaltyCards: Int = 2,
+    val falseCatchPenaltyCards: Int = 0,
 )

@@ -164,6 +164,12 @@ class GameZoneViewModel(
 
     /** Ad watched to the end → the server adds coins; the picker reopens with the new balance. */
     private suspend fun watchAdThenReload() {
+        val offer = state.value.coinsOffer
+        // A cooldown or today's limit: say so rather than play nothing.
+        if (offer != null && !offer.canWatch) {
+            setState { copy(coinsOffer = coinsOffer?.copy(message = offer.note ?: CoinsStrings.adLimit)) }
+            return
+        }
         setState { copy(coinsOffer = coinsOffer?.copy(watchingAd = true, message = null)) }
         val result = watchAdForCoins.invoke()
         val message = CoinsUiMapper.adMessage(result)

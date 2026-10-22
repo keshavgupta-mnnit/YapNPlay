@@ -3,8 +3,11 @@ package com.kglabs28.yapnplay.appengine.ui.screens.mono
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
+import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoCard
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoMatch
 import com.kglabs28.yapnplay.appengine.games.mono.identity.MonoConstants
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoFlight
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableAvatarUi
 
 /**
@@ -32,8 +35,10 @@ data class MatchMonoState(
     val activeStackPenalty: Int = 0,
     /** A stack is on the user: stack a draw card onto it, or take the penalty. */
     val canStack: Boolean = false,
-    /** The MONO! callout is open and the user is down to one card. */
+    /** The user may call MONO now (their turn on two cards, or just down to one without a call). */
     val canCallMono: Boolean = false,
+    /** Someone just went down to one card and the user may press CAUGHT on them. */
+    val canCatch: Boolean = false,
     /** The user drew a playable card and may decline to play it. */
     val canPass: Boolean = false,
     /** "1st", "2nd"… as seats finish; seat → label. */
@@ -56,9 +61,21 @@ data class MatchMonoState(
     val finished: Boolean = false,
     val micOn: Boolean = false,
     val autoplay: Boolean = false,
+    /** User ids talking right now (the blue-pink glow behind their seat). */
+    val talking: Set<String> = emptySet(),
+    /** The keep-playing vote, once two or more have finished. */
+    val vote: MonoVoteUi? = null,
+    /** The final board, once the match is over (after the winner's banner has shown). */
+    val leaderboard: LeaderboardUi? = null,
+    /** "🏆 Riya finishes 1st!" for a few seconds after someone empties their hand. */
+    val finishBanner: String? = null,
 ) : UiState {
     val hand get() = match?.me?.hand.orEmpty()
-    val opponents get() = match?.players.orEmpty().filter { !it.isMe }
+    /** The hand sorted by colour, power cards last (indexes into [hand]). */
+    val handOrder: List<Int>
+        get() = MonoUiMapper.handOrder(hand, { it.playColor()?.ordinal }, { it.isPower() }, { (it as? MonoCard.NumberCard)?.number ?: 0 })
+    /** Everyone else, clockwise from the user's seat (the order turns go round the table). */
+    val opponents get() = MonoUiMapper.clockwise(match?.players.orEmpty().filter { !it.isMe }, match?.me?.seat) { it.seat }
 }
 
 sealed interface MatchMonoIntent : UiIntent {
@@ -68,6 +85,10 @@ sealed interface MatchMonoIntent : UiIntent {
     data object DrawCard : MatchMonoIntent
     data class ChooseColor(val color: MonoConstants.Color) : MatchMonoIntent
     data object CallMono : MatchMonoIntent
+    /** Call out the seat that just went down to one card without calling MONO. */
+    data object Caught : MatchMonoIntent
+    /** The keep-playing vote: true keeps the match going. */
+    data class VoteContinue(val keepPlaying: Boolean) : MatchMonoIntent
     /** Take the penalty on the table instead of stacking onto it. */
     data object AcceptStack : MatchMonoIntent
     /** End the turn after drawing a playable card and declining to play it. */
@@ -87,4 +108,6 @@ sealed interface MatchMonoIntent : UiIntent {
 sealed interface MatchMonoEffect : UiEffect {
     data object OpenSettingsDialog : MatchMonoEffect
     data object LeaveMatch : MatchMonoEffect
+    /** Cards to fly across the table (plays, draws, penalties). */
+    data class Fly(val flights: List<MonoFlight>) : MatchMonoEffect
 }

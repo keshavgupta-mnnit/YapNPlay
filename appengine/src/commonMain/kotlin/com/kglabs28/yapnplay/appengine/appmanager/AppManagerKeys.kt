@@ -24,7 +24,7 @@ object AppManagerKeys {
     /** Games: kill switches and table-wide timings. */
     object Games {
         val ROYAL_LUDO_ENABLED = ConfigKey(enabledKey(GameIds.ROYAL_LUDO), true, "Royal Ludo shown and playable.")
-        val CITY_BAZAAR_ENABLED = ConfigKey(enabledKey(GameIds.CITY_BAZAAR), true, "City Bazaar shown and playable.")
+        val CITY_BAZAAR_ENABLED = ConfigKey(enabledKey(GameIds.CITY_BAZAAR), true, "City Royale shown and playable.")
         val TURN_HURRY_SECONDS = ConfigKey("turn_hurry_seconds", 5L, "Last seconds of the user's turn with the faster 'hurry' tick.")
 
         /** game_enabled_<id with _>, e.g. game_enabled_city_bazaar. */
@@ -46,7 +46,7 @@ object AppManagerKeys {
         val GAME_ZONE_CARD = ConfigKey("bg_game_zone_card_url", "", "Home: Game Zone card art.")
         val FRIEND_ZONE_CARD = ConfigKey("bg_friend_zone_card_url", "", "Home: Friend Zone card art.")
         val ROYAL_LUDO_ART = ConfigKey("art_royal_ludo_url", "", "Royal Ludo game art (pickers, leaderboard).")
-        val CITY_BAZAAR_ART = ConfigKey("art_city_bazaar_url", "", "City Bazaar game art (pickers, leaderboard).")
+        val CITY_BAZAAR_ART = ConfigKey("art_city_bazaar_url", "", "City Royale game art (pickers, leaderboard).")
     }
 
     /** Rewarded ads (AdMob). Defaults are Google's TEST unit: swap in the real one from Remote Config. */

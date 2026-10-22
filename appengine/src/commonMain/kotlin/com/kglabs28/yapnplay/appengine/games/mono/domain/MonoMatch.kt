@@ -45,6 +45,18 @@ data class MonoMatch(
     val finishedSeats: List<Int> = emptyList(),
     val ranking: List<MonoRankedSeat> = emptyList(),
     val seatOffer: MonoSeatOffer? = null,
+    /** The seat CAUGHT is open on (just went down to one card); null when shut. */
+    val catchSeat: Int? = null,
+    /** Seats that already paid a false catch in this window. */
+    val catchClosedFor: List<Int> = emptyList(),
+    /** The keep-playing vote, open once two or more have finished. */
+    val continueVote: MonoContinueVote? = null,
+    val caughtPenaltyCards: Int = 2,
+    val falseCatchPenaltyCards: Int = 0,
+    /** House rule: MONO is called before the second-last card goes down. */
+    val callBeforePlay: Boolean = false,
+    /** House rule: a power card can never be the last card played. */
+    val noPowerFinish: Boolean = false,
     val roomId: String? = null,
     val viewerUserId: String,
 ) {

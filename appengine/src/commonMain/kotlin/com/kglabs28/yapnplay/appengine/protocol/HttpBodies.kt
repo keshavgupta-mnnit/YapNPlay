@@ -221,6 +221,8 @@ data class ActiveMatch(
 @Serializable
 data class InviteToRoomBody(
     val userIds: List<String>,
+    /** Players by their 6-character code (friends or not); unknown codes come back in skipped. */
+    val userCodes: List<String> = emptyList(),
 )
 
 /** Who got an invite, and who was skipped (not a friend, blocked, already a member or invited, room full). */
@@ -282,6 +284,8 @@ data class CoinsReward(
     val dailyLimit: Int = 0,
     /** Epoch ms when the next ad can pay (≈ now + the gap, or tomorrow after the last one). */
     val nextAdAt: Long? = null,
+    /** The day's reward ladder, ad by ad (e.g. 200, 300, 400, 500, 700). */
+    val adRewards: List<Int> = emptyList(),
 )
 
 /** `GET /coins/leagues`: Quick Play leagues; [League.canEnter] is false when [coins] are short of the fee. */
@@ -309,4 +313,6 @@ data class AdRewardStatus(
     val adsLeftToday: Int,
     val nextAdAt: Long? = null,
     val serverTime: Long,
+    /** The day's reward ladder, ad by ad (e.g. 200, 300, 400, 500, 700); [coinsPerAd] is the next step. */
+    val adRewards: List<Int> = emptyList(),
 )

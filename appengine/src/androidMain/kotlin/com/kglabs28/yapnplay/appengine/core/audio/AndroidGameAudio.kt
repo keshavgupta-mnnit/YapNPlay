@@ -56,7 +56,9 @@ class AndroidGameAudio(private val context: Context) : GameAudio {
 
     private suspend fun cached(path: String): File {
         val file = File(File(context.cacheDir, SOUND_DIR).apply { mkdirs() }, path.substringAfterLast('/'))
-        if (!file.exists()) file.writeBytes(Res.readBytes(path))
+        // Rewritten when the bundled sound changed (a cached copy from an older build would play the old sound).
+        val bytes = Res.readBytes(path)
+        if (!file.exists() || !file.readBytes().contentEquals(bytes)) file.writeBytes(bytes)
         return file
     }
 

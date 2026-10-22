@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.monochaos.domain
 
+import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoContinueVote
 import com.kglabs28.yapnplay.appengine.games.monochaos.identity.MonoChaosConstants
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
@@ -46,6 +47,14 @@ data class MonoChaosMatch(
     val finishedSeats: List<Int> = emptyList(),
     val ranking: List<MonoChaosRankedSeat> = emptyList(),
     val seatOffer: MonoChaosSeatOffer? = null,
+    /** The seat CAUGHT is open on (just went down to one card); null when shut. */
+    val catchSeat: Int? = null,
+    /** Seats that already paid a false catch in this window. */
+    val catchClosedFor: List<Int> = emptyList(),
+    /** The keep-playing vote, open once two or more have finished. */
+    val continueVote: MonoContinueVote? = null,
+    val caughtPenaltyCards: Int = 2,
+    val falseCatchPenaltyCards: Int = 0,
     val roomId: String? = null,
     val viewerUserId: String,
 ) {

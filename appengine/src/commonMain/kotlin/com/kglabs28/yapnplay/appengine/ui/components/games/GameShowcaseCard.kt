@@ -29,6 +29,8 @@ fun GameShowcaseCard(
     game: GameCatalogItem,
     modifier: Modifier = Modifier,
     nameStyle: TextStyle = YapNPlayTheme.typography.heroWord,
+    /** The "Match · Play · Win" line under the name; the grid leaves it out. */
+    showTagline: Boolean = true,
 ) {
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
@@ -56,10 +58,12 @@ fun GameShowcaseCard(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        BasicText(
-            text = Strings.gameTaglines(game.taglines),
-            style = typography.caption.copy(color = colors.RoomsSubtitle, textAlign = TextAlign.Center),
-            maxLines = 1,
-        )
+        if (showTagline) {
+            BasicText(
+                text = Strings.gameTaglines(game.taglines),
+                style = typography.caption.copy(color = colors.RoomsSubtitle, textAlign = TextAlign.Center),
+                maxLines = 1,
+            )
+        }
     }
 }

@@ -3,6 +3,8 @@ package com.kglabs28.yapnplay.appengine.games.monochaos.data.remote
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.network.SessionProvider
 import com.kglabs28.yapnplay.appengine.core.network.MatchChannel
+import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceClient
+import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceTarget
 import com.kglabs28.yapnplay.appengine.games.monochaos.data.remote.wire.MonoChaosWireAction
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosCommand
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosUpdate
@@ -22,10 +24,13 @@ class MonoChaosMatchClientImpl(
     private val session: SessionProvider,
     private val clock: AppClock,
     private val json: Json,
+    private val voice: VoiceClient,
 ) : MonoChaosMatchClient {
 
     override fun observeMatch(matchId: String): Flow<MonoChaosUpdate> =
         match.snapshots(matchId).map { mapper.map(it, session.currentUserId().orEmpty(), clock.now()) }
+
+    override fun observeSpeaking(matchId: String): Flow<Set<String>> = voice.speakers(VoiceTarget.Match(matchId))
 
     override suspend fun send(matchId: String, command: MonoChaosCommand) {
         when (command) {
@@ -55,6 +60,8 @@ class MonoChaosMatchClientImpl(
         is MonoChaosCommand.StackDraw -> MonoChaosWireAction.StackDraw(handIndex)
         MonoChaosCommand.AcceptStack -> MonoChaosWireAction.AcceptStack
         MonoChaosCommand.Pass -> MonoChaosWireAction.Pass
+        MonoChaosCommand.Caught -> MonoChaosWireAction.Caught
+        is MonoChaosCommand.VoteContinue -> MonoChaosWireAction.VoteContinue(keepPlaying)
         is MonoChaosCommand.ChooseSwapTarget -> MonoChaosWireAction.ChooseSwapTarget(seat)
         is MonoChaosCommand.SetAutoplay,
         is MonoChaosCommand.SetMic,

@@ -4,9 +4,7 @@ package com.kglabs28.yapnplay.appengine.core.ui
 object LudoStrings {
     const val ludoTitle = "ROYAL LUDO"
     const val ludoRollDice = "Roll Dice"
-    const val ludoAutoplay = "Autoplay"
     const val ludoSpectators = "spectators"
-    const val ludoMatchTime = "Match time"
     const val ludoSettings = "Settings"
     const val ludoExit = "Leave match"
     const val ludoLeaveTitle = "Leave the match?"

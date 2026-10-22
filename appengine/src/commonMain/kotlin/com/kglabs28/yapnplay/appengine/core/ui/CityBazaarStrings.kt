@@ -2,7 +2,7 @@ package com.kglabs28.yapnplay.appengine.core.ui
 
 /** City Bazaar: table, prompts, popups, feed, bank, vote. */
 object CityBazaarStrings {
-    const val cbTitle = "CITY BAZAAR"
+    const val cbTitle = "CITY ROYALE"
     fun cbRupees(digits: String) = "₹$digits"
     fun cbMinusRupees(digits: String) = "-₹$digits"
     fun cbPlusRupees(digits: String) = "+₹$digits"
@@ -144,7 +144,7 @@ object CityBazaarStrings {
     const val cbBankUnknown = "—"
 
     // Titles by finishing place, until the server hands them out.
-    val cbPlaceTitles = listOf("👑 Bazaar Baadshah", "🏙️ Property Shark", "💸 Vasooli Bhai", "🧾 Rent Bharne Wala", "🎲 Pure Luck", "🪙 Kadka")
+    val cbPlaceTitles = listOf("👑 Royale Baadshah", "🏙️ Property Shark", "💸 Vasooli Bhai", "🧾 Rent Bharne Wala", "🎲 Pure Luck", "🪙 Kadka")
     const val cbLandedOn = "LANDED ON "
     const val cbUpgradeProperty = "UPGRADE PROPERTY: "
     fun cbBuyHeadline(land: String, house: String) = "Rent $land  ·  with 1 house $house"

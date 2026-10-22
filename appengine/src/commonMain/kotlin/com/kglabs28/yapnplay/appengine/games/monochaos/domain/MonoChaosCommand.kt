@@ -12,6 +12,10 @@ sealed interface MonoChaosCommand {
     data object AcceptStack : MonoChaosCommand
     /** End the turn after drawing a playable card and declining to play it. */
     data object Pass : MonoChaosCommand
+    /** Call out a seat that went down to one card without calling MONO. */
+    data object Caught : MonoChaosCommand
+    /** The keep-playing vote. */
+    data class VoteContinue(val keepPlaying: Boolean) : MonoChaosCommand
     /** The Rule of 7: pick the opponent whose hand to trade with. */
     data class ChooseSwapTarget(val seat: Int) : MonoChaosCommand
     data class SetAutoplay(val enabled: Boolean) : MonoChaosCommand

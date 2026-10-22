@@ -5,7 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -35,6 +37,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayColors
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.headlineFontFamily
 import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
+import com.kglabs28.yapnplay.appengine.ui.placeholders.MonoCardBackArtwork
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.min
@@ -117,6 +120,11 @@ fun MonoCardFace(
         // A selected card stands up out of the hand.
         .graphicsLayer { translationY = if (isSelected) -liftPx else 0f }
 
+    if (faceDown) {
+        // Every back, in both games, is the painted artwork.
+        MonoCardBackArtwork(modifier = shaped.clip(RoundedCornerShape(BACK_CORNER_PERCENT)))
+        return
+    }
     Canvas(modifier = shaped) {
         val text = CardText(measurer, font)
         if (faceDown) drawBack(chaos, text, detail = size.width >= smallPx) else drawFront(look, text, detail = size.width >= smallPx)
@@ -171,6 +179,10 @@ private fun DrawScope.drawFront(look: MonoCardLook, text: CardText, detail: Bool
         } else {
             drawRect(Brush.linearGradient(listOf(look.fill.copy(alpha = FILL_TOP), look.fill.copy(alpha = FILL_BOTTOM)), Offset.Zero, Offset(w, h)))
         }
+        // A soft light from inside the glass, in the card's own hue.
+        if (!look.prism) {
+            drawRect(Brush.radialGradient(listOf(look.rim.copy(alpha = INNER_GLOW_ALPHA), Color.Transparent), Offset(w / 2, h * OCTAGON_CENTRE), w * INNER_GLOW_REACH))
+        }
         // The diagonal glass sheen across the top right.
         val sheen = Path().apply {
             moveTo(w * SHEEN_A, 0f); lineTo(w * SHEEN_B, 0f); lineTo(w * SHEEN_C, h); lineTo(w * SHEEN_D, h); close()
@@ -179,6 +191,9 @@ private fun DrawScope.drawFront(look: MonoCardLook, text: CardText, detail: Bool
     }
     // The metallic bevel frame and its thin inner line.
     drawRoundRect(metal, size = size, cornerRadius = radius, style = Stroke(w * FRAME_WIDTH))
+    // The neon edge just inside the metal frame.
+    val edgeBrush: Brush = if (look.prism) Brush.sweepGradient(prismColours, Offset(w / 2, h / 2)) else Brush.linearGradient(listOf(look.rim, look.rim))
+    drawRoundRect(edgeBrush, topLeft = Offset(w * NEON_INSET, w * NEON_INSET), size = Size(w - w * NEON_INSET * 2, h - w * NEON_INSET * 2), cornerRadius = CornerRadius(w * (CORNER_RADIUS - NEON_INSET)), style = Stroke(w * NEON_WIDTH), alpha = NEON_ALPHA)
     drawRoundRect(
         look.rim.copy(alpha = if (look.prism) PRISM_LINE_ALPHA else INNER_LINE_ALPHA),
         topLeft = Offset(inset, inset),
@@ -251,7 +266,8 @@ private fun DrawScope.drawOctagon(look: MonoCardLook, w: Float, h: Float) {
     // Glow behind the rim.
     drawPath(ring, rimBrush, alpha = GLOW_ALPHA, style = Stroke(w * GLOW_WIDTH, join = StrokeJoin.Round))
     // Faceted dark glass.
-    drawPath(ring, Brush.radialGradient(listOf(YapNPlayColors.MonoOctagonCore, YapNPlayColors.MonoOctagonEdge), c, w * OCTAGON_RING))
+    val core = if (look.prism) YapNPlayColors.MonoOctagonCore else lerp(YapNPlayColors.MonoOctagonCore, look.fill, OCTAGON_TINT)
+    drawPath(ring, Brush.radialGradient(listOf(core, YapNPlayColors.MonoOctagonEdge), c, w * OCTAGON_RING))
     clipPath(ring) {
         octagonPoints(c, w * OCTAGON_RING).forEach { p -> drawLine(Color.White.copy(alpha = FACET_ALPHA), c, p, w * FACET_WIDTH) }
     }
@@ -502,24 +518,31 @@ private fun octagonPoints(c: Offset, half: Float): List<Offset> {
 
 private fun triangle(a: Offset, b: Offset, c: Offset) = Path().apply { moveTo(a.x, a.y); lineTo(b.x, b.y); lineTo(c.x, c.y); close() }
 
-/** Card width ÷ height, as in the card designs. */
-private const val CARD_RATIO = 0.6f
+/** Card width ÷ height, as in the card designs (and the painted back). */
+private const val CARD_RATIO = 0.68f
 
 // Body and frame (fractions of the card width).
 private const val CORNER_RADIUS = 0.075f
 private const val FRAME_WIDTH = 0.03f
 private const val FRAME_INSET = 0.045f
 private const val INNER_LINE = 0.007f
-private const val INNER_LINE_ALPHA = 0.55f
+private const val INNER_LINE_ALPHA = 0.85f
 private const val PRISM_LINE_ALPHA = 0.35f
-private const val FILL_TOP = 0.85f
-private const val FILL_BOTTOM = 0.45f
-private const val QUADRANT_FADE = 0.75f
+private const val FILL_TOP = 1f
+private const val FILL_BOTTOM = 0.8f
+private const val QUADRANT_FADE = 0.9f
 private const val SHEEN_A = 0.52f
 private const val SHEEN_B = 0.82f
 private const val SHEEN_C = 0.28f
 private const val SHEEN_D = -0.02f
-private const val SHEEN_ALPHA = 0.06f
+private const val SHEEN_ALPHA = 0.1f
+private const val INNER_GLOW_ALPHA = 0.32f
+private const val INNER_GLOW_REACH = 0.75f
+private const val NEON_INSET = 0.028f
+private const val NEON_WIDTH = 0.012f
+private const val NEON_ALPHA = 0.9f
+private const val OCTAGON_TINT = 0.45f
+private const val BACK_CORNER_PERCENT = 6
 
 // The MONO notch.
 private const val NOTCH_TOP = 0.6f
@@ -548,7 +571,7 @@ private const val OCTAGON_CUT = 0.42f
 private const val OCTAGON_METAL = 0.012f
 private const val OCTAGON_SHADE = 0.85f
 private const val GLOW_WIDTH = 0.06f
-private const val GLOW_ALPHA = 0.35f
+private const val GLOW_ALPHA = 0.55f
 private const val RIM_WIDTH = 0.016f
 private const val INNER_RIM_ALPHA = 0.45f
 private const val FACET_ALPHA = 0.045f

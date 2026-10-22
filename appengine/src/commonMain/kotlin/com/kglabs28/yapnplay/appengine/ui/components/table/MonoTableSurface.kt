@@ -1,59 +1,24 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
-
-/**
- * The table the two centre piles sit on, as in the table design: a dark
- * oval of felt with a lit centre, ringed by a glowing cyan rim.
- */
-@Composable
-fun MonoTableSurface(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit,
-) {
-    val colors = YapNPlayTheme.colors
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val inset = size.minDimension * OVAL_INSET
-            val oval = Size(size.width - inset * 2, size.height - inset * 2)
-            val topLeft = Offset(inset, inset)
-            drawOval(
-                Brush.radialGradient(listOf(colors.MonoTableFelt, colors.MonoTableFeltEdge), center, size.width / 2),
-                topLeft = topLeft,
-                size = oval,
-            )
-            // The cyan rim: a wide soft glow, the lit line, and a fine steel edge outside it.
-            drawOval(colors.Cyan.copy(alpha = GLOW_ALPHA), topLeft, oval, style = Stroke(size.minDimension * GLOW_STROKE))
-            drawOval(colors.Cyan.copy(alpha = RIM_ALPHA), topLeft, oval, style = Stroke(size.minDimension * RIM_STROKE))
-            val outer = size.minDimension * EDGE_GAP
-            drawOval(
-                colors.MonoTableRim,
-                Offset(inset - outer, inset - outer),
-                Size(oval.width + outer * 2, oval.height + outer * 2),
-                style = Stroke(size.minDimension * EDGE_STROKE),
-            )
-        }
-        content()
-    }
-}
 
 /**
  * The direction arrows inside the oval: two curved arrows, one down each
@@ -67,6 +32,13 @@ fun MonoTurnRing(
     modifier: Modifier = Modifier,
 ) {
     val ring = hue.ring
+    // A glowing dot runs along each arrow from its tail to its head, over and over.
+    val travel by rememberInfiniteTransition(label = "turn-ring").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(DOT_MS, easing = LinearEasing)),
+        label = "turn-ring-dot",
+    )
     Canvas(modifier = modifier) {
         val inset = size.minDimension * (OVAL_INSET + ARROW_INSET)
         val rx = size.width / 2 - inset
@@ -75,6 +47,13 @@ fun MonoTurnRing(
         // Right side, then left side: each sweeps through its own half.
         listOf(RIGHT_START, RIGHT_START + HALF_TURN).forEach { start ->
             drawTurnArc(center, rx, ry, start, ARC_SWEEP, clockwise, stroke, ring)
+            // Tail to head: clockwise the head is at the sweep's end, otherwise at its start.
+            val along = if (clockwise) travel else 1f - travel
+            val t = (start + ARC_SWEEP * along) * PI.toFloat() / HALF_TURN
+            val dot = Offset(center.x + rx * cos(t), center.y + ry * sin(t))
+            val fade = sin(PI.toFloat() * travel)
+            drawCircle(Color.White.copy(alpha = DOT_GLOW_ALPHA * fade), stroke * DOT_GLOW, dot)
+            drawCircle(Color.White.copy(alpha = fade), stroke * DOT_CORE, dot)
         }
     }
 }
@@ -110,15 +89,15 @@ private fun DrawScope.drawTurnArc(c: Offset, rx: Float, ry: Float, startDeg: Flo
 
 /** Fractions of the arena's shorter side. */
 private const val OVAL_INSET = 0.04f
-private const val GLOW_STROKE = 0.05f
 private const val GLOW_ALPHA = 0.28f
-private const val RIM_STROKE = 0.012f
-private const val RIM_ALPHA = 0.9f
-private const val EDGE_GAP = 0.03f
-private const val EDGE_STROKE = 0.006f
 private const val ARROW_INSET = 0.1f
-private const val ARROW_STROKE = 0.022f
-private const val ARROW_GLOW = 3f
+private const val ARROW_STROKE = 0.04f
+private const val ARROW_GLOW = 2.4f
+/** The travelling dot: one run per this many ms, its core and glow × the arrow's width. */
+private const val DOT_MS = 1400
+private const val DOT_CORE = 0.75f
+private const val DOT_GLOW = 2f
+private const val DOT_GLOW_ALPHA = 0.45f
 private const val HEAD = 2.4f
 private const val HEAD_WIDE = 0.9f
 /** The right arc runs from upper right to lower right (screen degrees). */

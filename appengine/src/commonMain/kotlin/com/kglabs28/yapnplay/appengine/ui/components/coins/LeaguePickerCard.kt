@@ -14,10 +14,14 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.MonetizationOn
+import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
@@ -26,7 +30,11 @@ import com.kglabs28.yapnplay.appengine.core.ui.CoinsStrings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 
-/** Pick the Quick Play league: one row per league, locked rows open the coins offer. */
+/**
+ * Pick the Quick Play league: one row per league, coloured by price — the
+ * cheap ones plain slate and bronze, then silver and gold, the dearest a
+ * royal violet with a gold rim and crown. Locked rows open the coins offer.
+ */
 @Composable
 fun LeaguePickerCard(
     picker: LeaguePickerUi,
@@ -43,29 +51,59 @@ fun LeaguePickerCard(
             BasicText(text = CoinsStrings.leaguesLoading, style = YapNPlayTheme.typography.label.copy(color = colors.TextSecondary))
         }
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-            picker.leagues.forEach { league -> LeagueRow(league = league, onClick = { onPick(league.entryCoins) }) }
+            // Tier by price: the cheapest plainest, the dearest royal.
+            val byFee = picker.leagues.sortedBy { it.entryCoins }
+            picker.leagues.forEach { league ->
+                LeagueRow(
+                    league = league,
+                    tier = leagueTier(byFee.indexOf(league), byFee.size),
+                    onClick = { onPick(league.entryCoins) },
+                )
+            }
         }
     }
 }
 
+/** How rich a league row looks: its glass and its rim, cheapest to dearest. */
+private data class LeagueTier(val fill: List<Color>, val rim: Color, val royal: Boolean = false)
+
+/** The tier for the league at [rank] (0 = cheapest) of [count]: the dearest is always royal. */
 @Composable
-private fun LeagueRow(league: LeagueUi, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun leagueTier(rank: Int, count: Int): LeagueTier {
+    val colors = YapNPlayTheme.colors
+    val ladder = listOf(
+        LeagueTier(listOf(colors.LeagueStarterTop, colors.LeagueStarterBottom), colors.LeagueStarterRim),
+        LeagueTier(listOf(colors.LeagueBronzeTop, colors.LeagueBronzeBottom), colors.LeagueBronzeRim),
+        LeagueTier(listOf(colors.LeagueSilverTop, colors.LeagueSilverBottom), colors.LeagueSilverRim),
+        LeagueTier(listOf(colors.LeagueGoldTop, colors.LeagueGoldBottom), colors.LeagueGoldRim),
+    )
+    val royal = LeagueTier(listOf(colors.LeagueRoyalTop, colors.LeagueRoyalMid, colors.LeagueRoyalBottom), colors.LeagueRoyalRim, royal = true)
+    return when {
+        count > 1 && rank == count - 1 -> royal
+        else -> ladder[rank.coerceIn(0, ladder.lastIndex)]
+    }
+}
+
+@Composable
+private fun LeagueRow(league: LeagueUi, tier: LeagueTier, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val shape = RoundedCornerShape(dimens.cardRadius)
-    val accent = if (league.canEnter) colors.Gold else colors.TextSecondary
+    val accent = if (league.canEnter) tier.rim else colors.TextSecondary
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(dimens.leagueRowHeight)
+            .alpha(if (league.canEnter) 1f else LOCKED_ALPHA)
             .clip(shape)
-            .background(colors.TopBarCurrencyPill)
-            .border(dimens.promptRim, accent.copy(alpha = RIM_ALPHA), shape)
+            .background(Brush.linearGradient(tier.fill))
+            .border(if (tier.royal) dimens.borderThin else dimens.promptRim, tier.rim.copy(alpha = RIM_ALPHA), shape)
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = Spacing.Md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
+        if (tier.royal) AppIcon(imageVector = Icons.Rounded.WorkspacePremium, tint = tier.rim, size = dimens.iconSmall)
         BasicText(
             text = league.name,
             modifier = Modifier.weight(1f),
@@ -77,4 +115,5 @@ private fun LeagueRow(league: LeagueUi, onClick: () -> Unit, modifier: Modifier 
     }
 }
 
-private const val RIM_ALPHA = 0.6f
+private const val RIM_ALPHA = 0.85f
+private const val LOCKED_ALPHA = 0.7f

@@ -108,6 +108,10 @@ class YapNPlayDimens {
     val carouselSideBlur: Dp get() = 1.5.dp.scaled()
     // Room lobby
     val lobbyBarHeight: Dp get() = 44.dp.scaled()
+    /** The lobby's ⋮ menu. */
+    val lobbyMenuWidth: Dp get() = 200.dp.scaled()
+    /** The sideways friends row in the lobby's Add Friends dialog. */
+    val lobbyFriendsRowHeight: Dp get() = 84.dp.scaled()
     val lobbyStartHeight: Dp get() = 52.dp.scaled()
     val lobbyStartCut: Dp get() = 12.dp.scaled()
     /** Gap between the START button and its outer outline. */
@@ -129,7 +133,6 @@ class YapNPlayDimens {
     val ludoAvatar: Dp get() = 46.dp.scaled()
     val ludoAvatarRing: Dp get() = 2.5.dp.scaled()
     val ludoAudienceAvatar: Dp get() = 30.dp.scaled()
-    val ludoLevelBadgeHeight: Dp get() = 14.dp.scaled()
     val ludoAudienceNameWidth: Dp get() = 52.dp.scaled()
     val ludoAudienceRing: Dp get() = 2.dp.scaled()
     val ludoCardRadius: Dp get() = 18.dp.scaled()
@@ -138,14 +141,12 @@ class YapNPlayDimens {
     val ludoGlossHeight: Dp get() = 40.dp.scaled()
     val ludoGlossRadius: Dp get() = 11.dp.scaled()
     val ludoTimerStroke: Dp get() = 5.dp.scaled()
-    val ludoPlaceBadgeHeight: Dp get() = 18.dp.scaled()
     val ludoMuteButton: Dp get() = 26.dp.scaled()
     val ludoMuteIcon: Dp get() = 15.dp.scaled()
     val modalCloseButton: Dp get() = 24.dp.scaled()
     val modalCloseIcon: Dp get() = 11.dp.scaled()
     val reportListMaxHeight: Dp get() = 160.dp.scaled()
     val ludoCardGlow: Dp get() = 18.dp.scaled()
-    val ludoSquareButton: Dp get() = 44.dp.scaled()
     val lobbyMemberRow: Dp get() = 56.dp.scaled()
     val lobbyAvatar: Dp get() = 38.dp.scaled()
     val crownSize: Dp get() = 18.dp.scaled()
@@ -185,41 +186,54 @@ class YapNPlayDimens {
     /** The same in the compact pod (many players). */
     val cbCardChromeCompact: Dp get() = 26.dp.scaled()
     val cbCardAvatarMin: Dp get() = 20.dp.scaled()
-    /** The talking wave on a table player card. */
-    val tableTalkWaveHeight: Dp get() = 14.dp.scaled()
     /** A compact city card in the My Properties list. */
     val cbCityCardHeight: Dp get() = 56.dp.scaled()
     // MONO (cards are 2:3 portrait everywhere they appear).
     /** A card in the local player's hand. */
     val monoHandCardWidth: Dp get() = 62.dp.scaled()
     /** A card on the centre pile, or an opponent's face-down card. */
-    val monoPileCardWidth: Dp get() = 64.dp.scaled()
-    /** The mini card fan docked to a table pod. */
-    val monoPodFan: Dp get() = 26.dp.scaled()
-    val monoPodFanCompact: Dp get() = 20.dp.scaled()
-    /** The avatar inside a table pod (smaller in the side rails). */
-    val monoPodAvatar: Dp get() = 34.dp.scaled()
-    val monoPodAvatarCompact: Dp get() = 28.dp.scaled()
+    val monoPileCardWidth: Dp get() = 82.dp.scaled()
     /** The wide frosted pod across the top of the table. */
-    val monoPodWidth: Dp get() = 150.dp.scaled()
-    val monoPodWidthCompact: Dp get() = 128.dp.scaled()
+    val monoPodWidth: Dp get() = 132.dp.scaled()
+    val monoPodWidthCompact: Dp get() = 122.dp.scaled()
     /** The local player's own pod at the bottom left. */
-    val monoLocalPodWidth: Dp get() = 190.dp.scaled()
-    /** The MONO! callout button beside the hand. */
-    val monoCallWidth: Dp get() = 92.dp.scaled()
-    val monoCallHeight: Dp get() = 44.dp.scaled()
-    /** The DRAW CARD button at the bottom right. */
-    val monoDrawWidth: Dp get() = 130.dp.scaled()
-    /** The small round switches in the local player's pod. */
-    val monoToggleSize: Dp get() = 26.dp.scaled()
+    val monoLocalPodWidth: Dp get() = 150.dp.scaled()
     /** One colour choice in the Prism picker. */
     val monoColourChip: Dp get() = 44.dp.scaled()
     /** How far a selected card rises out of the hand. */
     val monoCardLift: Dp get() = 10.dp.scaled()
+    /** A seat: the round avatar, and the name pill beside it (as tall as this share of the avatar). */
+    val monoSeatAvatar: Dp get() = 50.dp.scaled()
+    val monoSeatAvatarCompact: Dp get() = 44.dp.scaled()
+    val monoSeatRing: Dp get() = 3.dp.scaled()
+    val monoSeatTimer: Dp get() = 3.dp.scaled()
+    /** The MONO table's top band: a seat (its fan sits beside it). */
+    val monoTopBandHeight: Dp get() = 60.dp.scaled()
+    /** A top-row seat's fan, beside its pill. */
+    val monoSideFanWidth: Dp get() = 90.dp.scaled()
+    /** The MONO table's bottom-left corner: the user's seat with its switches over the callout. */
+    val monoLocalCornerHeight: Dp get() = 170.dp.scaled()
+    /** The face-down fan under a seat. */
+    val monoSeatFanCard: Dp get() = 24.dp.scaled()
+    /** Each card's step of thickness in a pile (a few cards per step). */
+    val monoPileDepthStep: Dp get() = 1.dp.scaled()
+    /** A card flying between the piles, the hands and the seats. */
+    val monoFlightCard: Dp get() = 56.dp.scaled()
+    /** The top bar's height, and its square buttons. */
+    val arenaBarHeight: Dp get() = 46.dp.scaled()
+    /** The MONO / CAUGHT and Draw buttons. */
+    val arenaActionHeight: Dp get() = 50.dp.scaled()
+    val arenaCallWidth: Dp get() = 176.dp.scaled()
+    val arenaDrawWidth: Dp get() = 150.dp.scaled()
+    /** The round mic / autoplay switches under the user's seat. */
+    val arenaSwitchSize: Dp get() = 36.dp.scaled()
+    /** The dice icon on the bottom-right Roll Dice button. */
+    val arenaDiceIcon: Dp get() = 64.dp.scaled()
+    /** The game's logo beside the top bar (larger than the bar). */
+    val arenaLogoSize: Dp get() = 58.dp.scaled()
     val cbRollBadge: Dp get() = 22.dp.scaled()
     /** Pods get compact (tighter padding, smaller text) when each has less height than this. */
     val cbCardCompactBelow: Dp get() = 80.dp.scaled()
-    val cbStackCard: Dp get() = 27.dp.scaled()
     val cbStackOffset: Dp get() = 3.dp.scaled()
     val cbToastWidth: Dp get() = 300.dp.scaled()
     val cbAssetCardWidth: Dp get() = 108.dp.scaled()

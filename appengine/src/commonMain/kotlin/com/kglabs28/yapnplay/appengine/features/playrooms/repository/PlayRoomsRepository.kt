@@ -21,7 +21,7 @@ interface PlayRoomsRepository {
     suspend fun createRoom(name: String?, icon: String, inviteUserIds: List<String>): AppResult<CreatedPlayRoom>
 
     /** Invites friends into a group the user belongs to; the ids that got an invite. */
-    suspend fun inviteToRoom(roomId: String, userIds: List<String>): AppResult<List<String>>
+    suspend fun inviteToRoom(roomId: String, userIds: List<String>, userCodes: List<String> = emptyList()): AppResult<List<String>>
 
     suspend fun getInvites(): AppResult<List<PlayRoomInvite>>
 

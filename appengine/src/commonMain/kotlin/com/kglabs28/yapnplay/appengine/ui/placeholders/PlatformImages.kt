@@ -61,6 +61,24 @@ fun MonoChaosArtwork(modifier: Modifier = Modifier, contentDescription: String? 
     AppArtwork(BuiltInImage.MONO_CHAOS_ART, urls.cityBazaarArt(), ContentScale.Crop, modifier, contentDescription)
 }
 
+/** The card-table room (a lit oval table in a cosy lounge), behind a card game's table. */
+@Composable
+fun GameTableArenaArtwork(modifier: Modifier = Modifier, contentDescription: String? = null) {
+    Image(painter = builtInPainter(BuiltInImage.GAME_TABLE_ARENA), contentDescription = contentDescription, modifier = modifier, contentScale = ContentScale.Crop)
+}
+
+/** The board games' room (a lit rug in a cosy lounge), behind Royal Ludo and City Royale. */
+@Composable
+fun GameArenaArtwork(modifier: Modifier = Modifier, contentDescription: String? = null) {
+    Image(painter = builtInPainter(BuiltInImage.GAME_ARENA), contentDescription = contentDescription, modifier = modifier, contentScale = ContentScale.Crop)
+}
+
+/** The MONO card back, upright, stretched to the card it backs. */
+@Composable
+fun MonoCardBackArtwork(modifier: Modifier = Modifier, contentDescription: String? = null) {
+    Image(painter = builtInPainter(BuiltInImage.MONO_CARD_BACK), contentDescription = contentDescription, modifier = modifier, contentScale = ContentScale.FillBounds)
+}
+
 /** Preset avatar number [index] (0-based, see AvatarPresets), filling [modifier]. */
 @Composable
 fun PresetAvatarArtwork(index: Int, modifier: Modifier = Modifier, contentDescription: String? = null) {

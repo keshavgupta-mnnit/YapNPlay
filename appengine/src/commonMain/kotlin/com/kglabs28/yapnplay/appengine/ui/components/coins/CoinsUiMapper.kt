@@ -34,7 +34,7 @@ object CoinsUiMapper {
             wait != null -> CoinsStrings.adNextIn(CoinsStrings.adWait(wait.inWholeHours, wait.inWholeMinutes % MINUTES_PER_HOUR), status.adsLeftToday)
             else -> CoinsStrings.adsLeftToday(status.adsLeftToday, status.dailyLimit)
         }
-        return offer.copy(canWatch = status.canWatch(now), note = note)
+        return offer.copy(canWatch = status.canWatch(now), note = note, adsWatched = status.watchedToday, rewards = status.rewards)
     }
 
     /** The line shown after an ad: coins added, today's limit used, or no ad. */

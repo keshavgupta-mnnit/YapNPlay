@@ -21,6 +21,9 @@ class MonoChaosMatchRepositoryImpl(
     override fun observeMatch(matchId: String): Flow<MonoChaosUpdate> =
         client.observeMatch(matchId).flowOn(dispatchers.io)
 
+    override fun observeSpeaking(matchId: String): Flow<Set<String>> =
+        client.observeSpeaking(matchId).flowOn(dispatchers.io)
+
     override suspend fun send(matchId: String, command: MonoChaosCommand): AppResult<Unit> =
         withContext(dispatchers.io) {
             try {

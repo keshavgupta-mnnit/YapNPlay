@@ -20,7 +20,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
 /**
- * The top three on a glass stage, as in the design: 2nd, 1st (centre,
+ * The top three, each the same player card on a medal cube, as in the design: 2nd, 1st (centre,
  * tallest, crowned), 3rd. Every size comes from the space given: the boxes
  * are fixed shares of the height (1st > 2nd > 3rd) and the avatars shrink
  * with it, so 1st's box is always there however small the screen.
@@ -32,26 +32,32 @@ fun LeaderboardPodium(podium: List<LeaderboardEntryUi>, modifier: Modifier = Mod
     BoxWithConstraints(modifier = modifier) {
         val spotWidth = min(dimens.boardSpotWidth * SPOT_GROW, maxWidth / SPOTS)
         // As in the design, all three avatars are the same size.
-        val avatar = min(dimens.boardAvatarFirst, maxHeight * AVATAR_SHARE)
+        val avatar = min(dimens.boardAvatarFirst * AVATAR_GROW, maxHeight * AVATAR_SHARE)
         val firstBase = maxHeight * FIRST_BASE_SHARE
         val secondBase = maxHeight * SECOND_BASE_SHARE
         val thirdBase = maxHeight * THIRD_BASE_SHARE
+        // Every player's card is the same height, whatever their place.
+        val card = maxHeight * CARD_SHARE
         Row(
             modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.Bottom,
             // The steps touch, forming one platform.
             horizontalArrangement = Arrangement.Center,
         ) {
-            podium.getOrNull(1)?.let { PodiumSpot(entry = it, medal = colors.MedalSilver, avatarSize = avatar, baseHeight = secondBase, modifier = Modifier.width(spotWidth)) }
-            podium.getOrNull(0)?.let { PodiumSpot(entry = it, medal = colors.MedalGold, avatarSize = avatar, baseHeight = firstBase, modifier = Modifier.width(spotWidth)) }
-            podium.getOrNull(2)?.let { PodiumSpot(entry = it, medal = colors.MedalBronze, avatarSize = avatar, baseHeight = thirdBase, modifier = Modifier.width(spotWidth)) }
+            podium.getOrNull(1)?.let { PodiumSpot(entry = it, medal = colors.MedalSilver, avatarSize = avatar, cardHeight = card, cubeHeight = secondBase, modifier = Modifier.width(spotWidth)) }
+            podium.getOrNull(0)?.let { PodiumSpot(entry = it, medal = colors.MedalGold, avatarSize = avatar, cardHeight = card, cubeHeight = firstBase, modifier = Modifier.width(spotWidth)) }
+            podium.getOrNull(2)?.let { PodiumSpot(entry = it, medal = colors.MedalBronze, avatarSize = avatar, cardHeight = card, cubeHeight = thirdBase, modifier = Modifier.width(spotWidth)) }
         }
     }
 }
 
 private const val SPOTS = 3
-private const val AVATAR_SHARE = 0.25f
-private const val SPOT_GROW = 1.15f
-private const val FIRST_BASE_SHARE = 0.32f
-private const val SECOND_BASE_SHARE = 0.24f
-private const val THIRD_BASE_SHARE = 0.16f
+private const val AVATAR_GROW = 1.2f
+private const val AVATAR_SHARE = 0.26f
+/** Every podium card's height ÷ the podium's height. */
+private const val CARD_SHARE = 0.3f
+private const val SPOT_GROW = 1f
+// 10% taller than before; the cube's top face sits on top of these.
+private const val FIRST_BASE_SHARE = 0.352f
+private const val SECOND_BASE_SHARE = 0.264f
+private const val THIRD_BASE_SHARE = 0.176f

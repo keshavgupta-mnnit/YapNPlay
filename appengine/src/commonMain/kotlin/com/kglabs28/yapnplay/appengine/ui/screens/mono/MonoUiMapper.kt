@@ -1,6 +1,12 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
 import androidx.compose.ui.graphics.Color
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoContinueVote
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardEntryUi
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
+import kotlinx.datetime.Instant
 import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoMatch
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoPlayer
@@ -13,7 +19,6 @@ import com.kglabs28.yapnplay.appengine.ui.components.table.AvatarRing
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoHue
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoPlayerPodUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableAvatarUi
-import com.kglabs28.yapnplay.appengine.ui.components.table.fill
 import com.kglabs28.yapnplay.appengine.ui.components.table.rim
 
 /**
@@ -32,6 +37,7 @@ object MonoUiMapper {
         timerFraction: Float,
         places: Map<Int, String>,
         calledSeat: Int? = null,
+        talking: Set<String> = emptySet(),
     ) = MonoPlayerPodUi(
         seat = player.seat,
         name = player.name,
@@ -40,11 +46,13 @@ object MonoUiMapper {
         tint = seatTint(player.seat),
         isMe = player.isMe,
         isTurn = player.seat == currentSeat,
-        talking = false,
+        talking = player.userId != null && player.userId in talking,
+        micOn = player.micOn,
         cards = player.cardCount,
         timerFraction = timerFraction,
         placeLabel = places[player.seat],
-        statusLabel = statusLabel(player.presence, player.autoplay, player.isCpu),
+        // The user's own lit Autoplay switch says it already; others get the tag.
+        statusLabel = if (player.isMe) null else statusLabel(player.presence, player.autoplay, player.isCpu),
         canSpeak = !player.isCpu,
         calledMono = player.seat == calledSeat && player.cardCount == 1,
     )
@@ -57,6 +65,7 @@ object MonoUiMapper {
         places: Map<Int, String>,
         eliminated: Set<Int>,
         calledSeat: Int? = null,
+        talking: Set<String> = emptySet(),
     ) = MonoPlayerPodUi(
         seat = player.seat,
         name = player.name,
@@ -65,7 +74,8 @@ object MonoUiMapper {
         tint = seatTint(player.seat),
         isMe = player.isMe,
         isTurn = player.seat == currentSeat,
-        talking = false,
+        talking = player.userId != null && player.userId in talking,
+        micOn = player.micOn,
         cards = player.cardCount,
         timerFraction = timerFraction,
         placeLabel = places[player.seat],
@@ -73,12 +83,100 @@ object MonoUiMapper {
         statusLabel = if (player.seat in eliminated) {
             MonoStrings.monoEliminated
         } else {
-            statusLabel(player.presence, player.autoplay, player.isCpu)
+            statusLabel(player.presence, player.autoplay, player.isCpu).takeUnless { player.isMe }
         },
         canSpeak = !player.isCpu,
         eliminated = player.seat in eliminated,
         calledMono = player.seat == calledSeat && player.cardCount == 1,
     )
+
+    /**
+     * The opponents in turn order, starting with the seat after the user, so
+     * the table reads clockwise from the user's seat (bottom left): up the
+     * left column, along the top, down the right. A spectator sees seat
+     * order from seat 1.
+     */
+    fun <T> clockwise(players: List<T>, mySeat: Int?, seatOf: (T) -> Int): List<T> {
+        val sorted = players.sortedBy(seatOf)
+        if (mySeat == null) return sorted
+        val after = sorted.filter { seatOf(it) > mySeat }
+        val before = sorted.filter { seatOf(it) < mySeat }
+        return after + before
+    }
+
+    /**
+     * The order the hand is shown in, as indexes into it: number cards by
+     * colour (red, green, blue, gold) then number, and every power card at
+     * the end (by colour, prisms last). Taps still send the real index.
+     */
+    fun <C> handOrder(hand: List<C>, colour: (C) -> Int?, isPower: (C) -> Boolean, number: (C) -> Int): List<Int> =
+        hand.indices.sortedWith(
+            compareBy<Int>({ isPower(hand[it]) }, { colour(hand[it]) ?: Int.MAX_VALUE }, { number(hand[it]) }),
+        )
+
+    /** The keep-playing vote as the prompt shows it; null when none is open. */
+    fun vote(vote: MonoContinueVote?, mySeat: Int?, now: Instant): MonoVoteUi? = vote?.let {
+        MonoVoteUi(
+            secondsLeft = (it.endsAt - now).inWholeSeconds.coerceAtLeast(0),
+            yes = it.yes.size,
+            no = it.no.size,
+            voters = it.voters.size,
+            canVote = mySeat != null && mySeat in it.voters && mySeat !in it.yes && mySeat !in it.no,
+        )
+    }
+
+    /** One player on the final board: who, how many cards they still hold, whether they finished or were knocked out. */
+    data class Standing(
+        val seat: Int,
+        val name: String,
+        val avatarId: String?,
+        val micOn: Boolean,
+        val isMe: Boolean,
+        val cards: Int,
+        val finished: Boolean,
+        val knockedOut: Boolean = false,
+    )
+
+    /**
+     * The end-of-match leaderboard. The server's ranking decides the order;
+     * anyone it leaves out (an older server ranks finishers only) follows by
+     * fewest cards, knocked-out players last.
+     */
+    fun leaderboard(title: String, ranking: List<Int>, standings: List<Standing>, duration: String): LeaderboardUi {
+        val bySeat = standings.associateBy { it.seat }
+        val rest = standings
+            .filter { it.seat !in ranking }
+            .sortedWith(compareBy<Standing>({ it.knockedOut }, { it.cards }, { it.seat }))
+        val ordered = ranking.mapNotNull { bySeat[it] } + rest
+        val entries = ordered.mapIndexed { index, s ->
+            val exp = AppConstants.PLACE_EXP[index.coerceAtMost(AppConstants.PLACE_EXP.lastIndex)]
+            LeaderboardEntryUi(
+                place = index + 1,
+                placeLabel = placeLabel(index + 1),
+                name = s.name,
+                avatarId = s.avatarId.orEmpty(),
+                title = MonoStrings.monoPlaceTitles[index.coerceAtMost(MonoStrings.monoPlaceTitles.lastIndex)],
+                score = when {
+                    s.finished -> MonoStrings.monoFinished
+                    s.knockedOut -> MonoStrings.monoKnockedOutScore
+                    else -> MonoStrings.monoCardsLeft(s.cards)
+                },
+                exp = TableStrings.leaderboardExp(exp),
+                tint = Color.Unspecified,
+                isMe = s.isMe,
+                micOn = s.micOn,
+                seat = s.seat,
+            )
+        }
+        val mine = entries.firstOrNull { it.isMe }
+        return LeaderboardUi(
+            game = title,
+            duration = duration,
+            entries = entries,
+            myPlace = mine?.placeLabel.orEmpty(),
+            myExp = mine?.let { TableStrings.leaderboardGain(AppConstants.PLACE_EXP[(it.place - 1).coerceAtMost(AppConstants.PLACE_EXP.lastIndex)].toString()) }.orEmpty(),
+        )
+    }
 
     /** Finishing places from the match's ranking; empty while it plays. */
     fun places(match: MonoMatch): Map<Int, String> =
@@ -108,10 +206,10 @@ object MonoUiMapper {
         TableAvatarUi(it.userId, it.name, if (it.micOn) AvatarRing.TALKING else AvatarRing.IDLE)
     }
 
-    /** "Away" / "CPU" / "Autoplay" while the server plays for someone. */
+    /** "Away" / "Autoplay" while the server plays for someone (a CPU seat needs no tag). */
     private fun statusLabel(presence: String, autoplay: Boolean, isCpu: Boolean): String? = when {
+        isCpu || presence == SeatPresence.BOT.name -> null
         presence == SeatPresence.AWAY.name -> MonoStrings.monoAway
-        presence == SeatPresence.BOT.name || isCpu -> MonoStrings.monoBot
         autoplay -> MonoStrings.monoAutoplay
         else -> null
     }

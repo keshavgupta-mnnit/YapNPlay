@@ -178,6 +178,12 @@ class MainViewModel(
 
     /** Ad watched to the end → the server adds coins; the balance updates and the dialog says how many. */
     private suspend fun watchAd() {
+        val offer = state.value.coinsOffer
+        // A cooldown or today's limit: say so rather than play nothing.
+        if (offer != null && !offer.canWatch) {
+            setState { copy(coinsOffer = coinsOffer?.copy(message = offer.note ?: CoinsStrings.adLimit)) }
+            return
+        }
         setState { copy(coinsOffer = coinsOffer?.copy(watchingAd = true, message = null)) }
         val result = watchAdForCoins.invoke()
         val message = CoinsUiMapper.adMessage(result)

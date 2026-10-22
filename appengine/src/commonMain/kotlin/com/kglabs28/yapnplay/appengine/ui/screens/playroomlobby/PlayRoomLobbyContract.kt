@@ -1,11 +1,12 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.domain.GameCatalogItem
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.MemberMenuOption
-import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
+import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
 
 /**
@@ -17,9 +18,6 @@ import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
 data class PlayRoomLobbyState(
     val loaded: Boolean = false,
     val roomName: String = "",
-    val roomDescription: String = "",
-    /** The room's own badge, same as in the rooms list. */
-    val roomIcon: PlayRoomIcon = PlayRoomIcon.GROUP,
     val isLeader: Boolean = false,
     val isAdmin: Boolean = false,
     val members: List<LobbyMemberUi> = emptyList(),
@@ -37,7 +35,28 @@ data class PlayRoomLobbyState(
     val waitingList: List<WaitingRequestUi> = emptyList(),
     /** At most one modal at a time; null when none. */
     val modal: LobbyModal? = null,
+    /** Add Friends or Edit Name, from the ⋮ menu; null when neither is open. */
+    val sheet: LobbySheet? = null,
 ) : UiState
+
+/** The ⋮ menu's forms. */
+sealed interface LobbySheet {
+    /** A player's [code] and/or friends not yet in the group; [selected] get an invite on SEND. */
+    data class AddFriends(
+        val code: String = "",
+        val friends: List<Friend> = emptyList(),
+        val selected: Set<String> = emptySet(),
+        val loading: Boolean = true,
+        val sending: Boolean = false,
+        val error: String? = null,
+    ) : LobbySheet {
+        /** A full code or at least one friend picked. */
+        val canSend: Boolean get() = code.length == AppConstants.USER_CODE_LENGTH || selected.isNotEmpty()
+    }
+
+    /** The group's new name, being typed. */
+    data class EditName(val name: String) : LobbySheet
+}
 
 /** One Waiting List entry, ready to draw. */
 data class WaitingRequestUi(val userId: String, val name: String)
@@ -121,6 +140,14 @@ sealed interface PlayRoomLobbyIntent : UiIntent {
     data class DeclineJoin(val userId: String) : PlayRoomLobbyIntent
     data object OpenLeaderboard : PlayRoomLobbyIntent
     data object ShareLink : PlayRoomLobbyIntent
+    data object OpenAddFriends : PlayRoomLobbyIntent
+    data class AddFriendCodeChanged(val code: String) : PlayRoomLobbyIntent
+    data class ToggleInvite(val userId: String) : PlayRoomLobbyIntent
+    data object SendInvites : PlayRoomLobbyIntent
+    data object OpenEditName : PlayRoomLobbyIntent
+    data class EditNameChanged(val name: String) : PlayRoomLobbyIntent
+    data object SaveName : PlayRoomLobbyIntent
+    data object DismissSheet : PlayRoomLobbyIntent
 }
 
 sealed interface PlayRoomLobbyEffect : UiEffect {

@@ -24,6 +24,7 @@ object MessageType {
     const val REMOVE_MEMBER = "RemoveMember"
     const val APPROVE_JOIN = "ApproveJoin"
     const val DECLINE_JOIN = "DeclineJoin"
+    const val RENAME_ROOM = "RenameRoom"
 
     // ── Room channel: server to client ────────────────────────────────────
     const val ACK = "Ack"

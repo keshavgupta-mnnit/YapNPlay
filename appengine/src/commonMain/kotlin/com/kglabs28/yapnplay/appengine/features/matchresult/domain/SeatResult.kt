@@ -6,6 +6,10 @@ data class SeatResult(
     val won: Int,
     val completion: Int,
     val xp: Int,
+    /** The entry put in; lost when nothing was won. */
+    val stake: Int = 0,
 ) {
     val coins: Int get() = won + completion
+    /** What the match came to for this seat: prize and bonus, less the entry. */
+    val net: Int get() = coins - stake
 }

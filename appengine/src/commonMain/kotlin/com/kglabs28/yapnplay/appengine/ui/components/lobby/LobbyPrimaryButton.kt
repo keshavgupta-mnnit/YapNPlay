@@ -50,8 +50,9 @@ fun LobbyPrimaryButton(
     val rim = if (button.enabled) colors.StartButtonRim else colors.StartButtonDisabledRim
     val body = when {
         !button.enabled -> Brush.verticalGradient(listOf(colors.StartButtonDisabledTop, colors.StartButtonDisabledBottom))
-        lit -> Brush.verticalGradient(listOf(colors.StartButtonTop, colors.StartButtonBottom))
-        else -> Brush.verticalGradient(listOf(colors.RoomsSmallButton, colors.RoomsPanel))
+        // See-through glass like every other button; lit, the glass is tinted orange-gold and glows.
+        lit -> Brush.verticalGradient(listOf(colors.StartButtonTop.copy(alpha = LIT_GLASS_ALPHA), colors.StartButtonBottom.copy(alpha = LIT_GLASS_ALPHA)))
+        else -> Brush.verticalGradient(listOf(colors.RoomsSmallButton.copy(alpha = GLASS_ALPHA), colors.RoomsPanel.copy(alpha = GLASS_ALPHA)))
     }
 
     Box(
@@ -89,7 +90,10 @@ fun LobbyPrimaryButton(
                 BasicText(
                     text = button.label,
                     style = labelStyle.copy(
-                        color = if (button.enabled) colors.TextPrimary else colors.TextSecondary,
+                        color = when {
+                            !button.enabled -> colors.TextSecondary
+                            else -> colors.TextPrimary
+                        },
                         shadow = if (lit) Shadow(color = colors.StartButtonGlow, blurRadius = labelStyle.fontSize.value) else null,
                     ),
                     maxLines = 1,
@@ -110,3 +114,6 @@ fun LobbyPrimaryButton(
         }
     }
 }
+/** The glass body is this see-through; the lit one's orange tint a little less. */
+private const val GLASS_ALPHA = 0.6f
+private const val LIT_GLASS_ALPHA = 0.7f

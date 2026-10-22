@@ -17,6 +17,7 @@ class CityBazaarModalActions(
     val onPassAuction: () -> Unit,
     val onDeclareBankruptcy: () -> Unit,
     val onConfirmLeave: () -> Unit,
+    val onPickSeatTaker: (Int) -> Unit = {},
     val onDone: () -> Unit,
     val onOpenAppSettings: () -> Unit,
     val onToggleEffects: () -> Unit,

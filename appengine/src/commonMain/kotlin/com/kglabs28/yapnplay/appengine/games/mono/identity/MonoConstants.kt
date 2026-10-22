@@ -25,20 +25,30 @@ object MonoConstants {
 
     val DECK_SIZE = 108
 
+    /**
+     * Room house rules, all on by default. Quick Play always uses the
+     * official rules (every option off); see [FIXED_RULES].
+     */
     val HOUSE_RULES = listOf(
-        HouseRuleOption("stacking_allowed", "Stacking Allowed", "Stack +2 on +2", false),
+        HouseRuleOption("stacking_allowed", "Stack Upward", "+2 on +2, +4 on +2 or +4 on +4 (never +2 on +4); the total keeps growing", true),
+        HouseRuleOption("no_power_finish", "No Power Finish", "Your last card can't be a power card (anything but a number): draw instead", true),
+        HouseRuleOption("call_before_play", "Call Before You Play", "Press MONO on your turn before playing your second-last card", true),
         HouseRuleOption("seven_swap", "Seven Swap", "Playing a 7 swaps hands with an opponent", false),
         HouseRuleOption("zero_pass", "Zero Pass", "Playing a 0 passes all hands to the next player", false),
     )
 
     val FIXED_RULES = listOf(
         "2-8 players, 7 cards each",
-        "Match by color, number, or symbol — or play any Prism card",
-        "Prism Color Wild: choose the next color",
+        "Match by colour or by number / symbol: Skip on Skip, Reverse on Reverse, +2 on +2 - or play any Prism card",
+        "Skip: the next player misses their turn; Reverse: play turns the other way",
+        "Prism Color Wild: choose the next colour",
         "Prism +4: next player draws 4 and loses their turn",
-        "MONO! callout: tap MONO! within 2.5s when down to 1 card",
-        "Missed MONO!: draw +2 penalty cards",
+        "Call MONO on your turn while holding 2 cards, before playing",
+        "CAUGHT: anyone can catch a player on 1 card who didn't call, until the next player's turn ends",
+        "Caught without calling MONO: draw 5. Wrong catch: the one who pressed CAUGHT draws 2",
+        "Empty draw pile: the discard pile (all but its top card) is shuffled into a new one",
         "15 seconds per turn; the bot plays when time runs out",
-        "First to empty their hand wins",
+        "Play goes on after the first player finishes; from the 2nd finisher (3rd in rooms of 5+) the table votes to keep playing or end",
+        "Ranked by finishing order, then fewest cards",
     )
 }

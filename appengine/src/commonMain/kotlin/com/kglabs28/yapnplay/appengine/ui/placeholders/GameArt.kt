@@ -18,6 +18,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 object GameArtKeys {
     const val ROYAL_LUDO = "royal-ludo"
     const val CITY_BAZAAR = "city-bazaar"
+    const val MONO = "mono"
+    const val MONO_CHAOS = "mono-chaos"
 }
 
 /**
@@ -33,6 +35,8 @@ fun GameArt(
     when (artKey) {
         GameArtKeys.ROYAL_LUDO -> RoyalLudoArtwork(modifier = modifier.fillMaxSize())
         GameArtKeys.CITY_BAZAAR -> CityBazaarArtwork(modifier = modifier.fillMaxSize())
+        GameArtKeys.MONO -> MonoArtwork(modifier = modifier.fillMaxSize())
+        GameArtKeys.MONO_CHAOS -> MonoChaosArtwork(modifier = modifier.fillMaxSize())
         else -> GlyphArt(modifier)
     }
 }

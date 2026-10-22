@@ -7,7 +7,9 @@ import com.kglabs28.yapnplay.appengine.features.matchresult.domain.SeatResult
 /**
  * Puts what the server actually paid (MatchEnded) on the leaderboard: each
  * seat's XP as its points (it grows with match length; CPUs get none, so
- * their line is left out) and coins, and the user's own in the bottom bar.
+ * their line is left out) and coins — CPUs' place shares included (shown,
+ * never credited), and a stake lost when nothing was won — and the user's
+ * own in the bottom bar.
  */
 object LeaderboardResult {
     fun withResult(board: LeaderboardUi, results: List<SeatResult>): LeaderboardUi {
@@ -18,7 +20,14 @@ object LeaderboardResult {
             e.copy(
                 score = if (r.xp > 0) TableStrings.leaderboardPts(r.xp) else "",
                 exp = if (r.xp > 0) TableStrings.leaderboardExp(r.xp) else "",
-                coins = if (r.coins > 0) TableStrings.leaderboardCoins(TextUtils.groupedThousands(r.coins)) else TableStrings.leaderboardNoCoins,
+                // A paid match shows the net (won and bonus, less the entry); a free one what was won.
+                coins = when {
+                    r.stake > 0 && r.net < 0 -> TableStrings.leaderboardLost(TextUtils.groupedThousands(-r.net))
+                    r.stake > 0 && r.net == 0 -> TableStrings.leaderboardNoCoins
+                    r.stake > 0 -> TableStrings.leaderboardCoins(TextUtils.groupedThousands(r.net))
+                    r.coins > 0 -> TableStrings.leaderboardCoins(TextUtils.groupedThousands(r.coins))
+                    else -> TableStrings.leaderboardNoCoins
+                },
             )
         }
         val mine = board.entries.firstOrNull { it.isMe }?.let { bySeat[it.seat] }

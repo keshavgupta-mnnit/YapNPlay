@@ -11,4 +11,6 @@ class BackgroundsAppManagerHelper(private val appManager: AppManager) {
     fun friendZoneCard(): String = appManager.get(AppManagerKeys.Backgrounds.FRIEND_ZONE_CARD)
     fun royalLudoArt(): String = appManager.get(AppManagerKeys.Backgrounds.ROYAL_LUDO_ART)
     fun cityBazaarArt(): String = appManager.get(AppManagerKeys.Backgrounds.CITY_BAZAAR_ART)
+    fun monoArt(): String = appManager.get(AppManagerKeys.Backgrounds.MONO_ART)
+    fun monoChaosArt(): String = appManager.get(AppManagerKeys.Backgrounds.MONO_CHAOS_ART)
 }

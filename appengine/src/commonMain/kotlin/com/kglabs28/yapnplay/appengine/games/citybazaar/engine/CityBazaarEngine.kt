@@ -72,7 +72,7 @@ class CityBazaarEngine : Game {
     override fun defaultRules(): GameRules = CityBazaarRules.STANDARD
 
     override fun rulesSummary(): String =
-        "City Bazaar for 3–6 players (random tables 4): buy cities, build on your own, " +
+        "City Royale for 3–6 players (random tables 4): buy cities, build on your own, " +
             "double rent with 3 of a colour, ₹1,500 at START; sell or auction to pay debts; " +
             "last one solvent wins, or the richest when time or rounds run out."
 

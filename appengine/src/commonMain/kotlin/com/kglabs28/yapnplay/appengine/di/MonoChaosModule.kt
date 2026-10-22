@@ -6,6 +6,7 @@ import com.kglabs28.yapnplay.appengine.games.monochaos.data.remote.MonoChaosMatc
 import com.kglabs28.yapnplay.appengine.games.monochaos.data.remote.MonoChaosSnapshotMapper
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosMatchRepository
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.usecase.ObserveMonoChaosMatchUseCase
+import com.kglabs28.yapnplay.appengine.games.monochaos.domain.usecase.ObserveMonoChaosSpeakingUseCase
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.usecase.SendMonoChaosCommandUseCase
 import com.kglabs28.yapnplay.appengine.ui.screens.mono.MatchMonoChaosViewModel
 import org.koin.dsl.module
@@ -18,9 +19,10 @@ import org.koin.dsl.module
  */
 val monoChaosModule = module {
     single { MonoChaosSnapshotMapper(get()) }
-    single<MonoChaosMatchClient> { MonoChaosMatchClientImpl(get(), get(), get(), get(), get()) }
+    single<MonoChaosMatchClient> { MonoChaosMatchClientImpl(get(), get(), get(), get(), get(), get()) }
     single<MonoChaosMatchRepository> { MonoChaosMatchRepositoryImpl(get(), get()) }
     factory { ObserveMonoChaosMatchUseCase(get()) }
     factory { SendMonoChaosCommandUseCase(get()) }
-    factory { MatchMonoChaosViewModel(get(), get(), get(), get()) }
+    factory { ObserveMonoChaosSpeakingUseCase(get()) }
+    factory { MatchMonoChaosViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

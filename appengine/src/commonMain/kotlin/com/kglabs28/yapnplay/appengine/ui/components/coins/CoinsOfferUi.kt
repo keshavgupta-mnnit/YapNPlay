@@ -11,4 +11,17 @@ data class CoinsOfferUi(
     val watchingAd: Boolean = false,
     val offerFree: Boolean = false,
     val message: String? = null,
-)
+    /** False while a cooldown runs or today's ads are used up (the button greys out). */
+    val canWatch: Boolean = true,
+    /** "4 of 5 free-coin ads left today" / "Next free coins in 1h 23m" / daily limit reached. */
+    val note: String? = null,
+    /** Ads watched today, out of [rewards].size (the progress bar). */
+    val adsWatched: Int = 0,
+    /** What each of today's ads pays, in order; empty hides the progress and ladder. */
+    val rewards: List<Int> = emptyList(),
+    /** An ad can play now; false hides Watch Ad and the ad progress. */
+    val adReady: Boolean = true,
+) {
+    /** The coins the next ad pays; null when today's ads are used up. */
+    val nextReward: Int? get() = rewards.getOrNull(adsWatched)
+}

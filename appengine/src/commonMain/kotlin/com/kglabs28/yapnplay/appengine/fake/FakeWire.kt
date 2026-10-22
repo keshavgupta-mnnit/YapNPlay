@@ -73,6 +73,7 @@ fun MonoEvent.toWire(): MonoWireEvent = when (this) {
     is MonoEvent.TurnPassed -> MonoWireEvent.TurnPassed(seat.value)
     is MonoEvent.SeatFinished -> MonoWireEvent.SeatFinished(seat.value, place)
     is MonoEvent.MatchEnded -> MonoWireEvent.MatchEnded(finishingOrder)
+    else -> error("unmapped MonoEvent: $this")
 }
 
 // ── MONO: Complete Chaos ────────────────────────────────────────────────────
@@ -130,6 +131,7 @@ fun MonoChaosEvent.toWire(): MonoChaosWireEvent = when (this) {
     is MonoChaosEvent.TurnPassed -> MonoChaosWireEvent.TurnPassed(seat.value)
     is MonoChaosEvent.SeatFinished -> MonoChaosWireEvent.SeatFinished(seat.value, place)
     is MonoChaosEvent.MatchEnded -> MonoChaosWireEvent.MatchEnded(finishingOrder)
+    else -> error("unmapped MonoChaosEvent: $this")
 }
 
 // ── Shared helpers ─────────────────────────────────────────────────────────

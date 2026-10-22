@@ -43,6 +43,13 @@ import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyMemberList
 import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyModalContent
 import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyPrimaryButton
 import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyTopBar
+import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyRoomMenu
+import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyAddFriendsDialog
+import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyEditNameDialog
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyVoiceToggle
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 
@@ -64,6 +71,8 @@ fun PlayRoomLobbyScreen(
     viewModel: PlayRoomLobbyViewModel? = null,
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: PlayRoomLobbyState()
+    // The ⋮ menu is the screen's own; what it opens goes through the view model.
+    var menuOpen by remember { mutableStateOf(false) }
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val send: (PlayRoomLobbyIntent) -> Unit = { viewModel?.onIntent(it) }
@@ -112,15 +121,21 @@ fun PlayRoomLobbyScreen(
         ) {
             LobbyTopBar(
                 roomName = state.roomName,
-                description = state.roomDescription,
-                roomIcon = state.roomIcon,
-                showWaitingList = state.isAdmin,
+                menuOpen = menuOpen,
                 onBack = { send(PlayRoomLobbyIntent.Back) },
-                onShareLink = { send(PlayRoomLobbyIntent.ShareLink) },
-                onWaitingList = { send(PlayRoomLobbyIntent.OpenWaitingList) },
                 onLeaderboard = { send(PlayRoomLobbyIntent.OpenLeaderboard) },
-                onLeave = { send(PlayRoomLobbyIntent.LeaveClicked) },
-            )
+                onMenu = { menuOpen = !menuOpen },
+            ) {
+                LobbyRoomMenu(
+                    isAdmin = state.isAdmin,
+                    onDismiss = { menuOpen = false },
+                    onWaitingList = { send(PlayRoomLobbyIntent.OpenWaitingList) },
+                    onShareLink = { send(PlayRoomLobbyIntent.ShareLink) },
+                    onAddFriends = { send(PlayRoomLobbyIntent.OpenAddFriends) },
+                    onEditName = { send(PlayRoomLobbyIntent.OpenEditName) },
+                    onLeave = { send(PlayRoomLobbyIntent.LeaveClicked) },
+                )
+            }
 
             // Left: members, then START + Mic + Speaker under them. Right:
             // the game area, full height down to the bottom.
@@ -227,6 +242,26 @@ fun PlayRoomLobbyScreen(
                         }
                     }
                 }
+            }
+        }
+
+        val sheet = state.sheet
+        BlockingOverlay(visible = sheet != null, onDismiss = { send(PlayRoomLobbyIntent.DismissSheet) }) {
+            when (sheet) {
+                is LobbySheet.AddFriends -> LobbyAddFriendsDialog(
+                    sheet = sheet,
+                    onCodeChange = { send(PlayRoomLobbyIntent.AddFriendCodeChanged(it)) },
+                    onToggle = { send(PlayRoomLobbyIntent.ToggleInvite(it)) },
+                    onSend = { send(PlayRoomLobbyIntent.SendInvites) },
+                    onClose = { send(PlayRoomLobbyIntent.DismissSheet) },
+                )
+                is LobbySheet.EditName -> LobbyEditNameDialog(
+                    sheet = sheet,
+                    onNameChange = { send(PlayRoomLobbyIntent.EditNameChanged(it)) },
+                    onSave = { send(PlayRoomLobbyIntent.SaveName) },
+                    onClose = { send(PlayRoomLobbyIntent.DismissSheet) },
+                )
+                null -> Unit
             }
         }
 

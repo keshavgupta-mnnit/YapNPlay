@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.Flow
  */
 interface MonoMatchClient {
     fun observeMatch(matchId: String): Flow<MonoUpdate>
+    /** User ids talking right now at the table (its voice room). */
+    fun observeSpeaking(matchId: String): Flow<Set<String>>
     suspend fun send(matchId: String, command: MonoCommand)
     suspend fun stillHere(matchId: String)
 }

@@ -58,6 +58,8 @@ fun LobbyGamePicker(
                     games = games,
                     focusedIndex = focusedIndex,
                     onGameClick = { if (canSelect) onSelect(it) else onFocusChange(it) },
+                    // The room's middle panel is narrower: fewer, bigger tiles.
+                    columns = AppConstants.LOBBY_GAME_GRID_COLUMNS,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = YapNPlayTheme.dimens.smallButtonHeight + Spacing.Xs),

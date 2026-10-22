@@ -3,14 +3,13 @@ package com.kglabs28.yapnplay.appengine.core.ui
 /** Royal Ludo: table, board, results. */
 object LudoStrings {
     const val ludoTitle = "ROYAL LUDO"
-    const val ludoRollDice = "Roll Dice"
-    const val ludoAutoplay = "Autoplay"
-    const val ludoSpectators = "spectators"
     const val ludoMatchTime = "Match time"
+    const val ludoRollDice = "Roll Dice"
+    const val ludoSpectators = "spectators"
     const val ludoSettings = "Settings"
+    const val ludoAutoplay = "Autoplay"
     const val ludoExit = "Leave match"
-    const val ludoLeaveTitle = "Leave the match?"
-    const val ludoLeaveBody = "A CPU will play your seat for the rest of the match."
+    const val ludoLeaveBody = "If you leave, you're out of this match: your pieces leave the board and your entry is lost."
     const val ludoResultTitle = "Match over"
     const val ludoDone = "Done"
     const val ludoSoundEffects = "Sound effects"
@@ -51,6 +50,6 @@ object LudoStrings {
         3 -> "3rd"
         else -> "${place}th"
     }
-    val ludoPlaceTitles = listOf("🔥 Chaos King", "⚡ Speed Runner", "🎯 Token Hunter", "🐢 Slow & Steady", "🎲 Pure Luck", "👀 Pro Spectator")
+    val ludoPlaceTitles = listOf("🔥 Chaos King", "⚡ Speedy", "🎯 Hunter", "🐢 Slowpoke", "🎲 Lucky", "👀 Spectator")
 
 }

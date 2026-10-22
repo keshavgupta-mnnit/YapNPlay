@@ -32,6 +32,9 @@ sealed class MonoCard {
 
     fun isPrism(): Boolean = this is PrismColorWild || this is PrismDrawFour
 
+    /** A power card is every card that is not a number (No Power Finish: never the last card played). */
+    fun isPower(): Boolean = this !is NumberCard
+
     /** Cards this one makes the next player draw; 0 when it is not a draw card. */
     fun penaltyValue(): Int = when (this) {
         is DrawTwoCard -> 2

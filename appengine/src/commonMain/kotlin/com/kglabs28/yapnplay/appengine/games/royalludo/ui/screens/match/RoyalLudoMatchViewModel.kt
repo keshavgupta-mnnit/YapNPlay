@@ -470,7 +470,7 @@ class RoyalLudoMatchViewModel(
                 leaderboard = this@RoyalLudoMatchViewModel.leaderboard,
                 loaded = true,
                 title = LudoStrings.ludoTitle,
-                subtitle = TableStrings.tableSubtitle(listOfNotNull(m.title, if (m.pot > 0) TableStrings.tablePot(TextUtils.groupedThousands(m.pot)) else null)),
+                subtitle = TableStrings.tableSubtitle(listOfNotNull(m.title)),
                 rotation = rotation,
                 pieces = LudoMatchUiMapper.pieces(m, shown, motions, selectable = if (myTurn && m.phase == LudoPhase.MOVE) m.legalPieces else emptyList()),
                 myCard = cards.firstOrNull { it.isMe },

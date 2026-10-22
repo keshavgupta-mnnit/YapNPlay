@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -117,15 +119,19 @@ fun GameStage(
                 drawPlatform(palette)
             }
             val bobPx = YapNPlayTheme.dimens.stageBob
+            // Starts a bob's height plus a gap below the tagline and grows downward,
+            // so its jump never covers the title or the tagline.
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
+                    .padding(top = bobPx + Spacing.Sm)
                     .fillMaxWidth(ART_WIDTH_FRACTION)
                     .fillMaxHeight(ART_HEIGHT_FRACTION)
                     .graphicsLayer {
                         translationY = bob * bobPx.toPx()
                         scaleX = ART_SCALE
                         scaleY = ART_SCALE
+                        transformOrigin = TransformOrigin(0.5f, 0f)
                     },
                 contentAlignment = Alignment.Center,
             ) {
@@ -139,7 +145,8 @@ fun GameStage(
 private fun DrawScope.platform(): Triple<Offset, Float, Float> {
     val width = size.width * PLATFORM_WIDTH_FRACTION
     val height = width * PLATFORM_ASPECT
-    val center = Offset(size.width / 2, size.height - height * 1.1f)
+    // Low in the stage, so the art floats clear of the title above.
+    val center = Offset(size.width / 2, size.height - height * PLATFORM_LIFT)
     return Triple(center, width, height)
 }
 
@@ -239,6 +246,8 @@ private class StagePalette(
 
 private const val PLATFORM_WIDTH_FRACTION = 0.62f
 private const val PLATFORM_ASPECT = 0.2f
+/** How far the platform's centre sits above the stage's bottom (× its ellipse height). */
+private const val PLATFORM_LIFT = 0.75f
 private const val ART_WIDTH_FRACTION = 0.72f
 private const val ART_HEIGHT_FRACTION = 0.68f
 private const val SPECK_COUNT = 26

@@ -3,6 +3,8 @@ package com.kglabs28.yapnplay.appengine.core.ads
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -21,7 +23,9 @@ import kotlinx.coroutines.withContext
 /**
  * AdMob rewarded ads. The unit id comes from AppManager (Google's test
  * unit until a real one is set). The ad needs the visible Activity, so
- * the app's resumed activity is tracked here.
+ * the app's resumed activity is tracked here. One ad is kept loaded ahead
+ * (from the first screen, and again after each one plays), so an offer is
+ * only shown when it can really play.
  */
 class AdMobRewardedAds(
     private val application: Application,
@@ -30,10 +34,17 @@ class AdMobRewardedAds(
 
     private var resumed = WeakReference<Activity>(null)
     private var initialized = false
+    /** The ad loaded ahead, ready to play. */
+    private var ready: RewardedAd? = null
+    private var loading = false
+    private val main = Handler(Looper.getMainLooper())
 
     init {
         application.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
-            override fun onActivityResumed(activity: Activity) { resumed = WeakReference(activity) }
+            override fun onActivityResumed(activity: Activity) {
+                resumed = WeakReference(activity)
+                preload()
+            }
             override fun onActivityPaused(activity: Activity) = Unit
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
             override fun onActivityStarted(activity: Activity) = Unit
@@ -43,15 +54,44 @@ class AdMobRewardedAds(
         })
     }
 
+    override fun isReady(): Boolean = config.isEnabled() && ready != null
+
+    /** Starts loading the next ad unless one is ready or on its way (always on the main thread, as AdMob needs). */
+    override fun preload() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            main.post { preload() }
+            return
+        }
+        if (!config.isEnabled() || ready != null || loading) return
+        val activity = resumed.get() ?: return
+        initialize()
+        loading = true
+        RewardedAd.load(activity, config.rewardedUnitId(), AdRequest.Builder().build(), object : RewardedAdLoadCallback() {
+            override fun onAdLoaded(ad: RewardedAd) {
+                ready = ad
+                loading = false
+            }
+            override fun onAdFailedToLoad(error: LoadAdError) {
+                CrashReporter.record(IllegalStateException(error.message), "AdMobRewardedAds.preload:" + error.code)
+                loading = false
+            }
+        })
+    }
+
     override suspend fun show(): Boolean = withContext(Dispatchers.Main) {
         if (!config.isEnabled()) return@withContext false
         val activity = resumed.get() ?: return@withContext false
+        initialize()
+        val ad = ready ?: load(activity) ?: return@withContext false
+        ready = null
+        play(activity, ad).also { preload() }
+    }
+
+    private fun initialize() {
         if (!initialized) {
             MobileAds.initialize(application)
             initialized = true
         }
-        val ad = load(activity) ?: return@withContext false
-        play(activity, ad)
     }
 
     private suspend fun load(activity: Activity): RewardedAd? = suspendCancellableCoroutine { cont ->

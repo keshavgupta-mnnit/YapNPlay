@@ -19,33 +19,39 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.compose.LifecycleStartEffect
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
 import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.GlassDice
+import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.GlassDiceState
 import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.rememberGlassDiceState
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.LudoMatchModalActions
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.LudoMatchModalContent
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.board.LudoBoard
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.board.ludoDicePalette
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.LudoMyCard
-import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.LudoOpponentsColumn
+import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.LudoCornerCards
+import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaDiceButton
+import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorMicButton
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableTopBar
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
 import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatOfferBanner
-import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
+import com.kglabs28.yapnplay.appengine.ui.placeholders.GameArenaBackground
+import com.kglabs28.yapnplay.appengine.ui.placeholders.RoyalLudoArtwork
+import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaTopBar
 
 /**
- * Royal Ludo table: top bar (game, spectators, match clock, settings,
- * exit); the
- * board, as large as fits, with the glass dice (in the roller's colour)
- * on the centre plate; the user's card on the right with Mic, Autoplay and
- * Roll Dice; the other players on the left in turn order, each with a
- * round button to mute them for the user only. A banner shows a seat
+ * Royal Ludo table (arena design): top bar (game logo, title, spectators,
+ * match clock, settings, exit); the board in the middle with the glass
+ * dice (in the roller's colour) on the centre plate; every player's card
+ * beside their own base (the user's with round Mic and Autoplay icons,
+ * others with a mute button); the big Roll Dice button at the bottom
+ * right. A banner shows a seat
  * someone left while it is offered. Music plays while the table is on
  * screen; in the background the server plays for the user.
  */
@@ -84,102 +90,8 @@ fun RoyalLudoMatchScreen(
         if (state.dice.rollId > 0) dice.roll(state.dice.value)
     }
 
-    CozyHomeBackground(modifier = modifier, frosted = true) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = Spacing.Md, vertical = Spacing.Xs)
-                .revealWhen(state.loaded),
-            verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
-        ) {
-            TableTopBar(
-                title = state.title,
-                subtitle = state.subtitle,
-                audience = state.audience,
-                showAudience = state.roomMatch,
-                spectatorCount = state.spectatorCount,
-                spectatorLabel = state.spectatorLabel,
-                elapsed = state.elapsed,
-                onSettings = { send(RoyalLudoMatchIntent.OpenSettings) },
-                onExit = { send(RoyalLudoMatchIntent.ExitClicked) },
-            )
-            BoxWithConstraints(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-            ) {
-                LudoBoard(
-                    pieces = state.pieces,
-                    rotation = state.rotation,
-                    onPieceClick = { send(RoyalLudoMatchIntent.PieceClicked(it.seat, it.piece)) },
-                    places = state.basePlaces,
-                    // Right of the other players' column, clear of the user's card.
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = maxWidth * AppConstants.LUDO_CARD_COLUMN_WEIGHT)
-                        .fillMaxHeight()
-                        .width(maxWidth * if (state.spectating) AppConstants.LUDO_SPECTATOR_BOARD_WIDTH_WEIGHT else AppConstants.LUDO_BOARD_WIDTH_WEIGHT),
-                ) { slot ->
-                    // Hidden while a piece is chosen and moved (so taps reach the
-                    // pieces); takes taps only when the user can roll, with no
-                    // press highlight.
-                    if (state.dice.visible) {
-                        GlassDice(
-                            state = dice,
-                            palette = ludoDicePalette(state.dice.colour),
-                            modifier = if (state.canRoll) {
-                                slot.clickable(interactionSource = null, indication = null) { send(RoyalLudoMatchIntent.Roll) }
-                            } else {
-                                slot
-                            },
-                        )
-                    }
-                }
-                state.seatBanner?.let { text ->
-                    SeatOfferBanner(text = text, modifier = Modifier.align(Alignment.TopCenter))
-                }
-                state.myCard?.let { card ->
-                    LudoMyCard(
-                        card = card,
-                        canRoll = state.canRoll,
-                        moveHint = state.moveHint,
-                        autoplay = state.autoplay,
-                        micOn = state.micOn,
-                        onRoll = { send(RoyalLudoMatchIntent.Roll) },
-                        onToggleAutoplay = { send(RoyalLudoMatchIntent.ToggleAutoplay) },
-                        onToggleMic = { send(RoyalLudoMatchIntent.ToggleMic(micPermission.isGranted())) },
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .fillMaxWidth(AppConstants.LUDO_CARD_COLUMN_WEIGHT),
-                    )
-                }
-                // Playing: the others on the left. Watching: two on each side, by house.
-                LudoOpponentsColumn(
-                    cards = if (state.spectating) state.leftCards else state.opponents,
-                    onToggleHear = { send(RoyalLudoMatchIntent.ToggleHear(it)) },
-                    onLongPress = { send(RoyalLudoMatchIntent.PlayerLongPressed(it)) },
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .fillMaxWidth(AppConstants.LUDO_CARD_COLUMN_WEIGHT),
-                )
-                if (state.spectating) {
-                    // Below the board's bottom corner, in the middle.
-                    TableSpectatorMicButton(
-                        micOn = state.micOn,
-                        onToggle = { send(RoyalLudoMatchIntent.ToggleMic(micPermission.isGranted())) },
-                        modifier = Modifier.align(Alignment.BottomCenter),
-                    )
-                    LudoOpponentsColumn(
-                        cards = state.rightCards,
-                        onToggleHear = { send(RoyalLudoMatchIntent.ToggleHear(it)) },
-                        onLongPress = { send(RoyalLudoMatchIntent.PlayerLongPressed(it)) },
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .fillMaxWidth(AppConstants.LUDO_CARD_COLUMN_WEIGHT),
-                    )
-                }
-            }
-        }
+    GameArenaBackground(modifier = modifier) {
+        RoyalLudoTable(state = state, send = send, dice = dice, micGranted = { micPermission.isGranted() })
 
         val board = state.leaderboard
         BlockingOverlay(visible = board != null) {
@@ -243,5 +155,103 @@ fun RoyalLudoMatchScreen(
                 )
             }
         }
+    }
+}
+
+/** The table itself — top bar, board, every player's card by their base, the dice button — drawn from [state] alone. */
+@Composable
+fun RoyalLudoTable(
+    state: RoyalLudoMatchState,
+    send: (RoyalLudoMatchIntent) -> Unit,
+    dice: GlassDiceState,
+    micGranted: () -> Boolean,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = Spacing.Md, vertical = Spacing.Xs)
+            .revealWhen(state.loaded),
+        verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+    ) {
+        ArenaTopBar(
+            title = state.title,
+            subtitle = state.subtitle,
+            audience = state.audience,
+            showAudience = state.roomMatch,
+            spectatorLabel = "${state.spectatorCount} ${state.spectatorLabel}",
+            elapsed = state.elapsed,
+            onSettings = { send(RoyalLudoMatchIntent.OpenSettings) },
+            onExit = { send(RoyalLudoMatchIntent.ExitClicked) },
+            logo = { RoyalLudoArtwork(modifier = it) },
+        )
+        BoxWithConstraints(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+        ) {
+            val boardBottomStrip = YapNPlayTheme.dimens.ludoBoardBottomStrip
+            // The board in the middle; every player's card beside their own base.
+            LudoBoard(
+                pieces = state.pieces,
+                rotation = state.rotation,
+                onPieceClick = { send(RoyalLudoMatchIntent.PieceClicked(it.seat, it.piece)) },
+                places = state.basePlaces,
+                // The whole area but a strip at the bottom (room for the user's switches under their card).
+                modifier = Modifier.fillMaxSize().padding(bottom = boardBottomStrip),
+            ) { slot ->
+                // Hidden while a piece is chosen and moved (so taps reach the
+                // pieces); takes taps only when the user can roll, with no
+                // press highlight.
+                if (state.dice.visible) {
+                    GlassDice(
+                        state = dice,
+                        palette = ludoDicePalette(state.dice.colour),
+                        modifier = if (state.canRoll) {
+                            slot.clickable(interactionSource = null, indication = null) { send(RoyalLudoMatchIntent.Roll) }
+                        } else {
+                            slot
+                        },
+                    )
+                }
+            }
+            state.seatBanner?.let { text ->
+                SeatOfferBanner(text = text, modifier = Modifier.align(Alignment.TopCenter))
+            }
+            val everyone = if (state.spectating) state.leftCards + state.rightCards else listOfNotNull(state.myCard) + state.opponents
+            LudoCornerCards(
+                cards = everyone,
+                cardWidth = YapNPlayTheme.dimens.monoPodWidth,
+                areaSize = IntSize(constraints.maxWidth, constraints.maxHeight),
+                boardSize = IntSize(constraints.maxWidth, constraints.maxHeight - with(LocalDensity.current) { boardBottomStrip.roundToPx() }),
+                rotation = state.rotation,
+                onToggleHear = { send(RoyalLudoMatchIntent.ToggleHear(it)) },
+                onLongPress = { send(RoyalLudoMatchIntent.PlayerLongPressed(it)) },
+            ) { card, place ->
+                LudoMyCard(
+                    card = card,
+                    autoplay = state.autoplay,
+                    micOn = state.micOn,
+                    onToggleAutoplay = { send(RoyalLudoMatchIntent.ToggleAutoplay) },
+                    onToggleMic = { send(RoyalLudoMatchIntent.ToggleMic(micGranted())) },
+                    modifier = place,
+                )
+            }
+            if (state.spectating) {
+                TableSpectatorMicButton(
+                    micOn = state.micOn,
+                    onToggle = { send(RoyalLudoMatchIntent.ToggleMic(micGranted())) },
+                    modifier = Modifier.align(Alignment.BottomEnd),
+                )
+            } else {
+                // Roll Dice: the big dice at the bottom right; after a roll it says which move to pick.
+                ArenaDiceButton(
+                    label = state.moveHint ?: LudoStrings.ludoRollDice,
+                    enabled = state.canRoll && !state.autoplay,
+                    onClick = { send(RoyalLudoMatchIntent.Roll) },
+                    modifier = Modifier.align(Alignment.BottomEnd),
+                )
+            }
+        }
+    
     }
 }

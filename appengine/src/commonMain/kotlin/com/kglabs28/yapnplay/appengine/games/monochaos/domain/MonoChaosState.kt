@@ -9,6 +9,13 @@ import com.kglabs28.yapnplay.appengine.games.monochaos.domain.rules.MonoChaosRul
 import com.kglabs28.yapnplay.appengine.games.monochaos.identity.MonoChaosConstants
 import kotlinx.serialization.Serializable
 
+/**
+ * A MONO: Complete Chaos match.
+ *
+ * [activeStackPenalty] is the whole accumulated penalty waiting to be
+ * taken; [stackTopValue] is the value of the card that put it there, and
+ * it is that value a stacker must equal or beat.
+ */
 @Serializable
 data class MonoChaosState(
     private val _gameId: GameId,
@@ -23,9 +30,16 @@ data class MonoChaosState(
     val topCardColor: MonoChaosConstants.Color?,
     val turnCounter: Long = 0,
     val monoCallWindowExpiry: Long = 0,
+    val monoWindowSeat: Int? = null,
+    val monoCalledSeat: Int? = null,
     val lastActionSeat: Int? = null,
     val lastActionCard: MonoChaosCard? = null,
     val activeStackPenalty: Int = 0,
+    /** The penalty value of the last draw card played; stacks must match it. */
+    val stackTopValue: Int = 0,
+    val reversed: Boolean = false,
+    val drawnCardIndex: Int? = null,
+    val pendingSwapSeat: Int? = null,
     val eliminatedSeats: Set<Int> = emptySet(),
     /** Seats that left the table; kept so the final ranking can place them. */
     val removedSeats: Set<Int> = emptySet(),
@@ -52,14 +66,22 @@ data class MonoChaosState(
         topCardColor: MonoChaosConstants.Color? = this.topCardColor,
         turnCounter: Long = this.turnCounter,
         monoCallWindowExpiry: Long = this.monoCallWindowExpiry,
+        monoWindowSeat: Int? = this.monoWindowSeat,
+        monoCalledSeat: Int? = this.monoCalledSeat,
         lastActionSeat: Int? = this.lastActionSeat,
         lastActionCard: MonoChaosCard? = this.lastActionCard,
         activeStackPenalty: Int = this.activeStackPenalty,
+        stackTopValue: Int = this.stackTopValue,
+        reversed: Boolean = this.reversed,
+        drawnCardIndex: Int? = this.drawnCardIndex,
+        pendingSwapSeat: Int? = this.pendingSwapSeat,
         eliminatedSeats: Set<Int> = this.eliminatedSeats,
         removedSeats: Set<Int> = this.removedSeats,
     ): MonoChaosState = MonoChaosState(
         _gameId, _rules, _seats, _turn, hands, drawPile, discardPile,
         currentSeat, phase, topCardColor, turnCounter, monoCallWindowExpiry,
-        lastActionSeat, lastActionCard, activeStackPenalty, eliminatedSeats, removedSeats,
+        monoWindowSeat, monoCalledSeat, lastActionSeat, lastActionCard,
+        activeStackPenalty, stackTopValue, reversed, drawnCardIndex, pendingSwapSeat,
+        eliminatedSeats, removedSeats,
     )
 }

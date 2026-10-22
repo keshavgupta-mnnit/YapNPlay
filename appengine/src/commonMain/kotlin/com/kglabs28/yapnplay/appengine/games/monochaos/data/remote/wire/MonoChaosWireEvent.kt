@@ -16,6 +16,10 @@ sealed interface MonoChaosWireEvent {
     @Serializable @SerialName("CardsDrawn")
     data class CardsDrawn(val seat: Int, val count: Int) : MonoChaosWireEvent
 
+    /** Discard All: [count] more cards of that colour went under it. */
+    @Serializable @SerialName("CardsDiscarded")
+    data class CardsDiscarded(val seat: Int, val count: Int) : MonoChaosWireEvent
+
     /** [color] is a MonoChaosConstants.Color name. */
     @Serializable @SerialName("ColorChosen")
     data class ColorChosen(val seat: Int, val color: String) : MonoChaosWireEvent
@@ -34,6 +38,19 @@ sealed interface MonoChaosWireEvent {
 
     @Serializable @SerialName("MonoMissed")
     data class MonoMissed(val seat: Int, val penaltyCards: Int) : MonoChaosWireEvent
+
+    @Serializable @SerialName("MonoCaught")
+    data class MonoCaught(val catcher: Int, val seat: Int, val penaltyCards: Int) : MonoChaosWireEvent
+
+    @Serializable @SerialName("FalseCatch")
+    data class FalseCatch(val seat: Int, val target: Int, val penaltyCards: Int) : MonoChaosWireEvent
+
+    /** The keep-playing vote closed: [continued] or the match ends. */
+    @Serializable @SerialName("ContinueVoted")
+    data class ContinueVoted(val continued: Boolean, val yes: Int, val voters: Int) : MonoChaosWireEvent
+
+    @Serializable @SerialName("DeckReshuffled")
+    data class DeckReshuffled(val drawPileCount: Int) : MonoChaosWireEvent
 
     @Serializable @SerialName("HandSwapped")
     data class HandSwapped(val from: Int, val to: Int) : MonoChaosWireEvent

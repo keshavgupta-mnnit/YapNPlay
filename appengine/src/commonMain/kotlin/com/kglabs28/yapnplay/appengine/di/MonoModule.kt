@@ -6,6 +6,7 @@ import com.kglabs28.yapnplay.appengine.games.mono.data.remote.MonoMatchClientImp
 import com.kglabs28.yapnplay.appengine.games.mono.data.remote.MonoSnapshotMapper
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoMatchRepository
 import com.kglabs28.yapnplay.appengine.games.mono.domain.usecase.ObserveMonoMatchUseCase
+import com.kglabs28.yapnplay.appengine.games.mono.domain.usecase.ObserveMonoSpeakingUseCase
 import com.kglabs28.yapnplay.appengine.games.mono.domain.usecase.SendMonoCommandUseCase
 import com.kglabs28.yapnplay.appengine.ui.screens.mono.MatchMonoViewModel
 import org.koin.dsl.module
@@ -17,9 +18,10 @@ import org.koin.dsl.module
  */
 val monoModule = module {
     single { MonoSnapshotMapper(get()) }
-    single<MonoMatchClient> { MonoMatchClientImpl(get(), get(), get(), get(), get()) }
+    single<MonoMatchClient> { MonoMatchClientImpl(get(), get(), get(), get(), get(), get()) }
     single<MonoMatchRepository> { MonoMatchRepositoryImpl(get(), get()) }
     factory { ObserveMonoMatchUseCase(get()) }
     factory { SendMonoCommandUseCase(get()) }
-    factory { MatchMonoViewModel(get(), get(), get(), get()) }
+    factory { ObserveMonoSpeakingUseCase(get()) }
+    factory { MatchMonoViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

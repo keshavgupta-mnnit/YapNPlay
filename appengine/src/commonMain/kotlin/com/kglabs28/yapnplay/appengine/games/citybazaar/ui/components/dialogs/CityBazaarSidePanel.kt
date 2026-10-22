@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
 import androidx.compose.foundation.clickable
@@ -34,8 +36,12 @@ fun CityBazaarSidePanel(
             is CbPanel.Bank -> CbPlayerPanel(panel.name, YapNPlayTheme.colors.Gold, panel.sheet, panel.cities, onPropertyClick = onPropertyClick, modifier = fill)
             is CbPanel.Deck -> CbDeckPanel(panel = panel, modifier = fill)
             // Compact cards in the group colours, like the player pods; a tap opens that one's full card.
+            // On the same glassy black as the other panels.
             is CbPanel.Cities -> Column(
-                modifier = fill.verticalScroll(rememberScrollState()),
+                modifier = fill
+                    .cbGlassBlack(RoundedCornerShape(YapNPlayTheme.dimens.cbRowRadius))
+                    .padding(Spacing.Xs)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
                 panel.cities.forEach { CbCityCard(city = it, onClick = { onPropertyClick(it.tile) }) }

@@ -15,5 +15,10 @@ object GameSoundFiles {
         GameSound.YOUR_TURN -> "your_turn.wav"
         GameSound.TICK -> "clock_tick.wav"
         GameSound.HURRY_TICK -> "hurry_tick.wav"
+        GameSound.CARD_PLAY -> "card_play.wav"
+        GameSound.CARD_DRAW -> "card_draw.wav"
+        GameSound.CARD_SHUFFLE -> "card_shuffle.wav"
+        GameSound.MONO_CALL -> "mono_call.wav"
+        GameSound.CAUGHT -> "caught.wav"
     }
 }

@@ -38,6 +38,13 @@ class LudoBoardProjection private constructor(
     fun cellSize(canonical: Offset): Float =
         scale * perspective(fromCentre(LudoBoardGeometry.rotate(canonical, rotation)).second)
 
+    /** The board's four tips on screen: left, top, right, bottom (the bases sit at them). */
+    fun tips(): List<Offset> {
+        val lo = -FRAME
+        val hi = LudoBoardGeometry.GRID + FRAME
+        return listOf(Offset(lo, lo), Offset(hi, lo), Offset(hi, hi), Offset(lo, hi)).map { projectView(it) }
+    }
+
     /** Thickness of the board's front edges, in pixels. */
     val slabDepth: Float get() = scale * SLAB_DEPTH
 

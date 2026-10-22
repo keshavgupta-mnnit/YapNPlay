@@ -34,7 +34,7 @@ fun TableSquareIconButton(
     val shape = RoundedCornerShape(dimens.ludoGlossRadius)
     Box(
         modifier = modifier
-            .size(dimens.ludoSquareButton)
+            .size(dimens.ludoMuteButton)
             .clip(shape)
             .background(Brush.verticalGradient(listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom)))
             .drawWithContent {

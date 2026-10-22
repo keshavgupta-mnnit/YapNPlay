@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.layer.drawLayer
@@ -90,7 +89,7 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                 Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
                     HomeCenterLogo(logoWidth = dimens.boardLogoWidth, logoHeight = dimens.boardLogoLogoHeight)
                     // Starts right of the game logo, which rises out of the bottom bar.
-                    LeaderboardPodium(podium = podium, modifier = Modifier.weight(1f).fillMaxWidth().padding(start = dimens.boardGameLogo + Spacing.Sm, bottom = Spacing.Xs))
+                    LeaderboardPodium(podium = podium, modifier = Modifier.weight(1f).fillMaxWidth().padding(start = dimens.boardGameLogo + Spacing.Sm, bottom = Spacing.Lg))
                 }
                 // LEADERBOARD panel: 4th onwards.
                 if (rest.isNotEmpty()) {
@@ -100,9 +99,8 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                             .width(dimens.boardPanelWidth)
                             .fillMaxHeight()
                             .padding(vertical = Spacing.Sm)
-                            .background(Color.Black.copy(alpha = PANEL_DARK), panelShape)
-                            .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = PANEL_TOP), Color.White.copy(alpha = PANEL_BOTTOM))), panelShape)
-                            .border(dimens.hairline, Color.White.copy(alpha = PANEL_RIM), panelShape)
+                            .background(AppBrushes.leaderboardPanel, panelShape)
+                            .border(dimens.hairline, colors.BoardGlassRim, panelShape)
                             .padding(Spacing.Sm),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
@@ -124,7 +122,7 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                     Modifier
                         .fillMaxSize()
                         .background(AppBrushes.leaderboardBar, RoundedCornerShape(topStart = dimens.cardRadius, topEnd = dimens.cardRadius))
-                        .border(dimens.hairline, Color.White.copy(alpha = PANEL_RIM), RoundedCornerShape(topStart = dimens.cardRadius, topEnd = dimens.cardRadius)),
+                        .border(dimens.hairline, colors.BoardGlassRim, RoundedCornerShape(topStart = dimens.cardRadius, topEnd = dimens.cardRadius)),
                 )
                 Row(
                     modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.Lg),
@@ -134,28 +132,29 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                     // The game's logo, big and rising out of the bar, its name underneath (as in the room).
                     Column(
                         // Nudged to the bar's left edge; the name tucks up under the icon so they read as one.
-                        modifier = Modifier.wrapContentHeight(align = Alignment.Bottom, unbounded = true).offset(x = -Spacing.Md).padding(bottom = Spacing.Xxs),
+                        modifier = Modifier.wrapContentHeight(align = Alignment.Bottom, unbounded = true).offset(x = -Spacing.Md).padding(bottom = Spacing.Sm),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(-Spacing.Sm),
                     ) {
                         gameArt(Modifier.size(dimens.boardGameLogo))
                         GameNameTitle(name = board.game, modifier = Modifier.zIndex(1f))
                     }
-                    // SHARE THIS: a picture of this screen with the app link; glowing green.
+                    // SHARE THIS: a picture of this screen with the app link, in bluish glass.
+                    // As big as PLAY AGAIN.
                     Row(
                         modifier = Modifier
-                            .width(dimens.boardButtonWidth)
-                            .height(dimens.neonButtonHeight)
-                            .shadow(elevation = dimens.neonButtonGlow, shape = CircleShape, ambientColor = colors.LiveGreen, spotColor = colors.LiveGreen)
+                            .width(dimens.boardButtonWidth * PLAY_AGAIN_GROW)
+                            .height(dimens.neonButtonHeight * PLAY_AGAIN_GROW)
                             .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = SHARE_FILL))
-                            .border(dimens.promptRim, colors.LiveGreen, CircleShape)
+                            .background(Brush.verticalGradient(listOf(colors.BoardShareTop, colors.BoardShareBottom)))
+                            .background(AppBrushes.glassSheen)
+                            .border(dimens.promptRim, colors.BoardShareRim, CircleShape)
                             .clickable(role = Role.Button) { scope.launch { share(layer.toImageBitmap(), shareText) } },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterHorizontally),
                     ) {
-                        AppIcon(imageVector = Icons.Rounded.Share, tint = colors.LiveGreen, size = dimens.iconMedium)
-                        BasicText(text = TableStrings.leaderboardShare, style = typography.label.copy(color = colors.LiveGreen, fontWeight = FontWeight.Black))
+                        AppIcon(imageVector = Icons.Rounded.Share, tint = colors.BoardShareText, size = dimens.iconMedium)
+                        BasicText(text = TableStrings.leaderboardShare, style = typography.label.copy(color = colors.BoardShareText, fontWeight = FontWeight.Black))
                     }
                     Box(Modifier.weight(1f))
                     Column(horizontalAlignment = Alignment.End) {
@@ -177,20 +176,21 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
                         }
                     }
                     Box(Modifier.width(dimens.hairline).height(dimens.neonButtonHeight).background(Color.White.copy(alpha = PANEL_RIM)))
-                    // PLAY AGAIN.
+                    // PLAY AGAIN, in dark reddish glass, the biggest thing in the bar.
                     Row(
                         modifier = Modifier
-                            .width(dimens.boardButtonWidth)
-                            .height(dimens.neonButtonHeight)
-                            .shadow(elevation = dimens.neonButtonGlow, shape = CircleShape, ambientColor = colors.LiveGreen, spotColor = colors.LiveGreen)
+                            .width(dimens.boardButtonWidth * PLAY_AGAIN_GROW)
+                            .height(dimens.neonButtonHeight * PLAY_AGAIN_GROW)
                             .clip(CircleShape)
-                            .background(Brush.horizontalGradient(listOf(colors.LiveGreen, colors.Cyan)))
+                            .background(Brush.verticalGradient(listOf(colors.BoardAgainTop, colors.BoardAgainBottom)))
+                            .background(AppBrushes.glassSheen)
+                            .border(dimens.promptRim, colors.BoardAgainRim, CircleShape)
                             .clickable(role = Role.Button, onClick = onPlayAgain),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs, Alignment.CenterHorizontally),
                     ) {
-                        BasicText(text = TableStrings.leaderboardPlayAgain, style = typography.label.copy(color = colors.TextOnPlayAgainButton, fontWeight = FontWeight.Black))
-                        AppIcon(imageVector = Icons.Rounded.ChevronRight, tint = colors.TextOnPlayAgainButton, size = dimens.iconMedium)
+                        BasicText(text = TableStrings.leaderboardPlayAgain, style = typography.title.copy(color = Color.White, fontWeight = FontWeight.Black))
+                        AppIcon(imageVector = Icons.Rounded.ChevronRight, tint = Color.White, size = dimens.iconMedium * PLAY_AGAIN_GROW)
                     }
                 }
             }
@@ -201,11 +201,8 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
 private const val PODIUM = 3
 private const val SHADE_TOP = 0.15f
 private const val SHADE_BOTTOM = 0.45f
-private const val PANEL_DARK = 0.78f
-private const val PANEL_TOP = 0.10f
-private const val PANEL_BOTTOM = 0.05f
 private const val PANEL_RIM = 0.18f
-private const val SHARE_FILL = 0.45f
+private const val PLAY_AGAIN_GROW = 1f
 
 /** The game's name: white over a glowing accent outline, like the room's game title. */
 @Composable

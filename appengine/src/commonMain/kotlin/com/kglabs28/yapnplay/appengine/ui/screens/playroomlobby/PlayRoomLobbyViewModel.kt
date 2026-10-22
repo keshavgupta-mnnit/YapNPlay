@@ -21,6 +21,9 @@ import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMicOnUseCas
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMySpeakingUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOnUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOpenUseCase
+import com.kglabs28.yapnplay.appengine.core.common.AppResult
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.InviteFriendsToGroupUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetFriendsUseCase
 import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -40,6 +43,8 @@ class PlayRoomLobbyViewModel(
     private val setMicOn: SetMicOnUseCase,
     private val observeMySpeaking: ObserveMySpeakingUseCase,
     private val setMicOpen: SetMicOpenUseCase,
+    private val getFriends: GetFriendsUseCase,
+    private val inviteFriends: InviteFriendsToGroupUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<PlayRoomLobbyState, PlayRoomLobbyIntent, PlayRoomLobbyEffect>(PlayRoomLobbyState(), dispatchers) {
@@ -119,6 +124,20 @@ class PlayRoomLobbyViewModel(
             is PlayRoomLobbyIntent.DeclineJoin -> send(LobbyCommand.DeclineJoin(intent.userId))
             // The leaderboard screen arrives later.
             PlayRoomLobbyIntent.OpenLeaderboard -> Unit
+            PlayRoomLobbyIntent.OpenAddFriends -> openAddFriends()
+            is PlayRoomLobbyIntent.AddFriendCodeChanged -> updateAddFriends {
+                copy(code = intent.code.uppercase().take(AppConstants.USER_CODE_LENGTH), error = null)
+            }
+            is PlayRoomLobbyIntent.ToggleInvite -> updateAddFriends {
+                copy(selected = if (intent.userId in selected) selected - intent.userId else selected + intent.userId)
+            }
+            PlayRoomLobbyIntent.SendInvites -> sendInvites()
+            PlayRoomLobbyIntent.OpenEditName -> setState { copy(sheet = LobbySheet.EditName(roomName)) }
+            is PlayRoomLobbyIntent.EditNameChanged -> setState {
+                copy(sheet = (sheet as? LobbySheet.EditName)?.copy(name = intent.name.take(AppConstants.MAX_ROOM_NAME_LENGTH)))
+            }
+            PlayRoomLobbyIntent.SaveName -> saveName()
+            PlayRoomLobbyIntent.DismissSheet -> setState { copy(sheet = null) }
         }
     }
 
@@ -199,6 +218,40 @@ class PlayRoomLobbyViewModel(
         if (options.isNotEmpty()) showModal(LobbyModal.MemberMenu(target.userId, target.name, options))
     }
 
+    /** Add Friends: the user's friends who aren't in the group yet, online first. */
+    private suspend fun openAddFriends() {
+        setState { copy(sheet = LobbySheet.AddFriends()) }
+        val members = state.value.members.map { it.userId }.toSet()
+        val friends = (getFriends() as? AppResult.Success)?.data.orEmpty()
+            .filter { it.userId !in members }
+            .sortedWith(compareBy({ !it.online }, { it.name.lowercase() }))
+        updateAddFriends { copy(friends = friends, loading = false) }
+    }
+
+    private suspend fun sendInvites() {
+        val sheet = state.value.sheet as? LobbySheet.AddFriends ?: return
+        val id = roomId ?: return
+        if (!sheet.canSend || sheet.sending) return
+        updateAddFriends { copy(sending = true, error = null) }
+        val codes = listOf(sheet.code).filter { it.length == AppConstants.USER_CODE_LENGTH }
+        when (inviteFriends(id, sheet.selected.toList(), codes)) {
+            is AppResult.Success -> setState { copy(sheet = null) }
+            is AppResult.Failure -> updateAddFriends { copy(sending = false, error = RoomStrings.lobbyAddFriendsFailed) }
+        }
+    }
+
+    private fun updateAddFriends(change: LobbySheet.AddFriends.() -> LobbySheet.AddFriends) {
+        setState { copy(sheet = (sheet as? LobbySheet.AddFriends)?.change() ?: sheet) }
+    }
+
+    /** Edit Name: the server renames the group and everyone sees it in the next room update. */
+    private suspend fun saveName() {
+        val name = (state.value.sheet as? LobbySheet.EditName)?.name?.trim().orEmpty()
+        if (name.isEmpty()) return
+        send(LobbyCommand.RenameRoom(name))
+        setState { copy(sheet = null) }
+    }
+
     private fun showModal(modal: LobbyModal?) {
         userModal = modal
         render()
@@ -221,8 +274,6 @@ class PlayRoomLobbyViewModel(
             copy(
                 loaded = true,
                 roomName = room.name,
-                roomDescription = room.description,
-                roomIcon = room.icon,
                 isLeader = me?.isLeader == true,
                 isAdmin = me?.isAdmin == true,
                 members = LobbyRules.sortMembers(room.members, d.myUserId).map { it.toUi(d) },

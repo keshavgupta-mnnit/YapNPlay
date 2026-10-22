@@ -51,8 +51,8 @@ class PlayRoomsRepositoryImpl(
     override suspend fun createRoom(name: String?, icon: String, inviteUserIds: List<String>): AppResult<CreatedPlayRoom> =
         withContext(dispatchers.io) { remote.createRoom(name, icon, inviteUserIds) }
 
-    override suspend fun inviteToRoom(roomId: String, userIds: List<String>): AppResult<List<String>> =
-        withContext(dispatchers.io) { remote.inviteToRoom(roomId, userIds) }
+    override suspend fun inviteToRoom(roomId: String, userIds: List<String>, userCodes: List<String>): AppResult<List<String>> =
+        withContext(dispatchers.io) { remote.inviteToRoom(roomId, userIds, userCodes) }
 
     override suspend fun getInvites(): AppResult<List<PlayRoomInvite>> =
         withContext(dispatchers.io) { remote.fetchInvites() }

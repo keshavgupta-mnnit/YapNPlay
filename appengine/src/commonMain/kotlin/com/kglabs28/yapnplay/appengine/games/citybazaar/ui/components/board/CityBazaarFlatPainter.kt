@@ -115,7 +115,8 @@ private fun DrawScope.drawTile(p: CityBazaarFlatProjection, tile: CbTileUi, colo
 
     // Text runs along the tile's long side: across for the left and right columns, upward for the top and bottom rows.
     val angle = if (iy != 0) VERTICAL else 0f
-    val bodyCentre = centre - inward * (depth * HEADER / 2)
+    // The free space's centre: between the colour header (or icon) and the owner band.
+    val bodyCentre = centre - inward * (depth * (HEADER - if (tile.ownerColour != null) OWNER_BAND else 0f) / 2)
     when (spec.kind) {
         TileKind.START, TileKind.JAIL, TileKind.CLUB, TileKind.REST_HOUSE -> {
             val name = when (spec.kind) {

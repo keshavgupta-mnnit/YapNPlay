@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.monochaos.data.remote
 
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
+import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoContinueVote
 import com.kglabs28.yapnplay.appengine.games.base.identity.SeatNumber
 import com.kglabs28.yapnplay.appengine.games.monochaos.data.remote.wire.MonoChaosCardWire
 import com.kglabs28.yapnplay.appengine.games.monochaos.data.remote.wire.MonoChaosPublicState
@@ -62,6 +63,12 @@ class MonoChaosSnapshotMapper(private val json: Json) {
             discardPileCount = state.discardPileCount,
             activeStackPenalty = state.activeStackPenalty,
             monoCallWindowExpiry = toLocal(state.monoCallWindowExpiry),
+            monoWindowSeat = state.monoWindowSeat,
+            monoCalledSeat = state.monoCalledSeat,
+            stackTopValue = state.stackTopValue,
+            reversed = state.reversed,
+            drawnCardIndex = state.drawnCardIndex,
+            pendingSwapSeat = state.pendingSwapSeat,
             eliminatedSeats = state.eliminatedSeats,
             finishedSeats = state.finishedSeats,
             turnEndsAt = snapshot.turn.deadline?.let(toLocal),
@@ -72,6 +79,11 @@ class MonoChaosSnapshotMapper(private val json: Json) {
             seatOffer = snapshot.seatOffer?.let {
                 MonoChaosSeatOffer(offeredBy = it.seat, offeredTo = it.userId, expiresAt = toLocal(it.endsAt))
             },
+            catchSeat = state.catchSeat,
+            catchClosedFor = state.catchClosedFor,
+            continueVote = state.continueVote?.let { MonoContinueVote(toLocal(it.endsAt), it.voters, it.yes, it.no) },
+            caughtPenaltyCards = state.caughtPenaltyCards,
+            falseCatchPenaltyCards = state.falseCatchPenaltyCards,
             roomId = snapshot.roomId,
             viewerUserId = myUserId,
         )
@@ -109,12 +121,17 @@ class MonoChaosSnapshotMapper(private val json: Json) {
         is MonoChaosWireEvent.CardPlayed -> MonoChaosEvent.CardPlayed(SeatNumber(seat), card.toDomain(), color.toColor())
         is MonoChaosWireEvent.CardDrawn -> MonoChaosEvent.CardDrawn(SeatNumber(seat), card.toDomain())
         is MonoChaosWireEvent.CardsDrawn -> MonoChaosEvent.CardsDrawn(SeatNumber(seat), count)
+        is MonoChaosWireEvent.CardsDiscarded -> MonoChaosEvent.CardsDiscarded(SeatNumber(seat), count)
         is MonoChaosWireEvent.ColorChosen -> MonoChaosEvent.ColorChosen(SeatNumber(seat), color.toColor() ?: FALLBACK_COLOUR)
         is MonoChaosWireEvent.RouletteColorChosen -> MonoChaosEvent.RouletteColorChosen(SeatNumber(victim), color.toColor() ?: FALLBACK_COLOUR)
         is MonoChaosWireEvent.StackDraw -> MonoChaosEvent.StackDraw(SeatNumber(seat), card.toDomain(), newStackTotal)
         is MonoChaosWireEvent.StackAccepted -> MonoChaosEvent.StackAccepted(SeatNumber(seat), penaltyCards)
         is MonoChaosWireEvent.MonoCalled -> MonoChaosEvent.MonoCalled(SeatNumber(seat))
         is MonoChaosWireEvent.MonoMissed -> MonoChaosEvent.MonoMissed(SeatNumber(seat), penaltyCards)
+        is MonoChaosWireEvent.MonoCaught -> MonoChaosEvent.MonoCaught(SeatNumber(catcher), SeatNumber(seat), penaltyCards)
+        is MonoChaosWireEvent.FalseCatch -> MonoChaosEvent.FalseCatch(SeatNumber(seat), SeatNumber(target), penaltyCards)
+        is MonoChaosWireEvent.ContinueVoted -> MonoChaosEvent.ContinueVoted(continued, yes, voters)
+        is MonoChaosWireEvent.DeckReshuffled -> MonoChaosEvent.DeckReshuffled(drawPileCount)
         is MonoChaosWireEvent.HandSwapped -> MonoChaosEvent.HandSwapped(SeatNumber(from), SeatNumber(to))
         is MonoChaosWireEvent.HandsPassed -> MonoChaosEvent.HandsPassed(direction)
         is MonoChaosWireEvent.PlayerEliminated -> MonoChaosEvent.PlayerEliminated(SeatNumber(seat))

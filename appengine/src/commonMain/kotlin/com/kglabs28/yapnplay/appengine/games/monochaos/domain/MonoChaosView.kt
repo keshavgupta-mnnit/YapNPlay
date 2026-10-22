@@ -25,4 +25,16 @@ data class MonoChaosView(
     /** Penalty waiting to be stacked onto or taken; 0 when none. */
     val activeStackPenalty: Int = 0,
     val eliminatedSeats: Set<Int> = emptySet(),
+    /** The seat whose MONO! window is open. */
+    val monoWindowSeat: Int? = null,
+    /** The seat holding the MONO! shield. */
+    val monoCalledSeat: Int? = null,
+    /** The value of the card that set the stack; a stacker must match it. */
+    val stackTopValue: Int = 0,
+    /** Direction of play; true means counter-clockwise. */
+    val reversed: Boolean = false,
+    /** After a draw, the only card the seat may play. */
+    val drawnCardIndex: Int? = null,
+    /** The seat that played a 7 and must pick a swap partner. */
+    val pendingSwapSeat: Int? = null,
 ) : GameView

@@ -1,6 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
-import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
 import kotlinx.datetime.Instant
 
 /**
@@ -9,7 +9,7 @@ import kotlinx.datetime.Instant
  */
 fun monoElapsed(since: Instant, now: Instant): String {
     val total = (now - since).inWholeSeconds.coerceAtLeast(0)
-    return Strings.ludoClock(total / SECONDS_PER_MINUTE, total % SECONDS_PER_MINUTE)
+    return MonoStrings.monoClock(total / SECONDS_PER_MINUTE, total % SECONDS_PER_MINUTE)
 }
 
 private const val SECONDS_PER_MINUTE = 60L

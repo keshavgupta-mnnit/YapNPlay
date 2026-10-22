@@ -13,4 +13,13 @@ sealed class MonoChaosAction : Action {
     data object CallMono : MonoChaosAction()
     data class StackDraw(val handIndex: Int) : MonoChaosAction()
     data object AcceptStack : MonoChaosAction()
+    /** The Rule of 7: the seat that played it picks whose hand to trade. */
+    data class ChooseSwapTarget(val seat: Int) : MonoChaosAction()
+    /** Ends the turn after drawing a playable card and declining to play it. */
+    data object Pass : MonoChaosAction()
+    /**
+     * The MONO! window ran out. The host sends this on the seat's behalf;
+     * it is the only action allowed to a seat that is not the actor.
+     */
+    data object ExpireMonoCall : MonoChaosAction()
 }

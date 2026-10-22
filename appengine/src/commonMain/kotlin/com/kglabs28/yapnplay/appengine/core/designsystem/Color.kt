@@ -182,13 +182,13 @@ object YapNPlayColors {
     val LudoSilverBottom = Color(0xFF8F9AAE)
     val LudoSilverText = Color(0xFF17202F)
     val LudoSmokeTop = Color(0x995A6273)
-    val LudoSmokeBottom = Color(0x99262B36)
+    val LudoTeal = Color(0xFF3ADBED)
+    val LudoMetalOutline = Color(0xFF3A4155)
+    val LudoMetalGlow = Color(0xFF5E6A82)
     val LudoMetalLight = Color(0xFFF7FAFF)
-    val LudoMetalMid = Color(0xFF9FAECA)
-    val LudoMetalDark = Color(0xFF5D6B86)
-    val LudoMetalOutline = Color(0xFF1B2740)
-    val LudoMetalGlow = Color(0xFF4FA3FF)
-    val LudoTeal = Color(0xFF3FE3C2)
+    val LudoMetalMid = Color(0xFFC3CDDE)
+    val LudoMetalDark = Color(0xFF77839B)
+    val LudoSmokeBottom = Color(0x99262B36)
 
     // Glass dice (frosted gold, Royal Ludo design)
     val DiceGold = Color(0xFFFFEFCF)
@@ -196,6 +196,130 @@ object YapNPlayColors {
     val DiceAmber = Color(0xFFF1D9A8)
     val DiceDeep = Color(0xFFC4A877)
     val DicePip = Color(0xFF4A3316)
+
+    // ── MONO / MONO: Complete Chaos (dark jewel-tone glass card spec) ──
+    /** Smoked obsidian glass the card body is cut from (90% opacity). */
+    val MonoCardBase = Color(0xE6101218)
+
+    // Deep but saturated jewels, with neon rims: dark cards that still glow.
+    val MonoRedFill = Color(0xFF9E0F2E)
+    val MonoRedRim = Color(0xFFFF3D63)
+    val MonoGreenFill = Color(0xFF0B6E3E)
+    val MonoGreenRim = Color(0xFF2DEB8E)
+    val MonoBlueFill = Color(0xFF0F48A8)
+    val MonoBlueRim = Color(0xFF4A9BFF)
+    val MonoGoldFill = Color(0xFF946300)
+    val MonoGoldRim = Color(0xFFFFC23D)
+
+
+    /** Card back: base and the four converging metallic ribbons. */
+    val MonoBackBase = Color(0xFF0B0D13)
+    val MonoBackRim = Color(0xFF5E6A82)
+
+    /** The 3D silver of the MONO wordmark on the back. */
+    val MonoSilverTop = Color(0xFFF7FAFF)
+    val MonoSilverMid = Color(0xFFC3CDDE)
+    val MonoSilverBottom = Color(0xFF77839B)
+
+    /** The crimson sub-plate that reads COMPLETE CHAOS. */
+    val MonoChaosPlate = Color(0xFF5A0E18)
+    val MonoChaosPlateLight = Color(0xFF94202F)
+    /** Card metal (bevel frames, octagon rings) and the octagon's dark faceted glass. */
+    val MonoMetalLight = Color(0xFF8B94A8)
+    val MonoMetalDark = Color(0xFF1E2129)
+    val MonoOctagonCore = Color(0xFF1C1F27)
+    val MonoOctagonEdge = Color(0xFF0D0F14)
+    val MonoChaosPlateRim = Color(0xFF9B2233)
+
+    /** An empty pile on the table, and the pile rims. */
+    val MonoTableFeltEdge = Color(0xFF0A0C12)
+    val MonoTableRim = Color(0xFF2A3244)
+    /** The directional light ring around the centre piles. */
+    val MonoRingIdle = Color(0xFF2B3346)
+    /** The page edges under the draw pile, and the darker ones under the discard pile. */
+    val MonoDeckEdge = Color(0xFFE9E6F2)
+    val MonoDeckEdgeShade = Color(0xFF9C97AE)
+    val MonoDiscardEdge = Color(0xFF2A2536)
+
+    // ── Free coins card: a festive violet-magenta glass, a rainbow progress bar, one colour per ad ──
+    val CoinsCardTop = Color(0xF2361A6E)
+    val CoinsCardMid = Color(0xF2521C7A)
+    val CoinsCardBottom = Color(0xF27A1F5C)
+    val CoinsProgressTrack = Color(0x33FFFFFF)
+    val CoinsLadder1 = Color(0xFF29C7FF)
+    val CoinsLadder2 = Color(0xFF2EE58A)
+    val CoinsLadder3 = Color(0xFFFFC23D)
+    val CoinsLadder4 = Color(0xFFFF8A2E)
+    val CoinsLadder5 = Color(0xFFFF4FD8)
+    val CoinsWatchStart = Color(0xFFFFC23D)
+    val CoinsWatchEnd = Color(0xFFFF6A3D)
+    val CoinsWatchContent = Color(0xFF2A1200)
+
+    // ── Leaderboard: frosted purple glass for the LEADERBOARD panel and the bottom bar ──
+    val BoardGlassTop = Color(0xCC3B2668)
+    val BoardGlassBottom = Color(0xCC211538)
+    val BoardGlassRim = Color(0x669C86E0)
+    val BoardGlassSheen = Color(0x24FFFFFF)
+    /** SHARE: bluish glass. PLAY AGAIN: dark reddish glass. */
+    val BoardShareTop = Color(0xCC2A4FA8)
+    val BoardShareBottom = Color(0xCC14275C)
+    val BoardShareRim = Color(0xFF6FA8FF)
+    val BoardShareText = Color(0xFFD6E6FF)
+    val BoardAgainTop = Color(0xCC8A1734)
+    val BoardAgainBottom = Color(0xCC420A19)
+    val BoardAgainRim = Color(0xFFFF5A7A)
+
+    // ── League rows: cheap leagues plain, dearer ones richer, the top one royal ──
+    val LeagueStarterTop = Color(0xFF2A3340)
+    val LeagueStarterBottom = Color(0xFF181D25)
+    val LeagueStarterRim = Color(0xFF6B7A8F)
+    val LeagueBronzeTop = Color(0xFF55331C)
+    val LeagueBronzeBottom = Color(0xFF2A190D)
+    val LeagueBronzeRim = Color(0xFFCD7F32)
+    val LeagueSilverTop = Color(0xFF454D5E)
+    val LeagueSilverBottom = Color(0xFF232832)
+    val LeagueSilverRim = Color(0xFFD5DCE8)
+    val LeagueGoldTop = Color(0xFF6A4E0E)
+    val LeagueGoldBottom = Color(0xFF2E2206)
+    val LeagueGoldRim = Color(0xFFFFC23D)
+    val LeagueRoyalTop = Color(0xFF5A1E86)
+    val LeagueRoyalMid = Color(0xFF3A1060)
+    val LeagueRoyalBottom = Color(0xFF7A1F5C)
+    val LeagueRoyalRim = Color(0xFFFFD86B)
+
+    // ── Card-table arena (MONO first; Ludo and City Royale later) ──
+    /** The glass of a seat's name pill, the top bar's pills and square buttons. */
+    val ArenaGlassTop = Color(0xCC2A2340)
+    val ArenaGlassBottom = Color(0xCC15111F)
+    val ArenaGlassRim = Color(0x66A99CD6)
+    /** The talking glow behind a seat: blue into pink. */
+    val ArenaTalkBlue = Color(0xFF3FA2FF)
+    val ArenaTalkPink = Color(0xFFFF4FD8)
+    /** A seat switch (Mic / Auto) while it's on: the app's dark pink. */
+    val ArenaSwitchOn = Color(0xFFA0216A)
+    val ArenaSwitchOnRim = Color(0xFFFF4FB8)
+    /** The Auto switch while it's on: dark blue. */
+    val ArenaAutoOn = Color(0xFF1F3B9E)
+    val ArenaAutoOnRim = Color(0xFF6B95FF)
+    /** The table's event snackbar: glassy black. */
+    val SnackGlassTop = Color(0xE01A1A22)
+    val SnackGlassBottom = Color(0xE0050508)
+    /** A dimmed card (not the user's turn): a dark veil over it. */
+    val MonoCardVeil = Color(0x73000000)
+    /** The rim round a card the user can play now. */
+    val MonoCardPlayableRim = Color(0xFFFFFFFF)
+    /** The red MONO / CAUGHT button and the purple Draw button. */
+    val ArenaCallFillTop = Color(0xFF5A0B1E)
+    val ArenaCallFillBottom = Color(0xFF2A0610)
+    val ArenaCallNeon = Color(0xFFFF2E55)
+    val ArenaDrawFillTop = Color(0xFF4B3A9E)
+    val ArenaDrawFillBottom = Color(0xFF2B2063)
+    val ArenaDrawRim = Color(0xFF9C8BFF)
+    /** The title pill's teal glass. */
+    val ArenaTitleTop = Color(0xCC14444C)
+    val ArenaTitleBottom = Color(0xCC0E2328)
+    val ArenaTitleRim = Color(0xFF3FD0C9)
+    val ArenaCrown = Color(0xFFFFC23D)
 
     // Helpers
     val Transparent = Color.Transparent
@@ -216,8 +340,6 @@ object YapNPlayColors {
     val BgPodiumStepTop = Color(0xB8474C5C)
     val BgPodiumStepBottom = Color(0xB8262833)
     // Same frosted dark as the LEADERBOARD panel, so the art reads through both alike.
-    val BgLeaderboardBarTop = Color(0x9E25272E)
-    val BgLeaderboardBarBottom = Color(0x9E15161B)
     val MedalGold = Color(0xFFFFC83D)
     val MedalSilver = Color(0xFFD9DEE8)
     val MedalBronze = Color(0xFFCD7F32)

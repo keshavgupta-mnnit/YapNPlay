@@ -16,7 +16,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.VoiceWave
 fun TableTalkWave(talking: Boolean, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
     VoiceWave(
-        modifier = modifier.fillMaxWidth().height(YapNPlayTheme.dimens.tableTalkWaveHeight),
+        modifier = modifier.fillMaxWidth().height(YapNPlayTheme.dimens.ludoMuteIcon * 2),
         animated = talking,
         colors = if (talking) listOf(colors.VoiceWaveStart, colors.VoiceWaveEnd) else listOf(colors.VoiceWaveMuted, colors.VoiceWaveMuted),
     )

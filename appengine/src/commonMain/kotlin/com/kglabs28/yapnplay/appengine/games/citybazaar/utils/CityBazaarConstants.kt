@@ -5,7 +5,7 @@ import com.kglabs28.yapnplay.appengine.games.base.rules.HouseRuleOption
 
 // Identity and showcase (shared with the server's game list).
 const val CITY_BAZAAR_ID = GameIds.CITY_BAZAAR
-const val CITY_BAZAAR_DISPLAY_NAME = "City Bazaar"
+const val CITY_BAZAAR_DISPLAY_NAME = "City Royale"
 val CITY_BAZAAR_TAGLINES = listOf("Buy", "Build", "Boss")
 
 /** Rooms with friends: 3 to 6. Random (Quick Play) tables always seat 4. */

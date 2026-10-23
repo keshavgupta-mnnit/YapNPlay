@@ -17,8 +17,8 @@ android {
         applicationId = "com.kglabs28.yapnplay"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.0.1"
+        versionCode = 5
+        versionName = "1.0.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Must match AppConstants.INVITE_HOST / APP_SCHEME (invite + room links).
         manifestPlaceholders["inviteHost"] = "kglabs28-yapnplay.web.app"

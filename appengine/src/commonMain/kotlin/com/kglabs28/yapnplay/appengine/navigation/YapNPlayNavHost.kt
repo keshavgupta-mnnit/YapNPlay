@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.navigation
 
+import com.kglabs28.yapnplay.appengine.ui.components.keyboard.LocalAppKeyboard
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.kglabs28.yapnplay.appengine.ui.screens.feedback.FeedbackScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.history.MatchHistoryScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +43,8 @@ fun YapNPlayNavHost(
 ) {
     // Invite code from a link, waiting for the Rooms tab to ask "Join?".
     var pendingInviteCode by remember { mutableStateOf<String?>(null) }
+    // A shared YapNPlay ID from a link, waiting for Home to send its owner a friend request.
+    var pendingFriendCode by remember { mutableStateOf<String?>(null) }
     // A friend picked on Profile for Create New Group on the Rooms tab.
     var pendingCreateGroupWith by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(deepLink) {
@@ -49,6 +55,11 @@ fun YapNPlayNavHost(
                 launchSingleTop = true
             }
             // Invite link: back to the dashboard; Rooms asks to join.
+            // Friend link: back to Home, which sends the friend request.
+            is DeepLink.AddFriend -> {
+                navController.popBackStack<Main>(inclusive = false)
+                pendingFriendCode = deepLink.userCode
+            }
             is DeepLink.JoinRoom -> {
                 navController.popBackStack<Main>(inclusive = false)
                 pendingInviteCode = deepLink.code
@@ -56,6 +67,15 @@ fun YapNPlayNavHost(
             null -> return@LaunchedEffect
         }
         onDeepLinkHandled()
+    }
+
+    // A new screen: any keyboard (the phone's or the app's) closes.
+    val screen by navController.currentBackStackEntryAsState()
+    val focusManager = LocalFocusManager.current
+    val appKeyboard = LocalAppKeyboard.current
+    LaunchedEffect(screen?.id) {
+        focusManager.clearFocus(force = true)
+        appKeyboard.close()
     }
 
     NavHost(
@@ -75,8 +95,11 @@ fun YapNPlayNavHost(
                 onCreateRoom = { navController.navigate(RoomPlaceholder) },
                 onOpenProfile = { navController.navigate(Profile) },
                 onOpenHistory = { navController.navigate(MatchHistory) },
+                onOpenFeedback = { compose -> navController.navigate(Feedback(compose)) },
                 pendingInviteCode = pendingInviteCode,
                 onInviteConsumed = { pendingInviteCode = null },
+                pendingFriendCode = pendingFriendCode,
+                onFriendCodeConsumed = { pendingFriendCode = null },
                 pendingCreateGroupWith = pendingCreateGroupWith,
                 onCreateGroupConsumed = { pendingCreateGroupWith = null },
                 viewModel = mainViewModel,
@@ -88,6 +111,7 @@ fun YapNPlayNavHost(
             ProfileScreen(
                 onBack = { navController.popIfOnTop(entry) },
                 onOpenHistory = { navController.navigate(MatchHistory) },
+                onOpenFeedback = { compose -> navController.navigate(Feedback(compose)) },
                 onCreateGroupWith = { userId ->
                     pendingCreateGroupWith = userId
                     navController.popBackStack(Main, inclusive = false)
@@ -97,6 +121,13 @@ fun YapNPlayNavHost(
         }
         composable<MatchHistory> { entry ->
             MatchHistoryScreen(
+                onBack = { navController.popIfOnTop(entry) },
+                viewModel = entry.rememberScreenViewModel(),
+            )
+        }
+        composable<Feedback> { entry ->
+            FeedbackScreen(
+                startWithForm = entry.toRoute<Feedback>().compose,
                 onBack = { navController.popIfOnTop(entry) },
                 viewModel = entry.rememberScreenViewModel(),
             )

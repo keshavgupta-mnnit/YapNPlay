@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.PillTabs
 import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -67,7 +68,7 @@ fun ProfileFriendsSection(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
             AppIcon(imageVector = Icons.Rounded.Groups, tint = colors.SocialZoneAccent, size = dimens.iconMedium)
             BasicText(text = ProfileStrings.profileMyFriends, style = YapNPlayTheme.typography.sectionTitle.copy(color = colors.TextPrimary))
-            FriendsTabs(
+            PillTabs(
                 tabs = listOf(FriendsTab.ONLINE to ProfileStrings.profileTabOnline(onlineCount), FriendsTab.OFFLINE to ProfileStrings.profileTabOffline(offlineCount)),
                 selected = tab,
                 onSelect = onSelectTab,

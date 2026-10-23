@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,6 +39,8 @@ fun ModalCard(
     surface: Color = YapNPlayTheme.colors.Background.copy(alpha = DEFAULT_SURFACE_ALPHA),
     /** A gradient glass instead of [surface] (the profile's frosted purple). */
     surfaceBrush: Brush? = null,
+    /** Scrolls when taller than the room left (cards with text boxes: the phone's keyboard takes the bottom). */
+    scrollable: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
@@ -52,6 +56,7 @@ fun ModalCard(
                 surface = surface,
                 surfaceBrush = surfaceBrush ?: SolidColor(surface),
             )
+            .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
             .padding(Spacing.Lg),
         verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
     ) {

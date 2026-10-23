@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.coins
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.TierLooks
+import com.kglabs28.yapnplay.appengine.ui.components.common.TierLook
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
@@ -56,7 +57,7 @@ fun LeaguePickerCard(
             picker.leagues.forEach { league ->
                 LeagueRow(
                     league = league,
-                    tier = leagueTier(byFee.indexOf(league), byFee.size),
+                    tier = TierLooks.forLeague(byFee.indexOf(league), byFee.size),
                     onClick = { onPick(league.entryCoins) },
                 )
             }
@@ -64,28 +65,8 @@ fun LeaguePickerCard(
     }
 }
 
-/** How rich a league row looks: its glass and its rim, cheapest to dearest. */
-private data class LeagueTier(val fill: List<Color>, val rim: Color, val royal: Boolean = false)
-
-/** The tier for the league at [rank] (0 = cheapest) of [count]: the dearest is always royal. */
 @Composable
-private fun leagueTier(rank: Int, count: Int): LeagueTier {
-    val colors = YapNPlayTheme.colors
-    val ladder = listOf(
-        LeagueTier(listOf(colors.LeagueStarterTop, colors.LeagueStarterBottom), colors.LeagueStarterRim),
-        LeagueTier(listOf(colors.LeagueBronzeTop, colors.LeagueBronzeBottom), colors.LeagueBronzeRim),
-        LeagueTier(listOf(colors.LeagueSilverTop, colors.LeagueSilverBottom), colors.LeagueSilverRim),
-        LeagueTier(listOf(colors.LeagueGoldTop, colors.LeagueGoldBottom), colors.LeagueGoldRim),
-    )
-    val royal = LeagueTier(listOf(colors.LeagueRoyalTop, colors.LeagueRoyalMid, colors.LeagueRoyalBottom), colors.LeagueRoyalRim, royal = true)
-    return when {
-        count > 1 && rank == count - 1 -> royal
-        else -> ladder[rank.coerceIn(0, ladder.lastIndex)]
-    }
-}
-
-@Composable
-private fun LeagueRow(league: LeagueUi, tier: LeagueTier, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun LeagueRow(league: LeagueUi, tier: TierLook, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val shape = RoundedCornerShape(dimens.cardRadius)

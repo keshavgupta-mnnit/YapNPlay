@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.playroomlobby.usecase.GetRoomLeaderboardUseCase
+import com.kglabs28.yapnplay.appengine.features.playroomlobby.data.RoomLeaderboardRepositoryImpl
+import com.kglabs28.yapnplay.appengine.features.playroomlobby.repository.RoomLeaderboardRepository
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.data.PlayRoomLobbyRepositoryImpl
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.data.remote.LobbyRealtimeClient
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.data.remote.LobbyRealtimeClientImpl
@@ -14,8 +17,10 @@ import org.koin.dsl.module
 val playRoomLobbyModule = module {
     single<LobbyRealtimeClient> { LobbyRealtimeClientImpl(get(), get(), get(), get()) }
     single<PlayRoomLobbyRepository> { PlayRoomLobbyRepositoryImpl(get(), get(), get()) }
+    single<RoomLeaderboardRepository> { RoomLeaderboardRepositoryImpl(get(), get()) }
+    factory { GetRoomLeaderboardUseCase(get()) }
     factory { ObservePlayRoomLobbyUseCase(get(), get(), get()) }
     factory { SendLobbyCommandUseCase(get()) }
     factory { ObserveMatchStartingUseCase(get()) }
-    factory { PlayRoomLobbyViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { PlayRoomLobbyViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

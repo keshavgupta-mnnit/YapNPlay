@@ -40,7 +40,7 @@ object MonoStrings {
         GameRuleUi("Discard All", "Discards every card of its colour from your hand along with it."),
         GameRuleUi("Skip Everyone", "Everyone else is skipped: you play again at once."),
         GameRuleUi("MONO!", "When you are down to one card, press MONO! before anyone catches you."),
-        GameRuleUi("CAUGHT", "Press CAUGHT when a player on one card forgot MONO!: they draw 7 cards. Pressing it with nobody to catch costs you 4 cards."),
+        GameRuleUi("CAUGHT", "Press CAUGHT when a player on one card forgot MONO!: they draw 7 cards. Pressing it with nobody to catch costs you 2 cards."),
         GameRuleUi(TableStrings.endEarlyRuleTitle, TableStrings.endEarlyRule(monoEndRanking)),
     )
 

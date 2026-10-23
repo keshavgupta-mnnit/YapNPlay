@@ -30,6 +30,15 @@ object RoomStrings {
     const val lobbyDeclineRequest = "Decline"
     const val lobbyLeaderboard = "Leaderboard"
     const val lobbyShareLink = "Share Link"
+    const val boardTitle = "Room Leaderboard"
+    const val boardTabWins = "Most wins"
+    const val boardTabCoins = "Most coins"
+    const val boardEmpty = "No matches in this room yet. Play one to get on the board!"
+    const val boardFailed = "Couldn't load the leaderboard. Try again."
+    fun boardWins(n: Int) = if (n == 1) "1 win" else "$n wins"
+    fun boardCoins(coins: String) = "$coins coins"
+    fun boardPlayedCoins(played: Int, coins: String) = "$played played · $coins coins"
+    fun boardPlayedWins(played: Int, wins: Int) = "$played played · ${if (wins == 1) "1 win" else "$wins wins"}"
     const val lobbyMore = "More"
     const val lobbyAddFriends = "Add Friends"
     const val lobbyEditName = "Edit Name"
@@ -100,8 +109,13 @@ object RoomStrings {
     fun lobbyConfirmRemoveFromRoom(name: String) = "Remove $name from this room?"
     const val lobbyConfirmRemoveFromRoomBody = "They will need the room code or an invite to join again."
 
-    fun roomInviteMessage(roomName: String, code: String, link: String) =
-        "Join my room \"$roomName\" on YapNPlay! Tap to join: $link\nOr enter room code $code in the app."
+    /** With [joinLink] (invite links on): tap to join; without: the store link and the code only. */
+    fun roomInviteMessage(roomName: String, code: String, joinLink: String?, storeLink: String) =
+        if (joinLink != null) {
+            "Join my room \"$roomName\" on YapNPlay! Tap to join: $joinLink\nNo app yet? Get it: $storeLink\nOr enter room code $code in the app."
+        } else {
+            "Join my room \"$roomName\" on YapNPlay! Get the app: $storeLink\nThen enter room code $code to join."
+        }
 
     fun lobbyPlayersOnline(online: Int, total: Int) = "$online/$total Online"
     fun lobbyPlayersReady(ready: Int, seats: Int) = "$ready/$seats PLAYERS READY"
@@ -117,8 +131,6 @@ object RoomStrings {
         "The admin of $roomName has to approve your request. You will get a notification once you are in."
     const val roomsJoinCancel = "Cancel"
 
-    fun roomsJoinPromptTitle(roomName: String) = "Join $roomName?"
-    fun roomsJoinPromptDetails(members: Int, online: Int) = "$members members · $online online now"
 
     fun roomsJoinSubtitle(codeLength: Int) = "Enter the $codeLength-digit code to join your friends."
     fun roomsJoinInvalidCode(codeLength: Int) = "Room codes are $codeLength digits."
@@ -153,7 +165,7 @@ object RoomStrings {
     fun groupCreatedBody(name: String, invited: Int) =
         if (invited > 0) "$name is ready. $invited friends got an invite to join." else "$name is ready. Share the link to invite people."
     fun groupCode(code: String) = "Room code  $code"
-    const val groupCopyLink = "Copy link"
+    const val groupCopyLink = "Copy invite"
     const val groupShare = "Share"
     const val groupOpen = "Open Room"
     fun roomsInvites(count: Int) = if (count > 0) "INVITES ($count)" else "INVITES"

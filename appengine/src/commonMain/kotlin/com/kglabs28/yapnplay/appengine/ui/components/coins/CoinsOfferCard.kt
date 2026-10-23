@@ -80,8 +80,8 @@ fun CoinsOfferCard(
                     AppLog.d(AppConstants.LOG_TAG_ADS, "dialog: Watch Ad button pressed")
                     onWatchAd()
                 },
-                // Always pressable: when no ad can pay now, a tap says why instead of doing nothing.
-                enabled = !offer.watchingAd,
+                // Off while an ad plays, and during the cooldown or past today's limit (the note under it says which).
+                enabled = !offer.watchingAd && offer.canWatch,
                 gradient = listOf(colors.CoinsWatchStart, colors.CoinsWatchEnd),
                 contentColor = colors.CoinsWatchContent,
                 leadingIcon = Icons.Rounded.OndemandVideo,

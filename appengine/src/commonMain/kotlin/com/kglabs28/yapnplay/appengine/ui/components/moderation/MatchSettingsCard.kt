@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
+import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import androidx.compose.material.icons.rounded.SupportAgent
+import com.kglabs28.yapnplay.appengine.core.ui.FeedbackStrings
 import com.kglabs28.yapnplay.appengine.core.ui.HistoryStrings
 import androidx.compose.material.icons.rounded.History
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
@@ -44,17 +47,36 @@ fun MatchSettingsCard(
     rules: List<GameRuleUi> = emptyList(),
     /** Opens the user's match history; null hides it (only Home has it). */
     onHistory: (() -> Unit)? = null,
+    /** Opens Feedback & support with the form ([compose]) or the sent messages; null hides it (Home and Profile only). */
+    onFeedback: ((compose: Boolean) -> Unit)? = null,
+    /** Opens the app on Google Play to rate it (with [onFeedback]). */
+    onRateApp: () -> Unit = {},
+    /** The phone's keyboard instead of the app's; null hides the switch (Home and Profile only). */
+    systemKeyboard: Boolean? = null,
+    onToggleKeyboard: () -> Unit = {},
 ) {
-    // Game Rules shows the rules in this card's place; closing them comes back here.
+    // Game Rules and Feedback & support show in this card's place; closing them comes back here.
     var showingRules by remember { mutableStateOf(false) }
+    var showingFeedback by remember { mutableStateOf(false) }
     if (showingRules) {
         GameRulesCard(rules = rules, onClose = { showingRules = false }, modifier = modifier)
+        return
+    }
+    if (showingFeedback && onFeedback != null) {
+        FeedbackOptionsCard(
+            onShare = { onFeedback(true) },
+            onHistory = { onFeedback(false) },
+            onRate = onRateApp,
+            onClose = { showingFeedback = false },
+            modifier = modifier,
+        )
         return
     }
     ModalCard(title = LudoStrings.ludoSettings, onClose = onClose, modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
             SettingRow(LudoStrings.ludoSoundEffects, effectsOn, onToggleEffects)
             SettingRow(LudoStrings.ludoMusic, musicOn, onToggleMusic)
+            systemKeyboard?.let { SettingRow(Strings.settingsPhoneKeyboard, it, onToggleKeyboard) }
             onHistory?.let {
                 GlassPillButton(
                     text = HistoryStrings.historyTitle,
@@ -62,6 +84,17 @@ fun MatchSettingsCard(
                     leadingIcon = Icons.Rounded.History,
                     accent = YapNPlayTheme.colors.Gold,
                     contentColor = YapNPlayTheme.colors.Gold,
+                    height = YapNPlayTheme.dimens.ctaHeight,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            onFeedback?.let {
+                GlassPillButton(
+                    text = FeedbackStrings.feedbackSettingsButton,
+                    onClick = { showingFeedback = true },
+                    leadingIcon = Icons.Rounded.SupportAgent,
+                    accent = YapNPlayTheme.colors.Cyan,
+                    contentColor = YapNPlayTheme.colors.Cyan,
                     height = YapNPlayTheme.dimens.ctaHeight,
                     modifier = Modifier.fillMaxWidth(),
                 )

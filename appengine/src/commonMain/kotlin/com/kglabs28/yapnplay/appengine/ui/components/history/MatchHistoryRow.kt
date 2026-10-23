@@ -34,7 +34,7 @@ fun MatchHistoryRow(row: MatchHistoryRowUi, onClick: () -> Unit, modifier: Modif
     ) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
             ShrinkText(text = row.game, style = typography.sectionTitle.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
-            BasicText(text = row.line, style = typography.label.copy(color = colors.TextSecondary), maxLines = 1)
+            ShrinkText(text = row.line, style = typography.label.copy(color = colors.TextSecondary))
         }
         Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
             BasicText(text = row.coins, style = typography.label.copy(color = if (row.lost) colors.PlayerRed else colors.LiveGreen, fontWeight = FontWeight.Bold), maxLines = 1)

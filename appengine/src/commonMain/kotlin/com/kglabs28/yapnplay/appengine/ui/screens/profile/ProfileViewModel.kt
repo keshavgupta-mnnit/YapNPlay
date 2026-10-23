@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.profile
 
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.FriendInvites
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsController
 import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
@@ -39,6 +40,7 @@ class ProfileViewModel(
     private val getMyGroups: GetMyGroupsUseCase,
     private val inviteFriendsToGroup: InviteFriendsToGroupUseCase,
     private val settingsController: AppSettingsController,
+    private val friendInvites: FriendInvites,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<ProfileState, ProfileIntent, ProfileEffect>(ProfileState(), dispatchers) {
 
@@ -51,12 +53,19 @@ class ProfileViewModel(
             ProfileIntent.Load -> reload()
             ProfileIntent.Back -> emitEffect(ProfileEffect.Close)
             ProfileIntent.OpenSettings -> setState { copy(settings = settingsController.current()) }
+            ProfileIntent.AskExit -> setState { copy(exitAsked = true) }
+            ProfileIntent.DismissExit -> setState { copy(exitAsked = false) }
             ProfileIntent.CloseSettings -> setState { copy(settings = null) }
             ProfileIntent.ToggleEffects -> setState { copy(settings = settingsController.toggleEffects()) }
             ProfileIntent.ToggleMusic -> setState { copy(settings = settingsController.toggleMusic()) }
+            ProfileIntent.ToggleKeyboard -> setState { copy(settings = settingsController.toggleKeyboard()) }
             ProfileIntent.OpenHistory -> {
                 setState { copy(settings = null) }
                 emitEffect(ProfileEffect.OpenHistory)
+            }
+            is ProfileIntent.OpenFeedback -> {
+                setState { copy(settings = null) }
+                emitEffect(ProfileEffect.OpenFeedback(intent.compose))
             }
             ProfileIntent.EditAvatar -> data?.let { showModal(ProfileModal.AvatarPicker(it.profile.avatarId)) }
             is ProfileIntent.PickAvatar -> (modal as? ProfileModal.AvatarPicker)?.let { showModal(it.copy(selected = intent.avatarId)) }
@@ -72,6 +81,7 @@ class ProfileViewModel(
             is ProfileIntent.EditTextChanged -> (modal as? ProfileModal.EditText)?.let { showModal(it.copy(value = intent.text, error = null)) }
             ProfileIntent.SaveText -> (modal as? ProfileModal.EditText)?.let { saveText(it) }
             ProfileIntent.CodeCopied -> showCopied()
+            ProfileIntent.ShareCode -> state.value.userCode.takeIf { it.isNotEmpty() }?.let { emitEffect(ProfileEffect.ShareText(friendInvites.message(it))) }
             is ProfileIntent.SelectFriendsTab -> setState { copy(friendsTab = intent.tab, tabFriends = ProfileUiMapper.filter(friends, intent.tab)) }
             is ProfileIntent.SelectAllFriendsTab -> setState { copy(allFriendsTab = intent.tab, allTabFriends = ProfileUiMapper.filter(friends, intent.tab)) }
             is ProfileIntent.FriendClicked -> friend(intent.userId)?.let { showModal(ProfileModal.Person(it)) }

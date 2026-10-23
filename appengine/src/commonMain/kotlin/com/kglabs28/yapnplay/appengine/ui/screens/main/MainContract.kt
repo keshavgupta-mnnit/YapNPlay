@@ -34,6 +34,8 @@ data class MainState(
     val notificationsOpen: Boolean = false,
     /** A match the user still has a seat in: "Rejoin?" dialog; null when none. */
     val rejoin: RejoinUi? = null,
+    /** How a friend link's request went ("Request sent to K7M2PX", "Already friends"); null when none is showing. */
+    val friendLink: FriendLinkUi? = null,
     /** The coins "+": watch an ad for free coins; null when closed. */
     val coinsOffer: CoinsOfferUi? = null,
     /** The settings dialog (sound, music, match history); null when closed. */
@@ -44,6 +46,9 @@ data class MainState(
 
 /** The "your game is still on" dialog. */
 data class RejoinUi(val matchId: String, val gameId: String, val title: String)
+
+/** The friend link's outcome; [failed] shows it as a problem. */
+data class FriendLinkUi(val message: String, val failed: Boolean)
 
 /** One row of the bell's drop-down. */
 data class NotificationUi(
@@ -67,6 +72,9 @@ sealed interface MainIntent : UiIntent {
     data class NotificationClicked(val roomId: String) : MainIntent
     data object Rejoin : MainIntent
     data object DismissRejoin : MainIntent
+    /** A friend link was opened: send its owner a friend request. */
+    data class AddFriendFromLink(val userCode: String) : MainIntent
+    data object DismissFriendLink : MainIntent
     /** System Back on the main screen: ask before closing the app. */
     data object AskExit : MainIntent
     data object DismissExit : MainIntent
@@ -77,12 +85,17 @@ sealed interface MainIntent : UiIntent {
     data object CloseSettings : MainIntent
     data object ToggleEffects : MainIntent
     data object ToggleMusic : MainIntent
+    /** The phone's keyboard instead of the app's. */
+    data object ToggleKeyboard : MainIntent
     /** Match History in the settings. */
     data object OpenHistory : MainIntent
+    /** Feedback & support in the settings: the form ([compose]) or the sent messages. */
+    data class OpenFeedback(val compose: Boolean) : MainIntent
 }
 
 sealed interface MainEffect : UiEffect {
     data object OpenHistory : MainEffect
+    data class OpenFeedback(val compose: Boolean) : MainEffect
     data class OpenRoom(val roomId: String) : MainEffect
     data class OpenMatch(val gameId: String, val matchId: String) : MainEffect
 }

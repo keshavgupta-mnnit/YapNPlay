@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
+import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberExitApp
 import com.kglabs28.yapnplay.appengine.ui.components.common.ExitAppCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
@@ -51,8 +53,11 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     onOpenProfile: () -> Unit = {},
     onOpenHistory: () -> Unit = {},
+    onOpenFeedback: (compose: Boolean) -> Unit = {},
     pendingInviteCode: String? = null,
     onInviteConsumed: () -> Unit = {},
+    pendingFriendCode: String? = null,
+    onFriendCodeConsumed: () -> Unit = {},
     pendingCreateGroupWith: String? = null,
     onCreateGroupConsumed: () -> Unit = {},
     viewModel: MainViewModel? = null,
@@ -71,6 +76,7 @@ fun MainScreen(
                 is MainEffect.OpenRoom -> onOpenRoom(effect.roomId)
                 is MainEffect.OpenMatch -> onOpenMatch(effect.gameId, effect.matchId)
                 MainEffect.OpenHistory -> onOpenHistory()
+                is MainEffect.OpenFeedback -> onOpenFeedback(effect.compose)
             }
         }
     }
@@ -87,6 +93,18 @@ fun MainScreen(
                 onRejoin = { viewModel?.onIntent(MainIntent.Rejoin) },
                 onDismiss = { viewModel?.onIntent(MainIntent.DismissRejoin) },
             )
+        }
+    }
+    // A friend link was opened: send its owner a friend request (once).
+    LaunchedEffect(pendingFriendCode) {
+        pendingFriendCode?.let {
+            viewModel?.onIntent(MainIntent.AddFriendFromLink(it))
+            onFriendCodeConsumed()
+        }
+    }
+    state.friendLink?.let { link ->
+        BlockingOverlay(visible = true, onDismiss = { viewModel?.onIntent(MainIntent.DismissFriendLink) }) {
+            ModalCard(title = ProfileStrings.profileFriendLinkTitle, subtitle = link.message, onClose = { viewModel?.onIntent(MainIntent.DismissFriendLink) })
         }
     }
     // An invite link was opened: show the Rooms tab, which asks to join.
@@ -114,7 +132,9 @@ fun MainScreen(
         settings = settings,
         onToggleEffects = { viewModel?.onIntent(MainIntent.ToggleEffects) },
         onToggleMusic = { viewModel?.onIntent(MainIntent.ToggleMusic) },
+        onToggleKeyboard = { viewModel?.onIntent(MainIntent.ToggleKeyboard) },
         onHistory = { viewModel?.onIntent(MainIntent.OpenHistory) },
+        onFeedback = { viewModel?.onIntent(MainIntent.OpenFeedback(it)) },
         onClose = { viewModel?.onIntent(MainIntent.CloseSettings) },
     )
 

@@ -8,7 +8,6 @@ import com.kglabs28.yapnplay.appengine.features.matchresult.usecase.ObserveMatch
 import com.kglabs28.yapnplay.appengine.core.common.TextUtils
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
-import com.kglabs28.yapnplay.appengine.appmanager.helpers.AppManagerHelper
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.GamesAppManagerHelper
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
 import com.kglabs28.yapnplay.appengine.core.audio.TurnAlarm
@@ -77,7 +76,6 @@ class RoyalLudoMatchViewModel(
     private val setMicOn: SetMicOnUseCase,
     private val moderation: ModerationUseCases,
     private val gamesConfig: GamesAppManagerHelper,
-    private val appConfig: AppManagerHelper,
     private val playerFriends: PlayerFriendUseCases,
     private val audio: GameAudio,
     private val observeMatchCoins: ObserveMatchCoinsUseCase,
@@ -395,7 +393,7 @@ class RoyalLudoMatchViewModel(
         diceVisible = newMatch.phase == LudoPhase.ROLL
         if (newlyFinished) sound(GameSound.WIN)
         if (newMatch.phase == LudoPhase.FINISHED && leaderboard == null) {
-            leaderboard = LudoMatchUiMapper.leaderboard(newMatch, LudoMatchUiMapper.elapsed(clock.now() - newMatch.startedAt)).copy(shareLink = appConfig.playStoreUrl()).let { LeaderboardResult.withResult(it, seatResults) }
+            leaderboard = LudoMatchUiMapper.leaderboard(newMatch, LudoMatchUiMapper.elapsed(clock.now() - newMatch.startedAt)).let { LeaderboardResult.withResult(it, seatResults) }
         }
         render()
     }

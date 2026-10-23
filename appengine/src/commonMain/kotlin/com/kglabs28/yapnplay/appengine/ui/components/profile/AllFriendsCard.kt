@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.PillTabs
 import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +44,7 @@ fun AllFriendsCard(
     val dimens = YapNPlayTheme.dimens
     ModalCard(
         surfaceBrush = AppBrushes.dialogGeneric,title = ProfileStrings.profileAllFriendsTitle, onClose = onClose, modifier = modifier.width(dimens.profileWideDialogWidth)) {
-        FriendsTabs(
+        PillTabs(
             tabs = listOf(
                 FriendsTab.ALL to ProfileStrings.profileTabAll(allCount),
                 FriendsTab.ONLINE to ProfileStrings.profileTabOnline(onlineCount),

@@ -106,6 +106,8 @@ sealed interface LobbyModal {
     data class Countdown(val title: String, val canCancel: Boolean) : LobbyModal
     /** Mic permission was refused: explain and offer Settings. */
     data object MicPermissionNeeded : LobbyModal
+    /** The room's leaderboard (wins or coins). */
+    data class Leaderboard(val board: RoomLeaderboardUi) : LobbyModal
 }
 
 sealed interface PlayRoomLobbyIntent : UiIntent {
@@ -139,6 +141,7 @@ sealed interface PlayRoomLobbyIntent : UiIntent {
     data class ApproveJoin(val userId: String) : PlayRoomLobbyIntent
     data class DeclineJoin(val userId: String) : PlayRoomLobbyIntent
     data object OpenLeaderboard : PlayRoomLobbyIntent
+    data class SelectLeaderboardTab(val tab: RoomBoardTab) : PlayRoomLobbyIntent
     data object ShareLink : PlayRoomLobbyIntent
     data object OpenAddFriends : PlayRoomLobbyIntent
     data class AddFriendCodeChanged(val code: String) : PlayRoomLobbyIntent

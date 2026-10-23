@@ -1,9 +1,11 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
+import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.RoomMemberRecord
+import com.kglabs28.yapnplay.appengine.features.playroomlobby.usecase.GetRoomLeaderboardUseCase
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.RoomInvites
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
-import com.kglabs28.yapnplay.appengine.core.common.DeepLinks
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import com.kglabs28.yapnplay.appengine.core.mvi.MviViewModel
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.domain.GameCatalogItem
@@ -46,12 +48,16 @@ class PlayRoomLobbyViewModel(
     private val getFriends: GetFriendsUseCase,
     private val inviteFriends: InviteFriendsToGroupUseCase,
     private val clock: AppClock,
+    private val roomInvites: RoomInvites,
+    private val getRoomLeaderboard: GetRoomLeaderboardUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<PlayRoomLobbyState, PlayRoomLobbyIntent, PlayRoomLobbyEffect>(PlayRoomLobbyState(), dispatchers) {
 
     private var roomId: String? = null
     private var data: LobbyData? = null
     private var userModal: LobbyModal? = null
+    /** The members' records behind the open leaderboard (both tabs rank these). */
+    private var boardRecords: List<RoomMemberRecord> = emptyList()
     /** The app-wide mic switch the room follows. */
     private var micSwitch = false
     /** The user speaking into their mic, whether it's listening, and whether the room is on screen. */
@@ -117,13 +123,15 @@ class PlayRoomLobbyViewModel(
                 emitEffect(PlayRoomLobbyEffect.Close)
             }
             PlayRoomLobbyIntent.ShareLink -> data?.room?.let {
-                emitEffect(PlayRoomLobbyEffect.ShareText(RoomStrings.roomInviteMessage(it.name, it.code, DeepLinks.inviteUrl(it.code))))
+                emitEffect(PlayRoomLobbyEffect.ShareText(roomInvites.message(it.name, it.code)))
             }
             PlayRoomLobbyIntent.OpenWaitingList -> showModal(LobbyModal.WaitingList)
             is PlayRoomLobbyIntent.ApproveJoin -> send(LobbyCommand.ApproveJoin(intent.userId))
             is PlayRoomLobbyIntent.DeclineJoin -> send(LobbyCommand.DeclineJoin(intent.userId))
-            // The leaderboard screen arrives later.
-            PlayRoomLobbyIntent.OpenLeaderboard -> Unit
+            PlayRoomLobbyIntent.OpenLeaderboard -> openLeaderboard()
+            is PlayRoomLobbyIntent.SelectLeaderboardTab -> (userModal as? LobbyModal.Leaderboard)?.let {
+                showModal(LobbyModal.Leaderboard(it.board.copy(tab = intent.tab, rows = RoomLeaderboardUiMapper.rows(boardRecords, intent.tab, data?.myUserId))))
+            }
             PlayRoomLobbyIntent.OpenAddFriends -> openAddFriends()
             is PlayRoomLobbyIntent.AddFriendCodeChanged -> updateAddFriends {
                 copy(code = intent.code.uppercase().take(AppConstants.USER_CODE_LENGTH), error = null)
@@ -250,6 +258,20 @@ class PlayRoomLobbyViewModel(
         if (name.isEmpty()) return
         send(LobbyCommand.RenameRoom(name))
         setState { copy(sheet = null) }
+    }
+
+    /** The room's members ranked by wins first; Most coins re-ranks the same records. */
+    private suspend fun openLeaderboard() {
+        val id = roomId ?: return
+        showModal(LobbyModal.Leaderboard(RoomLeaderboardUi()))
+        val board = when (val result = getRoomLeaderboard(id)) {
+            is AppResult.Success -> {
+                boardRecords = result.data
+                RoomLeaderboardUi(rows = RoomLeaderboardUiMapper.rows(boardRecords, RoomBoardTab.WINS, data?.myUserId), loading = false)
+            }
+            is AppResult.Failure -> RoomLeaderboardUi(loading = false, error = RoomStrings.boardFailed)
+        }
+        if (userModal is LobbyModal.Leaderboard) showModal(LobbyModal.Leaderboard(board))
     }
 
     private fun showModal(modal: LobbyModal?) {

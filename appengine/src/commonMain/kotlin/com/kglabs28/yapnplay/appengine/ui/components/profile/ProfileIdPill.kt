@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.rounded.Share
 import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,13 +23,14 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
-/** "YapNPlay ID  K7M2PX ⧉": the ID in a glass pill; a tap copies it ([copied] shows "Copied"). */
+/** "YapNPlay ID  K7M2PX ⧉ ⤴": the ID in a glass pill; a tap copies it ([copied] shows "Copied"); [onShare] adds Share. */
 @Composable
 fun ProfileIdPill(
     code: String,
     copied: Boolean,
     onCopy: () -> Unit,
     modifier: Modifier = Modifier,
+    onShare: (() -> Unit)? = null,
 ) {
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
@@ -49,6 +53,15 @@ fun ProfileIdPill(
             BasicText(text = ProfileStrings.profileCopied, style = typography.micro.copy(color = colors.LiveGreen), modifier = Modifier.padding(end = Spacing.Xs))
         } else {
             AppIcon(imageVector = Icons.Rounded.ContentCopy, tint = colors.IconMuted, size = YapNPlayTheme.dimens.iconSmall, contentDescription = ProfileStrings.profileCopyCode, modifier = Modifier.padding(end = Spacing.Xs))
+        }
+        onShare?.let {
+            AppIcon(
+                imageVector = Icons.Rounded.Share,
+                tint = colors.Cyan,
+                size = YapNPlayTheme.dimens.iconSmall,
+                contentDescription = ProfileStrings.profileShareCode,
+                modifier = Modifier.clip(CircleShape).clickable(role = Role.Button, onClick = it).padding(end = Spacing.Xs),
+            )
         }
     }
 }

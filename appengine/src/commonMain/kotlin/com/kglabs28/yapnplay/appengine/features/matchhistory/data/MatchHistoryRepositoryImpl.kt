@@ -28,6 +28,8 @@ class MatchHistoryRepositoryImpl(
                     PastMatch(
                         matchId = m.matchId,
                         gameId = m.gameId,
+                        roomMatch = m.roomMatch,
+                        roomName = m.roomName,
                         startedAt = m.startedAt,
                         endedAt = m.endedAt,
                         mySeat = m.mySeat,

@@ -25,7 +25,8 @@ object MatchHistoryUiMapper {
     fun row(match: PastMatch): MatchHistoryRowUi {
         val mine = match.mine
         val result = mine?.result
-        val date = Instant.fromEpochMilliseconds(match.endedAt).toLocalDateTime(TimeZone.currentSystemDefault()).date
+        val ended = Instant.fromEpochMilliseconds(match.endedAt).toLocalDateTime(TimeZone.currentSystemDefault())
+        val date = ended.date
         // A paid match shows the net (won and bonus, less the entry); a free one what was won.
         val net = result?.let { if (it.stake > 0) it.net else it.coins } ?: 0
         return MatchHistoryRowUi(
@@ -34,7 +35,8 @@ object MatchHistoryUiMapper {
             game = gameName(match.gameId),
             line = listOfNotNull(
                 mine?.let { HistoryStrings.historyPlace(TableStrings.placeLabel(it.place)) },
-                Strings.shortDate(date.dayOfMonth, date.monthNumber, date.year),
+                if (match.roomMatch) match.roomName.ifBlank { HistoryStrings.historyRoom } else HistoryStrings.historyQuickPlay,
+                Strings.shortDateTime(date.dayOfMonth, date.monthNumber, date.year, ended.hour, ended.minute),
             ).joinToString(SEPARATOR),
             coins = when {
                 net < 0 -> TableStrings.leaderboardLost(TextUtils.groupedThousands(-net))

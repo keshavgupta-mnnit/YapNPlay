@@ -15,6 +15,8 @@ import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 data class ProfileState(
     /** The settings dialog (sound, music, match history); null when closed. */
     val settings: AppSettingsUi? = null,
+    /** Exit in the top bar: "Exit YapNPlay?" is showing. */
+    val exitAsked: Boolean = false,
     val loaded: Boolean = false,
     val name: String = "",
     /** The raw 6-character YapNPlay ID, for showing and copying. */
@@ -101,11 +103,18 @@ sealed interface ProfileIntent : UiIntent {
     data object Load : ProfileIntent
     data object Back : ProfileIntent
     data object OpenSettings : ProfileIntent
+    /** Exit in the top bar: ask before closing the app. */
+    data object AskExit : ProfileIntent
+    data object DismissExit : ProfileIntent
     data object CloseSettings : ProfileIntent
     data object ToggleEffects : ProfileIntent
     data object ToggleMusic : ProfileIntent
+    /** The phone's keyboard instead of the app's. */
+    data object ToggleKeyboard : ProfileIntent
     /** Match History in the settings. */
     data object OpenHistory : ProfileIntent
+    /** Feedback & support in the settings: the form ([compose]) or the sent messages. */
+    data class OpenFeedback(val compose: Boolean) : ProfileIntent
     data object EditAvatar : ProfileIntent
     data class PickAvatar(val avatarId: String) : ProfileIntent
     data object SaveAvatar : ProfileIntent
@@ -114,6 +123,8 @@ sealed interface ProfileIntent : UiIntent {
     data object SaveText : ProfileIntent
     /** The screen copied the user's ID to the clipboard. */
     data object CodeCopied : ProfileIntent
+    /** Share the YapNPlay ID as a friend link. */
+    data object ShareCode : ProfileIntent
     data class SelectFriendsTab(val tab: FriendsTab) : ProfileIntent
     data class SelectAllFriendsTab(val tab: FriendsTab) : ProfileIntent
     data class FriendClicked(val userId: String) : ProfileIntent
@@ -142,6 +153,9 @@ sealed interface ProfileIntent : UiIntent {
 sealed interface ProfileEffect : UiEffect {
     data object Close : ProfileEffect
     data object OpenHistory : ProfileEffect
+    data class OpenFeedback(val compose: Boolean) : ProfileEffect
     /** Go to the Rooms tab's Create New Group with this friend picked. */
     data class OpenCreateGroup(val userId: String) : ProfileEffect
+    /** Open the share sheet with [text]. */
+    data class ShareText(val text: String) : ProfileEffect
 }

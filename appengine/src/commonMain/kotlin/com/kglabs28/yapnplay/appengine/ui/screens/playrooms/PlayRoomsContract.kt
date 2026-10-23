@@ -22,7 +22,6 @@ data class PlayRoomsState(
     /** Why the last join failed, ready to show; null when there is no error. */
     val joinError: String? = null,
     /** "Join this room?" before joining (typed code or invite link). */
-    val joinPrompt: JoinPromptUi? = null,
     /** In-app keypad replaces rooms + friends while the code is being typed. */
     val keypadOpen: Boolean = false,
     /** "Request sent, the admin has to approve" after joining someone's room. */
@@ -59,14 +58,6 @@ data class GroupInviteUi(val inviteId: String, val roomName: String, val icon: P
 /** The waiting-for-approval note, ready to show. */
 data class RequestSentUi(val title: String, val body: String)
 
-/** The join confirmation, ready to show. */
-data class JoinPromptUi(
-    val code: String,
-    val title: String,
-    val details: String,
-    val description: String,
-)
-
 sealed interface PlayRoomsIntent : UiIntent {
     data object Load : PlayRoomsIntent
     data class RoomCodeChanged(val code: String) : PlayRoomsIntent
@@ -82,8 +73,6 @@ sealed interface PlayRoomsIntent : UiIntent {
     data object ClearCode : PlayRoomsIntent
     /** Opened from an invite link: same lookup and question. */
     data class PreviewInvite(val code: String) : PlayRoomsIntent
-    data object ConfirmJoin : PlayRoomsIntent
-    data object DismissJoinPrompt : PlayRoomsIntent
     data object CreateRoom : PlayRoomsIntent
     /** From a friend's profile card: Create New Group with them already picked. */
     data class CreateGroupWith(val userId: String) : PlayRoomsIntent

@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
+import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
+import com.kglabs28.yapnplay.appengine.features.profile.presentation.ProfileUiMapper
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.SendFriendRequestUseCase
 import kotlinx.coroutines.flow.first
 import com.kglabs28.yapnplay.appengine.core.common.StartupGate
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsController
@@ -53,6 +57,7 @@ class MainViewModel(
     private val clock: AppClock,
     private val settingsController: AppSettingsController,
     private val startupGate: StartupGate,
+    private val sendFriendRequest: SendFriendRequestUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MainState, MainIntent, MainEffect>(MainState(), dispatchers) {
 
@@ -101,6 +106,8 @@ class MainViewModel(
                 emitEffect(MainEffect.OpenMatch(it.gameId, it.matchId))
             }
             MainIntent.DismissRejoin -> setState { copy(rejoin = null) }
+            is MainIntent.AddFriendFromLink -> addFriendFromLink(intent.userCode)
+            MainIntent.DismissFriendLink -> setState { copy(friendLink = null) }
             MainIntent.AskExit -> setState { copy(exitAsked = true) }
             MainIntent.DismissExit -> setState { copy(exitAsked = false) }
             // Only when an ad can play now: an offer that ends in "no ad" is worse than none.
@@ -117,9 +124,14 @@ class MainViewModel(
             MainIntent.CloseSettings -> setState { copy(settings = null) }
             MainIntent.ToggleEffects -> setState { copy(settings = settingsController.toggleEffects()) }
             MainIntent.ToggleMusic -> setState { copy(settings = settingsController.toggleMusic()) }
+            MainIntent.ToggleKeyboard -> setState { copy(settings = settingsController.toggleKeyboard()) }
             MainIntent.OpenHistory -> {
                 setState { copy(settings = null) }
                 emitEffect(MainEffect.OpenHistory)
+            }
+            is MainIntent.OpenFeedback -> {
+                setState { copy(settings = null) }
+                emitEffect(MainEffect.OpenFeedback(intent.compose))
             }
             MainIntent.ToggleNotifications ->
                 if (state.value.notificationsOpen) closeNotifications() else openNotifications()
@@ -216,11 +228,8 @@ class MainViewModel(
         AppLog.d(AppConstants.LOG_TAG_ADS, "home: Watch Ad tapped (canWatch=${offer?.canWatch}, watching=${offer?.watchingAd})")
         // Extra taps while one ad is loading or playing do nothing (one ad per tap).
         if (offer?.watchingAd == true) return
-        // A cooldown or today's limit: say so rather than play nothing.
-        if (offer != null && !offer.canWatch) {
-            setState { copy(coinsOffer = coinsOffer?.copy(message = offer.note ?: CoinsStrings.adLimit)) }
-            return
-        }
+        // A cooldown or today's limit: the button is off and its note says why.
+        if (offer != null && !offer.canWatch) return
         setState { copy(coinsOffer = coinsOffer?.copy(watchingAd = true, message = null)) }
         val result = watchAdForCoins.invoke()
         val message = CoinsUiMapper.adMessage(result)
@@ -232,6 +241,19 @@ class MainViewModel(
         }
         // Then: "next in 2h · 4 left today", or the daily limit, with the button off.
         refreshAdLimits()
+    }
+
+    /** After sign-in (the account must exist first), sends the request and says how it went. */
+    private suspend fun addFriendFromLink(userCode: String) {
+        startupGate.ready.first { it }
+        val ui = when (val result = sendFriendRequest(userCode)) {
+            is AppResult.Success -> ProfileUiMapper.outcome(result.data, userCode.trim().uppercase()).let { (message, failed) -> FriendLinkUi(message, failed) }
+            is AppResult.Failure -> FriendLinkUi(
+                if (result.error is YapNPlayError.Validation) ProfileStrings.profileCodeNotFound else ProfileStrings.profileNetworkError,
+                failed = true,
+            )
+        }
+        setState { copy(friendLink = ui) }
     }
 
     private fun showSettings() {

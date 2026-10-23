@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.RoomBoardTab
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -49,11 +50,13 @@ fun LobbyModalContent(
     waitingList: List<WaitingRequestUi> = emptyList(),
     onApproveJoin: (String) -> Unit = {},
     onDeclineJoin: (String) -> Unit = {},
+    onLeaderboardTab: (RoomBoardTab) -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
 
     when (modal) {
+        is LobbyModal.Leaderboard -> RoomLeaderboardCard(board = modal.board, onTab = onLeaderboardTab, onClose = onDismiss, modifier = modifier)
         is LobbyModal.MemberMenu -> ModalCard(
             title = modal.name,
             modifier = modifier,

@@ -6,6 +6,10 @@ import com.kglabs28.yapnplay.appengine.features.matchresult.domain.SeatResult
 data class PastMatch(
     val matchId: String,
     val gameId: String,
+    /** Played in a room (false: Quick Play). */
+    val roomMatch: Boolean,
+    /** The room's name ("" for Quick Play, or a room since deleted). */
+    val roomName: String,
     val startedAt: Long,
     val endedAt: Long,
     val mySeat: Int,

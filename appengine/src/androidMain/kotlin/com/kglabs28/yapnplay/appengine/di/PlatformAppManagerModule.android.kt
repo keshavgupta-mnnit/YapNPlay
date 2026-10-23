@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.core.common.AndroidKeyboardPreference
+import com.kglabs28.yapnplay.appengine.core.common.KeyboardPreference
+import com.kglabs28.yapnplay.appengine.core.network.AndroidDeviceIdentity
+import com.kglabs28.yapnplay.appengine.core.network.DeviceIdentity
 import org.koin.android.ext.koin.androidApplication
 import com.kglabs28.yapnplay.appengine.core.ads.RewardedAds
 import com.kglabs28.yapnplay.appengine.core.ads.AdMobRewardedAds
@@ -27,6 +31,8 @@ val platformAppManagerModule = module {
     single<AppConfigStore> { AndroidConfigStore(androidContext()) }
     single<NotificationHistoryStore> { AndroidNotificationHistoryStore(androidContext()) }
     single<CredentialStore> { AndroidCredentialStore(androidContext()) }
+    single<DeviceIdentity> { AndroidDeviceIdentity(androidContext()) }
+    single<KeyboardPreference> { AndroidKeyboardPreference(androidContext()) }
     single<GameAudio> { AndroidGameAudio(androidContext()) }
     single<RemoteConfigSource> { FirebaseRemoteConfigSource() }
     single<AppVersionProvider> { AndroidAppVersionProvider(androidContext()) }

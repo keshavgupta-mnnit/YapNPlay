@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import android.content.ClipData
 import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
@@ -27,6 +28,8 @@ actual fun rememberImageShare(): (image: ImageBitmap, text: String) -> Unit {
                     .putExtra(Intent.EXTRA_STREAM, uri)
                     .putExtra(Intent.EXTRA_TEXT, text)
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                // Also as clip data: newer Android grants the picture to the chosen app (and previews it) through it.
+                send.clipData = ClipData.newRawUri(null, uri)
                 context.startActivity(Intent.createChooser(send, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             } catch (e: Exception) {
                 CrashReporter.record(e, "ImageShare")

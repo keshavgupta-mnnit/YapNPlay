@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.profile
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.rememberShareSheet
+import com.kglabs28.yapnplay.appengine.ui.components.common.rememberExitApp
+import com.kglabs28.yapnplay.appengine.ui.components.common.ExitAppCard
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsDialog
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -52,6 +55,7 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 fun ProfileScreen(
     onBack: () -> Unit,
     onOpenHistory: () -> Unit = {},
+    onOpenFeedback: (compose: Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel? = null,
     onCreateGroupWith: (userId: String) -> Unit = {},
@@ -59,12 +63,15 @@ fun ProfileScreen(
     val state = viewModel?.state?.collectAsState()?.value ?: ProfileState()
     val send: (ProfileIntent) -> Unit = { viewModel?.onIntent(it) }
     val clipboard = LocalClipboardManager.current
+    val share = rememberShareSheet()
     LaunchedEffect(viewModel) {
         viewModel?.onIntent(ProfileIntent.Load)
         viewModel?.effects?.collect { effect ->
             when (effect) {
                 ProfileEffect.Close -> onBack()
                 ProfileEffect.OpenHistory -> onOpenHistory()
+                is ProfileEffect.ShareText -> share(effect.text)
+                is ProfileEffect.OpenFeedback -> onOpenFeedback(effect.compose)
                 is ProfileEffect.OpenCreateGroup -> onCreateGroupWith(effect.userId)
             }
         }
@@ -95,6 +102,7 @@ fun ProfileScreen(
             ProfileTopBar(
                 onBack = { send(ProfileIntent.Back) },
                 onSettings = { send(ProfileIntent.OpenSettings) },
+                onExit = { send(ProfileIntent.AskExit) },
                 modifier = Modifier.fillMaxWidth(),
             )
             Column(
@@ -127,6 +135,7 @@ fun ProfileScreen(
                             clipboard.setText(AnnotatedString(state.userCode))
                             send(ProfileIntent.CodeCopied)
                         },
+                        onShareCode = { send(ProfileIntent.ShareCode) },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     // No friends yet: the section is hidden.
@@ -189,11 +198,17 @@ fun ProfileScreen(
     }
 
     val modal = state.modal
+    val exitApp = rememberExitApp()
+    BlockingOverlay(visible = state.exitAsked, onDismiss = { send(ProfileIntent.DismissExit) }) {
+        ExitAppCard(onExit = exitApp, onStay = { send(ProfileIntent.DismissExit) })
+    }
     AppSettingsDialog(
         settings = state.settings,
         onToggleEffects = { send(ProfileIntent.ToggleEffects) },
         onToggleMusic = { send(ProfileIntent.ToggleMusic) },
+        onToggleKeyboard = { send(ProfileIntent.ToggleKeyboard) },
         onHistory = { send(ProfileIntent.OpenHistory) },
+        onFeedback = { send(ProfileIntent.OpenFeedback(it)) },
         onClose = { send(ProfileIntent.CloseSettings) },
     )
     BlockingOverlay(

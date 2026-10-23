@@ -45,6 +45,11 @@ object Strings {
     fun rejoinBody(title: String) = "You still have a seat in $title. Jump back in?"
     const val rejoinAction = "Rejoin"
     const val rejoinNotNow = "Not now"
+    const val deviceAccountTitle = "Welcome back!"
+    const val settingsPhoneKeyboard = "Phone keyboard"
+    fun deviceAccountBody(name: String, level: Int) = "This phone already has a YapNPlay account: $name (Level $level). Continue with it, or start a new one?"
+    const val deviceAccountContinue = "Continue"
+    const val deviceAccountNew = "Start new"
     const val exitTitle = "Exit YapNPlay?"
     const val exitBody = "Do you want to close the app?"
     const val exitStay = "Stay"
@@ -100,6 +105,13 @@ object Strings {
     const val clearField = "Clear"
     val monthsShort = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     fun shortDate(day: Int, month: Int, year: Int) = "$day ${monthsShort[month - 1]} $year"
+
+    /** "12 Oct 2026, 12:40 PM" (12-hour clock). */
+    fun shortDateTime(day: Int, month: Int, year: Int, hour: Int, minute: Int): String {
+        val clock = if (hour % 12 == 0) 12 else hour % 12
+        val half = if (hour < 12) "AM" else "PM"
+        return "${shortDate(day, month, year)}, $clock:${minute.toString().padStart(2, '0')} $half"
+    }
 
     /** The app keyboard's counter: "12/20". */
     fun keyboardCount(length: Int, max: Int) = "$length/$max"

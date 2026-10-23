@@ -15,7 +15,6 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper.CbTableMapper
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
-import com.kglabs28.yapnplay.appengine.appmanager.helpers.AppManagerHelper
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.GamesAppManagerHelper
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.CityBazaarAppManagerHelper
 import kotlin.time.Duration.Companion.milliseconds
@@ -92,7 +91,6 @@ class CityBazaarMatchViewModel(
     private val playerFriends: PlayerFriendUseCases,
     private val audio: GameAudio,
     private val cbConfig: CityBazaarAppManagerHelper,
-    private val appConfig: AppManagerHelper,
     private val gamesConfig: GamesAppManagerHelper,
     private val observeMatchCoins: ObserveMatchCoinsUseCase,
     private val clock: AppClock,
@@ -633,7 +631,7 @@ class CityBazaarMatchViewModel(
         }
         if (justFinished) {
             sound(GameSound.WIN)
-            leaderboard = CbResultMapper.leaderboard(newMatch, CbFormat.elapsed(clock.now() - newMatch.startedAt)).copy(shareLink = appConfig.playStoreUrl()).let { LeaderboardResult.withResult(it, seatResults) }
+            leaderboard = CbResultMapper.leaderboard(newMatch, CbFormat.elapsed(clock.now() - newMatch.startedAt)).let { LeaderboardResult.withResult(it, seatResults) }
         }
         render()
     }

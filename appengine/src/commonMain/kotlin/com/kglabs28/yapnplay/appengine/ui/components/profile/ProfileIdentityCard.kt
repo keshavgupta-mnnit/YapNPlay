@@ -34,6 +34,7 @@ fun ProfileIdentityCard(
     onChangeAvatar: () -> Unit,
     onEditName: () -> Unit,
     onCopyCode: () -> Unit,
+    onShareCode: () -> Unit = {},
     modifier: Modifier = Modifier,
     onOpenHistory: (() -> Unit)? = null,
 ) {
@@ -49,7 +50,7 @@ fun ProfileIdentityCard(
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Lg)) {
                 ProfileEditableText(text = name, style = typography.title.copy(color = colors.TextPrimary), onEdit = onEditName)
                 Spacer(Modifier.weight(1f))
-                ProfileIdPill(code = userCode, copied = codeCopied, onCopy = onCopyCode)
+                ProfileIdPill(code = userCode, copied = codeCopied, onCopy = onCopyCode, onShare = onShareCode)
             }
             ProfileStatsPanel(stats = stats, modifier = Modifier.fillMaxWidth(), onOpenHistory = onOpenHistory)
         }

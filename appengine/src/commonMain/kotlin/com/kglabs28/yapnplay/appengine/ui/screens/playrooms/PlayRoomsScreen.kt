@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playrooms
 
+import androidx.compose.runtime.DisposableEffect
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,7 +31,6 @@ import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
-import com.kglabs28.yapnplay.appengine.ui.components.playrooms.JoinRoomPromptCard
 import com.kglabs28.yapnplay.appengine.ui.components.playrooms.CreateRoomHeroCard
 import com.kglabs28.yapnplay.appengine.ui.components.playrooms.JoinRoomCard
 import com.kglabs28.yapnplay.appengine.ui.components.playrooms.OnlineFriendsPanel
@@ -84,6 +84,7 @@ fun PlayRoomsScreen(
     // Keypad open: a tap anywhere outside the code card and keypad (or
     // Back) hides it and brings rooms + friends back.
     val keypadOpen = state.keypadOpen
+    DisposableEffect(viewModel) { onDispose { viewModel?.onIntent(PlayRoomsIntent.CloseKeypad) } }
     BlockBackPress(enabled = keypadOpen, onBack = { viewModel?.onIntent(PlayRoomsIntent.CloseKeypad) })
     Row(
         modifier = modifier
@@ -204,7 +205,7 @@ fun PlayRoomsScreen(
         if (created != null) {
             GroupCreatedDialog(
                 created = created,
-                onCopyLink = { clipboard.setText(AnnotatedString(created.link)) },
+                onCopyLink = { clipboard.setText(AnnotatedString(created.shareText)) },
                 onShare = { viewModel?.onIntent(PlayRoomsIntent.ShareGroup) },
                 onOpen = { viewModel?.onIntent(PlayRoomsIntent.OpenCreatedGroup) },
                 onClose = { viewModel?.onIntent(PlayRoomsIntent.DismissGroupCreated) },
@@ -220,19 +221,6 @@ fun PlayRoomsScreen(
                 onAccept = { viewModel?.onIntent(PlayRoomsIntent.AcceptInvite(it)) },
                 onDecline = { viewModel?.onIntent(PlayRoomsIntent.DeclineInvite(it)) },
                 onClose = { viewModel?.onIntent(PlayRoomsIntent.DismissInvites) },
-            )
-        }
-    }
-
-    val prompt = state.joinPrompt
-    BlockingOverlay(visible = prompt != null) {
-        if (prompt != null) {
-            JoinRoomPromptCard(
-                title = prompt.title,
-                details = prompt.details,
-                description = prompt.description,
-                onJoin = { viewModel?.onIntent(PlayRoomsIntent.ConfirmJoin) },
-                onCancel = { viewModel?.onIntent(PlayRoomsIntent.DismissJoinPrompt) },
             )
         }
     }

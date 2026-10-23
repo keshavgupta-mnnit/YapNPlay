@@ -172,11 +172,8 @@ class GameZoneViewModel(
         AppLog.d(AppConstants.LOG_TAG_ADS, "game zone: Watch Ad tapped (canWatch=${offer?.canWatch}, watching=${offer?.watchingAd}, adReady=${offer?.adReady})")
         // Extra taps while one ad is loading or playing do nothing (one ad per tap).
         if (offer?.watchingAd == true) return
-        // A cooldown or today's limit: say so rather than play nothing.
-        if (offer != null && !offer.canWatch) {
-            setState { copy(coinsOffer = coinsOffer?.copy(message = offer.note ?: CoinsStrings.adLimit)) }
-            return
-        }
+        // A cooldown or today's limit: the button is off and its note says why.
+        if (offer != null && !offer.canWatch) return
         setState { copy(coinsOffer = coinsOffer?.copy(watchingAd = true, message = null)) }
         val result = watchAdForCoins.invoke()
         val message = CoinsUiMapper.adMessage(result)

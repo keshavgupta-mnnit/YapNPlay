@@ -289,6 +289,7 @@ fun PlayRoomLobbyScreen(
                     waitingList = state.waitingList,
                     onApproveJoin = { send(PlayRoomLobbyIntent.ApproveJoin(it)) },
                     onDeclineJoin = { send(PlayRoomLobbyIntent.DeclineJoin(it)) },
+                    onLeaderboardTab = { send(PlayRoomLobbyIntent.SelectLeaderboardTab(it)) },
                 )
             }
         }

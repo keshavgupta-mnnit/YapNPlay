@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.appmanager.helpers
 
+import com.kglabs28.yapnplay.appengine.core.common.BuildInfo
 import com.kglabs28.yapnplay.appengine.appmanager.AppManager
 import com.kglabs28.yapnplay.appengine.appmanager.AppManagerKeys
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
@@ -18,6 +19,8 @@ class AppManagerHelper(private val appManager: AppManager) {
     fun isPartyChatEnabled(): Boolean = appManager.get(AppManagerKeys.App.PARTY_CHAT_ENABLED)
     fun maxRoomsPerUser(): Int = appManager.get(AppManagerKeys.App.MAX_ROOMS_PER_USER)
     fun playStoreUrl(): String = appManager.get(AppManagerKeys.App.PLAY_STORE_URL)
+    /** Invites carry the tap-to-open app link: always in debug builds, else as `invite_links_enabled` says (on by default). */
+    fun areInviteLinksEnabled(): Boolean = BuildInfo.isDebug || appManager.get(AppManagerKeys.App.INVITE_LINKS_ENABLED)
 
     private companion object {
         const val HTTPS = "https://"

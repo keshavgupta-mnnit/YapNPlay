@@ -5,11 +5,21 @@ object ProfileStrings {
     const val profileTitle = "Profile"
     const val profileBack = "Back"
     const val profileSettings = "Settings"
+    const val profileExit = "Exit YapNPlay"
     const val profileEdit = "Edit"
     const val profileYapId = "YapNPlay ID"
     fun profileYapIdLine(code: String) = "$profileYapId  $code"
     const val profileCopyCode = "Copy ID"
     const val profileCopied = "Copied"
+    const val profileShareCode = "Share my ID"
+    /** With [link] (invite links on): tap to send the request; without: the store link and the ID only. */
+    fun profileShareMessage(code: String, link: String?, storeLink: String) =
+        if (link != null) {
+            "Add me as a friend on YapNPlay! Tap: $link\nNo app yet? Get it: $storeLink\nOr add my YapNPlay ID $code in the app."
+        } else {
+            "Add me as a friend on YapNPlay! Get the app: $storeLink\nThen add my YapNPlay ID $code."
+        }
+    const val profileFriendLinkTitle = "Friend request"
     const val profileStatsTitle = "Player Stats"
     const val profileStatGames = "Games Played"
     const val profileStatWins = "Games Won"

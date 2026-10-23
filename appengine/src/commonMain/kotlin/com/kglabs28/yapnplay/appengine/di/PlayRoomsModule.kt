@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.RoomInvites
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.PlayRoomsRepositoryImpl
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.local.PlayRoomsLocalManager
 import com.kglabs28.yapnplay.appengine.features.playrooms.data.remote.PlayRoomsApi
@@ -33,4 +34,5 @@ val playRoomsModule = module {
     factory { GetGroupInvitesUseCase(get()) }
     factory { RespondToGroupInviteUseCase(get()) }
     factory { GetMyGroupsUseCase(get()) }
+    factory { RoomInvites(get()) }
 }

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playrooms
 
+import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.RoomInvites
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
@@ -15,7 +16,6 @@ import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomInvite
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetFriendsUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveMyProfileUseCase
-import com.kglabs28.yapnplay.appengine.core.common.DeepLinks
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.GetPlayRoomsScreenDataUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.JoinPlayRoomByCodeUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.PreviewPlayRoomUseCase
@@ -34,6 +34,7 @@ class PlayRoomsViewModel(
     private val respondToInvite: RespondToGroupInviteUseCase,
     private val getFriends: GetFriendsUseCase,
     private val observeMyProfile: ObserveMyProfileUseCase,
+    private val roomInvites: RoomInvites,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<PlayRoomsState, PlayRoomsIntent, PlayRoomsEffect>(PlayRoomsState(), dispatchers) {
 
@@ -63,11 +64,6 @@ class PlayRoomsViewModel(
                 setState { copy(roomCode = code, joinError = null) }
                 preview(code)
             }
-            PlayRoomsIntent.ConfirmJoin -> state.value.joinPrompt?.let {
-                setState { copy(joinPrompt = null) }
-                join(it.code)
-            }
-            PlayRoomsIntent.DismissJoinPrompt -> setState { copy(joinPrompt = null) }
             PlayRoomsIntent.CreateRoom -> openCreateGroup(preselect = null)
             is PlayRoomsIntent.CreateGroupWith -> openCreateGroup(preselect = intent.userId)
             is PlayRoomsIntent.GroupNameChanged -> updateGroup { copy(name = intent.name.take(AppConstants.MAX_ROOM_NAME_LENGTH), error = null) }
@@ -130,7 +126,7 @@ class PlayRoomsViewModel(
         when (val result = createPlayRoom(form.name, form.icon, form.selectedIds)) {
             is AppResult.Success -> {
                 val room = result.data
-                val link = DeepLinks.inviteUrl(room.code)
+                val link = roomInvites.link(room.code)
                 setState {
                     copy(
                         createGroup = null,
@@ -140,7 +136,7 @@ class PlayRoomsViewModel(
                             code = room.code,
                             link = link,
                             body = RoomStrings.groupCreatedBody(room.name, form.selectedIds.size),
-                            shareText = RoomStrings.roomInviteMessage(room.name, room.code, link),
+                            shareText = roomInvites.message(room.name, room.code),
                         ),
                     )
                 }
@@ -199,17 +195,9 @@ class PlayRoomsViewModel(
                     emitEffect(PlayRoomsEffect.OpenRoom(room.roomId))
                     return
                 }
-                setState {
-                    copy(
-                        isJoining = false,
-                        joinPrompt = JoinPromptUi(
-                            code = room.code,
-                            title = RoomStrings.roomsJoinPromptTitle(room.name),
-                            details = RoomStrings.roomsJoinPromptDetails(room.memberCount, room.onlineCount),
-                            description = room.description,
-                        ),
-                    )
-                }
+                // An invite link asks to join at once (the admin may still have to let them in).
+                setState { copy(isJoining = false) }
+                join(room.code)
             }
             is AppResult.Failure -> setState { copy(isJoining = false, joinError = errorMessage(result.error)) }
         }

@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.core.common.InMemoryKeyboardPreference
+import com.kglabs28.yapnplay.appengine.core.common.KeyboardPreference
+import com.kglabs28.yapnplay.appengine.core.network.NoDeviceIdentity
+import com.kglabs28.yapnplay.appengine.core.network.DeviceIdentity
 import com.kglabs28.yapnplay.appengine.core.ads.RewardedAds
 import com.kglabs28.yapnplay.appengine.core.ads.NoRewardedAds
 import com.kglabs28.yapnplay.appengine.appmanager.NoRemoteConfigSource
@@ -25,6 +29,8 @@ val platformAppManagerModule = module {
     single<AppConfigStore> { JvmConfigStore() }
     single<NotificationHistoryStore> { InMemoryNotificationHistoryStore() }
     single<CredentialStore> { InMemoryCredentialStore() }
+    single<DeviceIdentity> { NoDeviceIdentity() }
+    single<KeyboardPreference> { InMemoryKeyboardPreference() }
     single<GameAudio> { SilentGameAudio() }
     single<RemoteConfigSource> { NoRemoteConfigSource() }
     single<AppVersionProvider> { JvmAppVersionProvider() }

@@ -105,6 +105,8 @@ object AppConstants {
      */
     const val CARD_ART_ZOOM = 1.6f
     /** The friends art zooms further: it has the card's widest free space. */
+    /** The longest message to the team (the server's limit too). */
+    const val FEEDBACK_MAX_LENGTH = 2_000
     const val FRIENDS_ART_ZOOM = 1.9f
     /** The Rooms tab's Create Room art, grown into its card's spare space. */
     const val ROOMS_HERO_ART_ZOOM = 1.15f

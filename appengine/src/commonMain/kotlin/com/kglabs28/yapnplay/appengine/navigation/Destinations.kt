@@ -18,6 +18,10 @@ data object Profile
 @Serializable
 data object MatchHistory
 
+/** Feedback & support (from the settings of Home and Profile); [compose] opens straight on the new-message form. */
+@Serializable
+data class Feedback(val compose: Boolean = false)
+
 /** A play room's lobby (members, game choice, house rules, start). */
 @Serializable
 data class RoomLobby(val roomId: String)

@@ -77,6 +77,10 @@ class YapNPlayDimens {
     // topBarControlHeight so their tops and bottoms line up.
     val topBarHeight: Dp get() = 68.dp.scaled()
     val topBarControlHeight: Dp get() = 38.dp.scaled()
+    /** The room leaderboard's place column ("1st"…). */
+    val boardPlaceWidth: Dp get() = 36.dp.scaled()
+    /** A round floating button (Feedback's new message). */
+    val fabSize: Dp get() = 52.dp.scaled()
     val topBarAvatar: Dp get() = 34.dp.scaled()
     val iconSmall: Dp get() = 14.dp.scaled()
     /** Space reserved for a balance before it loads (fits "99,999"). */

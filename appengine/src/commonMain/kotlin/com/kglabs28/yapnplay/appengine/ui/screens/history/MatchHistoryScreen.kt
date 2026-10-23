@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.history
 
+import com.kglabs28.yapnplay.appengine.ui.components.table.arenaGlass
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,19 +52,29 @@ fun MatchHistoryScreen(
         }
     }
     val colors = YapNPlayTheme.colors
-    CozyHomeBackground(modifier = modifier) {
+    CozyHomeBackground(modifier = modifier, frosted = true) {
         Column(
             modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.Md, vertical = Spacing.Xs),
             verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
             BackTitleBar(title = HistoryStrings.historyTitle, backDescription = HistoryStrings.historyBack, onBack = { send(MatchHistoryIntent.Back) }, modifier = Modifier.fillMaxWidth())
-            val message = state.error ?: HistoryStrings.historyEmpty.takeIf { state.loaded && state.rows.isEmpty() }
-            if (message != null) {
-                BasicText(text = message, style = YapNPlayTheme.typography.label.copy(color = colors.TextSecondary))
-            }
-            LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-                items(state.rows, key = { it.matchId }) { row ->
-                    MatchHistoryRow(row = row, onClick = { send(MatchHistoryIntent.Open(row.matchId)) })
+            // A dark frosted panel (as on Feedback) so every row reads over the background.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .arenaGlass(YapNPlayTheme.shapes.panel)
+                    .padding(Spacing.Md),
+                verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
+            ) {
+                val message = state.error ?: HistoryStrings.historyEmpty.takeIf { state.loaded && state.rows.isEmpty() }
+                if (message != null) {
+                    BasicText(text = message, style = YapNPlayTheme.typography.label.copy(color = colors.TextSecondary))
+                }
+                LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+                    items(state.rows, key = { it.matchId }) { row ->
+                        MatchHistoryRow(row = row, onClick = { send(MatchHistoryIntent.Open(row.matchId)) })
+                    }
                 }
             }
         }

@@ -19,6 +19,7 @@ object AppManagerKeys {
         val PARTY_CHAT_ENABLED = ConfigKey("party_chat_enabled", true, "Party chat in rooms.")
         val MAX_ROOMS_PER_USER = ConfigKey("max_rooms_per_user", 5, "Groups one user may belong to (the server enforces the same).")
         val PLAY_STORE_URL = ConfigKey("play_store_url", "https://play.google.com/store/apps/details?id=com.kglabs28.yapnplay", "App link sent with shared results.")
+        val INVITE_LINKS_ENABLED = ConfigKey("invite_links_enabled", true, "Friend and room invites carry a tap-to-open link (https …/open/…, opens the app or the store); off: only the store link and the code.")
     }
 
     /** Games: kill switches and table-wide timings. */
@@ -61,7 +62,7 @@ object AppManagerKeys {
 
     /** Every key with its default, for Remote Config's in-app defaults. */
     val all: List<ConfigKey<*>> = listOf(
-        App.SERVER_BASE_URL, App.UPDATE_CONFIG, App.VOICE_ENABLED, App.PARTY_CHAT_ENABLED, App.MAX_ROOMS_PER_USER, App.PLAY_STORE_URL,
+        App.SERVER_BASE_URL, App.UPDATE_CONFIG, App.VOICE_ENABLED, App.PARTY_CHAT_ENABLED, App.MAX_ROOMS_PER_USER, App.PLAY_STORE_URL, App.INVITE_LINKS_ENABLED,
         Games.ROYAL_LUDO_ENABLED, Games.CITY_BAZAAR_ENABLED, Games.TURN_HURRY_SECONDS,
         CityBazaar.EVENT_BREATH_MS, CityBazaar.EVENT_BREATH_MAX_MS, CityBazaar.POPUP_MS, CityBazaar.SNACKBAR_MS,
         Ads.ENABLED, Ads.LAUNCH_OFFER, Ads.REWARDED_UNIT_ID,

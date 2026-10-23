@@ -4,6 +4,7 @@ package com.kglabs28.yapnplay.appengine.core.network
 /** Every backend path (docs/backend-api-contract.md). Clients never type a URL. */
 object BackendPaths {
     const val GUEST = "/auth/guest"
+    const val DEVICE_ACCOUNT = "/auth/device"
     const val PLAY_GAMES = "/auth/play-games"
     const val ME = "/me"
     const val MY_ROOMS = "/rooms/mine"
@@ -16,6 +17,9 @@ object BackendPaths {
     const val CLEAR_PENALTY_WITH_AD = "/penalties/clear-with-ad"
     const val ACTIVE_MATCH = "/matches/active"
     const val MATCH_HISTORY = "/matches/history"
+    const val FEEDBACK = "/feedback"
+    fun roomLeaderboard(roomId: String) = "/rooms/$roomId/leaderboard"
+    fun feedbackTicket(ticketId: String) = "/feedback/$ticketId"
     const val AD_REWARD = "/coins/ad-reward"
     const val AD_STATUS = "/coins/ad-status"
     const val LEAGUES = "/coins/leagues"

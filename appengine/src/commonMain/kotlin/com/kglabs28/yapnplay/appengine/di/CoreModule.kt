@@ -65,10 +65,12 @@ val coreModule = module {
             install(HttpTimeout) { connectTimeoutMillis = CONNECT_TIMEOUT_MS }
             install(WebSockets)
         }.also { client ->
-            // Every call except guest sign-up carries "Bearer <userId>.<secret>".
+            // Every call carries "Bearer <userId>.<secret>" except sign-up: guest, the phone's account
+            // lookup and Play Games (which sends the saved one itself, never makes a guest just to send).
             client.plugin(HttpSend).intercept { request ->
                 val path = request.url.buildString()
-                if (!path.endsWith(BackendPaths.GUEST) && request.headers[HttpHeaders.Authorization] == null) {
+                val signUp = path.endsWith(BackendPaths.GUEST) || path.endsWith(BackendPaths.PLAY_GAMES) || path.endsWith(BackendPaths.DEVICE_ACCOUNT)
+                if (!signUp && request.headers[HttpHeaders.Authorization] == null) {
                     request.header(
                         HttpHeaders.Authorization,
                         BEARER + get<BackendSession>().credentials().bearerToken
@@ -86,7 +88,7 @@ val coreModule = module {
             }
         }
     }
-    single { BackendSession(get(), get()) }
+    single { BackendSession(get(), get(), get(), get()) }
     // The account the app authenticates with.
     single<SessionProvider> { get<BackendSession>() }
     // The socket: the real-time match connection to the backend.

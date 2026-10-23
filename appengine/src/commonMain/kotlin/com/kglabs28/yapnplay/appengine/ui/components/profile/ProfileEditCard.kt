@@ -30,6 +30,7 @@ fun ProfileEditCard(
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
     ModalCard(
+        scrollable = true,
         surfaceBrush = AppBrushes.dialogGeneric,
         title = title,
         onClose = onClose,

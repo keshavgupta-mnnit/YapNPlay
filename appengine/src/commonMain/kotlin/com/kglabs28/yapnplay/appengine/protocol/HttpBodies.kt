@@ -6,6 +6,33 @@ import kotlinx.serialization.Serializable
 // HTTP request/response bodies (REST API, not WebSocket)
 // ══════════════════════════════════════════════════════════════════════════
 
+/**
+ * `POST /auth/guest` body: the account the app picked and saved before
+ * asking, so a retry after a crash gets the same account back.
+ */
+@Serializable
+data class CreateGuestBody(
+    val userId: String,
+    val secret: String,
+    /** The phone, recorded with the account. */
+    val deviceId: String? = null,
+    /** With [deviceId]: true continues the account already made on that phone (the player chose it); false makes a new one. */
+    val restore: Boolean = false,
+)
+
+/** `POST /auth/device`: is there an account made on this phone already? */
+@Serializable
+data class DeviceAccountBody(val deviceId: String)
+
+/** The phone's account as offered back (never its secret). */
+@Serializable
+data class DeviceAccount(
+    val found: Boolean,
+    val displayName: String = "",
+    val avatarId: String = "",
+    val level: Int = 0,
+)
+
 /** Response after creating a new guest account. */
 @Serializable
 data class GuestCreated(
@@ -324,6 +351,8 @@ data class MatchHistoryItem(
     val matchId: String,
     val gameId: String,
     val roomMatch: Boolean = false,
+    /** The room's name for a room match ("" for Quick Play or a deleted room). */
+    val roomName: String = "",
     val startedAt: Long,
     val endedAt: Long,
     /** The user's own seat. */
@@ -343,4 +372,21 @@ data class MatchHistorySeat(
     val completionCoins: Int = 0,
     val stake: Int = 0,
     val xp: Int = 0,
+)
+
+/** One member's record in a room (`GET /rooms/{roomId}/leaderboard`). */
+@Serializable
+data class RoomStanding(
+    val userId: String,
+    val displayName: String = "",
+    val avatarId: String = "",
+    val played: Int = 0,
+    val wins: Int = 0,
+    val coins: Int = 0,
+)
+
+/** `GET /rooms/{roomId}/leaderboard`: every member with their record in the room. */
+@Serializable
+data class RoomLeaderboard(
+    val standings: List<RoomStanding> = emptyList(),
 )

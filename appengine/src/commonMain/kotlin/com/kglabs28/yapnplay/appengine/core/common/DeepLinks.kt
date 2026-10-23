@@ -7,23 +7,31 @@ sealed interface DeepLink {
 
     /** Notification tap: open the lobby of a room the user is in. */
     data class OpenRoom(val roomId: String) : DeepLink
+
+    /** A shared YapNPlay ID: send its owner a friend request. */
+    data class AddFriend(val userCode: String) : DeepLink
 }
 
 /**
- * Builds and reads the app links. Shared invites are web links, which
- * every chat app makes tappable: `https://<INVITE_HOST>/join/<code>`.
- * Android opens the app directly once the host serves assetlinks.json
- * (server side). `yapnplay://join/<code>` is read too.
- * Notifications: `yapnplay://room/<roomId>`.
+ * Builds and reads the app links (the app registers `yapnplay://`):
+ * `yapnplay://join/<code>` (a room invite), `yapnplay://friend/<code>`
+ * (a shared YapNPlay ID: a friend request) and `yapnplay://room/<roomId>`
+ * (notifications). `https://<INVITE_HOST>/join/<code>` is read too, for
+ * when that web host is live.
  */
 object DeepLinks {
 
-    /** The link put in share messages. */
-    fun inviteUrl(code: String): String =
-        "https://${AppConstants.INVITE_HOST}/$JOIN_PATH/$code"
-
     fun roomUri(roomId: String): String =
         "${AppConstants.APP_SCHEME}://$ROOM_PATH/$roomId"
+
+    /**
+     * The shared room invite: an https page on the backend ([serverUrl])
+     * that opens the app on `yapnplay://join/<code>`, or the store without it.
+     */
+    fun joinLink(serverUrl: String, code: String): String = "$serverUrl/$OPEN_PATH/$JOIN_PATH/$code"
+
+    /** The shared YapNPlay ID: like [joinLink], opening `yapnplay://friend/<code>` (a friend request). */
+    fun friendLink(serverUrl: String, userCode: String): String = "$serverUrl/$OPEN_PATH/$FRIEND_PATH/$userCode"
 
     /** null when [uri] is not one of our links. */
     fun parse(uri: String?): DeepLink? {
@@ -38,10 +46,13 @@ object DeepLinks {
         return when (path.getOrNull(0)) {
             JOIN_PATH -> path.getOrNull(1)?.let { DeepLink.JoinRoom(it.substringBefore('?')) }
             ROOM_PATH -> path.getOrNull(1)?.let { DeepLink.OpenRoom(it.substringBefore('?')) }
+            FRIEND_PATH -> path.getOrNull(1)?.let { DeepLink.AddFriend(it.substringBefore('?')) }
             else -> null
         }
     }
 
+    private const val OPEN_PATH = "open"
     private const val JOIN_PATH = "join"
     private const val ROOM_PATH = "room"
+    private const val FRIEND_PATH = "friend"
 }

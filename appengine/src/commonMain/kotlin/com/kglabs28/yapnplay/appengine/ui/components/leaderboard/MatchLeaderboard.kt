@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.leaderboard
 
+import org.koin.compose.koinInject
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.AppManagerHelper
 import androidx.compose.ui.zIndex
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -60,10 +62,17 @@ import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.podium.Podium
  * screen; the app logo top left; the podium (2nd, 1st with a crown, 3rd);
  * the LEADERBOARD panel with 4th place onwards on the right; a bottom bar
  * with the game's art, SHARE THIS (a screenshot of this screen plus the
- * app link), match duration and EXP, and PLAY AGAIN.
+ * app's store link, the same for every game), match duration and EXP, and
+ * PLAY AGAIN.
  */
 @Composable
-fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Unit, onPlayAgain: () -> Unit, modifier: Modifier = Modifier) {
+fun MatchLeaderboard(
+    board: LeaderboardUi,
+    gameArt: @Composable (Modifier) -> Unit,
+    onPlayAgain: () -> Unit,
+    modifier: Modifier = Modifier,
+    appConfig: AppManagerHelper = koinInject(),
+) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
@@ -72,7 +81,7 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
     val layer = rememberGraphicsLayer()
     val scope = rememberCoroutineScope()
     val share = rememberImageShare()
-    val shareText = TableStrings.leaderboardShareWithLink(TableStrings.leaderboardShareText(board.game, board.myPlace), board.shareLink)
+    val shareText = TableStrings.leaderboardShareWithLink(TableStrings.leaderboardShareText(board.game, board.myPlace), appConfig.playStoreUrl())
     Box(
         modifier = modifier
             .fillMaxSize()

@@ -1,5 +1,11 @@
 package com.kglabs28.yapnplay.appengine
 
+import com.kglabs28.yapnplay.appengine.ui.components.keyboard.TapOutsideClosesKeyboard
+import androidx.compose.foundation.layout.imePadding
+import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
+import com.kglabs28.yapnplay.appengine.ui.components.common.DeviceAccountCard
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.AnswerDeviceAccountOfferUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveDeviceAccountOfferUseCase
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import com.kglabs28.yapnplay.appengine.core.common.StartupGate
@@ -44,7 +50,9 @@ fun YapNPlayRoot(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(YapNPlayTheme.colors.Background),
+                .background(YapNPlayTheme.colors.Background)
+                // The phone's keyboard (when chosen) takes room from the bottom instead of covering the screen.
+                .imePadding(),
         ) {
             // One host for blocking modals (e.g. the matching snackbar):
             // it frosts the whole app behind them and swallows input.
@@ -70,9 +78,19 @@ fun YapNPlayRoot(
                 observeSignInNeeded().collect { signIn() }
             }
             // The app's own keyboard sits over everything, dialogs included.
+            TapOutsideClosesKeyboard {
             SlidingTextHost {
             AppKeyboardHost {
             BlockingOverlayHost {
+                // First launch on a phone that already has an account: continue it or start new (sign-up waits).
+                val observeDeviceAccount: ObserveDeviceAccountOfferUseCase = koinInject()
+                val answerDeviceAccount: AnswerDeviceAccountOfferUseCase = koinInject()
+                val deviceAccount by observeDeviceAccount().collectAsState()
+                BlockingOverlay(visible = deviceAccount != null) {
+                    deviceAccount?.let { offer ->
+                        DeviceAccountCard(offer = offer, onContinue = { answerDeviceAccount(true) }, onStartNew = { answerDeviceAccount(false) })
+                    }
+                }
                 // An outdated app is stopped first (works offline too), then
                 // screens open only once the backend answers (no empty pages).
                 UpdateGate {
@@ -84,6 +102,7 @@ fun YapNPlayRoot(
                         )
                     }
                 }
+            }
             }
             }
             }

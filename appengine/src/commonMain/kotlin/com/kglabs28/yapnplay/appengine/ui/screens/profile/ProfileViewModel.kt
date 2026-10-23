@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.profile
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsController
 import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
@@ -23,7 +24,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Profile screen: loads the user, friends, requests and blocks; edits the
- * avatar, name and username; adds friends by ID; accepts, declines,
+ * avatar and name; adds friends by ID; accepts, declines,
  * removes, blocks and unblocks. After every friend action it reloads, so
  * the screen always shows what the server has.
  */
@@ -37,6 +38,7 @@ class ProfileViewModel(
     private val unblockUser: UnblockUserUseCase,
     private val getMyGroups: GetMyGroupsUseCase,
     private val inviteFriendsToGroup: InviteFriendsToGroupUseCase,
+    private val settingsController: AppSettingsController,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<ProfileState, ProfileIntent, ProfileEffect>(ProfileState(), dispatchers) {
 
@@ -48,23 +50,22 @@ class ProfileViewModel(
         when (intent) {
             ProfileIntent.Load -> reload()
             ProfileIntent.Back -> emitEffect(ProfileEffect.Close)
-            ProfileIntent.OpenSettings -> emitEffect(ProfileEffect.OpenSettings)
+            ProfileIntent.OpenSettings -> setState { copy(settings = settingsController.current()) }
+            ProfileIntent.CloseSettings -> setState { copy(settings = null) }
+            ProfileIntent.ToggleEffects -> setState { copy(settings = settingsController.toggleEffects()) }
+            ProfileIntent.ToggleMusic -> setState { copy(settings = settingsController.toggleMusic()) }
+            ProfileIntent.OpenHistory -> {
+                setState { copy(settings = null) }
+                emitEffect(ProfileEffect.OpenHistory)
+            }
             ProfileIntent.EditAvatar -> data?.let { showModal(ProfileModal.AvatarPicker(it.profile.avatarId)) }
             is ProfileIntent.PickAvatar -> (modal as? ProfileModal.AvatarPicker)?.let { showModal(it.copy(selected = intent.avatarId)) }
             ProfileIntent.SaveAvatar -> (modal as? ProfileModal.AvatarPicker)?.let { saveAvatar(it) }
             ProfileIntent.EditName -> data?.let {
                 showModal(
                     ProfileModal.EditText(
-                        ProfileField.NAME, ProfileStrings.profileEditNameTitle, ProfileStrings.profileNameLabel, it.profile.name,
+                        ProfileStrings.profileEditNameTitle, ProfileStrings.profileNameLabel, it.profile.name,
                         ProfileStrings.profileNameHint, AppConstants.MAX_NAME_LENGTH,
-                    ),
-                )
-            }
-            ProfileIntent.EditUsername -> data?.let {
-                showModal(
-                    ProfileModal.EditText(
-                        ProfileField.USERNAME, ProfileStrings.profileEditUsernameTitle, ProfileStrings.profileUsernameLabel, it.profile.username,
-                        ProfileStrings.profileUsernameHint, AppConstants.MAX_USERNAME_LENGTH,
                     ),
                 )
             }
@@ -128,20 +129,16 @@ class ProfileViewModel(
 
     private suspend fun saveText(modal: ProfileModal.EditText) {
         showModal(modal.copy(saving = true))
-        val result = when (modal.field) {
-            ProfileField.NAME -> updateProfile(name = modal.value)
-            ProfileField.USERNAME -> updateProfile(username = modal.value)
-        }
-        when (result) {
+        when (val result = updateProfile(name = modal.value)) {
             is AppResult.Success -> {
                 showModal(null)
                 reload()
             }
             is AppResult.Failure -> {
-                val error = when {
-                    result.error !is YapNPlayError.Validation -> ProfileStrings.profileNetworkError
-                    modal.field == ProfileField.NAME -> ProfileStrings.profileNameError(AppConstants.MAX_NAME_LENGTH)
-                    else -> ProfileStrings.profileUsernameError(AppConstants.MIN_USERNAME_LENGTH, AppConstants.MAX_USERNAME_LENGTH)
+                val error = if (result.error is YapNPlayError.Validation) {
+                    ProfileStrings.profileNameError(AppConstants.MAX_NAME_LENGTH)
+                } else {
+                    ProfileStrings.profileNetworkError
                 }
                 showModal(modal.copy(error = error))
             }

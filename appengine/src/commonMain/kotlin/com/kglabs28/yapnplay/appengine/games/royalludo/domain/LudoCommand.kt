@@ -18,4 +18,8 @@ sealed interface LudoCommand {
     data class SetAway(val away: Boolean) : LudoCommand
     /** A spectator takes a seat open to all. */
     data class TakeSeat(val seat: Int) : LudoCommand
+    /** Ask everyone to end the game early (a vote). */
+    data object ProposeEnd : LudoCommand
+    /** The user's answer to the end-game vote. */
+    data class VoteEnd(val agree: Boolean) : LudoCommand
 }

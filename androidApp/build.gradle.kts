@@ -6,6 +6,10 @@ plugins {
 }
 
 android {
+    // BuildConfig.DEBUG turns the app's debug logs on (debug builds only).
+    buildFeatures {
+        buildConfig = true
+    }
     namespace = "com.kglabs28.yapnplay"
     compileSdk = 37
 
@@ -13,8 +17,8 @@ android {
         applicationId = "com.kglabs28.yapnplay"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Must match AppConstants.INVITE_HOST / APP_SCHEME (invite + room links).
         manifestPlaceholders["inviteHost"] = "kglabs28-yapnplay.web.app"

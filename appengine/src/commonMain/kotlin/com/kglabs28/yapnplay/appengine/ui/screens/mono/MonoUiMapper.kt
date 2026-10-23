@@ -200,12 +200,12 @@ object MonoUiMapper {
     /** Spectators and absent players, for the top bar strip. */
     /** The spectators in the top bar: their voice ring (talking only when the user hears them) and whether the user muted them. */
     fun audience(match: MonoMatch, talking: Set<String>, mutedForMe: Set<String>) = match.spectators.map {
-        TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in talking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe)
+        TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in talking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe, it.avatarId)
     }
 
     /** Spectators and absent players (Complete Chaos). */
     fun chaosAudience(match: MonoChaosMatch, talking: Set<String>, mutedForMe: Set<String>) = match.spectators.map {
-        TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in talking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe)
+        TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in talking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe, it.avatarId)
     }
 
     /** "Away" / "Autoplay" while the server plays for someone (a CPU seat needs no tag). */

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.mono.data.remote
 
+import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.games.base.identity.SeatNumber
 import com.kglabs28.yapnplay.appengine.games.mono.data.remote.wire.MonoCardWire
@@ -54,7 +55,7 @@ class MonoSnapshotMapper(private val json: Json) {
                     presence = seat.presence.name,
                 )
             },
-            spectators = snapshot.spectators.map { MonoSpectator(it.userId, it.displayName, it.micOn) },
+            spectators = snapshot.spectators.map { MonoSpectator(it.userId, it.displayName, it.micOn, it.avatarId) },
             spectatorCount = snapshot.spectators.size,
             currentSeat = snapshot.turn.seat,
             phase = state.phase,
@@ -83,6 +84,7 @@ class MonoSnapshotMapper(private val json: Json) {
             catchSeat = state.catchSeat,
             catchClosedFor = state.catchClosedFor,
             continueVote = state.continueVote?.let { MonoContinueVote(toLocal(it.endsAt), it.voters, it.yes, it.no) },
+            endVote = snapshot.endVote?.let { MatchEndVote(it.proposerSeat, toLocal(it.endsAt), it.voters, it.yes, it.no) },
             caughtPenaltyCards = state.caughtPenaltyCards,
             falseCatchPenaltyCards = state.falseCatchPenaltyCards,
             callBeforePlay = state.callBeforePlay,

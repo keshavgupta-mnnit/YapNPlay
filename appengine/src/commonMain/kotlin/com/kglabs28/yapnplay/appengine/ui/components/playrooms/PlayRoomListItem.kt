@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoom
@@ -70,11 +70,9 @@ fun PlayRoomListItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
             ) {
-                BasicText(
+                ShrinkText(
                     text = room.name,
                     style = typography.itemTitle.copy(color = colors.TextPrimary),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
                 )
                 if (room.isLeader) {

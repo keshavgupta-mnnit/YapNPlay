@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedSpanKind
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedSpan
@@ -121,7 +122,7 @@ object CityBazaarFeedMapper {
                 if (event.continued) CityBazaarStrings.cbFeedExtended(CbPromptMapper.extraLabel(m.extensionVote), event.yes, event.voters)
                 else CityBazaarStrings.cbFeedNotExtended(event.yes, event.voters),
             )
-            is CityBazaarEvent.EndVoted -> of(if (event.ended) CityBazaarStrings.cbFeedEndVoted(event.yes, event.voters) else CityBazaarStrings.cbFeedEndRejected(event.yes, event.voters))
+            is CityBazaarEvent.EndVoted -> of(if (event.ended) TableStrings.endVoted(event.yes, event.voters) else TableStrings.endVoteRejected(event.yes, event.voters))
             is CityBazaarEvent.Moved, is CityBazaarEvent.Bought, is CityBazaarEvent.Sold, is CityBazaarEvent.TurnPassed -> null
         }
     }

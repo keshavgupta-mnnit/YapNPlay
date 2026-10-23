@@ -22,8 +22,8 @@ class ProfileRemoteManager(private val api: ProfileApi) {
 
     suspend fun fetchProfileData(): AppResult<UserProfile> = call("fetchProfileData") { api.getMe().toDomain() }
 
-    suspend fun updateProfile(name: String?, username: String?, avatarId: String?): AppResult<UserProfile> =
-        call("updateProfile") { api.updateMe(UpdateProfileBody(name, username, avatarId)).toDomain() }
+    suspend fun updateProfile(name: String?, avatarId: String?): AppResult<UserProfile> =
+        call("updateProfile") { api.updateMe(UpdateProfileBody(name, avatarId)).toDomain() }
 
     suspend fun fetchFriendList(): AppResult<List<Friend>> = call("fetchFriendList") { api.getFriends().friends.map { it.toDomain() } }
 

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -53,7 +54,6 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayColors
@@ -106,12 +106,14 @@ fun MonoPlayerPod(
             }
         } else Column {
             MonoSeatHeaderFor(card, avatar, trailing)
+            // The status right under the pill; the fan below it.
+            MonoSeatLabel(card, avatar)
             if (showFan && card.cards > 0) {
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
-                        // Tucked up under the pill, so the seat covers less of the table.
-                        .pullUp(avatar * FAN_TUCK)
+                        // Tucked up under the pill (unless a tag sits there), so the seat covers less of the table.
+                        .pullUp(if ((card.placeLabel ?: card.statusLabel) == null) avatar * FAN_TUCK else dimens.zero)
                         .padding(start = avatar * FAN_START),
                 ) {
                     MonoCardFan(
@@ -122,7 +124,6 @@ fun MonoPlayerPod(
                     )
                 }
             }
-            MonoSeatLabel(card, avatar)
         }
         // A player on one card who called MONO wears a pulsing shield.
         if (card.calledMono) {
@@ -165,10 +166,10 @@ private fun MonoSeatHeaderFor(card: MonoPlayerPodUi, avatar: Dp, trailing: (@Com
 @Composable
 private fun MonoSeatLabel(card: MonoPlayerPodUi, avatar: Dp) {
     (card.placeLabel ?: card.statusLabel)?.let { label ->
-        MonoSeatTag(
+        ArenaSeatTag(
             text = label,
             tint = if (card.placeLabel != null) card.tint else YapNPlayTheme.colors.IconMuted,
-            modifier = Modifier.padding(start = avatar * FAN_START, top = Spacing.Xxs),
+            avatar = avatar,
         )
     }
 }
@@ -230,11 +231,9 @@ fun ArenaSeatHeader(
             horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                BasicText(
+                ShrinkText(
                     text = name,
                     style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                 )
                 details?.invoke(this)
             }
@@ -283,21 +282,6 @@ private fun ArenaSeatAvatar(tint: Color, level: String, avatarId: String, size: 
     }
 }
 
-/** A small tag on the seat's top edge: a finishing place, or Away / CPU / Autoplay. */
-@Composable
-private fun MonoSeatTag(text: String, tint: Color, modifier: Modifier = Modifier) {
-    val colors = YapNPlayTheme.colors
-    BasicText(
-        text = text,
-        style = YapNPlayTheme.typography.micro.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold),
-        maxLines = 1,
-        modifier = modifier
-            .clip(YapNPlayTheme.shapes.pill)
-            .background(lerp(tint, colors.Background, BADGE_DARKEN))
-            .border(YapNPlayTheme.dimens.hairline, tint, YapNPlayTheme.shapes.pill)
-            .padding(horizontal = Spacing.Xs, vertical = Spacing.Xxxs),
-    )
-}
 
 /** A player, resolved for the seat. */
 data class MonoPlayerPodUi(
@@ -451,7 +435,7 @@ private fun seatOutline(size: Size, pillHeight: Float): Path {
     }
 }
 
-private const val PILL_SHARE = 0.84f
+private const val PILL_SHARE = SEAT_PILL_SHARE
 private const val PILL_CAP = 0.95f
 private const val FAN_START = 0.75f
 /** How far the fan under a seat tucks up towards the pill (× avatar). */
@@ -460,7 +444,6 @@ private const val CALLED_SHIFT = 0.7f
 private const val ICON_SHARE = 0.55f
 private const val LEVEL_BADGE_SHARE = 0.42f
 private const val AVATAR_BACK_DARKEN = 0.6f
-private const val BADGE_DARKEN = 0.45f
 private const val QUARTER = 90f
 private const val HALF = 180f
 private const val TRACK_ALPHA = 0.22f

@@ -1,5 +1,10 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.rememberExitApp
+import com.kglabs28.yapnplay.appengine.ui.components.common.ExitAppCard
+import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
+import com.kglabs28.yapnplay.appengine.ui.components.home.HomeCards
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsDialog
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.DailyBonusDialog
 import androidx.lifecycle.compose.LifecycleStartEffect
@@ -26,8 +31,6 @@ import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppTopBar
-import com.kglabs28.yapnplay.appengine.ui.components.home.EnterGameZoneCard
-import com.kglabs28.yapnplay.appengine.ui.components.home.PlayWithFriendsCard
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
@@ -47,6 +50,7 @@ fun MainScreen(
     onCreateRoom: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenProfile: () -> Unit = {},
+    onOpenHistory: () -> Unit = {},
     pendingInviteCode: String? = null,
     onInviteConsumed: () -> Unit = {},
     pendingCreateGroupWith: String? = null,
@@ -66,9 +70,15 @@ fun MainScreen(
             when (effect) {
                 is MainEffect.OpenRoom -> onOpenRoom(effect.roomId)
                 is MainEffect.OpenMatch -> onOpenMatch(effect.gameId, effect.matchId)
-                MainEffect.OpenSettingsDialog -> Unit
+                MainEffect.OpenHistory -> onOpenHistory()
             }
         }
+    }
+    // Back here would leave an empty app: ask first. Dialogs opened later take Back before this.
+    BlockBackPress(enabled = !state.exitAsked, onBack = { viewModel?.onIntent(MainIntent.AskExit) })
+    val exitApp = rememberExitApp()
+    BlockingOverlay(visible = state.exitAsked, onDismiss = { viewModel?.onIntent(MainIntent.DismissExit) }) {
+        ExitAppCard(onExit = exitApp, onStay = { viewModel?.onIntent(MainIntent.DismissExit) })
     }
     state.rejoin?.let { rejoin ->
         BlockingOverlay(visible = true, onDismiss = { viewModel?.onIntent(MainIntent.DismissRejoin) }) {
@@ -98,6 +108,15 @@ fun MainScreen(
             onClose = { viewModel?.onIntent(MainIntent.CloseGetCoins) },
         )
     }
+
+    val settings = state.settings
+    AppSettingsDialog(
+        settings = settings,
+        onToggleEffects = { viewModel?.onIntent(MainIntent.ToggleEffects) },
+        onToggleMusic = { viewModel?.onIntent(MainIntent.ToggleMusic) },
+        onHistory = { viewModel?.onIntent(MainIntent.OpenHistory) },
+        onClose = { viewModel?.onIntent(MainIntent.CloseSettings) },
+    )
 
     BlockingOverlay(visible = bonus != null) {
         if (bonus != null) DailyBonusDialog(amount = bonus, onCollect = { viewModel?.onIntent(MainIntent.CollectDailyBonus) })
@@ -157,25 +176,17 @@ fun MainScreen(
                     .padding(horizontal = Spacing.Md),
             ) {
                 when (state.selectedTab) {
-                    AppNavTab.HOME -> Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
-                    ) {
-                        PlayWithFriendsCard(
-                            // The whole card opens Create New Group (on the Rooms tab).
-                            onPlayWithFriends = {
-                                viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
-                                playRoomsViewModel?.onIntent(PlayRoomsIntent.CreateRoom)
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-                        EnterGameZoneCard(
-                            onEnterGameZone = {
-                                viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.GAMES))
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                    AppNavTab.HOME -> HomeCards(
+                        onEnterGameZone = { viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.GAMES)) },
+                        // The whole card opens Create New Group (on the Rooms tab).
+                        onPlayWithFriends = {
+                            viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
+                        },
+                        onCreateRoom ={
+                            viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
+                            playRoomsViewModel?.onIntent(PlayRoomsIntent.CreateRoom)
+                        }
+                    )
                     AppNavTab.GAMES -> GameZoneScreen(
                         onOpenMatch = onOpenMatch,
                         viewModel = gameZoneViewModel,

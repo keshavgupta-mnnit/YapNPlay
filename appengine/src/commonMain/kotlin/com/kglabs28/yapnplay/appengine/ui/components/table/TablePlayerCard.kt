@@ -107,26 +107,9 @@ fun TablePlayerCard(
                 }
             }
         }
-        badge?.let { label ->
-            BasicText(
-                text = label,
-                style = typography.micro.copy(color = colors.TextPrimary),
-                maxLines = 1,
-                // Tucked right under the pill, just past the avatar: no gap, no drift to the middle.
-                modifier = Modifier
-                    .padding(start = avatar * BADGE_START)
-                    .offset(y = -Spacing.Xxs)
-                    .clip(YapNPlayTheme.shapes.pill)
-                    .background(lerp(badgeTint, colors.Background, BADGE_DARKEN))
-                    .border(dimens.hairline, badgeTint, YapNPlayTheme.shapes.pill)
-                    .padding(horizontal = Spacing.Xs, vertical = Spacing.Xxxs),
-            )
-        }
+        badge?.let { label -> ArenaSeatTag(text = label, tint = badgeTint, avatar = avatar) }
     }
 }
 
 private const val FADED_ALPHA = 0.4f
-private const val BADGE_DARKEN = 0.45f
-/** Where the status badge starts (× the avatar): just inside its right edge. */
-private const val BADGE_START = 0.8f
 private const val MUTE_SHARE = 0.55f

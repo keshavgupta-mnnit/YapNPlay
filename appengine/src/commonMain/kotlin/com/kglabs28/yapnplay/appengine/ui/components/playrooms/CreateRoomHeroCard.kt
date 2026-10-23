@@ -23,7 +23,8 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.CreateRoomGraphic
 
 /**
  * Rooms tab hero card: "CREATE NEW / ROOM", pitch line and the green
- * CREATE NEW ROOM button on a purple-to-navy glass card, art on the right.
+ * CREATE ROOM button on a purple-to-navy glass card with a neon green and
+ * purple rim, art on the right.
  */
 @Composable
 fun CreateRoomHeroCard(
@@ -36,7 +37,10 @@ fun CreateRoomHeroCard(
     Row(
         modifier = modifier
             .glassPanel(
-                glowColor = colors.RoomsHeroRim,
+                glowColor = colors.FeatureIconPurple,
+                // Neon: green along the top and left, purple along the right and bottom (design).
+                rimBrush = Brush.linearGradient(listOf(colors.CtaGreenStart, colors.FeatureIconPurple)),
+                rimWidth = YapNPlayTheme.dimens.neonRim,
                 surfaceBrush = Brush.verticalGradient(
                     listOf(
                         colors.RoomsHeroTop.copy(alpha = 0.9f),
@@ -71,11 +75,17 @@ fun CreateRoomHeroCard(
             PillButton(
                 text = RoomStrings.roomsCreateButton,
                 onClick = onCreateRoom,
-                gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),
-                contentColor = colors.CtaGreenContent,
+                gradient = listOf(colors.CtaGlassGreen),
+                contentColor = colors.TextPrimary,
+                rimColor = colors.CtaGlassGreenRim,
+                glassFill = colors.CtaGlassGreen,
                 leadingIcon = Icons.Rounded.AddCircle,
             )
         }
-        CreateRoomGraphic()
+        // The art fills the card's free side, whole (never cropped).
+        CreateRoomGraphic(modifier = Modifier.weight(HERO_ART_WEIGHT).fillMaxHeight())
     }
 }
+
+/** The art's share of the card beside the text (text 1). */
+private const val HERO_ART_WEIGHT = 1.7f

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedLineUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoSwapTargetUi
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetUi
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogUi
@@ -88,6 +89,8 @@ data class MatchMonoChaosState(
     val leaderboard: LeaderboardUi? = null,
     /** "🏆 Riya finishes 1st!" for a few seconds after someone empties their hand. */
     val finishBanner: String? = null,
+    /** A MONO! penalty that concerns the user (caught, missed, wrong catch), as a snackbar for a moment. */
+    val penaltySnack: TableFeedLineUi? = null,
 ) : UiState {
     val hand get() = match?.me?.hand.orEmpty()
     /** The hand sorted by colour, power cards last (indexes into [hand]). */
@@ -98,6 +101,8 @@ data class MatchMonoChaosState(
     val swapTargets get() = opponents.filter { it.seat !in match?.eliminatedSeats.orEmpty() }.map { MonoSwapTargetUi(it.seat, it.name, it.avatarId.orEmpty(), it.cardCount) }
 
     /** Everyone else still in the game, clockwise from the user (a player who left takes no seat). */
+    /** The user is knocked out or has finished: no more MONO!, CAUGHT or Draw for them. */
+    val outOfPlay: Boolean get() = match?.me?.seat?.let { it in eliminated || it in match.finishedSeats } == true
     val opponents get() = MonoUiMapper.clockwise(match?.players.orEmpty().filter { !it.isMe && !it.removed }, match?.me?.seat) { it.seat }
 }
 
@@ -138,6 +143,9 @@ sealed interface MatchMonoChaosIntent : UiIntent {
     data object SubmitReport : MatchMonoChaosIntent
     data class Vote(val agree: Boolean) : MatchMonoChaosIntent
     data object CloseSheet : MatchMonoChaosIntent
+    /** "End game (vote)" in the settings. */
+    data object ProposeEnd : MatchMonoChaosIntent
+    data class VoteEnd(val agree: Boolean) : MatchMonoChaosIntent
     data object ExitClicked : MatchMonoChaosIntent
     /** "Leave the match?" answered: leave, or stay. */
     data object ConfirmExit : MatchMonoChaosIntent

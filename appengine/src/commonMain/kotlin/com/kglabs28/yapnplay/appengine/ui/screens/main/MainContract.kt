@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsUi
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferUi
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
@@ -35,6 +36,10 @@ data class MainState(
     val rejoin: RejoinUi? = null,
     /** The coins "+": watch an ad for free coins; null when closed. */
     val coinsOffer: CoinsOfferUi? = null,
+    /** The settings dialog (sound, music, match history); null when closed. */
+    val settings: AppSettingsUi? = null,
+    /** Back was pressed here: "Exit YapNPlay?" is showing. */
+    val exitAsked: Boolean = false,
 ) : UiState
 
 /** The "your game is still on" dialog. */
@@ -62,14 +67,22 @@ sealed interface MainIntent : UiIntent {
     data class NotificationClicked(val roomId: String) : MainIntent
     data object Rejoin : MainIntent
     data object DismissRejoin : MainIntent
+    /** System Back on the main screen: ask before closing the app. */
+    data object AskExit : MainIntent
+    data object DismissExit : MainIntent
     /** The coins "+" in the top bar. */
     data object OpenGetCoins : MainIntent
     data object WatchAdForCoins : MainIntent
     data object CloseGetCoins : MainIntent
+    data object CloseSettings : MainIntent
+    data object ToggleEffects : MainIntent
+    data object ToggleMusic : MainIntent
+    /** Match History in the settings. */
+    data object OpenHistory : MainIntent
 }
 
 sealed interface MainEffect : UiEffect {
-    data object OpenSettingsDialog : MainEffect
+    data object OpenHistory : MainEffect
     data class OpenRoom(val roomId: String) : MainEffect
     data class OpenMatch(val gameId: String, val matchId: String) : MainEffect
 }

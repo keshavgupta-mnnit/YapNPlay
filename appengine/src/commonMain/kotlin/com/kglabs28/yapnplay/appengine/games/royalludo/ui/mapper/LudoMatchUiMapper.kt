@@ -182,7 +182,7 @@ object LudoMatchUiMapper {
 
     /** Top bar avatars: the spectators (not the players), ringed by voice state. */
     fun audience(match: LudoMatch, speaking: Set<String>, mutedForMe: Set<String>): List<TableAvatarUi> =
-        match.spectators.map { TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in speaking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe) }
+        match.spectators.map { TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in speaking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe, it.avatarId) }
 
     /** The end-of-match leaderboard: finishing order, a title, points and EXP for each place. */
     fun leaderboard(match: LudoMatch, duration: String): LeaderboardUi {

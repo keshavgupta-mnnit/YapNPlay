@@ -20,34 +20,30 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.IconCircle
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileStatUi
 
 /**
- * Who the user is: the avatar (pencil on its corner: tap to change) with
- * @username under it; beside them the name at the start and the YapNPlay
+ * Who the user is: the avatar (pencil on its corner: tap to change);
+ * beside it the name at the start and the YapNPlay
  * ID at the end of a row exactly as wide as Player Stats below it.
  */
 @Composable
 fun ProfileIdentityCard(
     name: String,
-    username: String,
     userCode: String,
     avatarId: String,
     stats: List<ProfileStatUi>,
     codeCopied: Boolean,
     onChangeAvatar: () -> Unit,
     onEditName: () -> Unit,
-    onEditUsername: () -> Unit,
     onCopyCode: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenHistory: (() -> Unit)? = null,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Md)) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
-            Box(modifier = Modifier.clickable(onClick = onChangeAvatar), contentAlignment = Alignment.BottomEnd) {
-                PresetAvatar(avatarId = avatarId, size = dimens.profileAvatar, rimColor = colors.Cyan)
-                IconCircle(imageVector = Icons.Rounded.Edit, fill = colors.SocialZoneAccent, size = dimens.profileEditBadge, iconSize = dimens.iconSmall)
-            }
-            ProfileEditableText(text = username, style = typography.label.copy(color = colors.TextSecondary), onEdit = onEditUsername)
+        Box(modifier = Modifier.clickable(onClick = onChangeAvatar), contentAlignment = Alignment.BottomEnd) {
+            PresetAvatar(avatarId = avatarId, size = dimens.profileAvatar, rimColor = colors.Cyan)
+            IconCircle(imageVector = Icons.Rounded.Edit, fill = colors.SocialZoneAccent, size = dimens.profileEditBadge, iconSize = dimens.iconSmall)
         }
         Column(modifier = Modifier.width(IntrinsicSize.Max), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Lg)) {
@@ -55,7 +51,7 @@ fun ProfileIdentityCard(
                 Spacer(Modifier.weight(1f))
                 ProfileIdPill(code = userCode, copied = codeCopied, onCopy = onCopyCode)
             }
-            ProfileStatsPanel(stats = stats, modifier = Modifier.fillMaxWidth())
+            ProfileStatsPanel(stats = stats, modifier = Modifier.fillMaxWidth(), onOpenHistory = onOpenHistory)
         }
     }
 }

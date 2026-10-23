@@ -27,8 +27,10 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
  * and a rim glowing in the button's colour — the brightest of [gradient]
  * (or [rimColor] when they're all dark). A dark [contentColor] (meant for
  * the old solid fill) reads in that colour instead, so it stays legible
- * on the glass. A null [leadingIcon] or [trailingIcon] is simply not
- * drawn. Disabled dims the button and ignores taps.
+ * on the glass. [glassFill] instead tints the glass that colour with a
+ * [rimColor] rim (the selected tab's finish), text in [contentColor]:
+ * QUICK PLAY and Create Room. A null [leadingIcon] or [trailingIcon] is
+ * simply not drawn. Disabled dims the button and ignores taps.
  */
 @Composable
 fun PillButton(
@@ -44,17 +46,23 @@ fun PillButton(
     trailingIcon: ImageVector? = Icons.Rounded.ChevronRight,
     iconSize: Dp = YapNPlayTheme.dimens.iconMedium,
     textStyle: TextStyle = YapNPlayTheme.typography.button,
+    glassFill: Color? = null,
 ) {
     val brightest = gradient.maxByOrNull { it.luminance() } ?: rimColor
     val glow = if (brightest.luminance() < DARK_GLOW) rimColor.copy(alpha = 1f) else brightest
-    val content = if (contentColor.luminance() < DARK_TEXT) glow else contentColor
+    val content = if (glassFill != null || contentColor.luminance() >= DARK_TEXT) contentColor else glow
+    val surface = if (glassFill != null) {
+        Modifier.glassPill(glowColor = rimColor, surface = glassFill)
+    } else {
+        Modifier.glassPill(glowColor = glow, surface = YapNPlayTheme.colors.RoomsPanel)
+    }
 
     Row(
         modifier = modifier
             // Disabled dimming on one layer, read at draw time, so enabled ↔ disabled always redraws.
             .graphicsLayer { alpha = if (enabled) 1f else DISABLED_ALPHA }
             .height(height)
-            .glassPill(glowColor = glow, surface = YapNPlayTheme.colors.RoomsPanel)
+            .then(surface)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = Spacing.Md),
         verticalAlignment = Alignment.CenterVertically,
@@ -63,7 +71,8 @@ fun PillButton(
         leadingIcon?.let {
             AppIcon(imageVector = it, tint = content, size = iconSize)
         }
-        FitText(text = text, style = textStyle.copy(color = content), modifier = Modifier.weight(1f, fill = false))
+        // A label never takes the tap (it would swallow presses on the button); it only shrinks to fit.
+        ShrinkText(text = text, style = textStyle.copy(color = content), modifier = Modifier.weight(1f, fill = false), slideOnTap = false)
         trailingIcon?.let {
             AppIcon(imageVector = it, tint = content, size = iconSize)
         }

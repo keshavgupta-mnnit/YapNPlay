@@ -284,7 +284,8 @@ sealed interface CbModal {
     data class Report(val people: List<ReportPersonUi>, val selectedUserId: String?, val warning: String, val error: String?) : CbModal
     data class Vote(val reportId: String, val title: String, val body: String, val secondsLeft: String) : CbModal
     data class ReportOutcome(val title: String, val body: String) : CbModal
-    data class Penalty(val title: String, val body: String, val watchingAd: Boolean) : CbModal
+    /** [adOffered]: Watch Ad shows (ads on and one ready). */
+    data class Penalty(val title: String, val body: String, val watchingAd: Boolean, val adOffered: Boolean) : CbModal
 }
 
 sealed interface CityBazaarMatchIntent : UiIntent {

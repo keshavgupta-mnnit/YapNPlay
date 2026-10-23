@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import kotlinx.coroutines.flow.first
+import com.kglabs28.yapnplay.appengine.core.common.StartupGate
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsController
 import kotlin.time.Duration.Companion.seconds
 import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import com.kglabs28.yapnplay.appengine.features.coins.usecase.GetAdLimitStatusUseCase
@@ -48,6 +51,8 @@ class MainViewModel(
     private val collectDailyBonus: CollectDailyBonusUseCase,
     private val isAdReady: IsRewardedAdReadyUseCase,
     private val clock: AppClock,
+    private val settingsController: AppSettingsController,
+    private val startupGate: StartupGate,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MainState, MainIntent, MainEffect>(MainState(), dispatchers) {
 
@@ -62,6 +67,9 @@ class MainViewModel(
         }
         // The daily bonus, whichever screen's /me call claimed it first.
         scope.launch {
+            // Not over the Play Games sign-in dialog: the bonus waits until it is done.
+            startupGate.ready.first { it }
+            offerCoinsOnLaunch()
             observeDailyBonus().collect { coins ->
                 setState { copy(dailyBonus = if (coins > 0) Strings.dailyBonus(TextUtils.groupedThousands(coins)) else null) }
             }
@@ -93,6 +101,8 @@ class MainViewModel(
                 emitEffect(MainEffect.OpenMatch(it.gameId, it.matchId))
             }
             MainIntent.DismissRejoin -> setState { copy(rejoin = null) }
+            MainIntent.AskExit -> setState { copy(exitAsked = true) }
+            MainIntent.DismissExit -> setState { copy(exitAsked = false) }
             // Only when an ad can play now: an offer that ends in "no ad" is worse than none.
             MainIntent.OpenGetCoins -> if (isAdReady().also { AppLog.d(AppConstants.LOG_TAG_ADS, "home: coins + tapped, ad ready=$it") }) {
                 setState { copy(coinsOffer = CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody)) }
@@ -103,7 +113,14 @@ class MainViewModel(
                 setState { copy(coinsOffer = null) }
             }
             MainIntent.WatchAdForCoins -> watchAd()
-            MainIntent.OpenSettings -> emitEffect(MainEffect.OpenSettingsDialog)
+            MainIntent.OpenSettings -> showSettings()
+            MainIntent.CloseSettings -> setState { copy(settings = null) }
+            MainIntent.ToggleEffects -> setState { copy(settings = settingsController.toggleEffects()) }
+            MainIntent.ToggleMusic -> setState { copy(settings = settingsController.toggleMusic()) }
+            MainIntent.OpenHistory -> {
+                setState { copy(settings = null) }
+                emitEffect(MainEffect.OpenHistory)
+            }
             MainIntent.ToggleNotifications ->
                 if (state.value.notificationsOpen) closeNotifications() else openNotifications()
             MainIntent.DismissNotifications -> closeNotifications()
@@ -158,7 +175,7 @@ class MainViewModel(
      * the coins "+" offers the same any time an ad is ready.
      */
     private suspend fun offerCoinsOnLaunch() {
-        if (observeDailyBonus().value > 0 || state.value.coinsOffer != null || !state.value.profileLoaded) return
+        if (!startupGate.ready.value || observeDailyBonus().value > 0 || state.value.coinsOffer != null || !state.value.profileLoaded) return
         if (!adsConfig.isLaunchOfferEnabled() || !launchCoinsOffer.takeIfDue()) return
         if (!isAdReady.await(LAUNCH_AD_WAIT) || state.value.coinsOffer != null) {
             return AppLog.d(AppConstants.LOG_TAG_ADS, "home: launch offer skipped, no ad ready")
@@ -215,6 +232,10 @@ class MainViewModel(
         }
         // Then: "next in 2h · 4 left today", or the daily limit, with the button off.
         refreshAdLimits()
+    }
+
+    private fun showSettings() {
+        setState { copy(settings = settingsController.current()) }
     }
 
     private fun levelProgress(xp: Int, levelXp: Int, nextLevelXp: Int): Float =

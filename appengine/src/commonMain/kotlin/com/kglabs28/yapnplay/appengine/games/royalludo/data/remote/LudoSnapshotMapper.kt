@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.data.remote
 
+import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.features.seathandover.data.toDomain
 import com.kglabs28.yapnplay.appengine.games.royalludo.data.remote.wire.RoyalLudoPublicState
@@ -56,7 +57,7 @@ class LudoSnapshotMapper(private val json: Json) {
                     },
                 )
             },
-            spectators = snapshot.spectators.map { LudoSpectator(it.userId, it.displayName, it.micOn) },
+            spectators = snapshot.spectators.map { LudoSpectator(it.userId, it.displayName, it.micOn, it.avatarId) },
             spectatorCount = snapshot.spectators.size,
             pieces = state.pieces,
             currentSeat = snapshot.turn.seat,
@@ -68,6 +69,7 @@ class LudoSnapshotMapper(private val json: Json) {
             finishedSeats = state.finishedSeats,
             ranking = state.ranking,
             pot = snapshot.pot?.total ?: 0,
+            endVote = snapshot.endVote?.let { MatchEndVote(it.proposerSeat, toLocal(it.endsAt), it.voters, it.yes, it.no) },
             seatOffer = snapshot.seatOffer?.toDomain(toLocal),
             roomId = snapshot.roomId,
             viewerUserId = myUserId,

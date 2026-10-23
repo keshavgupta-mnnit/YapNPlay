@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.navigation
 
+import com.kglabs28.yapnplay.appengine.ui.screens.history.MatchHistoryScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -73,6 +74,7 @@ fun YapNPlayNavHost(
                 onOpenRoom = { roomId -> navController.navigate(RoomLobby(roomId)) },
                 onCreateRoom = { navController.navigate(RoomPlaceholder) },
                 onOpenProfile = { navController.navigate(Profile) },
+                onOpenHistory = { navController.navigate(MatchHistory) },
                 pendingInviteCode = pendingInviteCode,
                 onInviteConsumed = { pendingInviteCode = null },
                 pendingCreateGroupWith = pendingCreateGroupWith,
@@ -84,7 +86,8 @@ fun YapNPlayNavHost(
         }
         composable<Profile> { entry ->
             ProfileScreen(
-                onBack = { navController.popBackStack() },
+                onBack = { navController.popIfOnTop(entry) },
+                onOpenHistory = { navController.navigate(MatchHistory) },
                 onCreateGroupWith = { userId ->
                     pendingCreateGroupWith = userId
                     navController.popBackStack(Main, inclusive = false)
@@ -92,10 +95,16 @@ fun YapNPlayNavHost(
                 viewModel = entry.rememberScreenViewModel(),
             )
         }
+        composable<MatchHistory> { entry ->
+            MatchHistoryScreen(
+                onBack = { navController.popIfOnTop(entry) },
+                viewModel = entry.rememberScreenViewModel(),
+            )
+        }
         composable<RoomLobby> { entry ->
             PlayRoomLobbyScreen(
                 roomId = entry.toRoute<RoomLobby>().roomId,
-                onClose = { navController.popBackStack() },
+                onClose = { navController.popIfOnTop(entry) },
                 onOpenMatch = { gameId, matchId -> navController.openMatch(gameId, matchId) },
                 viewModel = entry.rememberScreenViewModel(),
             )
@@ -106,30 +115,28 @@ fun YapNPlayNavHost(
         composable<CityBazaarMatch> { entry ->
             CityBazaarMatchScreen(
                 matchId = entry.toRoute<CityBazaarMatch>().matchId,
-                // Only while this table is on top: a second close mustn't pop the screen under it (black screen).
-                onClose = { if (navController.currentBackStackEntry?.id == entry.id) navController.popBackStack() },
+                onClose = { navController.popIfOnTop(entry) },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<RoyalLudoMatch> { entry ->
             RoyalLudoMatchScreen(
                 matchId = entry.toRoute<RoyalLudoMatch>().matchId,
-                // Only while this table is on top: a second close mustn't pop the screen under it (black screen).
-                onClose = { if (navController.currentBackStackEntry?.id == entry.id) navController.popBackStack() },
+                onClose = { navController.popIfOnTop(entry) },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<MonoMatchRoute> { entry ->
             MatchMonoScreen(
                 matchId = entry.toRoute<MonoMatchRoute>().matchId,
-                onClose = { navController.popBackStack() },
+                onClose = { navController.popIfOnTop(entry) },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<MonoChaosMatchRoute> { entry ->
             MatchMonoChaosScreen(
                 matchId = entry.toRoute<MonoChaosMatchRoute>().matchId,
-                onClose = { navController.popBackStack() },
+                onClose = { navController.popIfOnTop(entry) },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }

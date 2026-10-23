@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
@@ -80,11 +80,9 @@ fun LobbyTopBar(
                 .padding(horizontal = Spacing.Md),
             contentAlignment = Alignment.CenterStart,
         ) {
-            BasicText(
+            ShrinkText(
                 text = roomName,
                 style = typography.cardTitle.copy(color = colors.TextPrimary),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
         }
         // As tall as the room name's pill beside it.

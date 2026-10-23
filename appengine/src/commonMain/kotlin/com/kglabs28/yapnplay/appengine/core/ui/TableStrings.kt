@@ -45,6 +45,7 @@ object TableStrings {
 
     const val leaderboardTitle = "LEADERBOARD"
     fun leaderboardExp(exp: Int) = "+$exp EXP"
+    const val gameRules = "Game Rules"
     const val leaderboardShare = "SHARE THIS"
     const val leaderboardMatchDuration = "MATCH DURATION: "
     const val leaderboardExpGained = "EXP GAINED: "
@@ -68,6 +69,22 @@ object TableStrings {
     const val playerAddFriendConfirm = "Send Request"
     const val playerRemoveFriendTitle = "Remove Friend"
     const val playerFriendFailed = "Couldn't do that. Check your connection and try again."
+
+    // End the game early (a vote), at every table.
+    const val endGameButton = "End game (vote)"
+    const val endVoteTitle = "END THE GAME?"
+    fun endVoteBody(proposer: String, ranking: String) = "$proposer wants to end the game now. $ranking It ends if more than half of the players agree."
+    fun endVoteTally(yes: Int, total: Int) = "Votes to end: $yes of $total"
+    const val endVoteEnd = "End game"
+    const val endVoteKeep = "Keep playing"
+    fun endVoteYouVoted(agree: Boolean) = if (agree) "You voted to end. Waiting for the others..." else "You voted to keep playing. Waiting for the others..."
+    const val endVoteWatching = "The players are deciding whether to end the game..."
+    fun endVoteRejected(yes: Int, voters: Int) = "The game goes on: only $yes of $voters voted to end"
+    fun endVoted(yes: Int, voters: Int) = "The game was ended by vote ($yes of $voters)"
+    const val endVoteRejectedShort = "Not enough votes: the game goes on"
+    /** The Game Rules entry, the same at every table but for how [ranking] players. */
+    fun endEarlyRule(ranking: String) = "Any player can ask to end the game from Settings. Everyone still playing votes; it ends if more than half agree, and a missing vote counts as no. $ranking A player can ask again after a few minutes."
+    const val endEarlyRuleTitle = "Ending early"
 
     private const val SECONDS_PER_MINUTE = 60L
 }

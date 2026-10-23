@@ -27,6 +27,9 @@ fun Modifier.glassPanel(
     shape: Shape = RoundedCornerShape(cornerRadius),
     surface: Color = YapNPlayTheme.colors.GlassSurface,
     surfaceBrush: Brush = SolidColor(surface),
+    /** A rim of its own (e.g. a neon gradient) instead of the lit-from-above one; null keeps that. */
+    rimBrush: Brush? = null,
+    rimWidth: Dp = YapNPlayTheme.dimens.hairline,
 ): Modifier {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -35,10 +38,10 @@ fun Modifier.glassPanel(
         .clip(shape)
         .background(surfaceBrush)
         .border(
-            dimens.hairline,
+            rimWidth,
             // Lit from above like the designs: pale rim on top that
             // turns into the glow color toward the bottom edge.
-            Brush.verticalGradient(
+            rimBrush ?: Brush.verticalGradient(
                 colors = listOf(
                     colors.GlassShine.copy(alpha = 0.35f),
                     glowColor.copy(alpha = 0.45f),

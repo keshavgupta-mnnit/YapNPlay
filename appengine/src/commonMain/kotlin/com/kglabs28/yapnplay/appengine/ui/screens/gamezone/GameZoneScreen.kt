@@ -126,8 +126,11 @@ fun GameZoneScreen(
                 PillButton(
                     text = Strings.homeQuickPlay,
                     onClick = { viewModel?.onIntent(GameZoneIntent.PlayGame(state.focusedIndex)) },
-                    gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),
-                    contentColor = colors.CtaGreenContent,
+                    // The same glassy green as Home's Quick Play.
+                    gradient = listOf(colors.CtaGlassGreen),
+                    contentColor = colors.TextPrimary,
+                    rimColor = colors.CtaGlassGreenRim,
+                    glassFill = colors.CtaGlassGreen,
                     leadingIcon = Icons.Rounded.Bolt,
                     height = YapNPlayTheme.dimens.ctaLargeHeight,
                     textStyle = YapNPlayTheme.typography.title,
@@ -160,7 +163,7 @@ fun GameZoneScreen(
                     title = penalty.title,
                     body = penalty.body,
                     watchingAd = penalty.watchingAd,
-                    onWatchAd = { viewModel?.onIntent(GameZoneIntent.WatchAd) },
+                    onWatchAd = if (penalty.adOffered || penalty.watchingAd) ({ viewModel?.onIntent(GameZoneIntent.WatchAd) }) else null,
                     onClose = { viewModel?.onIntent(GameZoneIntent.DismissPenalty) },
                 )
             }

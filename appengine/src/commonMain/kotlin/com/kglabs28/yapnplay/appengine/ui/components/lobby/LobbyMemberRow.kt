@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,7 +29,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.PresenceDot
@@ -101,11 +101,9 @@ fun LobbyMemberRow(
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                BasicText(
+                ShrinkText(
                     text = if (member.isMe) "${member.name} (${RoomStrings.lobbyYou})" else member.name,
                     style = YapNPlayTheme.typography.title.copy(color = colors.TextPrimary),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
                 LobbyStatusChip(status = member.status)

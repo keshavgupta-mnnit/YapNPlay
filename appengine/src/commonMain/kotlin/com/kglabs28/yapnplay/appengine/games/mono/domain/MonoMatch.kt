@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.mono.domain
 
+import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.games.mono.identity.MonoConstants
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
@@ -51,6 +52,8 @@ data class MonoMatch(
     val catchClosedFor: List<Int> = emptyList(),
     /** The keep-playing vote, open once two or more have finished. */
     val continueVote: MonoContinueVote? = null,
+    /** Someone asked to end the game early; null when no vote is running. */
+    val endVote: MatchEndVote? = null,
     val caughtPenaltyCards: Int = 2,
     val falseCatchPenaltyCards: Int = 0,
     /** House rule: MONO is called before the second-last card goes down. */
@@ -92,7 +95,7 @@ data class MonoPlayer(
 )
 
 @Serializable
-data class MonoSpectator(val userId: String, val name: String, val micOn: Boolean)
+data class MonoSpectator(val userId: String, val name: String, val micOn: Boolean, val avatarId: String = "")
 
 @Serializable
 data class MonoRankedSeat(

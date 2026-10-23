@@ -25,8 +25,10 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 fun MonoTablePrompt(
     title: String,
     modifier: Modifier = Modifier,
+    /** A second line under the title; null shows none. */
+    subtitle: String? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // The app's dialog card, as every other choice in the app.
-    ModalCard(title = title, modifier = modifier.widthIn(max = YapNPlayTheme.dimens.modalWidth), content = content)
+    ModalCard(title = title, subtitle = subtitle, modifier = modifier.widthIn(max = YapNPlayTheme.dimens.modalWidth), content = content)
 }

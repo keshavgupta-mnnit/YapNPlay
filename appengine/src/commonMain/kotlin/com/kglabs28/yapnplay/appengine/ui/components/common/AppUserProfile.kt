@@ -47,8 +47,8 @@ fun AppUserProfile(
                 .size(dimens.topBarAvatar)
                 .clip(shape)
                 .background(colors.Panel)
-                .border(dimens.avatarRing, colors.SocialZoneAccent, shape)
-                .padding(dimens.avatarRing),
+                .border(dimens.avatarRing * RING_SHARE, colors.GameZoneAccent, shape)
+                .padding(dimens.avatarRing * RING_SHARE),
             contentAlignment = Alignment.Center,
         ) {
             val preset = AvatarPresets.index(avatarId)
@@ -66,7 +66,10 @@ fun AppUserProfile(
         PresenceDot(
             online = online,
             modifier = Modifier.revealWhen(statusVisible),
-            size = dimens.statusDot,
+            size = dimens.statusDotSmall,
         )
     }
 }
+
+/** The top bar avatar's ring, a little thinner than the usual avatar ring. */
+private const val RING_SHARE = 0.9f

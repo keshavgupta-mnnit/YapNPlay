@@ -1,5 +1,10 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,60 +45,80 @@ fun JoinRoomCard(
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
 
-    Column(
+    Row(
         modifier = modifier
             .glassPanel(
                 glowColor = colors.IconMuted,
                 surface = colors.RoomsPanel.copy(alpha = 0.9f),
             )
-            .padding(horizontal = Spacing.Md, vertical = Spacing.Xs),
-        verticalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterVertically),
+            .padding(horizontal = Spacing.Xs, vertical = Spacing.Xxs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+        // The "ROOM CODE" label on its own dark block, the card's full height.
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .clip(YapNPlayTheme.shapes.panel)
+                .background(colors.Background.copy(alpha = LABEL_BLOCK_ALPHA))
+                .padding(horizontal = Spacing.Md),
+            contentAlignment = Alignment.Center,
         ) {
-            IconCircle(
-                imageVector = Icons.Rounded.ConfirmationNumber,
-                fill = colors.RoomsTicket,
-                iconSize = dimens.iconMedium,
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
-                BasicText(
-                    text = RoomStrings.roomsJoinTitle,
-                    style = typography.sectionTitle.copy(color = colors.TextPrimary),
+            BasicText(text = RoomStrings.roomsCodeLabel, style = typography.sectionTitle.copy(color = colors.TextSecondary, textAlign = TextAlign.Center), maxLines = 2)
+        }
+        Column(
+            modifier = Modifier.weight(1f).padding(end = Spacing.Xs),
+            verticalArrangement = Arrangement.spacedBy(Spacing.Xxs, Alignment.CenterVertically),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+            ) {
+                IconCircle(
+                    imageVector = Icons.Rounded.ConfirmationNumber,
+                    fill = colors.RoomsTicket,
+                    iconSize = dimens.iconMedium,
                 )
-                BasicText(
-                    text = errorMessage ?: RoomStrings.roomsJoinSubtitle(AppConstants.ROOM_CODE_LENGTH),
-                    style = typography.micro.copy(
-                        color = if (errorMessage != null) colors.Error else colors.RoomsSubtitle,
-                    ),
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
+                    BasicText(
+                        text = RoomStrings.roomsJoinTitle,
+                        style = typography.sectionTitle.copy(color = colors.TextPrimary),
+                    )
+                    BasicText(
+                        text = errorMessage ?: RoomStrings.roomsJoinSubtitle(AppConstants.ROOM_CODE_LENGTH),
+                        style = typography.micro.copy(
+                            color = if (errorMessage != null) colors.Error else colors.RoomsSubtitle,
+                        ),
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+            ) {
+                RoomCodeField(
+                    code = code,
+                    isError = errorMessage != null,
+                    active = keypadOpen,
+                    onActivate = onOpenKeypad,
+                    onClear = onClearCode,
+                    modifier = Modifier.weight(1f),
+                )
+                PillButton(
+                    text = RoomStrings.roomsJoinButton,
+                    onClick = onJoin,
+                    enabled = !isJoining,
+                    gradient = listOf(colors.JoinButtonTop, colors.JoinButtonBottom),
+                    contentColor = colors.TextPrimary,
+                    rimColor = colors.JoinButtonRim,
+                    height = dimens.codeFieldHeight,
+                    modifier = Modifier.width(dimens.joinButtonWidth),
                 )
             }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
-        ) {
-            RoomCodeField(
-                code = code,
-                isError = errorMessage != null,
-                active = keypadOpen,
-                onActivate = onOpenKeypad,
-                onClear = onClearCode,
-                modifier = Modifier.weight(1f),
-            )
-            PillButton(
-                text = RoomStrings.roomsJoinButton,
-                onClick = onJoin,
-                enabled = !isJoining,
-                gradient = listOf(colors.CtaPurpleStart, colors.CtaPurpleEnd),
-                contentColor = colors.TextPrimary,
-                rimColor = colors.CtaPurpleRim,
-                height = dimens.codeFieldHeight,
-                modifier = Modifier.width(dimens.joinButtonWidth),
-            )
-        }
     }
 }
+
+/** How dark the ROOM CODE label block is. */
+private const val LABEL_BLOCK_ALPHA = 0.45f

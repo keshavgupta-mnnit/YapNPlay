@@ -77,10 +77,10 @@ class YapNPlayDimens {
     // topBarControlHeight so their tops and bottoms line up.
     val topBarHeight: Dp get() = 68.dp.scaled()
     val topBarControlHeight: Dp get() = 38.dp.scaled()
-    val topBarAvatar: Dp get() = 42.dp.scaled()
+    val topBarAvatar: Dp get() = 34.dp.scaled()
     val iconSmall: Dp get() = 14.dp.scaled()
     /** Space reserved for a balance before it loads (fits "99,999"). */
-    val balanceMinWidth: Dp get() = 44.dp.scaled()
+    val balanceMinWidth: Dp get() = 36.dp.scaled()
     val iconMedium: Dp get() = 20.dp.scaled()
 
     // Home + Rooms cards (from the designs, raised to comfortable touch
@@ -97,7 +97,6 @@ class YapNPlayDimens {
     val smallButtonHeight: Dp get() = 32.dp.scaled()
     val codeFieldHeight: Dp get() = 36.dp.scaled()
     val joinButtonWidth: Dp get() = 88.dp.scaled()
-    val roomsHeroArt: Dp get() = 110.dp.scaled()
 
     // Game pickers (Game Zone carousel/grid, room lobby)
     val carouselArrowWidth: Dp get() = 36.dp.scaled()
@@ -249,6 +248,8 @@ class YapNPlayDimens {
     /** 3D City Royale: a seat card round the board and its avatar, My Properties in the bottom bar. */
     val cb3dSeatWidth: Dp get() = 150.dp.scaled()
     val cb3dSeatAvatar: Dp get() = 42.dp.scaled()
+    /** The Game Rules list's tallest height; longer lists scroll. */
+    val rulesListMaxHeight: Dp get() = 220.dp.scaled()
     val cb3dPropertiesWidth: Dp get() = 100.dp.scaled()
     /** 3D City Royale: how far the board sits below the top bar, and the bottom bar's height (seats keep above it). */
     val cb3dBoardDrop: Dp get() = 34.dp.scaled()
@@ -270,7 +271,27 @@ class YapNPlayDimens {
     val scrollbarWidth: Dp get() = 4.dp.scaled()
     val fieldClearButton: Dp get() = 20.dp.scaled()
     val levelBarHeight: Dp get() = 4.dp.scaled()
-    val levelHexagon: Dp get() = 26.dp.scaled()
+    /** The top bar's brand logo (beside the name), and the hairline dividers between its groups. */
+    val topBarBrandLogo: Dp get() = 58.dp.scaled()
+    /** The level's shield in the XP pill. */
+    val levelShield: Dp get() = 18.dp.scaled()
+    val topBarDividerHeight: Dp get() = 30.dp.scaled()
+    /** The top bar's right group (coins, XP, bell, settings): its pills' and buttons' height, and their icons. */
+    val homeBarControl: Dp get() = 30.dp.scaled()
+    val homeBarIcon: Dp get() = 14.dp.scaled()
+    /** Home's cards (design): the header's and the pillars' icon circles, and the buttons. */
+    val homeHeaderIcon: Dp get() = 24.dp.scaled()
+    val homePillarIcon: Dp get() = 14.dp.scaled()
+    val homeCtaHeight: Dp get() = 28.dp.scaled()
+    val homeBannerButtonHeight: Dp get() = 30.dp.scaled()
+    /** The home cards' corners on their leaning edges (rounder than their outer ones). */
+    val homeCardInnerRadius: Dp get() = 30.dp.scaled()
+    /** The space the Create Room panel leaves between itself and Game Zone's corner. */
+    val homeBannerClearance: Dp get() = 12.dp.scaled()
+    /** The XP pill's text keeps at least this width, so big numbers still fit. */
+    val xpLabelMinWidth: Dp get() = 76.dp.scaled()
+    /** The Create New Room card's neon rim. */
+    val neonRim: Dp get() = 2.dp.scaled()
     val dailyBonusWidth: Dp get() = 340.dp.scaled()
     val dailyBonusCoin: Dp get() = 56.dp.scaled()
     val connectionCardWidth: Dp get() = 360.dp.scaled()

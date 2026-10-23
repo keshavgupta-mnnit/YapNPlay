@@ -27,7 +27,6 @@ object ProfileUiMapper {
         return state.copy(
             loaded = true,
             name = p.name,
-            username = ProfileStrings.profileUsername(p.username),
             userCode = p.userCode,
             avatarId = p.avatarId,
             stats = listOf(
@@ -57,7 +56,6 @@ object ProfileUiMapper {
     fun person(friend: Friend): ProfilePersonUi = ProfilePersonUi(
         userId = friend.userId,
         name = friend.name,
-        username = ProfileStrings.profileUsername(friend.username),
         userCode = friend.userCode,
         avatarId = friend.avatarId,
         online = friend.online,
@@ -69,7 +67,6 @@ object ProfileUiMapper {
         return ProfileBlockedUi(
             userId = user.userId,
             name = user.name,
-            username = ProfileStrings.profileUsername(user.username),
             avatarId = user.avatarId,
             blockedOn = ProfileStrings.profileBlockedOn(Strings.shortDate(date.dayOfMonth, date.monthNumber, date.year)),
         )

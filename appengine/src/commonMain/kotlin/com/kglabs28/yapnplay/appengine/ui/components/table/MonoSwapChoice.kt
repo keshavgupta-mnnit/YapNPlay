@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
@@ -43,11 +43,9 @@ fun MonoSwapChoice(
                 verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
             ) {
                 PresetAvatar(avatarId = target.avatarId, size = dimens.monoSwapAvatar)
-                BasicText(
+                ShrinkText(
                     text = target.name,
                     style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                 )
                 BasicText(text = MonoStrings.monoSwapCards(target.cards), style = typography.micro.copy(color = colors.TextSecondary), maxLines = 1)
             }

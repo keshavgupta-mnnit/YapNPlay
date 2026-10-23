@@ -1,17 +1,16 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
@@ -46,14 +45,12 @@ fun FriendAvatarItem(
                 onlineColor = colors.LiveGreen,
             )
         }
-        BasicText(
+        ShrinkText(
             text = friend.name,
             style = YapNPlayTheme.typography.micro.copy(
                 color = colors.TextPrimary,
                 textAlign = TextAlign.Center,
             ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.widthIn(max = size * 2),
         )
     }

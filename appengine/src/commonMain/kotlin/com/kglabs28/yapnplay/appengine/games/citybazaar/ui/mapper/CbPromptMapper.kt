@@ -1,6 +1,8 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper
 
-import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarEndVoteInfo
+import kotlinx.datetime.Instant
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteUiMapper
+import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
@@ -72,22 +74,9 @@ object CbPromptMapper {
     }
 
     /** The end-game vote as the user sees it: buttons if they may vote and haven't yet. */
-    fun endVote(match: CityBazaarMatch, vote: CityBazaarEndVoteInfo, countdown: String): CbModal.EndVote {
-        val seat = match.me?.seat
-        val eligible = seat != null && seat in vote.voters
-        val votedYes = seat != null && seat in vote.yes
-        val votedNo = seat != null && seat in vote.no
-        return CbModal.EndVote(
-            body = CityBazaarStrings.cbEndVoteBody(match.player(vote.proposerSeat)?.name.orEmpty()),
-            tally = CityBazaarStrings.cbEndVoteTally(vote.yes.size, vote.voters.size),
-            status = when {
-                !eligible -> CityBazaarStrings.cbEndVoteWatching
-                votedYes || votedNo -> CityBazaarStrings.cbEndVoteYouVoted(votedYes)
-                else -> null
-            },
-            canVote = eligible && !votedYes && !votedNo,
-            countdown = countdown,
-        )
+    fun endVote(match: CityBazaarMatch, vote: MatchEndVote, now: Instant): CbModal.EndVote {
+        val ui = EndVoteUiMapper.of(vote, match.me?.seat, match.player(vote.proposerSeat)?.name.orEmpty(), CityBazaarStrings.cbEndRanking, now)
+        return CbModal.EndVote(body = ui.body, tally = ui.tally, status = ui.status, canVote = ui.canVote, countdown = ui.countdown)
     }
 
     /** "30 rounds" or "15 minutes", by which limit was hit. */

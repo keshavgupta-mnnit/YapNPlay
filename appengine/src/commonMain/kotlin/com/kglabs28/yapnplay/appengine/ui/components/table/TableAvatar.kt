@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.ui.components.profile.AvatarPresets
+import com.kglabs28.yapnplay.appengine.ui.placeholders.PresetAvatarArtwork
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.background
@@ -18,7 +22,7 @@ import androidx.compose.ui.unit.Dp
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
-/** Round avatar for the top bar strip: its [ring] colour shows the voice state, and it glows in that colour while they talk ([glow]). */
+/** Round avatar for the top bar strip (their preset picture, or a person icon): its [ring] colour shows the voice state, and it glows in that colour while they talk ([glow]). */
 @Composable
 fun TableAvatar(
     ring: Color,
@@ -26,6 +30,8 @@ fun TableAvatar(
     size: Dp = YapNPlayTheme.dimens.ludoAvatar,
     ringWidth: Dp = YapNPlayTheme.dimens.ludoAvatarRing,
     glow: Boolean = false,
+    /** Their avatar preset; unknown or "" shows a person icon. */
+    avatarId: String = "",
 ) {
     val colors = YapNPlayTheme.colors
     Box(
@@ -38,7 +44,12 @@ fun TableAvatar(
             .border(ringWidth, ring, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
-        AppIcon(imageVector = Icons.Rounded.Person, tint = colors.IconMuted, size = size / 2)
+        val preset = AvatarPresets.index(avatarId)
+        if (preset >= 0) {
+            PresetAvatarArtwork(index = preset, modifier = Modifier.fillMaxSize().padding(ringWidth).clip(CircleShape))
+        } else {
+            AppIcon(imageVector = Icons.Rounded.Person, tint = colors.IconMuted, size = size / 2)
+        }
     }
 }
 

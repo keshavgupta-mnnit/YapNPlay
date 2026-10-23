@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.placeholders
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.IconCircle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -91,21 +92,24 @@ private fun FeaturePillarItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
-        AppIcon(imageVector = icon, tint = iconTint, size = YapNPlayTheme.dimens.iconSmall)
+        IconCircle(imageVector = icon, fill = iconTint.copy(alpha = PILLAR_ICON_FILL), tint = iconTint, size = YapNPlayTheme.dimens.homePillarIcon, iconSize = YapNPlayTheme.dimens.homePillarIcon * PILLAR_ICON_SHARE)
         Column {
             BasicText(
                 text = title,
-                style = typography.micro.copy(
-                    fontWeight = typography.sectionTitle.fontWeight,
+                style = typography.homePillarTitle.copy(
                     color = colors.TextPrimary,
                 ),
                 maxLines = 1,
             )
             BasicText(
                 text = subtitle,
-                style = typography.micro.copy(color = colors.TextSecondary),
+                style = typography.homePillarText.copy(color = colors.HomeTextSoft),
                 maxLines = 1,
             )
         }
     }
 }
+
+/** How strongly a pillar's icon colour fills its circle, and the icon's share of the circle. */
+private const val PILLAR_ICON_FILL = 0.22f
+private const val PILLAR_ICON_SHARE = 0.6f

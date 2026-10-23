@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.groups
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
@@ -61,7 +61,7 @@ fun GroupInvitesDialog(
                     ) {
                         IconCircle(imageVector = badge.icon, fill = badge.fill, size = dimens.personRowAvatar, iconSize = dimens.iconMedium)
                         Column(modifier = Modifier.weight(1f)) {
-                            BasicText(text = invite.roomName, style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            ShrinkText(text = invite.roomName, style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
                             BasicText(text = invite.detail, style = typography.micro.copy(color = colors.TextSecondary), maxLines = 1)
                         }
                         ProfileActionButton(text = RoomStrings.groupDecline, kind = ProfileButtonKind.NEUTRAL, onClick = { onDecline(invite.inviteId) }, height = dimens.smallButtonHeight)

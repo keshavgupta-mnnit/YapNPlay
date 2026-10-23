@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteCard
 import com.kglabs28.yapnplay.appengine.ui.components.seat.LeaveMatchDialog
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
@@ -107,9 +108,13 @@ fun LudoMatchModalContent(
             onToggleEffects = actions.onToggleEffects,
             onToggleMusic = actions.onToggleMusic,
             onReport = actions.onOpenReport,
+            onEndGame = actions.onProposeEnd.takeIf { modal.canEndGame },
+            endGameLabel = TableStrings.endGameButton,
             onClose = onDismiss,
+            rules = LudoStrings.ludoRules,
             modifier = modifier,
         )
+        is LudoMatchModal.EndVote -> EndVoteCard(vote = modal.vote, onVote = actions.onEndVote, modifier = modifier)
         is LudoMatchModal.Report -> ReportPlayerCard(
             options = modal.people.map { LudoStrings.ludoReportOption(it.name, it.role) },
             selectedIndex = modal.people.indexOfFirst { it.userId == modal.selectedUserId }.takeIf { it >= 0 },
@@ -138,7 +143,7 @@ fun LudoMatchModalContent(
             title = modal.title,
             body = modal.body,
             watchingAd = modal.watchingAd,
-            onWatchAd = actions.onWatchAd,
+            onWatchAd = actions.onWatchAd.takeIf { modal.adOffered },
             onClose = onDismiss,
             modifier = modifier,
         )

@@ -43,9 +43,9 @@ object LudoModerationUiMapper {
         }
     }
 
-    fun penalty(penalty: Penalty, now: Instant, watchingAd: Boolean): LudoMatchModal.Penalty {
+    fun penalty(penalty: Penalty, now: Instant, watchingAd: Boolean, adOffered: Boolean): LudoMatchModal.Penalty {
         val minutes = ceil((penalty.blockedUntil - now).inWholeSeconds.coerceAtLeast(0) / SECONDS_PER_MINUTE.toDouble()).toInt()
-        return LudoMatchModal.Penalty(LudoStrings.ludoPenaltyTitle, LudoStrings.ludoPenaltyBody(penalty.points, minutes), watchingAd)
+        return LudoMatchModal.Penalty(LudoStrings.ludoPenaltyTitle, LudoStrings.ludoPenaltyBody(penalty.points, minutes), watchingAd, adOffered)
     }
 
     private const val INVOLVED = 2

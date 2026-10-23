@@ -1,7 +1,27 @@
 package com.kglabs28.yapnplay.appengine.core.ui
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.GameRuleUi
 /** City Bazaar: table, prompts, popups, feed, bank, vote. */
 object CityBazaarStrings {
+    /** The rules shown from the settings menu. */
+    val cbRules: List<GameRuleUi> = listOf(
+        GameRuleUi("Goal", "Be the last player who is not bankrupt, or the richest when the time or round limit runs out."),
+        GameRuleUi("Your turn", "Roll both dice and move clockwise by the total. Passing or landing on START pays ₹1,500."),
+        GameRuleUi("Buying", "Land on an unowned city, transit or utility to buy it, or decline. There is no auction for a declined property."),
+        GameRuleUi("Rent", "Landing on someone else's property pays them its rent. Owning 3 or more cities of a colour doubles their rent."),
+        GameRuleUi("Building", "Land on your own city to add one house, up to 3 houses and then a hotel. Buildings raise the rent."),
+        GameRuleUi("Companies", "A company earns its rent, or its pair rent when you own both companies of the pair."),
+        GameRuleUi("Jail", "In jail you get up to 3 rolls for doubles. After that, pay ₹500 to leave, or stay on half rent until your next turn."),
+        GameRuleUi("Taxes and CLUB", "Income Tax: ₹50 per property. Wealth Tax: ₹50 per building. CLUB: ₹500. All paid to the bank."),
+        GameRuleUi("REST HOUSE", "You skip your next turn."),
+        GameRuleUi("Luck and Shagun Chest", "The dice total that brought you there decides what happens. Tap a pile to see its table."),
+        GameRuleUi("Short of money", "Sell buildings first, then cities to the bank or by auction. If it is still not enough you are bankrupt and out."),
+        GameRuleUi("Out of time", "If your time runs out, the table plays for you and ₹50 is taken if you had not rolled."),
+        GameRuleUi("End of the match", "When the time or round limit runs out, players are ranked by net worth: cash, city prices and buildings."),
+        GameRuleUi(TableStrings.endEarlyRuleTitle, TableStrings.endEarlyRule(cbEndRanking)),
+    )
+
+
     const val cbTitle = "CITY ROYALE"
     fun cbRupees(digits: String) = "₹$digits"
     fun cbMinusRupees(digits: String) = "-₹$digits"
@@ -124,16 +144,8 @@ object CityBazaarStrings {
     fun cbExtendTally(yes: Int, total: Int) = "Votes to continue: $yes of $total"
     fun cbExtendYouVoted(keepPlaying: Boolean) = if (keepPlaying) "You voted to continue. Waiting for the others..." else "You voted to end. Waiting for the others..."
     const val cbExtendWatching = "The players are deciding whether to keep playing..."
-    const val cbEndGameButton = "End game (vote)"
-    const val cbEndVoteTitle = "END THE GAME?"
-    fun cbEndVoteBody(proposer: String) = "$proposer wants to end the game now. The richest player wins. It ends if more than half of the players agree."
-    fun cbEndVoteTally(yes: Int, total: Int) = "Votes to end: $yes of $total"
-    const val cbEndVoteEnd = "End game"
-    const val cbEndVoteKeep = "Keep playing"
-    fun cbEndVoteYouVoted(agree: Boolean) = if (agree) "You voted to end. Waiting for the others..." else "You voted to keep playing. Waiting for the others..."
-    const val cbEndVoteWatching = "The players are deciding whether to end the game..."
-    fun cbFeedEndVoted(yes: Int, voters: Int) = "The game was ended by vote ($yes of $voters)"
-    fun cbFeedEndRejected(yes: Int, voters: Int) = "The game goes on: only $yes of $voters voted to end"
+    /** How City Royale ranks players when it ends early. */
+    const val cbEndRanking = "The richest player wins."
     fun cbFeedExtended(extra: String, yes: Int, total: Int) = "Players voted to keep playing: $extra more ($yes of $total)"
     fun cbFeedNotExtended(yes: Int, total: Int) = if (yes == 0) "Game over: nobody voted to keep playing" else "Game over: only $yes of $total voted to keep playing"
 

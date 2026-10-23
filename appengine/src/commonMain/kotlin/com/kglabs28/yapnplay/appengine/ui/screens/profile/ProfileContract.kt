@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.profile
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsUi
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
@@ -7,15 +8,15 @@ import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 
 /**
- * The user's profile: who they are (avatar, name, @username, YapNPlay ID,
+ * The user's profile: who they are (avatar, name, YapNPlay ID,
  * stats with their level), their friends (Online / Offline tabs, slider,
  * See All), then Add Friend, Friend Requests and Blocked Users.
  */
 data class ProfileState(
+    /** The settings dialog (sound, music, match history); null when closed. */
+    val settings: AppSettingsUi? = null,
     val loaded: Boolean = false,
     val name: String = "",
-    /** "@riya_28" (not unique). */
-    val username: String = "",
     /** The raw 6-character YapNPlay ID, for showing and copying. */
     val userCode: String = "",
     val avatarId: String = "",
@@ -59,7 +60,6 @@ data class ProfileStatUi(val kind: ProfileStatKind, val value: String, val label
 data class ProfilePersonUi(
     val userId: String,
     val name: String,
-    val username: String,
     val userCode: String,
     val avatarId: String,
     val online: Boolean,
@@ -68,14 +68,12 @@ data class ProfilePersonUi(
 
 data class ProfileRequestUi(val requestId: String, val person: ProfilePersonUi)
 
-data class ProfileBlockedUi(val userId: String, val name: String, val username: String, val avatarId: String, val blockedOn: String)
-
-enum class ProfileField { NAME, USERNAME }
+data class ProfileBlockedUi(val userId: String, val name: String, val avatarId: String, val blockedOn: String)
 
 sealed interface ProfileModal {
     data class AvatarPicker(val selected: String, val saving: Boolean = false) : ProfileModal
+    /** Edit Name. */
     data class EditText(
-        val field: ProfileField,
         val title: String,
         val label: String,
         val value: String,
@@ -103,11 +101,15 @@ sealed interface ProfileIntent : UiIntent {
     data object Load : ProfileIntent
     data object Back : ProfileIntent
     data object OpenSettings : ProfileIntent
+    data object CloseSettings : ProfileIntent
+    data object ToggleEffects : ProfileIntent
+    data object ToggleMusic : ProfileIntent
+    /** Match History in the settings. */
+    data object OpenHistory : ProfileIntent
     data object EditAvatar : ProfileIntent
     data class PickAvatar(val avatarId: String) : ProfileIntent
     data object SaveAvatar : ProfileIntent
     data object EditName : ProfileIntent
-    data object EditUsername : ProfileIntent
     data class EditTextChanged(val text: String) : ProfileIntent
     data object SaveText : ProfileIntent
     /** The screen copied the user's ID to the clipboard. */
@@ -139,7 +141,7 @@ sealed interface ProfileIntent : UiIntent {
 
 sealed interface ProfileEffect : UiEffect {
     data object Close : ProfileEffect
-    data object OpenSettings : ProfileEffect
+    data object OpenHistory : ProfileEffect
     /** Go to the Rooms tab's Create New Group with this friend picked. */
     data class OpenCreateGroup(val userId: String) : ProfileEffect
 }

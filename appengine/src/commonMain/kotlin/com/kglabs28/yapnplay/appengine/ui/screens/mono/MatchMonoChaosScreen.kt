@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import androidx.compose.runtime.SideEffect
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorVoiceButtons
 import com.kglabs28.yapnplay.appengine.ui.components.table.flightsIntoHand
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoHandArrivals
@@ -151,7 +152,7 @@ fun MatchMonoChaosContent(
             // Choices sit over the piles only, so the hand and every seat (swap partners too) stay in view.
             prompt = when {
                 state.awaitingColorChoice -> ({ MonoTablePrompt(MonoStrings.monoChooseColour) { MonoColourChoice(MonoChaosConstants.Color.entries.map { MonoStrings.monoColourName(it.name) to it.hue().fill }, { send(MatchMonoChaosIntent.ChooseColor(MonoChaosConstants.Color.entries[it])) }) } })
-                state.awaitingRouletteChoice -> ({ MonoTablePrompt(MonoStrings.monoChooseRouletteColour) { MonoColourChoice(MonoChaosConstants.Color.entries.map { MonoStrings.monoColourName(it.name) to it.hue().fill }, { send(MatchMonoChaosIntent.ChooseRouletteColor(MonoChaosConstants.Color.entries[it])) }) } })
+                state.awaitingRouletteChoice -> ({ MonoTablePrompt(MonoStrings.monoChooseRouletteColour, subtitle = MonoStrings.monoChooseRouletteColourHint) { MonoColourChoice(MonoChaosConstants.Color.entries.map { MonoStrings.monoColourName(it.name) to it.hue().fill }, { send(MatchMonoChaosIntent.ChooseRouletteColor(MonoChaosConstants.Color.entries[it])) }) } })
                 state.awaitingSwapChoice -> ({ MonoTablePrompt(MonoStrings.monoSwapTitle) { MonoSwapChoice(state.swapTargets, { send(MatchMonoChaosIntent.ChooseSwapTarget(it)) }) } })
                 state.vote != null -> ({ MonoTablePrompt(MonoStrings.monoVoteTitle) { MonoVotePrompt(state.vote) { send(MatchMonoChaosIntent.VoteContinue(it)) } } })
                 else -> null
@@ -187,14 +188,14 @@ fun MatchMonoChaosContent(
                 )
             },
             callButton = {
-                // CAUGHT first, then MONO, then the hand and Draw along the bottom.
-                MonoCallButtons(
+                // CAUGHT first, then MONO, then the hand and Draw along the bottom (gone once the user is out).
+                if (!state.outOfPlay) MonoCallButtons(
                     onCaught = { send(MatchMonoChaosIntent.Caught) },
                     onMono = { send(MatchMonoChaosIntent.CallMono) },
                 )
             },
             hand = { MonoChaosHand(state = state, send = send, anchors = anchors, flights = flights) },
-            drawButton = { MonoChaosDrawControls(state = state, send = send) },
+            drawButton = { if (!state.outOfPlay) MonoChaosDrawControls(state = state, send = send) },
             watching = me == null,
             watcherControls = {
                 TableSpectatorVoiceButtons(
@@ -210,7 +211,7 @@ fun MatchMonoChaosContent(
 
         state.sheet?.let { sheet ->
             // A report to vote on needs an answer; the rest close on a tap outside.
-            BlockingOverlay(visible = true, onDismiss = if (sheet is TableSheetUi.Vote) null else ({ send(MatchMonoChaosIntent.CloseSheet) })) {
+            BlockingOverlay(visible = true, onDismiss = if (sheet is TableSheetUi.Vote || sheet is TableSheetUi.EndVote) null else ({ send(MatchMonoChaosIntent.CloseSheet) })) {
                 TableSheetContent(
                     sheet = sheet,
                     onToggleEffects = { send(MatchMonoChaosIntent.ToggleEffects) },
@@ -220,6 +221,9 @@ fun MatchMonoChaosContent(
                     onSubmitReport = { send(MatchMonoChaosIntent.SubmitReport) },
                     onVote = { send(MatchMonoChaosIntent.Vote(it)) },
                     onClose = { send(MatchMonoChaosIntent.CloseSheet) },
+                    rules = MonoStrings.chaosRules,
+                    onEndGame = { send(MatchMonoChaosIntent.ProposeEnd) },
+                    onEndVote = { send(MatchMonoChaosIntent.VoteEnd(it)) },
                 )
             }
         }
@@ -257,6 +261,7 @@ private fun MonoChaosArena(state: MatchMonoChaosState, anchors: MonoAnchors, fli
         discardPileCount = match?.discardPileCount ?: 0,
         activeStackPenalty = state.activeStackPenalty,
         note = state.finishBanner,
+        snack = state.penaltySnack,
         cardWidth = dimens.monoPileCardWidth,
         anchors = anchors,
         chaos = true,
@@ -292,6 +297,8 @@ private fun MonoChaosHand(state: MatchMonoChaosState, send: (MatchMonoChaosInten
     val spots = remember { mutableMapOf<Int, Rect>() }
     // Slots whose card is still in the air: hidden until it lands, and its flight aims at the slot.
     val arriving = MonoHandArrivals.slots(order, state.hand, { it.look() }, flights.flightsIntoHand)
+    // A flight can start after its card was laid out (no new layout comes): aim it at the slot already measured.
+    SideEffect { arriving.forEach { (index, flightId) -> spots[index]?.let { anchors.mark(MonoSpot.HandSlot(flightId), it) } } }
     MonoHandRow(
         handSize = state.hand.size,
         cardWidth = width,

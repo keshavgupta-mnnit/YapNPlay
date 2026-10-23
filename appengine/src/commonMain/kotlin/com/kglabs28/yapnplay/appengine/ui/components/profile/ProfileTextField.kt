@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -98,7 +99,7 @@ fun ProfileTextField(
         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             if (value.isEmpty()) {
                 if (active) Box(Modifier.width(dimens.hairline * 2).height(dimens.iconSmall).graphicsLayer { alpha = caretAlpha }.background(colors.Cyan))
-                BasicText(text = hint, style = style.copy(color = colors.RoomsPlaceholderDigits), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                ShrinkText(text = hint, style = style.copy(color = colors.RoomsPlaceholderDigits))
             } else {
                 BasicText(text = value, style = style, maxLines = 1, overflow = TextOverflow.StartEllipsis, modifier = Modifier.weight(1f, fill = false))
                 if (active) Box(Modifier.width(dimens.hairline * 2).height(dimens.iconSmall).graphicsLayer { alpha = caretAlpha }.background(colors.Cyan))

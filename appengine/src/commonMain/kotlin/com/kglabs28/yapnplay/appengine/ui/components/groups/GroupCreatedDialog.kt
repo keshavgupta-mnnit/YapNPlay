@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.groups
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
@@ -58,7 +58,7 @@ fun GroupCreatedDialog(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
-                BasicText(text = created.link, style = typography.micro.copy(color = colors.Cyan), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                ShrinkText(text = created.link, style = typography.micro.copy(color = colors.Cyan), modifier = Modifier.weight(1f))
                 AppIcon(imageVector = Icons.Rounded.ContentCopy, tint = colors.IconMuted, size = dimens.iconSmall, contentDescription = RoomStrings.groupCopyLink)
             }
         }

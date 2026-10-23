@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
@@ -59,8 +59,8 @@ fun CbAssetCard(
         ) {
             Box(Modifier.fillMaxWidth().height(dimens.cbHeaderChip).background(header))
             Column(modifier = Modifier.padding(horizontal = Spacing.Xs, vertical = Spacing.Xxs)) {
-                BasicText(text = name, style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                BasicText(text = line, style = typography.micro.copy(color = colors.TextSecondary), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                ShrinkText(text = name, style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
+                ShrinkText(text = line, style = typography.micro.copy(color = colors.TextSecondary))
                 if (value.isNotEmpty()) BasicText(text = value, style = typography.label.copy(color = colors.CbGain, fontWeight = FontWeight.Bold))
             }
         }

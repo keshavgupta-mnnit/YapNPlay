@@ -9,6 +9,8 @@ object AppConstants {
     const val LOG_TAG_ADS = "YapAds"
     /** The Logcat tag for every screen action reaching its view model (filter on it to see what a tap did). */
     const val LOG_TAG_INTENTS = "YapIntent"
+    /** The Logcat tag for signing in and restoring an account with Play Games. */
+    const val LOG_TAG_AUTH = "YapAuth"
 
     /** Length of a room join code. */
     const val ROOM_CODE_LENGTH = 6
@@ -96,22 +98,19 @@ object AppConstants {
     const val TIER_M_MIN_WIDTH_DP = 740
     const val TIER_L_MIN_WIDTH_DP = 960
 
-    /**
-     * Top bar free-space split: the gap before the tab strip is twice
-     * the gap after it, so tabs sit near the centre and the balances
-     * and buttons hug the right edge.
-     */
-    const val TOP_BAR_LEADING_GAP_WEIGHT = 2f
-    const val TOP_BAR_TRAILING_GAP_WEIGHT = 1f
 
     /**
      * Home card art is drawn with ~10% transparent margin on every side;
      * zooming by this much makes the art itself fill its slot.
      */
-    const val CARD_ART_ZOOM = 1.2f
+    const val CARD_ART_ZOOM = 1.6f
+    /** The friends art zooms further: it has the card's widest free space. */
+    const val FRIENDS_ART_ZOOM = 1.9f
+    /** The Rooms tab's Create Room art, grown into its card's spare space. */
+    const val ROOMS_HERO_ART_ZOOM = 1.15f
 
     /** Home QUICK PLAY button width as a share of its card. */
-    const val HOME_CTA_WIDTH_FRACTION = 0.65f
+    const val HOME_CTA_WIDTH_FRACTION = 0.74f
 
     /**
      * Rooms tab split. Columns are 60:40 (create/join left, lists right);
@@ -119,11 +118,11 @@ object AppConstants {
      */
     const val ROOMS_LEFT_COLUMN_WEIGHT = 0.6f
     const val ROOMS_RIGHT_COLUMN_WEIGHT = 0.4f
-    const val ROOMS_LIST_PANEL_WEIGHT = 0.57f
-    const val ROOMS_FRIENDS_PANEL_WEIGHT = 0.43f
-    // Create Room / Join are as tall as Your Rooms / Online Friends beside them.
-    const val ROOMS_CREATE_CARD_WEIGHT = ROOMS_LIST_PANEL_WEIGHT
-    const val ROOMS_JOIN_CARD_WEIGHT = ROOMS_FRIENDS_PANEL_WEIGHT
+    const val ROOMS_LIST_PANEL_WEIGHT = 0.61f
+    const val ROOMS_FRIENDS_PANEL_WEIGHT = 0.39f
+    // Create Room / Join: their own split, not matched to the lists beside them (Join is 40% of Create).
+    const val ROOMS_CREATE_CARD_WEIGHT = 0.6f
+    const val ROOMS_JOIN_CARD_WEIGHT = 0.27f
 
     /**
      * Game carousel: the focused game takes this share of the width; the
@@ -180,10 +179,6 @@ object AppConstants {
     /** A user's ID that friends type to add them: 6 characters, no look-alikes (0/O, 1/I). */
     const val USER_CODE_LENGTH = 6
     const val USER_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-    /** Usernames (not unique): this long, from these characters. */
-    const val MIN_USERNAME_LENGTH = 3
-    const val MAX_USERNAME_LENGTH = 20
-    const val USERNAME_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_."
     /** Profile avatar picker: avatars per row. */
     const val AVATAR_PICKER_COLUMNS = 6
     /** How long "Copied" shows after copying the user's ID. */

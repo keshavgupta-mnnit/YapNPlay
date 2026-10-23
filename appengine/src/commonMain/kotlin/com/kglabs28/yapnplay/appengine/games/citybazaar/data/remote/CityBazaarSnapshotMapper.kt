@@ -1,7 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.data.remote
 
+import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.protocol.MatchSeatStatus
-import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarEndVoteInfo
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarBankInfo
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarExtensionVoteInfo
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
@@ -65,7 +65,7 @@ class CityBazaarSnapshotMapper(private val json: Json) {
                     avatarId = seat.avatarId,
                 )
             },
-            spectators = snapshot.spectators.map { CityBazaarSpectator(it.userId, it.displayName, it.micOn) },
+            spectators = snapshot.spectators.map { CityBazaarSpectator(it.userId, it.displayName, it.micOn, it.avatarId) },
             spectatorCount = snapshot.spectators.size,
             owners = state.owners,
             levels = state.levels,
@@ -92,7 +92,7 @@ class CityBazaarSnapshotMapper(private val json: Json) {
             roomId = snapshot.roomId,
             viewerUserId = myUserId,
             rentCollected = state.rentCollected,
-            endVote = snapshot.endVote?.let { CityBazaarEndVoteInfo(it.proposerSeat, toLocal(it.endsAt), it.voters, it.yes, it.no) },
+            endVote = snapshot.endVote?.let { MatchEndVote(it.proposerSeat, toLocal(it.endsAt), it.voters, it.yes, it.no) },
             extensionVote = snapshot.extensionVote?.let { CityBazaarExtensionVoteInfo(toLocal(it.endsAt), it.extraRounds, it.extraMinutes, it.voters, it.yes, it.no) },
             bank = state.bank?.let { CityBazaarBankInfo(it.cash, it.received, it.paid) },
         )

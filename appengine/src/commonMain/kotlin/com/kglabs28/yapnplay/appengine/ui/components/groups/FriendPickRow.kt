@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.groups
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
@@ -46,7 +45,7 @@ fun FriendPickRow(friend: Friend, added: Boolean, onToggle: () -> Unit, modifier
             PresetAvatar(avatarId = friend.avatarId, size = dimens.friendPickAvatar)
             PresenceDot(online = friend.online, size = dimens.statusDotSmall, onlineColor = colors.LiveGreen)
         }
-        BasicText(text = friend.name, style = YapNPlayTheme.typography.label.copy(color = colors.TextPrimary), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+        ShrinkText(text = friend.name, style = YapNPlayTheme.typography.label.copy(color = colors.TextPrimary), modifier = Modifier.weight(1f))
         if (friend.online) Box(Modifier.size(dimens.statusDotSmall).background(colors.LiveGreen, CircleShape))
         if (added) {
             GlassPillButton(text = RoomStrings.groupAdded, onClick = onToggle, leadingIcon = Icons.Rounded.Check, accent = colors.LiveGreen, contentColor = colors.LiveGreen)

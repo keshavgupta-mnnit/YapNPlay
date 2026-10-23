@@ -52,5 +52,5 @@ val profileModule = module {
     factory { ObserveSignInNeededUseCase(get()) }
     factory { TogglePlayerFriendUseCase(get()) }
     factory { PlayerFriendUseCases(get(), get()) }
-    factory { ProfileViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { ProfileViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

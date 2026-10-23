@@ -63,10 +63,11 @@ actual fun rememberPermissionRequester(permission: AppPermission): PermissionReq
  * it again. The mic is asked for again only when the user turns it on.
  */
 @Composable
-actual fun RequestStartupPermissions() {
+actual fun RequestStartupPermissions(ready: Boolean) {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(ready) {
+        if (!ready) return@LaunchedEffect
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         if (prefs.getBoolean(KEY_STARTUP_ASKED, false)) return@LaunchedEffect
         prefs.edit().putBoolean(KEY_STARTUP_ASKED, true).apply()

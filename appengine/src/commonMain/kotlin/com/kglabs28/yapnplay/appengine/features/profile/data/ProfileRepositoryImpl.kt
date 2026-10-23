@@ -49,9 +49,9 @@ class ProfileRepositoryImpl(
             }
         }
 
-    override suspend fun updateProfile(name: String?, username: String?, avatarId: String?): AppResult<UserProfile> =
+    override suspend fun updateProfile(name: String?, avatarId: String?): AppResult<UserProfile> =
         withContext(Dispatchers.IO) {
-            remote.updateProfile(name, username, avatarId).also { if (it is AppResult.Success) local.saveProfile(it.data) }
+            remote.updateProfile(name, avatarId).also { if (it is AppResult.Success) local.saveProfile(it.data) }
         }
 
     override suspend fun getFriendList(): AppResult<List<Friend>> =

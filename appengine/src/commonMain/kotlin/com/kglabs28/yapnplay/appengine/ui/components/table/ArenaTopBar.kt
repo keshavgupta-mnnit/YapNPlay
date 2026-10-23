@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,7 +38,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
@@ -115,18 +115,16 @@ fun ArenaTopBar(
                 }
             }
             // The wide bar reads in one line: the game's name, big and bold, at the start; the mode and round at the end.
-            BasicText(
+            // In a room match the pill is shorter: both shrink to fit rather than being cut.
+            ShrinkText(
                 text = title,
                 style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Black, fontSize = typography.title.fontSize * TITLE_GROW),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            BasicText(
+            ShrinkText(
                 text = subtitle,
                 style = typography.label.copy(color = colors.TextSecondary, fontWeight = FontWeight.SemiBold, fontSize = typography.label.fontSize * SUBTITLE_GROW),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
             )
         }
 
@@ -152,7 +150,7 @@ fun ArenaTopBar(
                     }
                 }
                 AppIcon(imageVector = Icons.Rounded.Groups, tint = colors.ArenaDrawRim, size = dimens.iconSmall)
-                BasicText(text = spectatorLabel, style = typography.label.copy(color = colors.TextPrimary), maxLines = 1)
+                ShrinkText(text = spectatorLabel, style = typography.label.copy(color = colors.TextPrimary))
             }
             Spacer(Modifier.weight(1f))
         }

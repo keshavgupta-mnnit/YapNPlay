@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.seat
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Person
@@ -22,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
@@ -65,11 +64,9 @@ fun SeatPickTile(
                     size = dimens.seatTileAvatar / 2,
                 )
             }
-            BasicText(
+            ShrinkText(
                 text = label,
                 style = YapNPlayTheme.typography.label.copy(color = if (selected) colors.TextPrimary else colors.TextSecondary),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
         }
         if (selected) {

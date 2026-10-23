@@ -120,7 +120,7 @@ fun RoyalLudoMatchScreen(
             visible = modal != null,
             // The final ranking, a vote and seat decisions need an answer (the
             // timed ones close themselves when their time runs out).
-            onDismiss = if (modal is LudoMatchModal.Result || modal is LudoMatchModal.Vote || modal is LudoMatchModal.SeatInvite ||
+            onDismiss = if (modal is LudoMatchModal.Result || modal is LudoMatchModal.Vote || modal is LudoMatchModal.EndVote || modal is LudoMatchModal.SeatInvite ||
                 modal is LudoMatchModal.SeatOfferPrompt || modal is LudoMatchModal.LeaderSeatChoice || modal is LudoMatchModal.AbsenceCheck
             ) {
                 null
@@ -151,6 +151,8 @@ fun RoyalLudoMatchScreen(
                         onOfferSeatToBot = { send(RoyalLudoMatchIntent.OfferSeatToBot) },
                         onSpectate = { send(RoyalLudoMatchIntent.Spectate) },
                         onStillHere = { send(RoyalLudoMatchIntent.StillHere) },
+                        onProposeEnd = { send(RoyalLudoMatchIntent.ProposeEnd) },
+                        onEndVote = { send(RoyalLudoMatchIntent.VoteEnd(it)) },
                     ),
                 )
             }

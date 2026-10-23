@@ -1,10 +1,50 @@
 package com.kglabs28.yapnplay.appengine.core.ui
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.GameRuleUi
 /**
  * MONO and MONO: Complete Chaos: the table, the cards and the results.
  * Both games share these words; only the title differs.
  */
 object MonoStrings {
+    /** The rules shown from the settings menu. */
+    /** How both MONO games rank players when they end early. */
+    const val monoEndRanking = "Players still in are ranked by fewest cards."
+
+    val monoRules: List<GameRuleUi> = listOf(
+        GameRuleUi("Goal", "Be the first to play all your cards. The others play on for the next places."),
+        GameRuleUi("Your turn", "Play one card that matches the top card by colour, number or symbol. A Wild can go on anything."),
+        GameRuleUi("Nothing to play", "Draw one card. If it fits you may play it, or pass. Your turn time starts again."),
+        GameRuleUi("Skip", "The next player misses their turn."),
+        GameRuleUi("Reverse", "Play changes direction. With two players it works like a Skip."),
+        GameRuleUi("+2", "The next player draws 2 cards and misses their turn."),
+        GameRuleUi("Wild", "Choose the colour that is in play next."),
+        GameRuleUi("Wild +4", "Choose the colour; the next player draws 4 cards and misses their turn."),
+        GameRuleUi("MONO!", "When you are down to one card, press MONO! before anyone catches you."),
+        GameRuleUi("CAUGHT", "Press CAUGHT when a player on one card forgot MONO!: they draw 5 cards. Pressing it with nobody to catch costs you 2 cards."),
+        GameRuleUi("Out of time", "If your time runs out, the table plays a card or draws for you."),
+        GameRuleUi("Places", "Every player who empties their hand takes the next place. After the second finisher, the table votes whether to play on."),
+        GameRuleUi(TableStrings.endEarlyRuleTitle, TableStrings.endEarlyRule(monoEndRanking)),
+    )
+
+    /** The rules shown from the settings menu. */
+    val chaosRules: List<GameRuleUi> = listOf(
+        GameRuleUi("Goal", "Empty your hand first, or be the last player still in after everyone else is knocked out."),
+        GameRuleUi("Your turn", "Play one card that matches the top card by colour, number or symbol. A Wild can go on anything."),
+        GameRuleUi("Draw until you can play", "With nothing to play, you draw one card at a time until one fits. That card you may play, or pass."),
+        GameRuleUi("Knockout at 25", "Reach 25 cards at any moment and you are knocked out of the match."),
+        GameRuleUi("Stacking", "On a draw card you may stack a draw card worth the same or more (+2, +4, Wild Reverse +4, Wild +6, Wild +10). The first player who cannot stack takes the whole total."),
+        GameRuleUi("Wild Reverse +4, +6, +10", "Choose the colour; the penalty passes on. Wild Reverse +4 also reverses play; the next player in the new direction takes it."),
+        GameRuleUi("Wild Roulette", "The next player picks a colour, then flips cards one by one until that colour comes up. Every flipped card goes into their hand and their turn ends."),
+        GameRuleUi("Rule of 7", "Playing a 7: pick an opponent and swap your whole hands."),
+        GameRuleUi("Rule of 0", "Playing a 0: every player passes their whole hand to the next player, the way play is going."),
+        GameRuleUi("Discard All", "Discards every card of its colour from your hand along with it."),
+        GameRuleUi("Skip Everyone", "Everyone else is skipped: you play again at once."),
+        GameRuleUi("MONO!", "When you are down to one card, press MONO! before anyone catches you."),
+        GameRuleUi("CAUGHT", "Press CAUGHT when a player on one card forgot MONO!: they draw 7 cards. Pressing it with nobody to catch costs you 4 cards."),
+        GameRuleUi(TableStrings.endEarlyRuleTitle, TableStrings.endEarlyRule(monoEndRanking)),
+    )
+
+
     const val monoTitle = "MONO"
     const val monoChaosTitle = "MONO: COMPLETE CHAOS"
 
@@ -61,7 +101,8 @@ object MonoStrings {
     const val monoOpenFailed = "Could not open this match"
 
     const val monoChooseColour = "Choose a colour"
-    const val monoChooseRouletteColour = "Wild Roulette hit you! Pick a colour: you'll flip cards until one of that colour comes up"
+    const val monoChooseRouletteColour = "Wild Roulette hit you!"
+    const val monoChooseRouletteColourHint = "Pick a colour: you'll flip cards until one of that colour comes up"
 
 
     const val monoAway = "Away"

@@ -10,6 +10,7 @@ import com.kglabs28.yapnplay.appengine.resources.img_mono_card_back
 import com.kglabs28.yapnplay.appengine.resources.bg_home_game_zone_card
 import com.kglabs28.yapnplay.appengine.resources.bg_home_main
 import com.kglabs28.yapnplay.appengine.resources.bg_leader_board
+import com.kglabs28.yapnplay.appengine.resources.bg_play_room_create
 import com.kglabs28.yapnplay.appengine.resources.ic_app_logo
 import com.kglabs28.yapnplay.appengine.resources.ic_avatar_01
 import com.kglabs28.yapnplay.appengine.resources.ic_avatar_02
@@ -51,6 +52,7 @@ fun builtInPainter(image: BuiltInImage): Painter = painterResource(
         BuiltInImage.GAME_TABLE_ARENA -> Res.drawable.bg_game_table_arena
         BuiltInImage.GAME_ARENA -> Res.drawable.bg_game_arena
         BuiltInImage.MONO_CARD_BACK -> Res.drawable.img_mono_card_back
+        BuiltInImage.CREATE_ROOM_BACK -> Res.drawable.bg_play_room_create
     },
 )
 

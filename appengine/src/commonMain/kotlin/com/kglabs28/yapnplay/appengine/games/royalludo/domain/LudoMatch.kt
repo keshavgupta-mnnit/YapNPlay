@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.domain
 
+import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.features.seathandover.domain.SeatOffer
 import kotlinx.datetime.Instant
 
@@ -30,6 +31,8 @@ data class LudoMatch(
     val ranking: List<Int>,
     /** The coin pot of a paid league (0 for free games). */
     val pot: Int = 0,
+    /** Someone asked to end the game early; null when no vote is running. */
+    val endVote: MatchEndVote? = null,
     /** A seat changing hands (room matches only); null when none. */
     val seatOffer: SeatOffer? = null,
     /** The room this match belongs to; null for Quick Play (no spectators, no handover). */

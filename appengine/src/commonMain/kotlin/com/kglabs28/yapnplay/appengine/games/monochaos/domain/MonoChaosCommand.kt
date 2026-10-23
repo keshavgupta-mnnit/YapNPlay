@@ -26,4 +26,8 @@ sealed interface MonoChaosCommand {
     data class ChooseSeatTaker(val giveToUserId: String?) : MonoChaosCommand
     data class SetAway(val away: Boolean) : MonoChaosCommand
     data class TakeSeat(val seat: Int) : MonoChaosCommand
+    /** Ask everyone to end the game early (a vote). */
+    data object ProposeEnd : MonoChaosCommand
+    /** The user's answer to the end-game vote. */
+    data class VoteEnd(val agree: Boolean) : MonoChaosCommand
 }

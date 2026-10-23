@@ -316,3 +316,36 @@ data class AdRewardStatus(
     /** The day's reward ladder, ad by ad (e.g. 200, 300, 400, 500, 700); [coinsPerAd] is the next step. */
     val adRewards: List<Int> = emptyList(),
 )
+
+/**
+ * `GET /matches/history`: the user's latest matches, newest first, each
+ * with every seat as the result showed it (place, coins, XP).
+ */
+@Serializable
+data class MatchHistoryResponse(val matches: List<MatchHistoryItem> = emptyList())
+
+@Serializable
+data class MatchHistoryItem(
+    val matchId: String,
+    val gameId: String,
+    val roomMatch: Boolean = false,
+    val startedAt: Long,
+    val endedAt: Long,
+    /** The user's own seat. */
+    val mySeat: Int = 0,
+    val seats: List<MatchHistorySeat> = emptyList(),
+)
+
+/** One seat of a past match: [userId] null for a CPU; coins won from the pot, for finishing, and staked. */
+@Serializable
+data class MatchHistorySeat(
+    val seat: Int,
+    val userId: String? = null,
+    val name: String = "",
+    val avatarId: String = "",
+    val place: Int,
+    val coinsWon: Int = 0,
+    val completionCoins: Int = 0,
+    val stake: Int = 0,
+    val xp: Int = 0,
+)

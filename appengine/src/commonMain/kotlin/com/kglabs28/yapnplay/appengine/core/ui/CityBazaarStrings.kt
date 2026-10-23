@@ -1,7 +1,26 @@
 package com.kglabs28.yapnplay.appengine.core.ui
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.GameRuleUi
 /** City Bazaar: table, prompts, popups, feed, bank, vote. */
 object CityBazaarStrings {
+    /** The rules shown from the settings menu. */
+    val cbRules: List<GameRuleUi> = listOf(
+        GameRuleUi("Goal", "Be the last player who is not bankrupt, or the richest when the time or round limit runs out."),
+        GameRuleUi("Your turn", "Roll both dice and move clockwise by the total. Passing or landing on START pays ₹1,500."),
+        GameRuleUi("Buying", "Land on an unowned city, transit or utility to buy it, or decline. There is no auction for a declined property."),
+        GameRuleUi("Rent", "Landing on someone else's property pays them its rent. Owning 3 or more cities of a colour doubles their rent."),
+        GameRuleUi("Building", "Land on your own city to add one house, up to 3 houses and then a hotel. Buildings raise the rent."),
+        GameRuleUi("Companies", "A company earns its rent, or its pair rent when you own both companies of the pair."),
+        GameRuleUi("Jail", "In jail you get up to 3 rolls for doubles. After that, pay ₹500 to leave, or stay on half rent until your next turn."),
+        GameRuleUi("Taxes and CLUB", "Income Tax: ₹50 per property. Wealth Tax: ₹50 per building. CLUB: ₹500. All paid to the bank."),
+        GameRuleUi("REST HOUSE", "You skip your next turn."),
+        GameRuleUi("Luck and Shagun Chest", "The dice total that brought you there decides what happens. Tap a pile to see its table."),
+        GameRuleUi("Short of money", "Sell buildings first, then cities to the bank or by auction. If it is still not enough you are bankrupt and out."),
+        GameRuleUi("Out of time", "If your time runs out, the table plays for you and ₹50 is taken if you had not rolled."),
+        GameRuleUi("End of the match", "When the time or round limit runs out, players are ranked by net worth: cash, city prices and buildings."),
+    )
+
+
     const val cbTitle = "CITY ROYALE"
     fun cbRupees(digits: String) = "₹$digits"
     fun cbMinusRupees(digits: String) = "-₹$digits"

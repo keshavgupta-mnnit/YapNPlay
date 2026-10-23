@@ -9,6 +9,8 @@ object AppConstants {
     const val LOG_TAG_ADS = "YapAds"
     /** The Logcat tag for every screen action reaching its view model (filter on it to see what a tap did). */
     const val LOG_TAG_INTENTS = "YapIntent"
+    /** The Logcat tag for signing in and restoring an account with Play Games. */
+    const val LOG_TAG_AUTH = "YapAuth"
 
     /** Length of a room join code. */
     const val ROOM_CODE_LENGTH = 6
@@ -103,6 +105,7 @@ object AppConstants {
      */
     const val TOP_BAR_LEADING_GAP_WEIGHT = 2f
     const val TOP_BAR_TRAILING_GAP_WEIGHT = 1f
+
 
     /**
      * Home card art is drawn with ~10% transparent margin on every side;

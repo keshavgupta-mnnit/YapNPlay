@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import androidx.compose.runtime.SideEffect
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorVoiceButtons
 import com.kglabs28.yapnplay.appengine.ui.components.table.flightsIntoHand
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoHandArrivals
@@ -186,14 +187,14 @@ fun MatchMonoContent(
                 )
             },
             callButton = {
-                // CAUGHT first, then MONO, then the hand and Draw along the bottom.
-                MonoCallButtons(
+                // CAUGHT first, then MONO, then the hand and Draw along the bottom (gone once the user is out).
+                if (!state.outOfPlay) MonoCallButtons(
                     onCaught = { send(MatchMonoIntent.Caught) },
                     onMono = { send(MatchMonoIntent.CallMono) },
                 )
             },
             hand = { MonoHand(state = state, send = send, anchors = anchors, flights = flights) },
-            drawButton = { MonoDrawControls(state = state, send = send) },
+            drawButton = { if (!state.outOfPlay) MonoDrawControls(state = state, send = send) },
             watching = me == null,
             watcherControls = {
                 TableSpectatorVoiceButtons(
@@ -219,6 +220,7 @@ fun MatchMonoContent(
                     onSubmitReport = { send(MatchMonoIntent.SubmitReport) },
                     onVote = { send(MatchMonoIntent.Vote(it)) },
                     onClose = { send(MatchMonoIntent.CloseSheet) },
+                    rules = MonoStrings.monoRules,
                 )
             }
         }
@@ -291,6 +293,8 @@ private fun MonoHand(state: MatchMonoState, send: (MatchMonoIntent) -> Unit, anc
     val spots = remember { mutableMapOf<Int, Rect>() }
     // Slots whose card is still in the air: hidden until it lands, and its flight aims at the slot.
     val arriving = MonoHandArrivals.slots(order, state.hand, { it.look() }, flights.flightsIntoHand)
+    // A flight can start after its card was laid out (no new layout comes): aim it at the slot already measured.
+    SideEffect { arriving.forEach { (index, flightId) -> spots[index]?.let { anchors.mark(MonoSpot.HandSlot(flightId), it) } } }
     MonoHandRow(
         handSize = state.hand.size,
         cardWidth = width,

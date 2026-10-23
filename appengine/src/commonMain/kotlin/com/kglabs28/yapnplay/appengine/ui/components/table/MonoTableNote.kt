@@ -9,7 +9,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
-/** What just happened ("🏆 Riya finishes 1st!", "You took the stack: +6 cards"): a gold glass line on the table. */
+/** What just happened ("🏆 Riya finishes 1st!", "You took the stack: +6 cards"): gold words on a glass pill on the table. */
 @Composable
 fun MonoTableNote(text: String, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
@@ -18,7 +18,7 @@ fun MonoTableNote(text: String, modifier: Modifier = Modifier) {
         style = YapNPlayTheme.typography.label.copy(color = colors.ArenaCrown, fontWeight = FontWeight.Black, textAlign = TextAlign.Center),
         maxLines = 2,
         modifier = modifier
-            .arenaGlass(YapNPlayTheme.shapes.pill, colors.ArenaCrown)
+            .arenaGlass(YapNPlayTheme.shapes.pill)
             .padding(horizontal = Spacing.Md, vertical = Spacing.Xxs),
     )
 }

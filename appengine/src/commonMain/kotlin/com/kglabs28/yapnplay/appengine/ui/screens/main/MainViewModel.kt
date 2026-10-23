@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsController
 import kotlin.time.Duration.Companion.seconds
 import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import com.kglabs28.yapnplay.appengine.features.coins.usecase.GetAdLimitStatusUseCase
@@ -48,6 +49,7 @@ class MainViewModel(
     private val collectDailyBonus: CollectDailyBonusUseCase,
     private val isAdReady: IsRewardedAdReadyUseCase,
     private val clock: AppClock,
+    private val settingsController: AppSettingsController,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MainState, MainIntent, MainEffect>(MainState(), dispatchers) {
 
@@ -103,7 +105,14 @@ class MainViewModel(
                 setState { copy(coinsOffer = null) }
             }
             MainIntent.WatchAdForCoins -> watchAd()
-            MainIntent.OpenSettings -> emitEffect(MainEffect.OpenSettingsDialog)
+            MainIntent.OpenSettings -> showSettings()
+            MainIntent.CloseSettings -> setState { copy(settings = null) }
+            MainIntent.ToggleEffects -> setState { copy(settings = settingsController.toggleEffects()) }
+            MainIntent.ToggleMusic -> setState { copy(settings = settingsController.toggleMusic()) }
+            MainIntent.OpenHistory -> {
+                setState { copy(settings = null) }
+                emitEffect(MainEffect.OpenHistory)
+            }
             MainIntent.ToggleNotifications ->
                 if (state.value.notificationsOpen) closeNotifications() else openNotifications()
             MainIntent.DismissNotifications -> closeNotifications()
@@ -215,6 +224,10 @@ class MainViewModel(
         }
         // Then: "next in 2h · 4 left today", or the daily limit, with the button off.
         refreshAdLimits()
+    }
+
+    private fun showSettings() {
+        setState { copy(settings = settingsController.current()) }
     }
 
     private fun levelProgress(xp: Int, levelXp: Int, nextLevelXp: Int): Float =

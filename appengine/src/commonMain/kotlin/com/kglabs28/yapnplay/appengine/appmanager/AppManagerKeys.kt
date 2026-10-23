@@ -53,7 +53,8 @@ object AppManagerKeys {
 
     /** Rewarded ads (AdMob). Defaults are Google's TEST unit: swap in the real one from Remote Config. */
     object Ads {
-        val ENABLED = ConfigKey("ads_enabled", true, "Rewarded ads (coins, lifting a play block) offered at all.")
+        /** Off until real ads serve: no ad is loaded and no ad button or offer shows anywhere. Turn on from Remote Config. */
+        val ENABLED = ConfigKey("ads_enabled", false, "Rewarded ads (coins, lifting a play block) offered at all.")
         val LAUNCH_OFFER = ConfigKey("ads_launch_offer", true, "Offer free coins for a rewarded ad once each time the app opens.")
         val REWARDED_UNIT_ID = ConfigKey("ad_rewarded_unit_id", "ca-app-pub-3940256099942544/5224354917", "AdMob rewarded ad unit id (default: Google's test unit).")
     }

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.navigation
 
+import com.kglabs28.yapnplay.appengine.ui.screens.history.MatchHistoryScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -73,6 +74,7 @@ fun YapNPlayNavHost(
                 onOpenRoom = { roomId -> navController.navigate(RoomLobby(roomId)) },
                 onCreateRoom = { navController.navigate(RoomPlaceholder) },
                 onOpenProfile = { navController.navigate(Profile) },
+                onOpenHistory = { navController.navigate(MatchHistory) },
                 pendingInviteCode = pendingInviteCode,
                 onInviteConsumed = { pendingInviteCode = null },
                 pendingCreateGroupWith = pendingCreateGroupWith,
@@ -85,10 +87,17 @@ fun YapNPlayNavHost(
         composable<Profile> { entry ->
             ProfileScreen(
                 onBack = { navController.popBackStack() },
+                onOpenHistory = { navController.navigate(MatchHistory) },
                 onCreateGroupWith = { userId ->
                     pendingCreateGroupWith = userId
                     navController.popBackStack(Main, inclusive = false)
                 },
+                viewModel = entry.rememberScreenViewModel(),
+            )
+        }
+        composable<MatchHistory> { entry ->
+            MatchHistoryScreen(
+                onBack = { navController.popBackStack() },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }

@@ -48,6 +48,7 @@ fun TableAudienceMember(
                 size = dimens.ludoAudienceAvatar,
                 ringWidth = dimens.ludoAudienceRing,
                 glow = person.ring == AvatarRing.TALKING && !person.mutedForMe,
+                avatarId = person.avatarId,
             )
             if (menuOpen && onToggleHear != null) {
                 Popup(

@@ -36,9 +36,9 @@ object CityBazaarModerationUiMapper {
         }
     }
 
-    fun penalty(penalty: Penalty, now: Instant, watchingAd: Boolean): CbModal.Penalty {
+    fun penalty(penalty: Penalty, now: Instant, watchingAd: Boolean, adOffered: Boolean): CbModal.Penalty {
         val minutes = ceil((penalty.blockedUntil - now).inWholeSeconds.coerceAtLeast(0) / SECONDS_PER_MINUTE.toDouble()).toInt()
-        return CbModal.Penalty(LudoStrings.ludoPenaltyTitle, LudoStrings.ludoPenaltyBody(penalty.points, minutes), watchingAd)
+        return CbModal.Penalty(LudoStrings.ludoPenaltyTitle, LudoStrings.ludoPenaltyBody(penalty.points, minutes), watchingAd, adOffered)
     }
 
     private const val INVOLVED = 2

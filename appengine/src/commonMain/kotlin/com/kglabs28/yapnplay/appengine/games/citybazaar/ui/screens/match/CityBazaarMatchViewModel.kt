@@ -830,7 +830,7 @@ class CityBazaarMatchViewModel(
 
     private fun showPenalty(watchingAd: Boolean) {
         val p = penalty ?: return
-        showModal(CityBazaarModerationUiMapper.penalty(p, clock.now(), watchingAd))
+        showModal(CityBazaarModerationUiMapper.penalty(p, clock.now(), watchingAd, adOffered = watchingAd || moderation.isAdReady()))
     }
 
     private suspend fun watchAd() {

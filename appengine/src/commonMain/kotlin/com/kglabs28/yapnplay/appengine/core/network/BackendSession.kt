@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.core.network
 
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import com.kglabs28.yapnplay.appengine.protocol.GuestCreated
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -62,14 +66,22 @@ class BackendSession(
      */
     suspend fun signInWithPlayGames(serverAuthCode: String): Boolean {
         val before = credentials().userId
-        val reply = http.post(BackendPaths.PLAY_GAMES) {
+        val response = http.post(BackendPaths.PLAY_GAMES) {
             contentType(ContentType.Application.Json)
             setBody(PlayGamesSignInBody(serverAuthCode))
-        }.body<PlayGamesSignedIn>()
+        }
+        if (!response.status.isSuccess()) {
+            AppLog.d(AppConstants.LOG_TAG_AUTH, "server: refused HTTP ${response.status.value} ${response.bodyAsText().take(ERROR_LOG_MAX)}")
+        }
+        val reply = response.body<PlayGamesSignedIn>()
         store.save(BackendCredentials(reply.userId, reply.secret))
+        AppLog.d(AppConstants.LOG_TAG_AUTH, "server: ${if (reply.userId != before) "restored the linked account (app reloads)" else "linked this account (no other account found)"}")
         return reply.userId != before
     }
 
     /** This device's user id, once an account exists (null before the first call). */
     override fun currentUserId(): String? = store.load()?.userId
 }
+
+/** How much of a refused sign-in reply goes in the debug log. */
+private const val ERROR_LOG_MAX = 300

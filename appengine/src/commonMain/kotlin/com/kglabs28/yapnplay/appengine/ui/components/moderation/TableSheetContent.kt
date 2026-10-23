@@ -17,6 +17,8 @@ fun TableSheetContent(
     onVote: (Boolean) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The game's rules, behind Game Rules in the settings. */
+    rules: List<GameRuleUi> = emptyList(),
 ) {
     when (sheet) {
         is TableSheetUi.Settings -> MatchSettingsCard(
@@ -27,6 +29,7 @@ fun TableSheetContent(
             onReport = onOpenReport,
             onClose = onClose,
             modifier = modifier,
+            rules = rules,
         )
         is TableSheetUi.Report -> ReportPlayerCard(
             options = sheet.people.map { LudoStrings.ludoReportOption(it.name, it.role) },

@@ -160,7 +160,7 @@ fun GameZoneScreen(
                     title = penalty.title,
                     body = penalty.body,
                     watchingAd = penalty.watchingAd,
-                    onWatchAd = { viewModel?.onIntent(GameZoneIntent.WatchAd) },
+                    onWatchAd = if (penalty.adOffered || penalty.watchingAd) ({ viewModel?.onIntent(GameZoneIntent.WatchAd) }) else null,
                     onClose = { viewModel?.onIntent(GameZoneIntent.DismissPenalty) },
                 )
             }

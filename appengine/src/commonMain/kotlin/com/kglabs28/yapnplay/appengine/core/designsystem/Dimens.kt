@@ -249,6 +249,8 @@ class YapNPlayDimens {
     /** 3D City Royale: a seat card round the board and its avatar, My Properties in the bottom bar. */
     val cb3dSeatWidth: Dp get() = 150.dp.scaled()
     val cb3dSeatAvatar: Dp get() = 42.dp.scaled()
+    /** The Game Rules list's tallest height; longer lists scroll. */
+    val rulesListMaxHeight: Dp get() = 220.dp.scaled()
     val cb3dPropertiesWidth: Dp get() = 100.dp.scaled()
     /** 3D City Royale: how far the board sits below the top bar, and the bottom bar's height (seats keep above it). */
     val cb3dBoardDrop: Dp get() = 34.dp.scaled()

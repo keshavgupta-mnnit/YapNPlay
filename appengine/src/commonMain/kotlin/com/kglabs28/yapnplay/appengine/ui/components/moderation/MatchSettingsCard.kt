@@ -1,5 +1,13 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
+import com.kglabs28.yapnplay.appengine.core.ui.HistoryStrings
+import androidx.compose.material.icons.rounded.History
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.rounded.SportsScore
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +26,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.OnOffSwitch
 
-/** In-match settings shared by every game: sound effects, music, and report a player. */
+/** Settings shared by every game and Home: sound effects, music, the game's rules, report a player, and (Home) match history. */
 @Composable
 fun MatchSettingsCard(
     effectsOn: Boolean,
@@ -32,11 +40,43 @@ fun MatchSettingsCard(
     endGameLabel: String = "",
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The game's rules; empty hides Game Rules. */
+    rules: List<GameRuleUi> = emptyList(),
+    /** Opens the user's match history; null hides it (only Home has it). */
+    onHistory: (() -> Unit)? = null,
 ) {
+    // Game Rules shows the rules in this card's place; closing them comes back here.
+    var showingRules by remember { mutableStateOf(false) }
+    if (showingRules) {
+        GameRulesCard(rules = rules, onClose = { showingRules = false }, modifier = modifier)
+        return
+    }
     ModalCard(title = LudoStrings.ludoSettings, onClose = onClose, modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
             SettingRow(LudoStrings.ludoSoundEffects, effectsOn, onToggleEffects)
             SettingRow(LudoStrings.ludoMusic, musicOn, onToggleMusic)
+            onHistory?.let {
+                GlassPillButton(
+                    text = HistoryStrings.historyTitle,
+                    onClick = it,
+                    leadingIcon = Icons.Rounded.History,
+                    accent = YapNPlayTheme.colors.Gold,
+                    contentColor = YapNPlayTheme.colors.Gold,
+                    height = YapNPlayTheme.dimens.ctaHeight,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            if (rules.isNotEmpty()) {
+                GlassPillButton(
+                    text = TableStrings.gameRules,
+                    onClick = { showingRules = true },
+                    leadingIcon = Icons.AutoMirrored.Rounded.MenuBook,
+                    accent = YapNPlayTheme.colors.Cyan,
+                    contentColor = YapNPlayTheme.colors.Cyan,
+                    height = YapNPlayTheme.dimens.ctaHeight,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
             onEndGame?.let {
                 GlassPillButton(
                     text = endGameLabel,

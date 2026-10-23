@@ -54,7 +54,7 @@ class MonoSnapshotMapper(private val json: Json) {
                     presence = seat.presence.name,
                 )
             },
-            spectators = snapshot.spectators.map { MonoSpectator(it.userId, it.displayName, it.micOn) },
+            spectators = snapshot.spectators.map { MonoSpectator(it.userId, it.displayName, it.micOn, it.avatarId) },
             spectatorCount = snapshot.spectators.size,
             currentSeat = snapshot.turn.seat,
             phase = state.phase,

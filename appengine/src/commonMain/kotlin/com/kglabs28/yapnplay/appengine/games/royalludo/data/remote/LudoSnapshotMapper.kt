@@ -56,7 +56,7 @@ class LudoSnapshotMapper(private val json: Json) {
                     },
                 )
             },
-            spectators = snapshot.spectators.map { LudoSpectator(it.userId, it.displayName, it.micOn) },
+            spectators = snapshot.spectators.map { LudoSpectator(it.userId, it.displayName, it.micOn, it.avatarId) },
             spectatorCount = snapshot.spectators.size,
             pieces = state.pieces,
             currentSeat = snapshot.turn.seat,

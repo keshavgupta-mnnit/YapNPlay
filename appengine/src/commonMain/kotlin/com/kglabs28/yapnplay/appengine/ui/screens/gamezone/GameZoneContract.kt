@@ -32,7 +32,7 @@ data class GameZoneState(
 ) : UiState
 
 /** The user's play block, ready to show. */
-data class PenaltyUi(val title: String, val body: String, val watchingAd: Boolean)
+data class PenaltyUi(val title: String, val body: String, val watchingAd: Boolean, val adOffered: Boolean = false)
 
 /** A running search, already formatted for display. */
 data class QuickPlaySearchUi(

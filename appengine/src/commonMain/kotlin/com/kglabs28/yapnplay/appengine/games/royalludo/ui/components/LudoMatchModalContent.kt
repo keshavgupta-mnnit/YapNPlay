@@ -108,6 +108,7 @@ fun LudoMatchModalContent(
             onToggleMusic = actions.onToggleMusic,
             onReport = actions.onOpenReport,
             onClose = onDismiss,
+            rules = LudoStrings.ludoRules,
             modifier = modifier,
         )
         is LudoMatchModal.Report -> ReportPlayerCard(
@@ -138,7 +139,7 @@ fun LudoMatchModalContent(
             title = modal.title,
             body = modal.body,
             watchingAd = modal.watchingAd,
-            onWatchAd = actions.onWatchAd,
+            onWatchAd = actions.onWatchAd.takeIf { modal.adOffered },
             onClose = onDismiss,
             modifier = modifier,
         )

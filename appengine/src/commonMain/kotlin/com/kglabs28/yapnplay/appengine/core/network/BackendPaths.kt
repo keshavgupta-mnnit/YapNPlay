@@ -15,6 +15,7 @@ object BackendPaths {
     const val ONLINE_STATS = "/stats/online"
     const val CLEAR_PENALTY_WITH_AD = "/penalties/clear-with-ad"
     const val ACTIVE_MATCH = "/matches/active"
+    const val MATCH_HISTORY = "/matches/history"
     const val AD_REWARD = "/coins/ad-reward"
     const val AD_STATUS = "/coins/ad-status"
     const val LEAGUES = "/coins/leagues"

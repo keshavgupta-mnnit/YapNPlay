@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.profile.usecase
 
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
@@ -14,6 +16,7 @@ class SignInWithPlayGamesUseCase(private val session: BackendSession) {
     suspend operator fun invoke(serverAuthCode: String): AppResult<Boolean> = try {
         AppResult.Success(session.signInWithPlayGames(serverAuthCode))
     } catch (e: Exception) {
+        AppLog.d(AppConstants.LOG_TAG_AUTH, "server: sign-in failed ${e::class.simpleName}: ${e.message}")
         CrashReporter.record(e, "SignInWithPlayGamesUseCase")
         AppResult.Failure(YapNPlayError.Network(e.message ?: FAILED))
     }

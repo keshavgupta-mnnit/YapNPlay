@@ -131,19 +131,20 @@ fun MonoTableArena(
                 Box(modifier = tilt) { faceCard() }
             }
         }
-        // Under the piles, between the table's rings and centred on it: the stack's total, then
-        // what just happened. They float over the table and take no room, so the piles never move.
+        // Under the piles, past the table's inner ring (so its line never runs under the text) and
+        // centred: the stack's total, then what just happened, between the piles and the hand.
+        // They float over the table and take no room, so the piles never move.
         val pileHalf = cardWidth / CARD_W_PER_H * LYING_HEIGHT / 2
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = maxHeight / 2 + pileHalf + Spacing.Xs)
+                .padding(top = maxHeight / 2 + pileHalf + Spacing.Lg)
                 .zIndex(1f),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
             if (activeStackPenalty > 0) MonoStackCounter(penalty = activeStackPenalty)
-            note?.let { MonoTableNote(it) }
+            note?.takeIf { it.isNotBlank() }?.let { MonoTableNote(it) }
         }
     }
 }

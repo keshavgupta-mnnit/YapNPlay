@@ -130,7 +130,8 @@ sealed interface LudoMatchModal {
     /** How the user's report ended. */
     data class ReportOutcome(val title: String, val body: String) : LudoMatchModal
     /** An incident was recorded against the user: points lost, play blocked; an ad lifts it. */
-    data class Penalty(val title: String, val body: String, val watchingAd: Boolean) : LudoMatchModal
+    /** [adOffered]: Watch Ad shows (ads on and one ready). */
+    data class Penalty(val title: String, val body: String, val watchingAd: Boolean, val adOffered: Boolean) : LudoMatchModal
     /** Shown to a spectator: take the seat someone left (button reads [takeLabel] with the time left). */
     data class SeatInvite(val seat: Int, val title: String, val body: String, val takeLabel: String) : LudoMatchModal
     /** The bot played the user's last turns: stay, or hand the seat to the pick (bot first) and spectate. */

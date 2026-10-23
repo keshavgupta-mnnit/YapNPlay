@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.clickable
 import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,9 +37,10 @@ import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileStatUi
  * "Player Stats": a thin outlined panel with its title in a pill sitting on
  * the top border (like the status pills on player cards); inside, games
  * played, games won, friends and level side by side, split by thin lines.
+ * Games played and won open the match history ([onOpenHistory]).
  */
 @Composable
-fun ProfileStatsPanel(stats: List<ProfileStatUi>, modifier: Modifier = Modifier) {
+fun ProfileStatsPanel(stats: List<ProfileStatUi>, modifier: Modifier = Modifier, onOpenHistory: (() -> Unit)? = null) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
@@ -53,7 +56,13 @@ fun ProfileStatsPanel(stats: List<ProfileStatUi>, modifier: Modifier = Modifier)
         ) {
             stats.forEachIndexed { index, stat ->
                 if (index > 0) Box(Modifier.padding(horizontal = Spacing.Md).width(dimens.hairline).fillMaxHeight().background(rim))
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+                // Games played and won open the match history.
+                val opens = onOpenHistory?.takeIf { stat.kind == ProfileStatKind.GAMES || stat.kind == ProfileStatKind.WINS }
+                Row(
+                    modifier = if (opens != null) Modifier.clickable(role = Role.Button, onClick = opens) else Modifier,
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                ) {
                     val (icon, tint) = when (stat.kind) {
                         ProfileStatKind.GAMES -> Icons.Rounded.SportsEsports to colors.SocialZoneAccent
                         ProfileStatKind.WINS -> Icons.Rounded.EmojiEvents to colors.Gold

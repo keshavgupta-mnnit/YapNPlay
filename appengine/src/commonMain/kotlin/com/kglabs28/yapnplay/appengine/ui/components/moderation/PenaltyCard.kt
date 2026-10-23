@@ -17,7 +17,8 @@ fun PenaltyCard(
     title: String,
     body: String,
     watchingAd: Boolean,
-    onWatchAd: () -> Unit,
+    /** Null hides Watch Ad (ads off, or none ready). */
+    onWatchAd: (() -> Unit)?,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -28,7 +29,7 @@ fun PenaltyCard(
         modifier = modifier,
         actions = {
             GlassPillButton(text = LudoStrings.ludoOk, onClick = onClose, leadingIcon = Icons.Rounded.Close, height = YapNPlayTheme.dimens.ctaHeight)
-            PillButton(
+            if (onWatchAd != null) PillButton(
                 text = if (watchingAd) LudoStrings.ludoWatchingAd else LudoStrings.ludoWatchAd,
                 onClick = onWatchAd,
                 enabled = !watchingAd,

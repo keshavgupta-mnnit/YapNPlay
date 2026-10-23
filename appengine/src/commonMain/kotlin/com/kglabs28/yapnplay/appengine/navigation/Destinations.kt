@@ -14,6 +14,10 @@ data object Main
 @Serializable
 data object Profile
 
+/** The user's past matches (from Home settings or the profile's stats). */
+@Serializable
+data object MatchHistory
+
 /** A play room's lobby (members, game choice, house rules, start). */
 @Serializable
 data class RoomLobby(val roomId: String)

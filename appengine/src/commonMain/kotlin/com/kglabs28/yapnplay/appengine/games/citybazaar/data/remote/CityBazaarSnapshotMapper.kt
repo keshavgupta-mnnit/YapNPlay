@@ -65,7 +65,7 @@ class CityBazaarSnapshotMapper(private val json: Json) {
                     avatarId = seat.avatarId,
                 )
             },
-            spectators = snapshot.spectators.map { CityBazaarSpectator(it.userId, it.displayName, it.micOn) },
+            spectators = snapshot.spectators.map { CityBazaarSpectator(it.userId, it.displayName, it.micOn, it.avatarId) },
             spectatorCount = snapshot.spectators.size,
             owners = state.owners,
             levels = state.levels,

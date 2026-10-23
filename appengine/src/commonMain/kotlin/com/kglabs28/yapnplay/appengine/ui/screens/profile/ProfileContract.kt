@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.profile
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsUi
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
@@ -12,6 +13,8 @@ import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
  * See All), then Add Friend, Friend Requests and Blocked Users.
  */
 data class ProfileState(
+    /** The settings dialog (sound, music, match history); null when closed. */
+    val settings: AppSettingsUi? = null,
     val loaded: Boolean = false,
     val name: String = "",
     /** "@riya_28" (not unique). */
@@ -103,6 +106,11 @@ sealed interface ProfileIntent : UiIntent {
     data object Load : ProfileIntent
     data object Back : ProfileIntent
     data object OpenSettings : ProfileIntent
+    data object CloseSettings : ProfileIntent
+    data object ToggleEffects : ProfileIntent
+    data object ToggleMusic : ProfileIntent
+    /** Match History in the settings. */
+    data object OpenHistory : ProfileIntent
     data object EditAvatar : ProfileIntent
     data class PickAvatar(val avatarId: String) : ProfileIntent
     data object SaveAvatar : ProfileIntent
@@ -139,7 +147,7 @@ sealed interface ProfileIntent : UiIntent {
 
 sealed interface ProfileEffect : UiEffect {
     data object Close : ProfileEffect
-    data object OpenSettings : ProfileEffect
+    data object OpenHistory : ProfileEffect
     /** Go to the Rooms tab's Create New Group with this friend picked. */
     data class OpenCreateGroup(val userId: String) : ProfileEffect
 }

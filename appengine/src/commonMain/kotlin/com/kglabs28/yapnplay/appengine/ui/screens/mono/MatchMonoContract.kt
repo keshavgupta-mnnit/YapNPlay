@@ -90,6 +90,8 @@ data class MatchMonoState(
     val swapTargets get() = opponents.map { MonoSwapTargetUi(it.seat, it.name, it.avatarId.orEmpty(), it.cardCount) }
 
     /** Everyone else still in the game, clockwise from the user (a player who left takes no seat). */
+    /** The user has finished: no more MONO!, CAUGHT or Draw for them. */
+    val outOfPlay: Boolean get() = match?.me?.seat?.let { it in match.finishedSeats } == true
     val opponents get() = MonoUiMapper.clockwise(match?.players.orEmpty().filter { !it.isMe && !it.removed }, match?.me?.seat) { it.seat }
 }
 

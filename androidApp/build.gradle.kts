@@ -6,6 +6,10 @@ plugins {
 }
 
 android {
+    // BuildConfig.DEBUG turns the app's debug logs on (debug builds only).
+    buildFeatures {
+        buildConfig = true
+    }
     namespace = "com.kglabs28.yapnplay"
     compileSdk = 37
 

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsDialog
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.DailyBonusDialog
 import androidx.lifecycle.compose.LifecycleStartEffect
@@ -47,6 +48,7 @@ fun MainScreen(
     onCreateRoom: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenProfile: () -> Unit = {},
+    onOpenHistory: () -> Unit = {},
     pendingInviteCode: String? = null,
     onInviteConsumed: () -> Unit = {},
     pendingCreateGroupWith: String? = null,
@@ -66,7 +68,7 @@ fun MainScreen(
             when (effect) {
                 is MainEffect.OpenRoom -> onOpenRoom(effect.roomId)
                 is MainEffect.OpenMatch -> onOpenMatch(effect.gameId, effect.matchId)
-                MainEffect.OpenSettingsDialog -> Unit
+                MainEffect.OpenHistory -> onOpenHistory()
             }
         }
     }
@@ -98,6 +100,15 @@ fun MainScreen(
             onClose = { viewModel?.onIntent(MainIntent.CloseGetCoins) },
         )
     }
+
+    val settings = state.settings
+    AppSettingsDialog(
+        settings = settings,
+        onToggleEffects = { viewModel?.onIntent(MainIntent.ToggleEffects) },
+        onToggleMusic = { viewModel?.onIntent(MainIntent.ToggleMusic) },
+        onHistory = { viewModel?.onIntent(MainIntent.OpenHistory) },
+        onClose = { viewModel?.onIntent(MainIntent.CloseSettings) },
+    )
 
     BlockingOverlay(visible = bonus != null) {
         if (bonus != null) DailyBonusDialog(amount = bonus, onCollect = { viewModel?.onIntent(MainIntent.CollectDailyBonus) })

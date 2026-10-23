@@ -23,5 +23,5 @@ val moderationModule = module {
     factory { ObserveReportOutcomesUseCase(get()) }
     factory { ObservePenaltyUseCase(get()) }
     factory { ClearPenaltyWithAdUseCase(get(), get()) }
-    factory { ModerationUseCases(get(), get(), get(), get(), get(), get()) }
+    factory { ModerationUseCases(get(), get(), get(), get(), get(), get(), get()) }
 }

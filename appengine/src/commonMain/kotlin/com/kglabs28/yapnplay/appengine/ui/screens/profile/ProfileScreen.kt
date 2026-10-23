@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.profile
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsDialog
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
@@ -50,9 +51,9 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
+    onOpenHistory: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel? = null,
-    onOpenSettings: () -> Unit = {},
     onCreateGroupWith: (userId: String) -> Unit = {},
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: ProfileState()
@@ -63,7 +64,7 @@ fun ProfileScreen(
         viewModel?.effects?.collect { effect ->
             when (effect) {
                 ProfileEffect.Close -> onBack()
-                ProfileEffect.OpenSettings -> onOpenSettings()
+                ProfileEffect.OpenHistory -> onOpenHistory()
                 is ProfileEffect.OpenCreateGroup -> onCreateGroupWith(effect.userId)
             }
         }
@@ -123,6 +124,7 @@ fun ProfileScreen(
                         onChangeAvatar = { send(ProfileIntent.EditAvatar) },
                         onEditName = { send(ProfileIntent.EditName) },
                         onEditUsername = { send(ProfileIntent.EditUsername) },
+                        onOpenHistory = onOpenHistory,
                         onCopyCode = {
                             clipboard.setText(AnnotatedString(state.userCode))
                             send(ProfileIntent.CodeCopied)
@@ -189,6 +191,13 @@ fun ProfileScreen(
     }
 
     val modal = state.modal
+    AppSettingsDialog(
+        settings = state.settings,
+        onToggleEffects = { send(ProfileIntent.ToggleEffects) },
+        onToggleMusic = { send(ProfileIntent.ToggleMusic) },
+        onHistory = { send(ProfileIntent.OpenHistory) },
+        onClose = { send(ProfileIntent.CloseSettings) },
+    )
     BlockingOverlay(
         visible = modal != null,
         onDismiss = { send(ProfileIntent.DismissModal) },

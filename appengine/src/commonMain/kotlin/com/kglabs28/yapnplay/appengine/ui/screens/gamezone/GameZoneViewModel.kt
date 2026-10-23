@@ -125,7 +125,7 @@ class GameZoneViewModel(
         if (searchJob?.isActive == true) return
         observePenalty().value?.takeIf { it.blockedUntil > clock.now() }?.let { block ->
             val minutes = ceil((block.blockedUntil - clock.now()).inWholeSeconds / SECONDS_PER_MINUTE.toDouble()).toInt()
-            setState { copy(penalty = PenaltyUi(LudoStrings.ludoPenaltyTitle, LudoStrings.ludoPenaltyBody(block.points, minutes), watchingAd = false)) }
+            setState { copy(penalty = PenaltyUi(LudoStrings.ludoPenaltyTitle, LudoStrings.ludoPenaltyBody(block.points, minutes), watchingAd = false, adOffered = isAdReady())) }
             return
         }
         setState { copy(searchMessage = null, leagues = LeaguePickerUi(balanceLabel = "", leagues = emptyList())) }

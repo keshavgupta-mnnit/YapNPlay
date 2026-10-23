@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay
 
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import android.app.Application
 import com.google.firebase.messaging.FirebaseMessaging
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
@@ -25,6 +27,9 @@ import org.koin.core.context.startKoin
 class YapNPlayApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        // Debug logs (ads, screen actions) in debug builds only.
+        AppLog.enabled = BuildConfig.DEBUG
+        AppLog.d(AppConstants.LOG_TAG_AUTH, "app started (debug logs on)")
         if (GlobalContext.getOrNull() == null) {
             startKoin {
                 androidContext(this@YapNPlayApp)

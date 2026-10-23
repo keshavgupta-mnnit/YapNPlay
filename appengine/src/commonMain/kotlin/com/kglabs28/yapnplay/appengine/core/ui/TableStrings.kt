@@ -45,6 +45,7 @@ object TableStrings {
 
     const val leaderboardTitle = "LEADERBOARD"
     fun leaderboardExp(exp: Int) = "+$exp EXP"
+    const val gameRules = "Game Rules"
     const val leaderboardShare = "SHARE THIS"
     const val leaderboardMatchDuration = "MATCH DURATION: "
     const val leaderboardExpGained = "EXP GAINED: "

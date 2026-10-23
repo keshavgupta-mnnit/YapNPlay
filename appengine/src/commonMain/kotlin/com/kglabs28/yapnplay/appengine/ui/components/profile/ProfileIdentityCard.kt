@@ -37,6 +37,7 @@ fun ProfileIdentityCard(
     onEditUsername: () -> Unit,
     onCopyCode: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenHistory: (() -> Unit)? = null,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -55,7 +56,7 @@ fun ProfileIdentityCard(
                 Spacer(Modifier.weight(1f))
                 ProfileIdPill(code = userCode, copied = codeCopied, onCopy = onCopyCode)
             }
-            ProfileStatsPanel(stats = stats, modifier = Modifier.fillMaxWidth())
+            ProfileStatsPanel(stats = stats, modifier = Modifier.fillMaxWidth(), onOpenHistory = onOpenHistory)
         }
     }
 }

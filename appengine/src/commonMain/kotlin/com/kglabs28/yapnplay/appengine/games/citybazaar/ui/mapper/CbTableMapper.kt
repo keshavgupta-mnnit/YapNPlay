@@ -116,7 +116,7 @@ object CbTableMapper {
     }
 
     fun audience(match: CityBazaarMatch, speaking: Set<String>, mutedForMe: Set<String>): List<TableAvatarUi> =
-        match.spectators.map { TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in speaking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe) }
+        match.spectators.map { TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in speaking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe, it.avatarId) }
 
     /** The user's cities stacked by colour, in board colour order. */
     fun stacks(match: CityBazaarMatch): List<CbStackUi> {

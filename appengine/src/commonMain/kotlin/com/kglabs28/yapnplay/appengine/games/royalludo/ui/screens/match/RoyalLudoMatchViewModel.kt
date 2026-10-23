@@ -438,7 +438,7 @@ class RoyalLudoMatchViewModel(
 
     private fun showPenalty(watchingAd: Boolean) {
         val p = penalty ?: return
-        showModal(LudoModerationUiMapper.penalty(p, clock.now(), watchingAd))
+        showModal(LudoModerationUiMapper.penalty(p, clock.now(), watchingAd, adOffered = watchingAd || moderation.isAdReady()))
     }
 
     private suspend fun watchAd() {

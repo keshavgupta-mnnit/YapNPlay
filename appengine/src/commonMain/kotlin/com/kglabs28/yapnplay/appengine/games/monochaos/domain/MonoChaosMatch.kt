@@ -90,7 +90,7 @@ data class MonoChaosPlayer(
 )
 
 @Serializable
-data class MonoChaosSpectator(val userId: String, val name: String, val micOn: Boolean)
+data class MonoChaosSpectator(val userId: String, val name: String, val micOn: Boolean, val avatarId: String = "")
 
 @Serializable
 data class MonoChaosRankedSeat(

@@ -189,6 +189,7 @@ fun CityBazaarModalContent(
             onEndGame = if (modal.canProposeEnd) actions.onProposeEnd else null,
             endGameLabel = CityBazaarStrings.cbEndGameButton,
             onClose = actions.onDismiss,
+            rules = CityBazaarStrings.cbRules,
             modifier = modifier,
         )
         is CbModal.Report -> ReportPlayerCard(
@@ -214,7 +215,7 @@ fun CityBazaarModalContent(
             title = modal.title,
             body = modal.body,
             watchingAd = modal.watchingAd,
-            onWatchAd = actions.onWatchAd,
+            onWatchAd = actions.onWatchAd.takeIf { modal.adOffered },
             onClose = actions.onDismiss,
             modifier = modifier,
         )

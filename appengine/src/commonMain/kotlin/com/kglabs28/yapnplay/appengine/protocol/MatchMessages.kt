@@ -200,6 +200,8 @@ data class SpectatorInfo(
     val userId: String,
     val displayName: String,
     val micOn: Boolean = false,
+    /** Their avatar preset id ("" for none, or an older server). */
+    val avatarId: String = "",
 )
 
 /**

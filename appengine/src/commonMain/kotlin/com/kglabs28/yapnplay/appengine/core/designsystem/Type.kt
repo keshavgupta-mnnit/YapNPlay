@@ -126,4 +126,22 @@ class YapNPlayTypography(
         get() = TextStyle(fontFamily = headlineFamily, fontWeight = FontWeight.Bold, fontSize = 16.scaledSp, lineHeight = 20.scaledSp)
     val podiumChip: TextStyle
         get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Bold, fontSize = 12.scaledSp, lineHeight = 15.scaledSp)
+    /** The top bar: the tagline under the app's name, a tab's label, and the level number in its shield. */
+    val topBarBrand: TextStyle
+        get() = TextStyle(fontFamily = headlineFamily, fontWeight = FontWeight.Black, fontSize = 18.scaledSp, lineHeight = 21.scaledSp)
+    val topBarTagline: TextStyle
+        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Medium, fontSize = 8.scaledSp, lineHeight = 10.scaledSp)
+    /** The XP pill's "350 / 1,000 XP", small enough for "7,999 / 10,000 XP". */
+    val xpLabel: TextStyle
+        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.SemiBold, fontSize = 9.scaledSp, lineHeight = 11.scaledSp)
+    /** A home card's heading ("ENTER GAME ZONE"). */
+    val zoneTitle: TextStyle
+        get() = TextStyle(fontFamily = headlineFamily, fontWeight = FontWeight.Bold, fontSize = 19.scaledSp, lineHeight = 23.scaledSp)
+    val topBarTab: TextStyle
+        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Medium, fontSize = 11.scaledSp, lineHeight = 14.scaledSp)
+    val levelBadge: TextStyle
+        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Black, fontSize = 13.scaledSp, lineHeight = 15.scaledSp)
+    /** A home card's subtitle, over two lines. */
+    val zoneSubtitle: TextStyle
+        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Normal, fontSize = 13.scaledSp, lineHeight = 17.scaledSp)
 }

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.ui.components.home.SlantedCardPair
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsDialog
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.DailyBonusDialog
@@ -172,19 +173,27 @@ fun MainScreen(
                         modifier = Modifier.fillMaxSize(),
                         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
                     ) {
-                        PlayWithFriendsCard(
-                            // The whole card opens Create New Group (on the Rooms tab).
-                            onPlayWithFriends = {
-                                viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
-                                playRoomsViewModel?.onIntent(PlayRoomsIntent.CreateRoom)
+                        // Game Zone on the left, friends on the right, one diagonal gap between them.
+                        SlantedCardPair(
+                            startSlant = YapNPlayTheme.dimens.homeCardSlant,
+                            gap = YapNPlayTheme.dimens.homeCardGap,
+                            modifier = Modifier.fillMaxSize(),
+                            start = {
+                                EnterGameZoneCard(
+                                    onEnterGameZone = {
+                                        viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.GAMES))
+                                    },
+                                )
                             },
-                            modifier = Modifier.weight(1f),
-                        )
-                        EnterGameZoneCard(
-                            onEnterGameZone = {
-                                viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.GAMES))
+                            end = {
+                                PlayWithFriendsCard(
+                                    // The whole card opens Create New Group (on the Rooms tab).
+                                    onPlayWithFriends = {
+                                        viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
+                                        playRoomsViewModel?.onIntent(PlayRoomsIntent.CreateRoom)
+                                    },
+                                )
                             },
-                            modifier = Modifier.weight(1f),
                         )
                     }
                     AppNavTab.GAMES -> GameZoneScreen(

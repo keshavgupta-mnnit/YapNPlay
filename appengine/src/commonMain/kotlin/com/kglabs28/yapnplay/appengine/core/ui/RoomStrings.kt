@@ -7,6 +7,7 @@ object RoomStrings {
     const val roomsCreateSubtitle = "Start a room, invite your friends\nand let the fun begin!"
     const val roomsCreateButton = "CREATE ROOM"
     const val roomsJoinTitle = "Already have a room code?"
+    const val roomsCodeLabel = "ROOM CODE"
     const val roomsCodeHint = "123456"
     const val roomsJoinButton = "JOIN"
     const val roomsYourRoomsTitle = "Your Rooms"

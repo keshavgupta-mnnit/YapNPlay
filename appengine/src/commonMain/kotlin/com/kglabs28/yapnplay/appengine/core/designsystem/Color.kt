@@ -21,13 +21,30 @@ object YapNPlayColors {
     val Gold = Color(0xFFFFC700)
 
     // Functional Feature Zone Tokens (Semantic, sampled from the home design)
-    val GameZoneAccent = Color(0xFF08F9B5)
+    val GameZoneAccent = Color(0xFF20E8A0)
     val GameZoneSurface = Color(0xFF191934)
     val GameZoneIconFill = Color(0xFF1C4579)
 
     val SocialZoneAccent = Color(0xFFB834F7)
     val SocialZoneSurface = Color(0xFF1E1A45)
     val SocialZoneIconFill = Color(0xFF36276C)
+    /** Home and top bar text that the design shows as soft white (subtitles, tagline, unselected tabs). */
+    val HomeTextSoft = Color(0xFFECE0FC)
+    /** The top bar's unselected tabs, and its bell and settings: lighter frosted glass (design). */
+    val TopBarTabFrost = Color(0xFF594D7E)
+    val TopBarButtonFrost = Color(0xFF8C799B)
+    /** The home cards' frosted glass (design): a see-through violet, lighter at the top. */
+    val HomeCardFrostTop = Color(0x8C45367A)
+    val HomeCardFrostBottom = Color(0x80302659)
+    /** "FRIENDS" in the home card's title, and that card's rim (home design 2026-10). */
+    val FriendsAccent = Color(0xFF9878E8)
+    /** The XP level shield in the top bar: purple, lighter at the top. */
+    val LevelShieldTop = Color(0xFF8848C0)
+    val LevelShieldBottom = Color(0xFF5828B0)
+    /** The Rooms JOIN button: deep navy with an indigo rim. */
+    val JoinButtonTop = Color(0xFF2C2878)
+    val JoinButtonBottom = Color(0xFF202058)
+    val JoinButtonRim = Color(0xFF5048B0)
 
     // Home feature pillars
     val FeatureIconPurple = Color(0xFF933CF6)
@@ -45,10 +62,10 @@ object YapNPlayColors {
     val CtaPurpleRim = Color(0xFFD198DD)
 
     // Dark purple button with a light rim (home "Create Room")
-    val CreateRoomButtonStart = Color(0xFF49248A)
-    val CreateRoomButtonEnd = Color(0xFF3F2470)
-    val CreateRoomButtonRim = Color(0xFF754AB4)
-    val CreateRoomBannerSurface = Color(0xFF221F46)
+    val CreateRoomButtonStart = Color(0xFF542880)
+    val CreateRoomButtonEnd = Color(0xFF48246C)
+    val CreateRoomButtonRim = Color(0xFF5C2C8C)
+    val CreateRoomBannerSurface = Color(0xFF282834)
     val CreateRoomBannerIcon = Color(0xFF9375CF)
 
     // Rooms tab (sampled from the rooms design)
@@ -106,8 +123,8 @@ object YapNPlayColors {
     val TopBarPill = Color(0xFF22213F)
     val TopBarCurrencyPill = Color(0xFF242844)
     val TopBarButton = Color(0xFF2D3151)
-    val TopBarTabSelected = Color(0xFF46866F)
-    val TopBarTabSelectedBorder = Color(0xFF5BB592)
+    val TopBarTabSelected = Color(0xFF206070)
+    val TopBarTabSelectedBorder = Color(0xFF80D8E0)
     val TopBarIcon = Color(0xFF9EAEDE)
     val TopBarText = Color(0xFF96A3C9)
 

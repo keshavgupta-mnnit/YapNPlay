@@ -25,8 +25,8 @@ import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
 
 /**
- * Top bar tab strip: one glass pill holding Home, Games and Rooms.
- * The selected tab gets a green fill and border.
+ * Top bar tabs: Home, Games and Rooms, each its own glass pill side by
+ * side. The selected tab glows green (fill and border).
  */
 @Composable
 fun AppNavTabs(
@@ -38,10 +38,7 @@ fun AppNavTabs(
     val dimens = YapNPlayTheme.dimens
 
     Row(
-        modifier = modifier
-            .height(dimens.topBarControlHeight)
-            .glassPill(glowColor = colors.TopBarIcon, surface = colors.TopBarPill)
-            .padding(Spacing.Xxxs),
+        modifier = modifier.height(dimens.topBarControlHeight),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
@@ -76,13 +73,13 @@ private fun NavTabItem(
 ) {
     val colors = YapNPlayTheme.colors
     val shape = YapNPlayTheme.shapes.pill
-    val textColor = if (selected) colors.TextPrimary else colors.TopBarText
-    val iconColor = if (selected) colors.TextPrimary else colors.TopBarIcon
+    val textColor = if (selected) colors.TextPrimary else colors.HomeTextSoft
+    val iconColor = if (selected) colors.TextPrimary else colors.HomeTextSoft
 
     val selectionModifier = if (selected) {
         Modifier.glassPill(glowColor = colors.TopBarTabSelectedBorder, surface = colors.TopBarTabSelected)
     } else {
-        Modifier
+        Modifier.glassPill(glowColor = colors.TopBarIcon, surface = colors.TopBarTabFrost)
     }
 
     Row(
@@ -91,9 +88,9 @@ private fun NavTabItem(
             .clip(shape)
             .then(selectionModifier)
             .clickable(role = Role.Tab, onClick = onClick)
-            .padding(horizontal = Spacing.Md),
+            .padding(horizontal = Spacing.Sm),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
         AppIcon(
             imageVector = icon,
@@ -101,7 +98,7 @@ private fun NavTabItem(
         )
         BasicText(
             text = label,
-            style = YapNPlayTheme.typography.label.copy(
+            style = YapNPlayTheme.typography.topBarTab.copy(
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                 color = textColor,
             ),

@@ -55,7 +55,8 @@ fun NotificationsBell(
             imageVector = Icons.Rounded.Notifications,
             contentDescription = Strings.topBarNotifications,
             onClick = onToggle,
-            tint = if (expanded) YapNPlayTheme.colors.TextPrimary else YapNPlayTheme.colors.IconMuted,
+            tint = if (expanded) YapNPlayTheme.colors.TextPrimary else YapNPlayTheme.colors.HomeTextSoft,
+            surface = YapNPlayTheme.colors.TopBarButtonFrost,
         )
         if (unreadCount > 0) {
             UnreadBadge(count = unreadCount, modifier = Modifier.align(Alignment.TopEnd))

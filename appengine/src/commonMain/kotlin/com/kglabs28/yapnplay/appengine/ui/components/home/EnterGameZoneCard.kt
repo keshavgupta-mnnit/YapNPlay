@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.home
 
+import androidx.compose.ui.graphics.Brush
+import com.kglabs28.yapnplay.appengine.core.designsystem.SlantedSide
+import com.kglabs28.yapnplay.appengine.core.designsystem.SlantedCardShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,16 +36,20 @@ fun EnterGameZoneCard(
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
+    val dimens = YapNPlayTheme.dimens
+    val slant = dimens.homeCardSlant
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .glassPanel(
+                shape = SlantedCardShape(dimens.cardRadius, slant, SlantedSide.END),
                 glowColor = colors.GameZoneAccent,
-                surface = colors.GameZoneSurface.copy(alpha = 0.85f),
+                surfaceBrush = Brush.verticalGradient(listOf(colors.HomeCardFrostTop, colors.HomeCardFrostBottom)),
             )
             .clickable(onClick = onEnterGameZone)
-            .padding(horizontal = Spacing.Md, vertical = Spacing.Sm),
+            // Clear of the leaning edge.
+            .padding(end = Spacing.Md + slant, start = Spacing.Md, top = Spacing.Sm, bottom = Spacing.Sm),
         verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
         ZoneCardHeader(

@@ -272,7 +272,23 @@ class YapNPlayDimens {
     val scrollbarWidth: Dp get() = 4.dp.scaled()
     val fieldClearButton: Dp get() = 20.dp.scaled()
     val levelBarHeight: Dp get() = 4.dp.scaled()
-    val levelHexagon: Dp get() = 26.dp.scaled()
+    /** The top bar's brand logo (beside the name), and the hairline dividers between its groups. */
+    val topBarBrandLogo: Dp get() = 58.dp.scaled()
+    /** The level's shield in the XP pill. */
+    val levelShield: Dp get() = 22.dp.scaled()
+    /** A home feature pillar's icon circle. */
+    val pillarIconCircle: Dp get() = 24.dp.scaled()
+    val topBarDividerHeight: Dp get() = 30.dp.scaled()
+    /** How far the home cards' facing edges lean, and the diagonal gap between them. */
+    val homeCardSlant: Dp get() = 40.dp.scaled()
+    val homeCardGap: Dp get() = 40.dp.scaled()
+    /** The friends card leans further (its bottom edge shorter), and its banner juts out by about this much. */
+    val homeFriendsSlant: Dp get() = 82.dp.scaled()
+    val homeBannerInset: Dp get() = 28.dp.scaled()
+    /** The XP pill's text keeps at least this width, so big numbers still fit. */
+    val xpLabelMinWidth: Dp get() = 70.dp.scaled()
+    /** The Create New Room card's neon rim. */
+    val neonRim: Dp get() = 2.dp.scaled()
     val dailyBonusWidth: Dp get() = 340.dp.scaled()
     val dailyBonusCoin: Dp get() = 56.dp.scaled()
     val connectionCardWidth: Dp get() = 360.dp.scaled()

@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.home
 
+import androidx.compose.ui.graphics.Brush
+import com.kglabs28.yapnplay.appengine.core.designsystem.SlantedSide
+import com.kglabs28.yapnplay.appengine.core.designsystem.SlantedCardShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +25,8 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.SocialNetworkOrbitGraphic
 
 /**
  * Right home card ("PLAY WITH FRIENDS"): header, friends orbit art and
- * the create-room banner. The whole card is tappable.
+ * the create-room banner, which juts out past the card's leaning edge.
+ * The whole card is tappable.
  */
 @Composable
 fun PlayWithFriendsCard(
@@ -30,36 +34,47 @@ fun PlayWithFriendsCard(
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
+    val dimens = YapNPlayTheme.dimens
+    val slant = dimens.homeFriendsSlant
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .glassPanel(
-                glowColor = colors.SocialZoneAccent,
-                surface = colors.SocialZoneSurface.copy(alpha = 0.85f),
-            )
-            .clickable(onClick = onPlayWithFriends)
-            .padding(horizontal = Spacing.Md, vertical = Spacing.Sm),
-        verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
-    ) {
-        ZoneCardHeader(
-            icon = Icons.Rounded.Groups,
-            iconFill = colors.SocialZoneIconFill,
-            title = Strings.homePlayWithFriendsTitlePart1,
-            titleAccent = Strings.homePlayWithFriendsTitlePart2,
-            accentColor = colors.SocialZoneAccent,
-            subtitle = Strings.homePlayWithFriendsSubtitle,
-        )
-
+    // The glass is its own layer (clipped to the leaning shape); the content is not clipped, so the
+    // Create Room banner can stand out past the card's leaning edge like a cutout (design).
+    Box(modifier = modifier.fillMaxSize().clickable(onClick = onPlayWithFriends)) {
         Box(
+            Modifier
+                .matchParentSize()
+                .glassPanel(
+                    shape = SlantedCardShape(dimens.cardRadius, slant, SlantedSide.START),
+                    glowColor = colors.FriendsAccent,
+                    surfaceBrush = Brush.verticalGradient(listOf(colors.HomeCardFrostTop, colors.HomeCardFrostBottom)),
+                ),
+        )
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center,
+                .fillMaxSize()
+                .padding(start = Spacing.Md, end = Spacing.Md, top = Spacing.Sm, bottom = Spacing.Sm),
+            verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
         ) {
-            SocialNetworkOrbitGraphic()
-        }
+            ZoneCardHeader(
+                icon = Icons.Rounded.Groups,
+                iconFill = colors.SocialZoneIconFill,
+                title = Strings.homePlayWithFriendsTitlePart1,
+                titleAccent = Strings.homePlayWithFriendsTitlePart2,
+                accentColor = colors.FriendsAccent,
+                subtitle = Strings.homePlayWithFriendsSubtitle,
+            )
 
-        CreateRoomBanner(onCreateRoom = onPlayWithFriends)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center,
+            ) {
+                SocialNetworkOrbitGraphic()
+            }
+
+            // Juts out past the card's short bottom edge, still clear of the other card.
+            CreateRoomBanner(onCreateRoom = onPlayWithFriends, modifier = Modifier.padding(start = dimens.homeBannerInset))
+        }
     }
 }

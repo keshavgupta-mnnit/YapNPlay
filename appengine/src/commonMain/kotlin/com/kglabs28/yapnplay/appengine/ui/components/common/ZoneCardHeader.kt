@@ -43,14 +43,14 @@ fun ZoneCardHeader(
             Row {
                 BasicText(
                     text = title,
-                    style = typography.cardTitle.copy(color = colors.TextPrimary),
+                    style = typography.zoneTitle.copy(color = colors.TextPrimary),
                 )
                 BasicText(
                     text = titleAccent,
-                    style = typography.cardTitle.copy(color = accentColor),
+                    style = typography.zoneTitle.copy(color = accentColor),
                 )
             }
-            SlidingText(text = subtitle, style = typography.micro.copy(color = colors.RoomsSubtitle))
+            BasicText(text = subtitle, style = typography.zoneSubtitle.copy(color = colors.HomeTextSoft), maxLines = 2)
         }
     }
 }

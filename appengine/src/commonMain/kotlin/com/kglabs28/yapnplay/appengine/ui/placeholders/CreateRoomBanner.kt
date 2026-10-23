@@ -14,12 +14,11 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
-import com.kglabs28.yapnplay.appengine.ui.components.common.IconCircle
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
 
 /**
- * Bottom banner inside "PLAY WITH FRIENDS": icon, pitch line and the
- * dark purple "Create Room" button.
+ * Bottom banner inside "PLAY WITH FRIENDS": the pitch line and the dark
+ * purple "Create Room" button, on charcoal glass (design).
  */
 @Composable
 fun CreateRoomBanner(
@@ -35,20 +34,16 @@ fun CreateRoomBanner(
             .glassPanel(
                 glowColor = colors.CreateRoomButtonRim,
                 cornerRadius = dimens.panelRadius,
-                surface = colors.CreateRoomBannerSurface.copy(alpha = 0.9f),
+                surface = colors.CreateRoomBannerSurface,
             )
             .padding(horizontal = Spacing.Sm, vertical = Spacing.Xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
-        IconCircle(
-            imageVector = Icons.Rounded.GroupAdd,
-            fill = colors.CreateRoomBannerIcon.copy(alpha = 0.25f),
-            tint = colors.CreateRoomBannerIcon,
-        )
         BasicText(
             text = Strings.homeCreateRoomBannerText,
-            style = YapNPlayTheme.typography.micro.copy(color = colors.TextPrimary),
+            style = YapNPlayTheme.typography.micro.copy(color = colors.HomeTextSoft),
+            maxLines = 2,
             modifier = Modifier.weight(1f),
         )
         PillButton(
@@ -61,7 +56,7 @@ fun CreateRoomBanner(
             leadingIcon = Icons.Rounded.GroupAdd,
             trailingIcon = null,
             iconSize = dimens.iconSmall,
-            textStyle = YapNPlayTheme.typography.sectionTitle,
+            textStyle = YapNPlayTheme.typography.label,
         )
     }
 }

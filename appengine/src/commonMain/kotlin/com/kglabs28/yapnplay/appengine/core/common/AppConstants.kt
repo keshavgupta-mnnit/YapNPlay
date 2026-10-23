@@ -98,14 +98,6 @@ object AppConstants {
     const val TIER_M_MIN_WIDTH_DP = 740
     const val TIER_L_MIN_WIDTH_DP = 960
 
-    /**
-     * Top bar free-space split: the gap before the tab strip is twice
-     * the gap after it, so tabs sit near the centre and the balances
-     * and buttons hug the right edge.
-     */
-    const val TOP_BAR_LEADING_GAP_WEIGHT = 2f
-    const val TOP_BAR_TRAILING_GAP_WEIGHT = 1f
-
 
     /**
      * Home card art is drawn with ~10% transparent margin on every side;

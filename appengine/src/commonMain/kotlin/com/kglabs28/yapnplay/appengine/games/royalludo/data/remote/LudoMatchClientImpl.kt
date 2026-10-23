@@ -44,6 +44,8 @@ class LudoMatchClientImpl(
                 },
             )
             is LudoCommand.SetAutoplay -> match.setAutoplay(matchId, command.enabled)
+            LudoCommand.ProposeEnd -> match.proposeEnd(matchId)
+            is LudoCommand.VoteEnd -> match.castEndVote(matchId, command.agree)
             is LudoCommand.SetMic -> match.setMic(matchId, command.on)
             is LudoCommand.Leave -> match.leave(matchId, command.giveToUserId)
             LudoCommand.StillHere -> match.stillHere(matchId)

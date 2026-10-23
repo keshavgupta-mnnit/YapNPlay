@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedLineUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoSwapTargetUi
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetUi
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogUi
@@ -80,6 +81,8 @@ data class MatchMonoState(
     val leaderboard: LeaderboardUi? = null,
     /** "🏆 Riya finishes 1st!" for a few seconds after someone empties their hand. */
     val finishBanner: String? = null,
+    /** A MONO! penalty that concerns the user (caught, missed, wrong catch), as a snackbar for a moment. */
+    val penaltySnack: TableFeedLineUi? = null,
 ) : UiState {
     val hand get() = match?.me?.hand.orEmpty()
     /** The hand sorted by colour, power cards last (indexes into [hand]). */
@@ -128,6 +131,9 @@ sealed interface MatchMonoIntent : UiIntent {
     data object SubmitReport : MatchMonoIntent
     data class Vote(val agree: Boolean) : MatchMonoIntent
     data object CloseSheet : MatchMonoIntent
+    /** "End game (vote)" in the settings. */
+    data object ProposeEnd : MatchMonoIntent
+    data class VoteEnd(val agree: Boolean) : MatchMonoIntent
     data object ExitClicked : MatchMonoIntent
     /** "Leave the match?" answered: leave, or stay. */
     data object ConfirmExit : MatchMonoIntent

@@ -35,6 +35,8 @@ class MonoMatchClientImpl(
     override suspend fun send(matchId: String, command: MonoCommand) {
         when (command) {
             is MonoCommand.SetAutoplay -> match.setAutoplay(matchId, command.enabled)
+            MonoCommand.ProposeEnd -> match.proposeEnd(matchId)
+            is MonoCommand.VoteEnd -> match.castEndVote(matchId, command.agree)
             is MonoCommand.SetMic -> match.setMic(matchId, command.on)
             is MonoCommand.SetAway -> match.setAway(matchId, command.away)
             is MonoCommand.Leave -> match.leave(matchId, command.giveToUserId)
@@ -62,6 +64,8 @@ class MonoMatchClientImpl(
         is MonoCommand.VoteContinue -> MonoWireAction.VoteContinue(keepPlaying)
         is MonoCommand.ChooseSwapTarget -> MonoWireAction.ChooseSwapTarget(seat)
         is MonoCommand.SetAutoplay,
+        MonoCommand.ProposeEnd,
+        is MonoCommand.VoteEnd,
         is MonoCommand.SetMic,
         is MonoCommand.SetAway,
         is MonoCommand.Leave,

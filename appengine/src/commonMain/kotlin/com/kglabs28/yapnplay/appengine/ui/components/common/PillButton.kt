@@ -71,7 +71,8 @@ fun PillButton(
         leadingIcon?.let {
             AppIcon(imageVector = it, tint = content, size = iconSize)
         }
-        FitText(text = text, style = textStyle.copy(color = content), modifier = Modifier.weight(1f, fill = false))
+        // A label never takes the tap (it would swallow presses on the button); it only shrinks to fit.
+        ShrinkText(text = text, style = textStyle.copy(color = content), modifier = Modifier.weight(1f, fill = false), slideOnTap = false)
         trailingIcon?.let {
             AppIcon(imageVector = it, tint = content, size = iconSize)
         }

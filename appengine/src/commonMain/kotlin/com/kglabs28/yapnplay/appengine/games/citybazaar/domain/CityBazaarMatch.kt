@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.domain
 
+import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import kotlinx.datetime.Instant
 
 /**
@@ -46,7 +47,7 @@ data class CityBazaarMatch(
     val rentCollected: Map<Int, Int> = emptyMap(),
     val extensionVote: CityBazaarExtensionVoteInfo? = null,
     /** The end-game vote while it runs. */
-    val endVote: CityBazaarEndVoteInfo? = null,
+    val endVote: MatchEndVote? = null,
     val bank: CityBazaarBankInfo? = null,
 ) {
     val me: CityBazaarPlayer? get() = players.firstOrNull { it.isMe }

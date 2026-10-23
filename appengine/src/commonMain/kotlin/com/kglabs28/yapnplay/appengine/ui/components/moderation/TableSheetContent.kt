@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
@@ -19,6 +20,10 @@ fun TableSheetContent(
     modifier: Modifier = Modifier,
     /** The game's rules, behind Game Rules in the settings. */
     rules: List<GameRuleUi> = emptyList(),
+    /** Ask everyone to end the game (shown when the settings allow it). */
+    onEndGame: () -> Unit = {},
+    /** The user's answer to the end-game vote. */
+    onEndVote: (agree: Boolean) -> Unit = {},
 ) {
     when (sheet) {
         is TableSheetUi.Settings -> MatchSettingsCard(
@@ -27,6 +32,8 @@ fun TableSheetContent(
             onToggleEffects = onToggleEffects,
             onToggleMusic = onToggleMusic,
             onReport = onOpenReport,
+            onEndGame = onEndGame.takeIf { sheet.canEndGame },
+            endGameLabel = TableStrings.endGameButton,
             onClose = onClose,
             modifier = modifier,
             rules = rules,
@@ -50,5 +57,6 @@ fun TableSheetContent(
             modifier = modifier,
         )
         is TableSheetUi.Outcome -> ModalCard(title = sheet.title, subtitle = sheet.body, onClose = onClose, modifier = modifier)
+        is TableSheetUi.EndVote -> EndVoteCard(vote = sheet.vote, onVote = onEndVote, modifier = modifier)
     }
 }

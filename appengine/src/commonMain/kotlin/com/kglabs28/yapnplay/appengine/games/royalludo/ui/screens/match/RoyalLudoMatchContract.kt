@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteUi
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.TablePlayerCardUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.PlayerFriendActionUi
@@ -121,8 +122,10 @@ sealed interface LudoMatchModal {
     data class Result(val rows: List<LudoResultRowUi>) : LudoMatchModal
     /** Mic permission was refused: explain and offer Settings. */
     data object MicPermissionNeeded : LudoMatchModal
-    /** Match settings: sound effects, music, report a player. */
-    data class Settings(val effectsOn: Boolean, val musicOn: Boolean) : LudoMatchModal
+    /** Match settings: sound effects, music, report a player; [canEndGame] adds "End game (vote)". */
+    data class Settings(val effectsOn: Boolean, val musicOn: Boolean, val canEndGame: Boolean = false) : LudoMatchModal
+    /** Someone asked to end the game: the table votes (play is paused). */
+    data class EndVote(val vote: EndVoteUi) : LudoMatchModal
     /** Pick who to report for voice chat; [warning] explains a false report is held against the reporter. */
     data class Report(val people: List<ReportPersonUi>, val selectedUserId: String?, val warning: String, val error: String?) : LudoMatchModal
     /** "Did they do it?" for someone else's report; closes by itself when [secondsLeft] runs out. */
@@ -169,6 +172,9 @@ sealed interface RoyalLudoMatchIntent : UiIntent {
     data object ConfirmLeave : RoyalLudoMatchIntent
     data object DismissModal : RoyalLudoMatchIntent
     data object OpenSettings : RoyalLudoMatchIntent
+    /** "End game (vote)" in the settings. */
+    data object ProposeEnd : RoyalLudoMatchIntent
+    data class VoteEnd(val agree: Boolean) : RoyalLudoMatchIntent
     data object ToggleEffects : RoyalLudoMatchIntent
     data object ToggleMusic : RoyalLudoMatchIntent
     data object OpenReport : RoyalLudoMatchIntent

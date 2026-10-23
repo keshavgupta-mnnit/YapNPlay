@@ -19,8 +19,9 @@ import androidx.compose.ui.text.style.TextOverflow
  * amounts, card lines): the font shrinks, down to [minScale] of [style]'s
  * size, until it fits the width it gets in [maxLines] lines (one by
  * default). Text too long even at the smallest size ends in "…" there, and
- * a tap slides it across in full on one line (another tap stops it). For
- * running sentences use FitText.
+ * a tap slides it across in full on one line (another tap stops it);
+ * with [slideOnTap] off (a button's label) it never takes the tap, so the
+ * button gets it. For running sentences use FitText.
  */
 @Composable
 fun ShrinkText(
@@ -29,7 +30,8 @@ fun ShrinkText(
     modifier: Modifier = Modifier,
     minScale: Float = MIN_SCALE,
     maxLines: Int = 1,
-) = ShrinkText(AnnotatedString(text), style, modifier, minScale, maxLines)
+    slideOnTap: Boolean = true,
+) = ShrinkText(AnnotatedString(text), style, modifier, minScale, maxLines, slideOnTap)
 
 /** [ShrinkText] for styled text (coloured or bold parts). */
 @Composable
@@ -39,6 +41,7 @@ fun ShrinkText(
     modifier: Modifier = Modifier,
     minScale: Float = MIN_SCALE,
     maxLines: Int = 1,
+    slideOnTap: Boolean = true,
 ) {
     // Set once the smallest size still overflows; a new text measures afresh.
     var tooLong by remember(text) { mutableStateOf(false) }
@@ -63,9 +66,13 @@ fun ShrinkText(
         maxLines = if (sliding) 1 else maxLines,
         softWrap = !sliding && maxLines > 1,
         overflow = if (sliding) TextOverflow.Clip else TextOverflow.Ellipsis,
-        modifier = modifier
-            .clickable(interactionSource = null, indication = null) { sliding = !sliding }
-            .then(if (sliding) Modifier.basicMarquee() else Modifier),
+        modifier = if (slideOnTap) {
+            modifier
+                .clickable(interactionSource = null, indication = null) { sliding = !sliding }
+                .then(if (sliding) Modifier.basicMarquee() else Modifier)
+        } else {
+            modifier
+        },
     )
 }
 

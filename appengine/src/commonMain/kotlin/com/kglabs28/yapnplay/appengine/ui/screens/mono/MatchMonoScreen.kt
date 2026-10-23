@@ -210,7 +210,7 @@ fun MatchMonoContent(
 
         state.sheet?.let { sheet ->
             // A report to vote on needs an answer; the rest close on a tap outside.
-            BlockingOverlay(visible = true, onDismiss = if (sheet is TableSheetUi.Vote) null else ({ send(MatchMonoIntent.CloseSheet) })) {
+            BlockingOverlay(visible = true, onDismiss = if (sheet is TableSheetUi.Vote || sheet is TableSheetUi.EndVote) null else ({ send(MatchMonoIntent.CloseSheet) })) {
                 TableSheetContent(
                     sheet = sheet,
                     onToggleEffects = { send(MatchMonoIntent.ToggleEffects) },
@@ -221,6 +221,8 @@ fun MatchMonoContent(
                     onVote = { send(MatchMonoIntent.Vote(it)) },
                     onClose = { send(MatchMonoIntent.CloseSheet) },
                     rules = MonoStrings.monoRules,
+                    onEndGame = { send(MatchMonoIntent.ProposeEnd) },
+                    onEndVote = { send(MatchMonoIntent.VoteEnd(it)) },
                 )
             }
         }
@@ -259,6 +261,7 @@ private fun MonoArena(state: MatchMonoState, anchors: MonoAnchors, flights: Mono
         discardPileCount = match?.discardPileCount ?: 0,
         activeStackPenalty = state.activeStackPenalty,
         note = state.finishBanner,
+        snack = state.penaltySnack,
         cardWidth = dimens.monoPileCardWidth,
         anchors = anchors,
         // The deck draws too (or takes the stack, like the Draw button).

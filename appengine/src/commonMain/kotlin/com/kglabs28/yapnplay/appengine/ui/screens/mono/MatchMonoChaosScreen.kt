@@ -211,7 +211,7 @@ fun MatchMonoChaosContent(
 
         state.sheet?.let { sheet ->
             // A report to vote on needs an answer; the rest close on a tap outside.
-            BlockingOverlay(visible = true, onDismiss = if (sheet is TableSheetUi.Vote) null else ({ send(MatchMonoChaosIntent.CloseSheet) })) {
+            BlockingOverlay(visible = true, onDismiss = if (sheet is TableSheetUi.Vote || sheet is TableSheetUi.EndVote) null else ({ send(MatchMonoChaosIntent.CloseSheet) })) {
                 TableSheetContent(
                     sheet = sheet,
                     onToggleEffects = { send(MatchMonoChaosIntent.ToggleEffects) },
@@ -222,6 +222,8 @@ fun MatchMonoChaosContent(
                     onVote = { send(MatchMonoChaosIntent.Vote(it)) },
                     onClose = { send(MatchMonoChaosIntent.CloseSheet) },
                     rules = MonoStrings.chaosRules,
+                    onEndGame = { send(MatchMonoChaosIntent.ProposeEnd) },
+                    onEndVote = { send(MatchMonoChaosIntent.VoteEnd(it)) },
                 )
             }
         }
@@ -259,6 +261,7 @@ private fun MonoChaosArena(state: MatchMonoChaosState, anchors: MonoAnchors, fli
         discardPileCount = match?.discardPileCount ?: 0,
         activeStackPenalty = state.activeStackPenalty,
         note = state.finishBanner,
+        snack = state.penaltySnack,
         cardWidth = dimens.monoPileCardWidth,
         anchors = anchors,
         chaos = true,

@@ -28,6 +28,8 @@ class TableSheetController(
 ) {
     private var sheet: TableSheetUi? = null
     private var vote: ReportVoteRequest? = null
+    /** Whether the open settings offer "End game": kept while sound or music is switched. */
+    private var endGameAllowed = false
 
     /** Listens for reports to vote on and their outcomes. */
     fun start(): List<Job> = listOf(
@@ -55,9 +57,11 @@ class TableSheetController(
         } ?: sheet
     }
 
-    fun openSettings() {
+    /** The settings; [canEndGame] adds "End game (vote)". */
+    fun openSettings(canEndGame: Boolean = endGameAllowed) {
         val s = audio.settings.value
-        sheet = TableSheetUi.Settings(effectsOn = s.effectsOn, musicOn = s.musicOn)
+        endGameAllowed = canEndGame
+        sheet = TableSheetUi.Settings(effectsOn = s.effectsOn, musicOn = s.musicOn, canEndGame = canEndGame)
         onChange()
     }
 

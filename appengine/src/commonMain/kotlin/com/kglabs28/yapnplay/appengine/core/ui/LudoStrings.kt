@@ -4,6 +4,9 @@ import com.kglabs28.yapnplay.appengine.ui.components.moderation.GameRuleUi
 /** Royal Ludo: table, board, results. */
 object LudoStrings {
     /** The rules shown from the settings menu. */
+    /** How Royal Ludo ranks players when it ends early. */
+    const val ludoEndRanking = "Players are ranked by how far their pieces got."
+
     val ludoRules: List<GameRuleUi> = listOf(
         GameRuleUi("Goal", "Bring all four of your pieces round the board and into the centre first."),
         GameRuleUi("Leaving base", "Only a 6 brings a piece out of base onto your start square."),
@@ -15,6 +18,7 @@ object LudoStrings {
         GameRuleUi("Pairs", "Two or more of your pieces on one square protect each other: they cannot be captured."),
         GameRuleUi("Exact finish", "A piece needs the exact number to reach the centre. Too big a roll cannot move it."),
         GameRuleUi("Out of time", "If your time runs out, the table rolls and moves for you."),
+        GameRuleUi(TableStrings.endEarlyRuleTitle, TableStrings.endEarlyRule(ludoEndRanking)),
     )
 
 

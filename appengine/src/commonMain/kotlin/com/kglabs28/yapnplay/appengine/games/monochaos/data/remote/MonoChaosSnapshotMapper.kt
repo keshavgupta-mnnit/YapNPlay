@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.monochaos.data.remote
 
+import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoContinueVote
 import com.kglabs28.yapnplay.appengine.games.base.identity.SeatNumber
@@ -82,6 +83,7 @@ class MonoChaosSnapshotMapper(private val json: Json) {
             catchSeat = state.catchSeat,
             catchClosedFor = state.catchClosedFor,
             continueVote = state.continueVote?.let { MonoContinueVote(toLocal(it.endsAt), it.voters, it.yes, it.no) },
+            endVote = snapshot.endVote?.let { MatchEndVote(it.proposerSeat, toLocal(it.endsAt), it.voters, it.yes, it.no) },
             caughtPenaltyCards = state.caughtPenaltyCards,
             falseCatchPenaltyCards = state.falseCatchPenaltyCards,
             roomId = snapshot.roomId,

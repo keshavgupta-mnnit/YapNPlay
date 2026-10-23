@@ -1,6 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
-import com.kglabs28.yapnplay.appengine.ui.components.common.FitText
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -142,11 +142,12 @@ private fun ArenaPillButton(
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterHorizontally),
     ) {
         icon?.let { AppIcon(imageVector = it, tint = colors.TextPrimary, size = dimens.iconMedium) }
-        // A narrow button shrinks its word rather than cutting it.
-        FitText(
+        // A narrow button shrinks its word rather than cutting it; the word never takes the tap.
+        ShrinkText(
             text = text,
             style = YapNPlayTheme.typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Black),
             modifier = Modifier.weight(1f, fill = false),
+            slideOnTap = false,
         )
     }
 }

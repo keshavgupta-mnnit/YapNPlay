@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteUiMapper
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.TableVoiceUseCases
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardResult
 import com.kglabs28.yapnplay.appengine.features.matchresult.domain.SeatResult
@@ -182,6 +183,11 @@ class RoyalLudoMatchViewModel(
             }
             RoyalLudoMatchIntent.DismissModal -> if (matchGone) emitEffect(RoyalLudoMatchEffect.Close) else showModal(null)
             RoyalLudoMatchIntent.OpenSettings -> showSettings()
+            RoyalLudoMatchIntent.ProposeEnd -> {
+                showModal(null)
+                send(LudoCommand.ProposeEnd)
+            }
+            is RoyalLudoMatchIntent.VoteEnd -> send(LudoCommand.VoteEnd(intent.agree))
             RoyalLudoMatchIntent.ToggleEffects -> {
                 audio.setEffectsOn(!audio.settings.value.effectsOn)
                 showSettings()
@@ -409,7 +415,7 @@ class RoyalLudoMatchViewModel(
 
     private fun showSettings() {
         val s = audio.settings.value
-        showModal(LudoMatchModal.Settings(effectsOn = s.effectsOn, musicOn = s.musicOn))
+        showModal(LudoMatchModal.Settings(effectsOn = s.effectsOn, musicOn = s.musicOn, canEndGame = canEndGame()))
     }
 
     private fun showReport(selected: String?, error: String?) {
@@ -500,10 +506,19 @@ class RoyalLudoMatchViewModel(
                 speakerOn = speakerOn,
                 // A vote or a seat decision is timed, so it comes before the user's own dialogs.
                 modal = vote?.let { LudoModerationUiMapper.vote(it, clock.now()) }
+                    // The end-game vote pauses play until it is decided.
+                    ?: m.endVote?.let { LudoMatchModal.EndVote(EndVoteUiMapper.of(it, m.me?.seat, m.players.firstOrNull { p -> p.seat == it.proposerSeat }?.name.orEmpty(), LudoStrings.ludoEndRanking, clock.now())) }
                     ?: LudoMatchUiMapper.seatModal(m, clock.now(), declinedSeat, seatPick)
                     ?: userModal?.withCountdown(),
             )
         }
+    }
+
+    /** Whether the user may ask to end the game now (none running). */
+    private fun canEndGame(): Boolean {
+        val m = match ?: return false
+        val me = m.me ?: return false
+        return EndVoteUiMapper.canPropose(me.isCpu, me.presence.name, m.phase == LudoPhase.FINISHED, m.endVote != null)
     }
 
     private suspend fun send(command: LudoCommand) {

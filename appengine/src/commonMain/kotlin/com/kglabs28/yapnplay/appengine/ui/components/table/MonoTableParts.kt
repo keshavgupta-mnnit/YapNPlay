@@ -76,6 +76,8 @@ fun MonoTableArena(
     onDeckClick: (() -> Unit)? = null,
     /** What just happened, shown under the piles; null shows nothing. */
     note: String? = null,
+    /** A penalty that concerns the user, as a snackbar under the note; null shows nothing. */
+    snack: TableFeedLineUi? = null,
     faceCard: @Composable () -> Unit,
 ) {
     val colors = YapNPlayTheme.colors
@@ -150,6 +152,7 @@ fun MonoTableArena(
         ) {
             if (activeStackPenalty > 0) MonoStackCounter(penalty = activeStackPenalty)
             note?.takeIf { it.isNotBlank() }?.let { MonoTableNote(it) }
+            snack?.let { TableFeedSnackbar(line = it) }
         }
     }
 }

@@ -21,4 +21,6 @@ class LudoMatchModalActions(
     val onOfferSeatToBot: () -> Unit,
     val onSpectate: () -> Unit,
     val onStillHere: () -> Unit,
+    val onProposeEnd: () -> Unit,
+    val onEndVote: (agree: Boolean) -> Unit,
 )

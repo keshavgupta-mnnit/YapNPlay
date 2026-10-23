@@ -7,6 +7,9 @@ import com.kglabs28.yapnplay.appengine.ui.components.moderation.GameRuleUi
  */
 object MonoStrings {
     /** The rules shown from the settings menu. */
+    /** How both MONO games rank players when they end early. */
+    const val monoEndRanking = "Players still in are ranked by fewest cards."
+
     val monoRules: List<GameRuleUi> = listOf(
         GameRuleUi("Goal", "Be the first to play all your cards. The others play on for the next places."),
         GameRuleUi("Your turn", "Play one card that matches the top card by colour, number or symbol. A Wild can go on anything."),
@@ -20,6 +23,7 @@ object MonoStrings {
         GameRuleUi("CAUGHT", "Press CAUGHT when a player on one card forgot MONO!: they draw 5 cards. Pressing it with nobody to catch costs you 2 cards."),
         GameRuleUi("Out of time", "If your time runs out, the table plays a card or draws for you."),
         GameRuleUi("Places", "Every player who empties their hand takes the next place. After the second finisher, the table votes whether to play on."),
+        GameRuleUi(TableStrings.endEarlyRuleTitle, TableStrings.endEarlyRule(monoEndRanking)),
     )
 
     /** The rules shown from the settings menu. */
@@ -29,7 +33,7 @@ object MonoStrings {
         GameRuleUi("Draw until you can play", "With nothing to play, you draw one card at a time until one fits. That card you may play, or pass."),
         GameRuleUi("Knockout at 25", "Reach 25 cards at any moment and you are knocked out of the match."),
         GameRuleUi("Stacking", "On a draw card you may stack a draw card worth the same or more (+2, +4, Wild Reverse +4, Wild +6, Wild +10). The first player who cannot stack takes the whole total."),
-        GameRuleUi("Wild Reverse +4, +6, +10", "Choose the colour; the penalty passes on. Wild Reverse +4 also reverses play (with two players it comes back to you)."),
+        GameRuleUi("Wild Reverse +4, +6, +10", "Choose the colour; the penalty passes on. Wild Reverse +4 also reverses play; the next player in the new direction takes it."),
         GameRuleUi("Wild Roulette", "The next player picks a colour, then flips cards one by one until that colour comes up. Every flipped card goes into their hand and their turn ends."),
         GameRuleUi("Rule of 7", "Playing a 7: pick an opponent and swap your whole hands."),
         GameRuleUi("Rule of 0", "Playing a 0: every player passes their whole hand to the next player, the way play is going."),
@@ -37,6 +41,7 @@ object MonoStrings {
         GameRuleUi("Skip Everyone", "Everyone else is skipped: you play again at once."),
         GameRuleUi("MONO!", "When you are down to one card, press MONO! before anyone catches you."),
         GameRuleUi("CAUGHT", "Press CAUGHT when a player on one card forgot MONO!: they draw 7 cards. Pressing it with nobody to catch costs you 4 cards."),
+        GameRuleUi(TableStrings.endEarlyRuleTitle, TableStrings.endEarlyRule(monoEndRanking)),
     )
 
 

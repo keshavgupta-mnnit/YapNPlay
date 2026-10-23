@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
@@ -21,14 +22,14 @@ fun CbEndVotePrompt(modal: CbModal.EndVote, onVote: (agree: Boolean) -> Unit, mo
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
     CbPromptFrame(
-        title = buildAnnotatedString { append(CityBazaarStrings.cbEndVoteTitle) },
+        title = buildAnnotatedString { append(TableStrings.endVoteTitle) },
         accent = colors.Error,
         countdown = modal.countdown,
         modifier = modifier,
         buttons = if (modal.canVote) {
             {
-                ProfileActionButton(text = CityBazaarStrings.cbEndVoteKeep, kind = ProfileButtonKind.CONFIRM, onClick = { onVote(false) }, leadingIcon = Icons.Rounded.Check, modifier = Modifier.weight(1f))
-                ProfileActionButton(text = CityBazaarStrings.cbEndVoteEnd, kind = ProfileButtonKind.DANGER, onClick = { onVote(true) }, leadingIcon = Icons.Rounded.Flag, modifier = Modifier.weight(1f))
+                ProfileActionButton(text = TableStrings.endVoteKeep, kind = ProfileButtonKind.CONFIRM, onClick = { onVote(false) }, leadingIcon = Icons.Rounded.Check, modifier = Modifier.weight(1f))
+                ProfileActionButton(text = TableStrings.endVoteEnd, kind = ProfileButtonKind.DANGER, onClick = { onVote(true) }, leadingIcon = Icons.Rounded.Flag, modifier = Modifier.weight(1f))
             }
         } else {
             null

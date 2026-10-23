@@ -187,7 +187,7 @@ fun CityBazaarModalContent(
             onToggleMusic = actions.onToggleMusic,
             onReport = actions.onOpenReport,
             onEndGame = if (modal.canProposeEnd) actions.onProposeEnd else null,
-            endGameLabel = CityBazaarStrings.cbEndGameButton,
+            endGameLabel = TableStrings.endGameButton,
             onClose = actions.onDismiss,
             rules = CityBazaarStrings.cbRules,
             modifier = modifier,

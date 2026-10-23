@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.monochaos.domain
 
+import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoContinueVote
 import com.kglabs28.yapnplay.appengine.games.monochaos.identity.MonoChaosConstants
 import kotlinx.datetime.Instant
@@ -53,6 +54,8 @@ data class MonoChaosMatch(
     val catchClosedFor: List<Int> = emptyList(),
     /** The keep-playing vote, open once two or more have finished. */
     val continueVote: MonoContinueVote? = null,
+    /** Someone asked to end the game early; null when no vote is running. */
+    val endVote: MatchEndVote? = null,
     val caughtPenaltyCards: Int = 2,
     val falseCatchPenaltyCards: Int = 0,
     val roomId: String? = null,

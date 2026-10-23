@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetUi
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteUiMapper
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedLineUi
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.TableVoiceUseCases
 import kotlin.time.Duration.Companion.milliseconds
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
@@ -70,6 +74,9 @@ class MatchMonoViewModel(
     private var finalBoard: LeaderboardUi? = null
     /** The latest finisher's banner and when it went up; the final board waits for it. */
     private var banner: Pair<String, Instant>? = null
+    /** The latest MONO! penalty snackbar for the user and when it went up. */
+    private var snack: Pair<TableFeedLineUi, Instant>? = null
+    private var snackId = 0L
     private var jobs: List<Job> = emptyList()
     /** Settings (sound, music), Report and report votes, as Royal Ludo has them. */
     private val sheets = TableSheetController(moderation, audio, scope) { render() }
@@ -117,7 +124,12 @@ class MatchMonoViewModel(
             MatchMonoIntent.ToggleSpeaker -> voice.setSpeakerOn(!speakerOn)
             is MatchMonoIntent.ToggleHear -> match?.players?.firstOrNull { it.seat == intent.seat }?.userId?.let { voice.setMuted(it, it !in mutedForMe) }
             is MatchMonoIntent.ToggleHearSpectator -> voice.setMuted(intent.userId, intent.userId !in mutedForMe)
-            MatchMonoIntent.OpenSettings -> sheets.openSettings()
+            MatchMonoIntent.OpenSettings -> sheets.openSettings(canEndGame())
+            MatchMonoIntent.ProposeEnd -> {
+                sheets.close()
+                send(MonoCommand.ProposeEnd)
+            }
+            is MatchMonoIntent.VoteEnd -> send(MonoCommand.VoteEnd(intent.agree))
             MatchMonoIntent.ToggleEffects -> sheets.toggleEffects()
             MatchMonoIntent.ToggleMusic -> sheets.toggleMusic()
             MatchMonoIntent.OpenReport -> match?.let { sheets.openReport(reportable(it), voters(it)) }
@@ -186,6 +198,7 @@ class MatchMonoViewModel(
     private suspend fun onUpdate(update: MonoUpdate) {
         val previous = match
         match = update.match
+        if (EndVoteUiMapper.rejected(previous?.endVote, update.match.endVote, update.match.phase == MonoPhase.FINISHED.name)) banner = TableStrings.endVoteRejectedShort to clock.now()
         update.events.filterIsInstance<MonoEvent.SeatFinished>().lastOrNull()?.let { finished ->
             val place = MonoUiMapper.placeLabel(finished.place)
             val who = update.match.player(finished.seat.value)
@@ -193,6 +206,7 @@ class MatchMonoViewModel(
             banner = text to clock.now()
         }
         if (update.events.none { it is MonoEvent.SeatFinished }) MonoTableNotes.mono(update.events, update.match)?.let { banner = it to clock.now() }
+        MonoPenaltySnack.mono(update.events, update.match, snackId + 1)?.let { snackId++; snack = it to clock.now() }
         val flights = director.direct(cues(update.events, previous, update.match), update.match.me?.seat)
         if (flights.isNotEmpty()) emitEffect(MatchMonoEffect.Fly(flights))
         render()
@@ -314,7 +328,9 @@ class MatchMonoViewModel(
         setState {
             copy(
                 leaveDialog = leave.ui(now, m.spectators.map { it.name }, m.me != null, roomMatch = m.roomId != null),
-                sheet = sheets.current(now),
+                // The end-game vote comes first: play is paused until it is decided.
+                sheet = m.endVote?.let { TableSheetUi.EndVote(EndVoteUiMapper.of(it, m.me?.seat, m.player(it.proposerSeat)?.name.orEmpty(), MonoStrings.monoEndRanking, now)) }
+                    ?: sheets.current(now),
                 loaded = true,
                 error = null,
                 match = m,
@@ -352,6 +368,7 @@ class MatchMonoViewModel(
                 vote = MonoUiMapper.vote(m.continueVote, me?.seat, now),
                 // The finisher's banner shows first; the board follows once it has had its moment.
                 finishBanner = banner?.takeIf { now - it.second < BANNER_TIME }?.first,
+                penaltySnack = snack?.takeIf { now - it.second < SNACK_TIME }?.first,
                 // The winner's banner first; then the board, with the coins each seat won.
                 leaderboard = (finalBoard ?: board(m, now)?.takeIf { banner?.let { now - it.second >= BANNER_TIME } ?: true }?.also { finalBoard = it })
                     ?.let { LeaderboardResult.withResult(it, seatResults) },
@@ -436,6 +453,13 @@ class MatchMonoViewModel(
         render()
     }
 
+    /** Whether the user may ask to end the game now (none running, no keep-playing vote). */
+    private fun canEndGame(): Boolean {
+        val m = match ?: return false
+        val me = m.me ?: return false
+        return EndVoteUiMapper.canPropose(me.isCpu, me.presence, m.phase == MonoPhase.FINISHED.name, m.endVote != null || m.continueVote != null)
+    }
+
     private suspend fun send(command: MonoCommand) {
         if (matchId.isEmpty()) return
         sendCommand(matchId, command)
@@ -448,6 +472,8 @@ class MatchMonoViewModel(
         const val TICK_MS = 250L
         /** How long a finisher's banner stays up (and the final board waits). */
         val BANNER_TIME = 3.seconds
+        /** How long a penalty snackbar stays up. */
+        val SNACK_TIME = 4.seconds
         const val MILLIS = 1_000L
     }
 

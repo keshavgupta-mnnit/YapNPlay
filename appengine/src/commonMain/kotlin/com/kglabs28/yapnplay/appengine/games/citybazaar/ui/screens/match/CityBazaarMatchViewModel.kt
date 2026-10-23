@@ -684,7 +684,7 @@ class CityBazaarMatchViewModel(
             CbPromptMapper.extensionVote(m, it, CbFormat.countdown((it.endsAt - now).inWholeSeconds.coerceAtLeast(0)))
         }
         // Someone asked to end the game: everyone sees it while play is paused.
-        val endVote = m.endVote?.let { CbPromptMapper.endVote(m, it, CbFormat.countdown((it.endsAt - now).inWholeSeconds.coerceAtLeast(0))) }
+        val endVote = m.endVote?.let { CbPromptMapper.endVote(m, it, now) }
         val leaving = leave.ui(now, m.spectators.map { it.name }, m.me != null, roomMatch = m.isRoomMatch)?.let { CbModal.LeaveConfirm(it) }
         val modal = vote?.let { CityBazaarModerationUiMapper.vote(it, now) } ?: leaving ?: endVote ?: auction ?: extension ?: decision ?: userModal
         val panel = panelTile?.let { CbPropertyMapper.tileInfo(m, it) }

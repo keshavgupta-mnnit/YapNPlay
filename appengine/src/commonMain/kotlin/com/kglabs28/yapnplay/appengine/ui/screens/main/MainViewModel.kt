@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import kotlin.time.Duration.Companion.seconds
+import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import com.kglabs28.yapnplay.appengine.features.coins.usecase.GetAdLimitStatusUseCase
 import com.kglabs28.yapnplay.appengine.core.ads.LaunchCoinsOffer
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.AdsAppManagerHelper
@@ -92,11 +94,14 @@ class MainViewModel(
             }
             MainIntent.DismissRejoin -> setState { copy(rejoin = null) }
             // Only when an ad can play now: an offer that ends in "no ad" is worse than none.
-            MainIntent.OpenGetCoins -> if (isAdReady()) {
+            MainIntent.OpenGetCoins -> if (isAdReady().also { AppLog.d(AppConstants.LOG_TAG_ADS, "home: coins + tapped, ad ready=$it") }) {
                 setState { copy(coinsOffer = CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody)) }
                 refreshAdLimits()
             }
-            MainIntent.CloseGetCoins -> setState { copy(coinsOffer = null) }
+            MainIntent.CloseGetCoins -> {
+                AppLog.d(AppConstants.LOG_TAG_ADS, "home: coins dialog closed")
+                setState { copy(coinsOffer = null) }
+            }
             MainIntent.WatchAdForCoins -> watchAd()
             MainIntent.OpenSettings -> emitEffect(MainEffect.OpenSettingsDialog)
             MainIntent.ToggleNotifications ->
@@ -148,11 +153,17 @@ class MainViewModel(
 
     /**
      * Once per app launch, after the daily bonus (if any) is collected: offer
-     * free coins for a rewarded ad. The coins "+" offers the same any time.
+     * free coins for a rewarded ad, only if one is ready (or comes in within
+     * [LAUNCH_AD_WAIT]). Missed then, it is not offered later in this launch;
+     * the coins "+" offers the same any time an ad is ready.
      */
     private suspend fun offerCoinsOnLaunch() {
         if (observeDailyBonus().value > 0 || state.value.coinsOffer != null || !state.value.profileLoaded) return
-        if (!adsConfig.isLaunchOfferEnabled() || !isAdReady() || !launchCoinsOffer.takeIfDue()) return
+        if (!adsConfig.isLaunchOfferEnabled() || !launchCoinsOffer.takeIfDue()) return
+        if (!isAdReady.await(LAUNCH_AD_WAIT) || state.value.coinsOffer != null) {
+            return AppLog.d(AppConstants.LOG_TAG_ADS, "home: launch offer skipped, no ad ready")
+        }
+        AppLog.d(AppConstants.LOG_TAG_ADS, "home: launch offer shown")
         // Only when an ad can pay now (no cooldown, ads left today); an older server without limits: always.
         val status = (getAdLimitStatus() as? AppResult.Success)?.data
         if (status != null && !status.canWatch(clock.now())) return
@@ -185,6 +196,7 @@ class MainViewModel(
     /** Ad watched to the end → the server adds coins; the balance updates and the dialog says how many. */
     private suspend fun watchAd() {
         val offer = state.value.coinsOffer
+        AppLog.d(AppConstants.LOG_TAG_ADS, "home: Watch Ad tapped (canWatch=${offer?.canWatch}, watching=${offer?.watchingAd})")
         // Extra taps while one ad is loading or playing do nothing (one ad per tap).
         if (offer?.watchingAd == true) return
         // A cooldown or today's limit: say so rather than play nothing.
@@ -208,3 +220,6 @@ class MainViewModel(
     private fun levelProgress(xp: Int, levelXp: Int, nextLevelXp: Int): Float =
         if (nextLevelXp > levelXp) ((xp - levelXp).toFloat() / (nextLevelXp - levelXp)).coerceIn(0f, 1f) else 0f
 }
+
+/** How long the launch offer waits for the first ad to come in before giving up for this launch. */
+private val LAUNCH_AD_WAIT = 8.seconds

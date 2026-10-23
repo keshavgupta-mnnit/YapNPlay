@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import kotlin.math.PI
@@ -81,13 +82,18 @@ private fun DrawScope.drawWaveArc(c: Offset, rx: Float, ry: Float, startDeg: Flo
     val ux = tx / len
     val uy = ty / len
     val head = stroke * HEAD
+    // The head's base sits a little back over the line's end, so line and head read as one arrow.
+    val base = Offset(tip.x - ux * stroke * HEAD_OVERLAP, tip.y - uy * stroke * HEAD_OVERLAP)
     val path = Path().apply {
         moveTo(tip.x + ux * head, tip.y + uy * head)
-        lineTo(tip.x - uy * head * HEAD_WIDE, tip.y + ux * head * HEAD_WIDE)
-        lineTo(tip.x + uy * head * HEAD_WIDE, tip.y - ux * head * HEAD_WIDE)
+        lineTo(base.x - uy * head * HEAD_WIDE, base.y + ux * head * HEAD_WIDE)
+        lineTo(base.x + uy * head * HEAD_WIDE, base.y - ux * head * HEAD_WIDE)
         close()
     }
+    // The same soft glow as the line, then the head with rounded corners.
+    drawPath(path, headColour.copy(alpha = GLOW_ALPHA), style = Stroke(stroke * ARROW_GLOW, join = StrokeJoin.Round))
     drawPath(path, headColour)
+    drawPath(path, headColour, style = Stroke(stroke * HEAD_ROUND, join = StrokeJoin.Round))
 }
 
 /**
@@ -136,6 +142,9 @@ private const val ARROW_GLOW = 2.4f
 private const val GLOW_ALPHA = 0.28f
 private const val HEAD = 2.4f
 private const val HEAD_WIDE = 0.9f
+/** How far the head reaches back over the line (× stroke), and how round its corners are (× stroke). */
+private const val HEAD_OVERLAP = 0.6f
+private const val HEAD_ROUND = 0.5f
 /** The right arc runs from upper right to lower right (screen degrees). */
 private const val RIGHT_START = -40f
 private const val ARC_SWEEP = 80f

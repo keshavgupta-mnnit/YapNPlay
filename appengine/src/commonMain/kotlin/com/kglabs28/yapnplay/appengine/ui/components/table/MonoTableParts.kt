@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -72,6 +73,8 @@ fun MonoTableArena(
     chaos: Boolean = false,
     /** A tap on the draw pile (draws, like the Draw button); null leaves it untappable. */
     onDeckClick: (() -> Unit)? = null,
+    /** What just happened, shown under the piles; null shows nothing. */
+    note: String? = null,
     faceCard: @Composable () -> Unit,
 ) {
     val colors = YapNPlayTheme.colors
@@ -116,27 +119,31 @@ fun MonoTableArena(
                     MonoEmptyPile(modifier = tilt)
                 }
             }
-            Box {
-                MonoTiltedPile(
-                    count = discardPileCount,
-                    cardWidth = cardWidth,
-                    edge = colors.MonoDiscardEdge,
-                    edgeShade = colors.MonoTableRim,
-                    tiltZ = DISCARD_TURN,
-                    glow = hue.ring,
-                    modifier = Modifier.monoAnchor(anchors, MonoSpot.Discard),
-                ) { tilt ->
-                    Box(modifier = tilt) { faceCard() }
-                }
-                if (activeStackPenalty > 0) {
-                    MonoStackCounter(
-                        penalty = activeStackPenalty,
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .offset(y = -Spacing.Lg),
-                    )
-                }
+            MonoTiltedPile(
+                count = discardPileCount,
+                cardWidth = cardWidth,
+                edge = colors.MonoDiscardEdge,
+                edgeShade = colors.MonoTableRim,
+                tiltZ = DISCARD_TURN,
+                glow = hue.ring,
+                modifier = Modifier.monoAnchor(anchors, MonoSpot.Discard),
+            ) { tilt ->
+                Box(modifier = tilt) { faceCard() }
             }
+        }
+        // Under the piles, between the table's rings and centred on it: the stack's total, then
+        // what just happened. They float over the table and take no room, so the piles never move.
+        val pileHalf = cardWidth / CARD_W_PER_H * LYING_HEIGHT / 2
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = maxHeight / 2 + pileHalf + Spacing.Xs)
+                .zIndex(1f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
+        ) {
+            if (activeStackPenalty > 0) MonoStackCounter(penalty = activeStackPenalty)
+            note?.let { MonoTableNote(it) }
         }
     }
 }
@@ -214,7 +221,7 @@ fun MonoEmptyPile(modifier: Modifier = Modifier) {
     )
 }
 
-/** The floating penalty counter over the discard pile. */
+/** The penalty counter under the piles. */
 @Composable
 fun MonoStackCounter(
     penalty: Int,
@@ -278,16 +285,19 @@ fun MonoHandRow(
                 measurable.measure(constraints.copy(minWidth = widthPx, maxWidth = widthPx))
             }
             val marginPx = with(density) { margin.roundToPx() }
-            val totalWidth = stepPx * (placeables.size - 1).coerceAtLeast(0) + widthPx + marginPx * 2
+            val handWidth = stepPx * (placeables.size - 1).coerceAtLeast(0) + widthPx + marginPx * 2
+            // A hand narrower than the row sits in its middle; a wider one fills it and scrolls.
+            val rowWidth = maxOf(handWidth, this@BoxWithConstraints.constraints.maxWidth)
+            val start = (rowWidth - handWidth) / 2
             val cardHeight = placeables.maxOfOrNull { it.height } ?: 0
             // Fanned like a held hand: each card tilts out from the middle and the ends dip.
             val middle = (placeables.size - 1) / 2f
             val spread = (FAN_DEGREES / placeables.size.coerceAtLeast(1)).coerceAtMost(FAN_STEP_MAX)
             val dipPx = (cardHeight * FAN_DIP).roundToInt()
-            layout(totalWidth, cardHeight + dipPx) {
+            layout(rowWidth, cardHeight + dipPx) {
                 placeables.forEachIndexed { index, placeable ->
                     val offCentre = (index - middle) / middle.coerceAtLeast(1f)
-                    placeable.placeWithLayer(marginPx + stepPx * index, (dipPx * offCentre * offCentre).roundToInt()) {
+                    placeable.placeWithLayer(start + marginPx + stepPx * index, (dipPx * offCentre * offCentre).roundToInt()) {
                         rotationZ = (index - middle) * spread
                         transformOrigin = TransformOrigin(0.5f, 1f)
                     }
@@ -325,6 +335,8 @@ private const val INNER_RING_H = 0.177f
 private const val RING_FILL_H = 0.85f
 private const val RING_FILL_W = 0.8f
 private const val CARD_W_PER_H = 0.68f
+/** A pile card lying back on the table looks about this much of its height. */
+private const val LYING_HEIGHT = 0.8f
 /** The piles lie back on the table and turn slightly, as in the table design. */
 private const val TABLE_TILT = 38f
 private const val CAMERA_DISTANCE = 14f

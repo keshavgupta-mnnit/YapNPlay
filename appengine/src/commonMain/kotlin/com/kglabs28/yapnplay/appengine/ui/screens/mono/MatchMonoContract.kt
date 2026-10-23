@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoSwapTargetUi
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetUi
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogUi
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
@@ -62,6 +63,10 @@ data class MatchMonoState(
     val winnerSeat: Int? = null,
     val finished: Boolean = false,
     val micOn: Boolean = false,
+    /** The user's speaker: off, they hear nobody (only on their device). */
+    val speakerOn: Boolean = true,
+    /** People the user muted for themselves. */
+    val mutedForMe: Set<String> = emptySet(),
     val autoplay: Boolean = false,
     /** User ids talking right now (the blue-pink glow behind their seat). */
     val talking: Set<String> = emptySet(),
@@ -81,6 +86,9 @@ data class MatchMonoState(
     val handOrder: List<Int>
         get() = MonoUiMapper.handOrder(hand, { it.playColor()?.ordinal }, { it.isPower() }, { (it as? MonoCard.NumberCard)?.number ?: 0 })
     /** Everyone else, clockwise from the user's seat (the order turns go round the table). */
+    /** Whom the Rule of 7 can trade hands with. */
+    val swapTargets get() = opponents.map { MonoSwapTargetUi(it.seat, it.name, it.avatarId.orEmpty(), it.cardCount) }
+
     /** Everyone else still in the game, clockwise from the user (a player who left takes no seat). */
     val opponents get() = MonoUiMapper.clockwise(match?.players.orEmpty().filter { !it.isMe && !it.removed }, match?.me?.seat) { it.seat }
 }
@@ -104,6 +112,12 @@ sealed interface MatchMonoIntent : UiIntent {
     data class ChooseSwapTarget(val seat: Int) : MatchMonoIntent
     data class SetAutoplay(val enabled: Boolean) : MatchMonoIntent
     data class SetMic(val on: Boolean) : MatchMonoIntent
+    /** The user's speaker on or off (for them only). */
+    data object ToggleSpeaker : MatchMonoIntent
+    /** Mute or unmute a player (by seat) for the user only. */
+    data class ToggleHear(val seat: Int) : MatchMonoIntent
+    /** Mute or unmute a spectator for the user only. */
+    data class ToggleHearSpectator(val userId: String) : MatchMonoIntent
     data object OpenSettings : MatchMonoIntent
     data object ToggleEffects : MatchMonoIntent
     data object ToggleMusic : MatchMonoIntent

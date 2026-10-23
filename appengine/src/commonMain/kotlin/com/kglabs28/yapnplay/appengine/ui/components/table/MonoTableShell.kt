@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,10 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import kotlin.math.roundToInt
-import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.graphics.TransformOrigin
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.placeholders.GameTableArenaArtwork
@@ -33,7 +31,8 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.GameTableArenaArtwork
  *    - the arena with the two piles in the middle, always given the room
  *      between the U and the hand's own band (they never overlap);
  *    - bottom left, the user's seat over the MONO · CAUGHT button; bottom
- *      centre, the hand; bottom right, the Draw button.
+ *      centre, the hand; bottom right, the Draw button. A watcher
+ *      ([watching]) has none of these: the U runs down to the bottom.
  *  - A prompt the table waits on (colour, swap, vote) sits over the piles
  *    only, never over the hand or the seats.
  *  - Above everything, the cards in flight between piles, hands and seats.
@@ -65,10 +64,17 @@ fun MonoTableShell(
     callButton: @Composable () -> Unit,
     hand: @Composable () -> Unit,
     drawButton: @Composable () -> Unit,
+    watching: Boolean = false,
+    /** A watcher's mic and speaker, bottom right; shown only while [watching]. */
+    watcherControls: (@Composable () -> Unit)? = null,
+    /** Mutes or unmutes a player (by seat) for the user only, from the button on their pill; null: no button. */
+    onToggleHear: ((Int) -> Unit)? = null,
+    /** Mutes or unmutes a spectator (by user id) for the user only, from a long press in the top bar. */
+    onToggleHearSpectator: ((String) -> Unit)? = null,
 ) {
     val dimens = YapNPlayTheme.dimens
     // Every opponent's seat, shrunk together as the table fills.
-    val seatScale = tableSeatScale(leftPods.size + topPods.size + rightPods.size)
+    val seatScale = TableSeatPlan.scale(leftPods.size + topPods.size + rightPods.size)
     // The bands the layers keep clear of each other.
     val side = dimens.monoPodWidthCompact + Spacing.Sm
     val topBand = if (topPods.isEmpty()) Spacing.Xs else dimens.monoTopBandHeight
@@ -93,6 +99,7 @@ fun MonoTableShell(
                 onSettings = onSettings,
                 onExit = onExit,
                 logo = logo,
+                onToggleHearSpectator = onToggleHearSpectator,
             )
             Box(
                 modifier = Modifier
@@ -121,6 +128,7 @@ fun MonoTableShell(
                         MonoPlayerPod(
                             card = pod,
                             fanBeside = true,
+                            trailing = muteButtonFor(pod, onToggleHear),
                             modifier = Modifier
                                 .monoAnchor(anchors, MonoSpot.Seat(pod.seat))
                                 .monoScaled(seatScale)
@@ -135,13 +143,14 @@ fun MonoTableShell(
                         .align(Alignment.TopStart)
                         .width(dimens.monoPodWidthCompact)
                         .fillMaxHeight()
-                        .padding(bottom = dimens.monoLocalCornerHeight),
+                        .padding(bottom = if (watching) Spacing.Sm else dimens.monoLocalCornerHeight),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterVertically),
                 ) {
                     leftPods.asReversed().forEach { pod ->
                         MonoPlayerPod(
                             card = pod,
                             compact = true,
+                            trailing = muteButtonFor(pod, onToggleHear),
                             modifier = Modifier
                                 .monoAnchor(anchors, MonoSpot.Seat(pod.seat))
                                 .monoScaled(seatScale)
@@ -156,7 +165,7 @@ fun MonoTableShell(
                         .align(Alignment.TopEnd)
                         .width(dimens.monoPodWidthCompact)
                         .fillMaxHeight()
-                        .padding(bottom = dimens.arenaActionHeight + Spacing.Sm),
+                        .padding(bottom = if (watching) Spacing.Sm else dimens.arenaActionHeight + Spacing.Sm),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterVertically),
                     horizontalAlignment = Alignment.End,
                 ) {
@@ -164,6 +173,7 @@ fun MonoTableShell(
                         MonoPlayerPod(
                             card = pod,
                             compact = true,
+                            trailing = muteButtonFor(pod, onToggleHear),
                             modifier = Modifier
                                 .monoAnchor(anchors, MonoSpot.Seat(pod.seat))
                                 .monoScaled(seatScale)
@@ -172,8 +182,8 @@ fun MonoTableShell(
                     }
                 }
 
-                // Bottom left: the user's seat over the callout.
-                Column(
+                // Bottom left: the user's seat over the callout (a watcher has no seat, hand or buttons).
+                if (!watching) Column(
                     modifier = Modifier.align(Alignment.BottomStart),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
                 ) {
@@ -183,7 +193,7 @@ fun MonoTableShell(
                 }
 
                 // Bottom centre: the hand, over the table's near edge.
-                Box(
+                if (!watching) Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
@@ -193,7 +203,8 @@ fun MonoTableShell(
                 ) { hand() }
 
                 // Bottom right: Draw.
-                Box(modifier = Modifier.align(Alignment.BottomEnd)) { drawButton() }
+                if (!watching) Box(modifier = Modifier.align(Alignment.BottomEnd)) { drawButton() }
+                if (watching) watcherControls?.let { Box(modifier = Modifier.align(Alignment.BottomEnd)) { it() } }
 
                 // A choice the table waits on, centred over the whole middle so it always has room.
                 prompt?.let { Box(modifier = Modifier.align(Alignment.Center)) { it() } }
@@ -203,62 +214,19 @@ fun MonoTableShell(
     }
 }
 
-/**
- * Splits the opponents (in turn order from the user) across the three
- * rails of the U — left column (drawn bottom-up), top row, right column —
- * so the table reads clockwise. Up to five opponents: one left, up to two
- * right, the rest along the top; six or seven (seats shrunk, see
- * [monoSeatScale]): two left, two right, the rest along the top.
- */
-fun <T> monoTableZones(opponents: List<T>): Triple<List<T>, List<T>, List<T>> {
-    val leftCount = minOf(if (opponents.size >= CROWDED) 2 else 1, opponents.size)
-    val rest = opponents.size - leftCount
-    val rightCount = minOf(2, rest / 2)
-    val topCount = rest - rightCount
-    val left = opponents.take(leftCount)
-    val top = opponents.drop(leftCount).take(topCount)
-    val right = opponents.drop(leftCount + topCount).take(rightCount)
-    return Triple(left, top, right)
-}
-
-/**
- * How big each opponent's seat is drawn, in every game, for [opponents] of
- * them: the board or table stays the same size, so the whole seat (avatar,
- * pill, name, speaker, fan) grows when few play and shrinks together as
- * the table fills — every seat fits whole and the table never crowds.
- */
-fun tableSeatScale(opponents: Int): Float = when {
-    opponents >= CROWDED -> SCALE_CROWDED
-    opponents >= BUSY -> SCALE_BUSY
-    opponents >= FEW -> SCALE_FEW
-    else -> SCALE_ROOMY
-}
-
-/** Draws the content at [scale] of its size, taking only that much room (anchored top-left). */
-fun Modifier.monoScaled(scale: Float): Modifier = if (scale == 1f) this else layout { measurable, constraints ->
-    val placeable = measurable.measure(
-        Constraints(
-            maxWidth = if (constraints.hasBoundedWidth) (constraints.maxWidth / scale).toInt() else Constraints.Infinity,
-            maxHeight = if (constraints.hasBoundedHeight) (constraints.maxHeight / scale).toInt() else Constraints.Infinity,
-        ),
-    )
-    layout((placeable.width * scale).roundToInt(), (placeable.height * scale).roundToInt()) {
-        placeable.placeWithLayer(0, 0) {
-            scaleX = scale
-            scaleY = scale
-            transformOrigin = TransformOrigin(0f, 0f)
+/** The "mute for me" button on a player's pill (a person, not a CPU); null keeps the pod's own speaker. */
+private fun muteButtonFor(pod: MonoPlayerPodUi, onToggleHear: ((Int) -> Unit)?): (@Composable RowScope.() -> Unit)? =
+    if (onToggleHear == null || !pod.canSpeak) {
+        null
+    } else {
+        {
+            TableMuteButton(
+                muted = pod.mutedForMe,
+                description = LudoStrings.ludoMuteFor(pod.name),
+                onToggle = { onToggleHear(pod.seat) },
+            )
         }
     }
-}
-
-/** Opponent counts from which seats change size, and how much: 1–2 roomy, 3 a little less, 4–5 smaller, 6+ smallest. */
-private const val FEW = 3
-private const val BUSY = 4
-private const val CROWDED = 6
-private const val SCALE_ROOMY = 1.2f
-private const val SCALE_FEW = 1.1f
-private const val SCALE_BUSY = 0.85f
-private const val SCALE_CROWDED = 0.72f
 
 /** Same as a card: width ÷ height. */
 private const val CARD_W_PER_H = 0.68f

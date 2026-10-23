@@ -36,6 +36,7 @@ class LiveKitVoiceEngine(private val context: Context) : VoiceEngine {
     private var events: Job? = null
     private var micWanted = false
     private var muted: Set<String> = emptySet()
+    private var speakerOn = true
 
     private val isConnected = MutableStateFlow(false)
     override val connected: StateFlow<Boolean> = isConnected.asStateFlow()
@@ -74,6 +75,11 @@ class LiveKitVoiceEngine(private val context: Context) : VoiceEngine {
         scope.launch { room?.let(::applyMutes) }
     }
 
+    override fun setSpeakerOn(on: Boolean) {
+        speakerOn = on
+        scope.launch { room?.let(::applyMutes) }
+    }
+
     private fun applyMic() {
         scope.launch {
             micLock.withLock {
@@ -99,7 +105,7 @@ class LiveKitVoiceEngine(private val context: Context) : VoiceEngine {
 
     private fun applyMutes(source: Room) {
         source.remoteParticipants.values.forEach { participant ->
-            val hear = participant.identity?.value !in muted
+            val hear = speakerOn && participant.identity?.value !in muted
             participant.trackPublications.values
                 .filterIsInstance<RemoteTrackPublication>()
                 .filter { it.kind == Track.Kind.AUDIO && it.isDesired != hear }

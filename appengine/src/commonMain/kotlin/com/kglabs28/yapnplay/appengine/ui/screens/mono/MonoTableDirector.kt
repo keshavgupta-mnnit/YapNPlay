@@ -27,8 +27,10 @@ class MonoTableDirector(
         /** [seat] drew [count] cards; [looks] are their faces when the viewer may see them. */
         data class Drew(val seat: Int, val count: Int, val looks: List<MonoCardLook> = emptyList()) : Cue
         data object Shuffled : Cue
-        /** Discard All took [count] more cards of [look]'s colour from [seat]'s hand onto the pile. */
-        data class Discarded(val seat: Int, val count: Int, val look: MonoCardLook?) : Cue
+        /** Discard All took [count] more cards from [seat]'s hand onto the pile; [looks] are their faces when the viewer may see them. */
+        data class Discarded(val seat: Int, val count: Int, val looks: List<MonoCardLook> = emptyList()) : Cue
+        /** [count] cards went from [fromSeat]'s hand to [toSeat]'s (a swap or everyone passing); [looks] when the viewer receives them. */
+        data class Moved(val fromSeat: Int, val toSeat: Int, val count: Int, val looks: List<MonoCardLook> = emptyList()) : Cue
         data object Called : Cue
         data object Caught : Cue
         data object Won : Cue
@@ -85,7 +87,8 @@ class MonoTableDirector(
                 }
                 is Cue.Drew -> {
                     sound(GameSound.CARD_DRAW)
-                    repeat(cue.count.coerceAtMost(MAX_FLYING_DRAWS)) { index ->
+                    // The user's own cards all fly, each to its sorted place; others' big draws only a few.
+                    repeat(cue.count.coerceAtMost(if (cue.seat == mySeat) MAX_OWN_DRAWS else MAX_FLYING_DRAWS)) { index ->
                         flights += MonoFlight(
                             id = nextId++,
                             from = MonoSpot.Deck,
@@ -107,8 +110,23 @@ class MonoTableDirector(
                 }
                 is Cue.Discarded -> {
                     sound(GameSound.CARD_PLAY)
-                    repeat(cue.count.coerceAtMost(MAX_FLYING_DRAWS)) {
-                        flights += MonoFlight(id = nextId++, from = spotOf(cue.seat, mySeat), to = MonoSpot.Discard, look = cue.look, delayMs = delay, cover = cue.look, chaos = chaos)
+                    repeat(cue.count.coerceAtMost(MAX_FLYING_DRAWS)) { index ->
+                        val look = cue.looks.getOrNull(index)
+                        flights += MonoFlight(id = nextId++, from = spotOf(cue.seat, mySeat), to = MonoSpot.Discard, look = look, delayMs = delay, cover = look, chaos = chaos)
+                        delay += DRAW_GAP_MS
+                    }
+                }
+                is Cue.Moved -> {
+                    sound(GameSound.CARD_DRAW)
+                    repeat(cue.count.coerceAtMost(if (cue.toSeat == mySeat) MAX_OWN_DRAWS else MAX_FLYING_DRAWS)) { index ->
+                        flights += MonoFlight(
+                            id = nextId++,
+                            from = spotOf(cue.fromSeat, mySeat),
+                            to = spotOf(cue.toSeat, mySeat),
+                            look = cue.looks.getOrNull(index),
+                            delayMs = delay,
+                            chaos = chaos,
+                        )
                         delay += DRAW_GAP_MS
                     }
                 }
@@ -128,11 +146,13 @@ class MonoTableDirector(
 
     private companion object {
         const val PLAY_GAP_MS = 320
-        const val DRAW_GAP_MS = 90
+        const val DRAW_GAP_MS = 140
         const val SHUFFLE_GAP_MS = 60
         /** The reshuffle shows this many cards streaming back; the deck's height shows the rest. */
         const val SHUFFLE_CARDS = 8
         /** A big penalty still flies only this many cards; the fan shows the rest. */
-        const val MAX_FLYING_DRAWS = 8
+        const val MAX_FLYING_DRAWS = 10
+        /** The user's own new cards all fly (each lands in its sorted place), up to the knockout size. */
+        const val MAX_OWN_DRAWS = 30
     }
 }

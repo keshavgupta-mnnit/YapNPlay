@@ -322,6 +322,8 @@ data class MonoPlayerPodUi(
     val eliminated: Boolean = false,
     /** Down to one card with the callout made. */
     val calledMono: Boolean = false,
+    /** The user muted them, for the user only. */
+    val mutedForMe: Boolean = false,
 )
 
 /**

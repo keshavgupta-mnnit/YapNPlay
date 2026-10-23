@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.TableVoiceUseCases
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogState
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardResult
 import com.kglabs28.yapnplay.appengine.features.matchresult.domain.SeatResult
@@ -40,12 +41,10 @@ import com.kglabs28.yapnplay.appengine.features.moderation.domain.ModerationRule
 import com.kglabs28.yapnplay.appengine.features.moderation.domain.Penalty
 import com.kglabs28.yapnplay.appengine.features.moderation.domain.ReportVoteRequest
 import com.kglabs28.yapnplay.appengine.features.moderation.usecase.ModerationUseCases
-import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveLocallyMutedUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMySpeakingUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOpenUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMicOnUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOnUseCase
-import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetLocallyMutedUseCase
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarColour
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarCommand
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarEvent
@@ -84,8 +83,7 @@ class CityBazaarMatchViewModel(
     private val observeMatch: ObserveCityBazaarMatchUseCase,
     private val observeSpeaking: ObserveCityBazaarSpeakingUseCase,
     private val sendCommand: SendCityBazaarCommandUseCase,
-    private val observeMuted: ObserveLocallyMutedUseCase,
-    private val setMuted: SetLocallyMutedUseCase,
+    private val voice: TableVoiceUseCases,
     private val observeMySpeaking: ObserveMySpeakingUseCase,
     private val setMicOpen: SetMicOpenUseCase,
     private val observeMicOn: ObserveMicOnUseCase,
@@ -110,6 +108,7 @@ class CityBazaarMatchViewModel(
     private var micSwitch = false
     private var micOpen = false
     private var mutedForMe: Set<String> = emptySet()
+    private var speakerOn = true
     /** What the board and cards show (lags the server while events play). */
     private val shownPositions = mutableMapOf<Int, Int>()
     private val shownCash = mutableMapOf<Int, Int>()
@@ -241,7 +240,9 @@ class CityBazaarMatchViewModel(
                 showModal(null)
                 emitEffect(CityBazaarMatchEffect.OpenAppSettings)
             }
-            is CityBazaarMatchIntent.ToggleHear -> match?.player(intent.seat)?.let { setMuted(it.userId, it.userId !in mutedForMe) }
+            CityBazaarMatchIntent.ToggleSpeaker -> voice.setSpeakerOn(!speakerOn)
+            is CityBazaarMatchIntent.ToggleHearSpectator -> voice.setMuted(intent.userId, intent.userId !in mutedForMe)
+            is CityBazaarMatchIntent.ToggleHear -> match?.player(intent.seat)?.let { voice.setMuted(it.userId, it.userId !in mutedForMe) }
             // Not the user, a CPU or a seat the CPU plays for someone who left.
             is CityBazaarMatchIntent.PlayerLongPressed -> match?.player(intent.seat)
                 ?.takeIf { !it.isMe && !it.isCpu && it.presence != CityBazaarPresence.BOT }
@@ -331,7 +332,8 @@ class CityBazaarMatchViewModel(
             scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
             scope.launch { observeMySpeaking().collect { mySpeaking = it; render() } },
             scope.launch { observeMicOn().collect { micSwitch = it; syncMic() } },
-            scope.launch { observeMuted().collect { mutedForMe = it; render() } },
+            scope.launch { voice.observeMuted().collect { mutedForMe = it; render() } },
+            scope.launch { voice.observeSpeakerOn().collect { speakerOn = it; render() } },
             scope.launch { moderation.voteRequests().collect { vote = it; render() } },
             scope.launch { moderation.outcomes().collect { showModal(CityBazaarModerationUiMapper.outcome(it)) } },
             scope.launch {
@@ -731,7 +733,9 @@ class CityBazaarMatchViewModel(
                 // What the user just set wins until the server agrees (no waiting on the round trip).
                 autoplay = autoplayWanted ?: (me?.autoplay == true || me?.presence == CityBazaarPresence.BOT),
                 // The app-wide mic switch, at once (the server catches up through syncMic).
-                micOn = me != null && micSwitch,
+                // The app-wide mic switch, at once (the server catches up); a spectator's too.
+                micOn = micSwitch,
+                speakerOn = speakerOn,
                 // The view model's own values (inside copy, bare names would be the old state's).
                 toast = this@CityBazaarMatchViewModel.toast,
                 transaction = this@CityBazaarMatchViewModel.transaction,
@@ -859,7 +863,8 @@ class CityBazaarMatchViewModel(
     /** Tells the table the user's mic state: the app-wide switch, off while the app is in the background. */
     private fun syncMic() {
         val m = match ?: return
-        val current = m.me?.micOn ?: return
+        // A spectator's mic is on their spectator entry.
+        val current = (m.me?.micOn ?: m.spectators.firstOrNull { it.userId == m.viewerUserId }?.micOn) ?: return
         val want = micSwitch && foreground
         if (current != want) scope.launch { send(CityBazaarCommand.SetMic(want)) }
     }

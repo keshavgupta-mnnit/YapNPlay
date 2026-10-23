@@ -42,6 +42,8 @@ sealed interface MonoSpot {
     data object PlayedCard : MonoSpot
     /** Another player's seat (their fan). */
     data class Seat(val seat: Int) : MonoSpot
+    /** The sorted place in the user's hand where the card of flight [flightId] goes. */
+    data class HandSlot(val flightId: Long) : MonoSpot
 }
 
 /**
@@ -75,8 +77,9 @@ fun MonoAnchors.mark(spot: MonoSpot, rect: Rect) {
 }
 
 /** The faces of the cards still flying into the user's hand (the hand keeps their places empty until they land). */
-val MonoFlightState.arrivingInHand: List<MonoCardLook>
-    get() = flights.filter { it.to == MonoSpot.Hand }.mapNotNull { it.look }
+/** The cards flying into the user's hand whose faces are known, in flight order. */
+val MonoFlightState.flightsIntoHand: List<MonoFlight>
+    get() = flights.filter { it.to == MonoSpot.Hand && it.look != null }
 
 /** Marks this element as [spot], so cards can fly to and from it. */
 fun Modifier.monoAnchor(anchors: MonoAnchors?, spot: MonoSpot): Modifier =
@@ -126,11 +129,15 @@ fun MonoFlightLayer(
             key(flight.id) {
                 // A played card with no tap on record (autoplay) leaves from the hand.
                 val from = anchors.rects[flight.from] ?: if (flight.from == MonoSpot.PlayedCard) anchors.rects[MonoSpot.Hand] else null
-                val to = anchors.rects[flight.to]
+                // A card for the user's hand lands straight in its sorted place (once the hand has laid it out).
+                val to = (if (flight.to == MonoSpot.Hand) anchors.rects[MonoSpot.HandSlot(flight.id)] else null) ?: anchors.rects[flight.to]
                 if (from == null || to == null) {
                     LaunchedEffect(Unit) { state.done(flight.id) }
                 } else {
-                    FlyingCard(flight, from.translate(-origin), to.translate(-origin)) { state.done(flight.id) }
+                    FlyingCard(flight, from.translate(-origin), to.translate(-origin)) {
+                        anchors.rects.remove(MonoSpot.HandSlot(flight.id))
+                        state.done(flight.id)
+                    }
                 }
             }
         }
@@ -179,7 +186,8 @@ private fun FlyingCard(flight: MonoFlight, from: Rect, to: Rect, onLanded: () ->
 private fun scaleAt(spot: MonoSpot, rect: Rect, cardPx: Float): Float = when (spot) {
     MonoSpot.Deck, MonoSpot.Discard -> (rect.width / cardPx).coerceIn(MIN_SCALE, MAX_SCALE)
     MonoSpot.Hand -> HAND_SCALE
-    MonoSpot.PlayedCard -> (rect.width / cardPx).coerceIn(MIN_SCALE, MAX_SCALE)
+    // A hand slot is one card of the hand: land at its own size.
+    MonoSpot.PlayedCard, is MonoSpot.HandSlot -> (rect.width / cardPx).coerceIn(MIN_SCALE, MAX_SCALE)
     is MonoSpot.Seat -> SEAT_SCALE
 }
 

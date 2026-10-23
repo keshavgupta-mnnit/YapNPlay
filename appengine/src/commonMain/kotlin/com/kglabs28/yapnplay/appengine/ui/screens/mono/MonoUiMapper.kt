@@ -1,8 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
 import androidx.compose.ui.graphics.Color
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
-import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoContinueVote
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardEntryUi
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
@@ -38,6 +36,7 @@ object MonoUiMapper {
         places: Map<Int, String>,
         calledSeat: Int? = null,
         talking: Set<String> = emptySet(),
+        mutedForMe: Set<String> = emptySet(),
     ) = MonoPlayerPodUi(
         seat = player.seat,
         name = player.name,
@@ -46,11 +45,12 @@ object MonoUiMapper {
         tint = seatTint(player.seat),
         isMe = player.isMe,
         isTurn = player.seat == currentSeat,
-        talking = player.userId != null && player.userId in talking,
+        talking = player.userId != null && player.userId in talking && player.userId !in mutedForMe,
         micOn = player.micOn,
         cards = player.cardCount,
         timerFraction = timerFraction,
         placeLabel = places[player.seat],
+        mutedForMe = player.userId != null && player.userId in mutedForMe,
         // The user's own lit Autoplay switch says it already; others get the tag.
         statusLabel = if (player.isMe) null else statusLabel(player.presence, player.autoplay, player.isCpu),
         canSpeak = !player.isCpu,
@@ -66,6 +66,7 @@ object MonoUiMapper {
         eliminated: Set<Int>,
         calledSeat: Int? = null,
         talking: Set<String> = emptySet(),
+        mutedForMe: Set<String> = emptySet(),
     ) = MonoPlayerPodUi(
         seat = player.seat,
         name = player.name,
@@ -74,11 +75,12 @@ object MonoUiMapper {
         tint = seatTint(player.seat),
         isMe = player.isMe,
         isTurn = player.seat == currentSeat,
-        talking = player.userId != null && player.userId in talking,
+        talking = player.userId != null && player.userId in talking && player.userId !in mutedForMe,
         micOn = player.micOn,
         cards = player.cardCount,
         timerFraction = timerFraction,
         placeLabel = places[player.seat],
+        mutedForMe = player.userId != null && player.userId in mutedForMe,
         // Knocked out at 25 cards: their name stays, their count does not.
         statusLabel = if (player.seat in eliminated) {
             MonoStrings.monoEliminated
@@ -149,7 +151,6 @@ object MonoUiMapper {
             .sortedWith(compareBy<Standing>({ it.knockedOut }, { it.cards }, { it.seat }))
         val ordered = ranking.mapNotNull { bySeat[it] } + rest
         val entries = ordered.mapIndexed { index, s ->
-            val exp = AppConstants.PLACE_EXP[index.coerceAtMost(AppConstants.PLACE_EXP.lastIndex)]
             LeaderboardEntryUi(
                 place = index + 1,
                 placeLabel = placeLabel(index + 1),
@@ -161,7 +162,8 @@ object MonoUiMapper {
                     s.knockedOut -> MonoStrings.monoKnockedOutScore
                     else -> MonoStrings.monoCardsLeft(s.cards)
                 },
-                exp = TableStrings.leaderboardExp(exp),
+                // The server's XP, filled in by LeaderboardResult once it pays it.
+                exp = "",
                 tint = Color.Unspecified,
                 isMe = s.isMe,
                 micOn = s.micOn,
@@ -174,7 +176,6 @@ object MonoUiMapper {
             duration = duration,
             entries = entries,
             myPlace = mine?.placeLabel.orEmpty(),
-            myExp = mine?.let { TableStrings.leaderboardGain(AppConstants.PLACE_EXP[(it.place - 1).coerceAtMost(AppConstants.PLACE_EXP.lastIndex)].toString()) }.orEmpty(),
         )
     }
 
@@ -197,13 +198,14 @@ object MonoUiMapper {
     fun placeLabel(place: Int): String = MonoStrings.monoPlace(place)
 
     /** Spectators and absent players, for the top bar strip. */
-    fun audience(match: MonoMatch) = match.spectators.map {
-        TableAvatarUi(it.userId, it.name, if (it.micOn) AvatarRing.TALKING else AvatarRing.IDLE)
+    /** The spectators in the top bar: their voice ring (talking only when the user hears them) and whether the user muted them. */
+    fun audience(match: MonoMatch, talking: Set<String>, mutedForMe: Set<String>) = match.spectators.map {
+        TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in talking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe)
     }
 
     /** Spectators and absent players (Complete Chaos). */
-    fun chaosAudience(match: MonoChaosMatch) = match.spectators.map {
-        TableAvatarUi(it.userId, it.name, if (it.micOn) AvatarRing.TALKING else AvatarRing.IDLE)
+    fun chaosAudience(match: MonoChaosMatch, talking: Set<String>, mutedForMe: Set<String>) = match.spectators.map {
+        TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in talking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe)
     }
 
     /** "Away" / "Autoplay" while the server plays for someone (a CPU seat needs no tag). */

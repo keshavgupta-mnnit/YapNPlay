@@ -13,4 +13,5 @@ class SilentVoiceEngine : VoiceEngine {
     override suspend fun disconnect() = Unit
     override fun setMicEnabled(enabled: Boolean) = Unit
     override fun setMuted(userIds: Set<String>) = Unit
+    override fun setSpeakerOn(on: Boolean) = Unit
 }

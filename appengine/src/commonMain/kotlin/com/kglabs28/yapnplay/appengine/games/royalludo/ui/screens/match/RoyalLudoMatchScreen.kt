@@ -36,7 +36,7 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.Lud
 import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaDiceButton
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorMicButton
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorVoiceButtons
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
@@ -183,6 +183,7 @@ fun RoyalLudoTable(
             onSettings = { send(RoyalLudoMatchIntent.OpenSettings) },
             onExit = { send(RoyalLudoMatchIntent.ExitClicked) },
             logo = { RoyalLudoArtwork(modifier = it) },
+            onToggleHearSpectator = { send(RoyalLudoMatchIntent.ToggleHearSpectator(it)) },
         )
         BoxWithConstraints(
             modifier = Modifier
@@ -237,9 +238,11 @@ fun RoyalLudoTable(
                 )
             }
             if (state.spectating) {
-                TableSpectatorMicButton(
+                TableSpectatorVoiceButtons(
                     micOn = state.micOn,
-                    onToggle = { send(RoyalLudoMatchIntent.ToggleMic(micGranted())) },
+                    speakerOn = state.speakerOn,
+                    onToggleMic = { send(RoyalLudoMatchIntent.ToggleMic(micGranted())) },
+                    onToggleSpeaker = { send(RoyalLudoMatchIntent.ToggleSpeaker) },
                     modifier = Modifier.align(Alignment.BottomEnd),
                 )
             } else {

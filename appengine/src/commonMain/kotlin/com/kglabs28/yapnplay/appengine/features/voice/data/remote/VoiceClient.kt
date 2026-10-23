@@ -14,6 +14,11 @@ interface VoiceClient {
 
     fun setLocallyMuted(userId: String, muted: Boolean)
 
+    /** The user's speaker: off, this device plays nobody (everyone else still hears everyone). */
+    val speakerOn: StateFlow<Boolean>
+
+    fun setSpeakerOn(on: Boolean)
+
     /** The user's mic switch: the same in every room and game until they change it. */
     val micOn: StateFlow<Boolean>
 

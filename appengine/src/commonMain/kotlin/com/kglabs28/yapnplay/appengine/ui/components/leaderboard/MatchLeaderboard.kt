@@ -53,6 +53,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.rememberImageShare
 import com.kglabs28.yapnplay.appengine.ui.components.home.HomeCenterLogo
 import com.kglabs28.yapnplay.appengine.ui.placeholders.LeaderboardArtwork
 import kotlinx.coroutines.launch
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.podium.Podium
 
 /**
  * The end of a match, as in the design: the celebration art fills the
@@ -85,11 +86,11 @@ fun MatchLeaderboard(board: LeaderboardUi, gameArt: @Composable (Modifier) -> Un
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(colors.Background.copy(alpha = SHADE_TOP), colors.Background.copy(alpha = SHADE_BOTTOM)))))
         Column(modifier = Modifier.fillMaxSize()) {
             Row(modifier = Modifier.weight(1f).fillMaxWidth().padding(start = Spacing.Md, end = Spacing.Md, top = Spacing.Xs)) {
-                // Logo, then the podium.
-                Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                // The logo top left; the podium uses the whole height beside it (right of the game logo,
+                // which rises out of the bottom bar), so it isn't squeezed under the logo.
+                Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                     HomeCenterLogo(logoWidth = dimens.boardLogoWidth, logoHeight = dimens.boardLogoLogoHeight)
-                    // Starts right of the game logo, which rises out of the bottom bar.
-                    LeaderboardPodium(podium = podium, modifier = Modifier.weight(1f).fillMaxWidth().padding(start = dimens.boardGameLogo + Spacing.Sm, bottom = Spacing.Lg))
+                    Podium(podium = podium, modifier = Modifier.fillMaxSize().padding(start = dimens.boardGameLogo + Spacing.Sm, bottom = Spacing.Lg))
                 }
                 // LEADERBOARD panel: 4th onwards.
                 if (rest.isNotEmpty()) {

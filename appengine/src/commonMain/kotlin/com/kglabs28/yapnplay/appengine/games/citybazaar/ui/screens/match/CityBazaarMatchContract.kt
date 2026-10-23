@@ -44,6 +44,8 @@ data class CityBazaarMatchState(
     val rollLabel: String = "",
     val autoplay: Boolean = false,
     val micOn: Boolean = false,
+    /** The user's speaker: off, they hear nobody (only on their device). */
+    val speakerOn: Boolean = true,
     /** A short balance-sheet note at the top (rent, tax, cards); goes by itself. */
     val toast: CbToastUi? = null,
     /** The latest money transfer, as a popup for a few seconds. */
@@ -62,7 +64,14 @@ data class CityBazaarMatchState(
     val friendAction: PlayerFriendActionUi? = null,
     /** Info in the left column (a tapped tile, player, pile or stack); any touch elsewhere closes it. */
     val panel: CbPanel? = null,
-) : UiState
+) : UiState {
+    /**
+     * Everyone but the user in turn order, starting after the user (the 3D
+     * board seats them clockwise in this order). Watching, the right column
+     * holds the first half of the turn order.
+     */
+    val seatsInTurnOrder: List<CbPlayerCardUi> get() = if (spectating) rightCards + leftCards else leftCards + rightCards
+}
 
 /** One tile as drawn: its owner's colour and buildings (0 land … 4 hotel). */
 data class CbTileUi(val index: Int, val ownerColour: CityBazaarColour?, val level: Int)
@@ -315,6 +324,10 @@ sealed interface CityBazaarMatchIntent : UiIntent {
     data class MicPermissionResult(val granted: Boolean) : CityBazaarMatchIntent
     data object OpenAppSettings : CityBazaarMatchIntent
     data class ToggleHear(val seat: Int) : CityBazaarMatchIntent
+    /** The user's speaker on or off (for them only). */
+    data object ToggleSpeaker : CityBazaarMatchIntent
+    /** Mute or unmute a spectator for the user only. */
+    data class ToggleHearSpectator(val userId: String) : CityBazaarMatchIntent
     /** Long press on a player card: add or remove them as a friend. */
     data class PlayerLongPressed(val seat: Int) : CityBazaarMatchIntent
     data object ConfirmFriendAction : CityBazaarMatchIntent

@@ -1,7 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players
 
 import com.kglabs28.yapnplay.appengine.ui.components.table.monoScaled
-import com.kglabs28.yapnplay.appengine.ui.components.table.tableSeatScale
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableSeatPlan
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
@@ -61,7 +61,7 @@ fun BoxScope.LudoCornerCards(
     val halfW = (right.x - left.x) / 2
     val halfH = (bottom.y - top.y) / 2
     // Fewer players, bigger cards (the board stays the same size).
-    val scale = tableSeatScale(cards.count { !it.isMe })
+    val scale = TableSeatPlan.scale(cards.count { !it.isMe })
     val avatarPx = with(density) { YapNPlayTheme.dimens.monoSeatAvatar.toPx() } * scale
     val cardPx = with(density) { cardWidth.toPx() } * scale
     // Measured card heights, so a card is kept inside the area.

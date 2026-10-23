@@ -7,58 +7,58 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
 /**
- * The Prism colour picker: one chip per colour, labelled with its name.
- * Shown when a Prism card leaves the colour of play open for the player
- * to name. [options] is (label, chip colour) in pick order.
+ * Choosing a colour (a wild card, or the Roulette): one glossy button per
+ * colour, filled with that colour (lighter at the top, a glass sheen, a
+ * pale rim) and its name in white. [options] is (name, colour) in pick
+ * order.
  */
 @Composable
-fun MonoColourPicker(
+fun MonoColourChoice(
     options: List<Pair<String, Color>>,
-    onPick: (Int) -> Unit,
+    onPick: (index: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
+    val shape = YapNPlayTheme.shapes.pill
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterHorizontally),
     ) {
         options.forEachIndexed { index, (name, colour) ->
-            val shape = YapNPlayTheme.shapes.button
             Box(
                 modifier = Modifier
-                    .size(dimens.monoColourChip)
+                    .weight(1f)
+                    .height(dimens.ctaHeight)
                     .clip(shape)
-                    .background(colour)
-                    .border(dimens.borderThin, colors.TextDisabled.copy(alpha = RIM_ALPHA), shape)
-                    .clickable { onPick(index) },
+                    .background(Brush.verticalGradient(listOf(lerp(colour, Color.White, LIGHT_TOP), colour)))
+                    .background(AppBrushes.glassSheen)
+                    .border(dimens.borderThin, Color.White.copy(alpha = RIM_ALPHA), shape)
+                    .clickable(role = Role.Button) { onPick(index) },
                 contentAlignment = Alignment.Center,
             ) {
-                BasicText(
-                    text = name,
-                    style = YapNPlayTheme.typography.micro.copy(
-                        color = colors.TextPrimary,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                    ),
-                    maxLines = 1,
-                )
+                BasicText(text = name, style = YapNPlayTheme.typography.sectionTitle.copy(color = colors.TextPrimary, fontWeight = FontWeight.Black), maxLines = 1)
             }
         }
     }
 }
 
-private const val RIM_ALPHA = 0.4f
+/** How much lighter the top of each colour is, and how bright the rim. */
+private const val LIGHT_TOP = 0.25f
+private const val RIM_ALPHA = 0.5f

@@ -1,42 +1,14 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
-import androidx.compose.foundation.layout.Box
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.CityBazaarIsoProjection
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.platform.LocalDensity
-import com.kglabs28.yapnplay.appengine.ui.components.table.monoScaled
-import com.kglabs28.yapnplay.appengine.ui.components.table.tableSeatScale
-import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
-import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
-import com.kglabs28.yapnplay.appengine.ui.placeholders.CityBazaarArtwork
-import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarColour
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.CbMoneyFlight
-import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.mutableStateMapOf
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CbBankButton
-import com.kglabs28.yapnplay.appengine.ui.components.common.rememberShareSheet
-import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.MatchLeaderboard
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbTransactionNotice
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableHistoryDialog
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedSnackbar
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CbCashLine
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableCardDensity
-import com.kglabs28.yapnplay.appengine.ui.components.table.TablePlayerCard
-import com.kglabs28.yapnplay.appengine.ui.components.table.PlayerFriendDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,43 +18,69 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.GlassDiceState
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
+import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarColour
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.CityBazaarModalActions
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.CityBazaarModalContent
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.CbMoneyFlight
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.CityBazaarBoardView
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.CityBazaarIsoProjection
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.cityBazaarDicePalette
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbMoneyToast
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbTransactionNotice
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CityBazaarSidePanel
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CbBankButton
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CbCashLine
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityBazaarCardColumn
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityBazaarOwnedStacks
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityRoyaleSeatRing
 import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.GlassDice
+import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.GlassDiceState
 import com.kglabs28.yapnplay.appengine.games.elements.dice.ui.rememberGlassDiceState
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableGlassButton
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorMicButton
-import com.kglabs28.yapnplay.appengine.ui.placeholders.CityBazaarArtwork
-import com.kglabs28.yapnplay.appengine.ui.placeholders.GameArenaBackground
-import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaTopBar
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.CityBazaarModalActions
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.CityBazaarModalContent
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.CityBazaarBoardView
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.cityBazaarDicePalette
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbMoneyToast
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CityBazaarSidePanel
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityBazaarCardColumn
+import com.kglabs28.yapnplay.appengine.ui.components.common.rememberShareSheet
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.MatchLeaderboard
 import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaDiceButton
 import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaSeatSwitches
-import androidx.compose.foundation.layout.Spacer
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityBazaarOwnedStacks
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players.CityRoyaleSeatRing
+import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaTopBar
+import com.kglabs28.yapnplay.appengine.ui.components.table.PlayerFriendDialog
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableCardDensity
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedSnackbar
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableGlassButton
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableHistoryDialog
+import com.kglabs28.yapnplay.appengine.ui.components.table.TablePlayerCard
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableSeatPlan
+import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorVoiceButtons
+import com.kglabs28.yapnplay.appengine.ui.components.table.monoScaled
+import com.kglabs28.yapnplay.appengine.ui.placeholders.CityBazaarArtwork
+import com.kglabs28.yapnplay.appengine.ui.placeholders.GameArenaBackground
 import kotlinx.coroutines.launch
 
 /**
@@ -257,6 +255,7 @@ fun CityBazaarMatchContent(
             switchLabel = if (state.threeD) CityBazaarStrings.cbView2d else CityBazaarStrings.cbView3d,
             onSwitch = { send(CityBazaarMatchIntent.ToggleView) },
             onHistory = { send(CityBazaarMatchIntent.OpenHistory) },
+            onToggleHearSpectator = { send(CityBazaarMatchIntent.ToggleHearSpectator(it)) },
         )
         val panelOpen = state.panel != null
         BoxWithConstraints(
@@ -395,9 +394,11 @@ fun CityBazaarMatchContent(
                 }
             }
             if (state.spectating) {
-                TableSpectatorMicButton(
+                TableSpectatorVoiceButtons(
                     micOn = state.micOn,
-                    onToggle = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
+                    speakerOn = state.speakerOn,
+                    onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
+                    onToggleSpeaker = { send(CityBazaarMatchIntent.ToggleSpeaker) },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
             }
@@ -452,14 +453,16 @@ private fun BoxScope.CityRoyale3dSeats(
     val dimens = YapNPlayTheme.dimens
     val colors = YapNPlayTheme.colors
     val rowHeight = dimens.arenaSwitchMax
-    // Fewer players, bigger cards (the board stays the same size).
-    val seatScale = tableSeatScale((state.leftCards + state.rightCards).size)
+    // Every other player's card the same size: bigger when few play, smaller as the table fills.
+    val seatScale = TableSeatPlan.scale(state.seatsInTurnOrder.size)
     CityRoyaleSeatRing(
-        cards = state.leftCards + state.rightCards,
+        cards = state.seatsInTurnOrder,
         boardDrop = dimens.cb3dBoardDrop,
-        barHeight = dimens.cb3dBarHeight,
+        // A watcher has no bar, only the mic at the bottom centre (the seats stay at the sides).
+        barHeight = if (state.spectating) Spacing.Sm else dimens.cb3dBarHeight,
         // The snackbar shows at the top centre: seats there keep below it.
         topReserve = dimens.cb3dSnackReserve,
+        watching = state.spectating,
     ) { card ->
         TablePlayerCard(
             card = card,
@@ -476,8 +479,8 @@ private fun BoxScope.CityRoyale3dSeats(
         )
     }
 
-    // Bottom left: the bank, My Properties, the cities by colour.
-    Row(
+    // Bottom left: the bank, My Properties, the cities by colour (a watcher has no bar: the seats use the room).
+    if (!state.spectating) Row(
         modifier = Modifier.align(Alignment.BottomStart),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
@@ -486,24 +489,22 @@ private fun BoxScope.CityRoyale3dSeats(
             onClick = { send(CityBazaarMatchIntent.OpenBank) },
             modifier = Modifier.height(rowHeight).onGloballyPositioned { anchors[BANK_ANCHOR] = it.boundsInRoot().center },
         )
-        if (!state.spectating) {
-            TableGlassButton(
-                text = CityBazaarStrings.cbMyCities,
-                onClick = { send(CityBazaarMatchIntent.OpenMyCities) },
-                fill = listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom),
-                textColor = colors.TextPrimary,
-                enabled = state.stacks.isNotEmpty(),
-                modifier = Modifier.height(rowHeight).width(dimens.cb3dPropertiesWidth),
+        TableGlassButton(
+            text = CityBazaarStrings.cbMyCities,
+            onClick = { send(CityBazaarMatchIntent.OpenMyCities) },
+            fill = listOf(colors.LudoSmokeTop, colors.LudoSmokeBottom),
+            textColor = colors.TextPrimary,
+            enabled = state.stacks.isNotEmpty(),
+            modifier = Modifier.height(rowHeight).width(dimens.cb3dPropertiesWidth),
+        )
+        if (state.stacks.isNotEmpty()) {
+            CityBazaarOwnedStacks(
+                stacks = state.stacks,
+                onOpen = { send(CityBazaarMatchIntent.OpenStack(it)) },
+                // Squares just under the row's height, taking only the room they need; centred on the row.
+                cardSize = rowHeight - dimens.cbStackOffset * STACK_LAYERS,
+                modifier = Modifier.align(Alignment.CenterVertically),
             )
-            if (state.stacks.isNotEmpty()) {
-                CityBazaarOwnedStacks(
-                    stacks = state.stacks,
-                    onOpen = { send(CityBazaarMatchIntent.OpenStack(it)) },
-                    // Squares just under the row's height, taking only the room they need; centred on the row.
-                    cardSize = rowHeight - dimens.cbStackOffset * STACK_LAYERS,
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                )
-            }
         }
     }
     // Bottom right: the user's card, Mic, Auto, Roll Dice — on the bottom edge, level with the bank's row.
@@ -513,26 +514,27 @@ private fun BoxScope.CityRoyale3dSeats(
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
-            TablePlayerCard(
-                card = card,
-                tint = card.colour.tint(),
-                faded = card.out,
-                badge = card.status,
-                avatarSize = dimens.cbCardAvatar,
-                density = TableCardDensity.DENSE,
-                details = { CbCashLine(cash = card.cash, compact = false) },
-                onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
-                modifier = Modifier.width(dimens.cb3dSeatWidth).onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
-            )
-            ArenaSeatSwitches(
-                micOn = state.micOn,
-                autoplay = state.autoplay,
-                onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
-                onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
-                gap = Spacing.Xs,
-                // Centred on the card beside them.
-                modifier = Modifier.align(Alignment.CenterVertically),
-            )
+            // The card and its Mic / Auto buttons share one middle line; the taller dice stands on the bottom.
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
+                TablePlayerCard(
+                    card = card,
+                    tint = card.colour.tint(),
+                    faded = card.out,
+                    badge = card.status,
+                    avatarSize = dimens.cbCardAvatar,
+                    density = TableCardDensity.DENSE,
+                    details = { CbCashLine(cash = card.cash, compact = false) },
+                    onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
+                    modifier = Modifier.width(dimens.cb3dSeatWidth).onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
+                )
+                ArenaSeatSwitches(
+                    micOn = state.micOn,
+                    autoplay = state.autoplay,
+                    onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
+                    onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
+                    gap = Spacing.Xs,
+                )
+            }
             ArenaDiceButton(
                 label = state.rollLabel,
                 enabled = state.canRoll,

@@ -42,12 +42,7 @@ object LudoStrings {
     fun ludoMove(steps: Int) = "Move $steps"
     const val ludoAway = "Away"
     fun ludoClock(minutes: Long, seconds: Long) = "$minutes:${seconds.toString().padStart(2, '0')}"
-    fun ludoPlace(place: Int) = when (place) {
-        1 -> "1st"
-        2 -> "2nd"
-        3 -> "3rd"
-        else -> "${place}th"
-    }
+    fun ludoPlace(place: Int) = TableStrings.placeLabel(place)
     val ludoPlaceTitles = listOf("🔥 Chaos King", "⚡ Speedy", "🎯 Hunter", "🐢 Slowpoke", "🎲 Lucky", "👀 Spectator")
 
 }

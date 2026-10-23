@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.TableVoiceUseCases
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardResult
 import com.kglabs28.yapnplay.appengine.features.matchresult.domain.SeatResult
 import com.kglabs28.yapnplay.appengine.features.matchresult.usecase.ObserveMatchCoinsUseCase
@@ -24,12 +25,10 @@ import com.kglabs28.yapnplay.appengine.features.moderation.domain.ModerationRule
 import com.kglabs28.yapnplay.appengine.features.moderation.domain.Penalty
 import com.kglabs28.yapnplay.appengine.features.moderation.domain.ReportVoteRequest
 import com.kglabs28.yapnplay.appengine.features.moderation.usecase.ModerationUseCases
-import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveLocallyMutedUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMySpeakingUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOpenUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMicOnUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOnUseCase
-import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetLocallyMutedUseCase
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverUiMapper
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoCommand
 import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoEvent
@@ -70,8 +69,7 @@ class RoyalLudoMatchViewModel(
     private val observeMatch: ObserveLudoMatchUseCase,
     private val observeSpeaking: ObserveMatchSpeakingUseCase,
     private val sendCommand: SendLudoCommandUseCase,
-    private val observeMuted: ObserveLocallyMutedUseCase,
-    private val setMuted: SetLocallyMutedUseCase,
+    private val voice: TableVoiceUseCases,
     private val observeMySpeaking: ObserveMySpeakingUseCase,
     private val setMicOpen: SetMicOpenUseCase,
     private val observeMicOn: ObserveMicOnUseCase,
@@ -95,6 +93,7 @@ class RoyalLudoMatchViewModel(
     private var micSwitch = false
     private var micOpen = false
     private var mutedForMe: Set<String> = emptySet()
+    private var speakerOn = true
     /** Progress shown per seat (lags the server while events animate). */
     private val shown = mutableMapOf<Int, MutableList<Int>>()
     private val motions = mutableMapOf<String, PieceMotion>()
@@ -141,8 +140,10 @@ class RoyalLudoMatchViewModel(
                 showModal(null)
                 emitEffect(RoyalLudoMatchEffect.OpenAppSettings)
             }
+            RoyalLudoMatchIntent.ToggleSpeaker -> voice.setSpeakerOn(!speakerOn)
+            is RoyalLudoMatchIntent.ToggleHearSpectator -> voice.setMuted(intent.userId, intent.userId !in mutedForMe)
             is RoyalLudoMatchIntent.ToggleHear -> match?.players?.firstOrNull { it.seat == intent.seat }?.let {
-                setMuted(it.userId, it.userId !in mutedForMe)
+                voice.setMuted(it.userId, it.userId !in mutedForMe)
             }
             // Not the user, a CPU or a seat the CPU plays for someone who left.
             is RoyalLudoMatchIntent.PlayerLongPressed -> match?.players?.firstOrNull { it.seat == intent.seat }
@@ -234,7 +235,8 @@ class RoyalLudoMatchViewModel(
             scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
             scope.launch { observeMySpeaking().collect { mySpeaking = it; render() } },
             scope.launch { observeMicOn().collect { micSwitch = it; syncMic() } },
-            scope.launch { observeMuted().collect { mutedForMe = it; render() } },
+            scope.launch { voice.observeMuted().collect { mutedForMe = it; render() } },
+            scope.launch { voice.observeSpeakerOn().collect { speakerOn = it; render() } },
             scope.launch { moderation.voteRequests().collect { vote = it; render() } },
             scope.launch {
                 moderation.outcomes().collect {
@@ -495,6 +497,7 @@ class RoyalLudoMatchViewModel(
                 // A spectator's mic is on their spectator entry.
                 // The app-wide mic switch, at once (the server catches up).
                 micOn = micSwitch,
+                speakerOn = speakerOn,
                 // A vote or a seat decision is timed, so it comes before the user's own dialogs.
                 modal = vote?.let { LudoModerationUiMapper.vote(it, clock.now()) }
                     ?: LudoMatchUiMapper.seatModal(m, clock.now(), declinedSeat, seatPick)

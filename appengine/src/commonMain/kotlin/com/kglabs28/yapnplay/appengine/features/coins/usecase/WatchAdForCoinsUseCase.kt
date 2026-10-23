@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.coins.usecase
 
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import com.kglabs28.yapnplay.appengine.core.ads.RewardedAds
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
@@ -21,9 +23,12 @@ class WatchAdForCoinsUseCase(
 ) {
     @OptIn(ExperimentalUuidApi::class)
     suspend operator fun invoke(): AppResult<AdCoinsReward> {
-        val watched = withTimeoutOrNull(AD_TIMEOUT) { ads.show() } ?: false
-        if (!watched) return AppResult.Failure(YapNPlayError.Unknown("ad not watched"))
-        return repository.claimAdReward(Uuid.random().toString())
+        val watched = withTimeoutOrNull(AD_TIMEOUT) { ads.show() }
+        AppLog.d(AppConstants.LOG_TAG_ADS, "watch: ad result=${watched ?: "timed out"}")
+        if (watched != true) return AppResult.Failure(YapNPlayError.Unknown("ad not watched"))
+        return repository.claimAdReward(Uuid.random().toString()).also {
+            AppLog.d(AppConstants.LOG_TAG_ADS, "watch: reward claim=${if (it is AppResult.Success) "paid" else "failed: ${(it as? AppResult.Failure)?.error}"}")
+        }
     }
 }
 

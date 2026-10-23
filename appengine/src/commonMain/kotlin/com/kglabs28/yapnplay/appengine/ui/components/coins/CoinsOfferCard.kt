@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.coins
 
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -74,7 +76,10 @@ fun CoinsOfferCard(
                     next != null -> CoinsStrings.watchAdFor(TextUtils.groupedThousands(next))
                     else -> CoinsStrings.watchAd
                 },
-                onClick = onWatchAd,
+                onClick = {
+                    AppLog.d(AppConstants.LOG_TAG_ADS, "dialog: Watch Ad button pressed")
+                    onWatchAd()
+                },
                 // Always pressable: when no ad can pay now, a tap says why instead of doing nothing.
                 enabled = !offer.watchingAd,
                 gradient = listOf(colors.CoinsWatchStart, colors.CoinsWatchEnd),

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.gamezone
 
+import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import com.kglabs28.yapnplay.appengine.features.coins.usecase.GetAdLimitStatusUseCase
 import com.kglabs28.yapnplay.appengine.ui.components.coins.LeaguePickerUi
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsUiMapper
@@ -168,6 +169,7 @@ class GameZoneViewModel(
     /** Ad watched to the end → the server adds coins; the picker reopens with the new balance. */
     private suspend fun watchAdThenReload() {
         val offer = state.value.coinsOffer
+        AppLog.d(AppConstants.LOG_TAG_ADS, "game zone: Watch Ad tapped (canWatch=${offer?.canWatch}, watching=${offer?.watchingAd}, adReady=${offer?.adReady})")
         // Extra taps while one ad is loading or playing do nothing (one ad per tap).
         if (offer?.watchingAd == true) return
         // A cooldown or today's limit: say so rather than play nothing.

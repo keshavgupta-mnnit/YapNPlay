@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.TableVoiceUseCases
 import kotlin.time.Duration.Companion.milliseconds
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.ReportPersonUi
@@ -52,6 +53,7 @@ class MatchMonoViewModel(
     gamesConfig: GamesAppManagerHelper,
     private val observeMatchCoins: ObserveMatchCoinsUseCase,
     moderation: ModerationUseCases,
+    private val voice: TableVoiceUseCases,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MatchMonoState, MatchMonoIntent, MatchMonoEffect>(
     MatchMonoState(), dispatchers,
@@ -60,6 +62,8 @@ class MatchMonoViewModel(
     private var matchId: String = ""
     private var match: MonoMatch? = null
     private var talking: Set<String> = emptySet()
+    private var mutedForMe: Set<String> = emptySet()
+    private var speakerOn = true
     /** What MatchEnded paid each seat (CPUs included, display only); it arrives just after the last snapshot. */
     private var seatResults: List<SeatResult> = emptyList()
     /** The final board, built once (so its clock stops); the coins go on as they arrive. */
@@ -89,12 +93,16 @@ class MatchMonoViewModel(
                 send(MonoCommand.ChooseColor(intent.color.name))
                 setState { copy(awaitingColorChoice = false, selectedCardIndex = null) }
             }
-            MatchMonoIntent.CallMono -> {
+            // A press with nothing to do says why on the table instead of doing nothing.
+            MatchMonoIntent.CallMono -> if (state.value.canCallMono) {
                 director.pressed(GameSound.MONO_CALL)
                 send(MonoCommand.CallMono)
                 render()
+            } else {
+                note(MonoStrings.monoCantCallYet)
             }
             is MatchMonoIntent.VoteContinue -> send(MonoCommand.VoteContinue(intent.keepPlaying))
+            // Always goes to the table: with nobody to catch it's a wrong catch, and the presser pays.
             MatchMonoIntent.Caught -> {
                 director.pressed(GameSound.CAUGHT)
                 send(MonoCommand.Caught)
@@ -106,6 +114,9 @@ class MatchMonoViewModel(
             }
             is MatchMonoIntent.SetAutoplay -> send(MonoCommand.SetAutoplay(intent.enabled))
             is MatchMonoIntent.SetMic -> send(MonoCommand.SetMic(intent.on))
+            MatchMonoIntent.ToggleSpeaker -> voice.setSpeakerOn(!speakerOn)
+            is MatchMonoIntent.ToggleHear -> match?.players?.firstOrNull { it.seat == intent.seat }?.userId?.let { voice.setMuted(it, it !in mutedForMe) }
+            is MatchMonoIntent.ToggleHearSpectator -> voice.setMuted(intent.userId, intent.userId !in mutedForMe)
             MatchMonoIntent.OpenSettings -> sheets.openSettings()
             MatchMonoIntent.ToggleEffects -> sheets.toggleEffects()
             MatchMonoIntent.ToggleMusic -> sheets.toggleMusic()
@@ -158,6 +169,8 @@ class MatchMonoViewModel(
                 }
             },
             scope.launch { observeSpeaking(id).collect { talking = it; render() } },
+            scope.launch { voice.observeMuted().collect { mutedForMe = it; render() } },
+            scope.launch { voice.observeSpeakerOn().collect { speakerOn = it; render() } },
             scope.launch { observeMatchCoins().collect { seatResults = it; render() } },
             // The turn timer and the callout window run on the clock.
             scope.launch {
@@ -179,16 +192,40 @@ class MatchMonoViewModel(
             val text = if (who?.isMe == true) MonoStrings.monoYouFinishBanner(place) else MonoStrings.monoFinishBanner(who?.name.orEmpty(), place)
             banner = text to clock.now()
         }
-        val flights = director.direct(cues(update.events, previous), update.match.me?.seat)
+        if (update.events.none { it is MonoEvent.SeatFinished }) MonoTableNotes.mono(update.events, update.match)?.let { banner = it to clock.now() }
+        val flights = director.direct(cues(update.events, previous, update.match), update.match.me?.seat)
         if (flights.isNotEmpty()) emitEffect(MatchMonoEffect.Fly(flights))
         render()
     }
 
     /** The server's events in the director's words; each play covers the card it lands on. */
-    private fun cues(events: List<MonoEvent>, previous: MonoMatch?): List<MonoTableDirector.Cue> {
+    private fun cues(events: List<MonoEvent>, previous: MonoMatch?, now: MonoMatch): List<MonoTableDirector.Cue> {
         var top = previous?.topCard?.look()
-        return events.mapNotNull { event ->
+        val me = now.me?.seat
+        /** The faces of the cards [seat] now holds, when it is the viewer (theirs are the only faces they see). */
+        fun facesFor(seat: Int) = if (seat == me) now.me?.hand.orEmpty().map { it.look() } else emptyList()
+        val cues = events.flatMap { event ->
             when (event) {
+                // A 7: two hands trade places.
+                is MonoEvent.HandSwapped -> {
+                    val a = event.from.value
+                    val b = event.to.value
+                    listOf(
+                        MonoTableDirector.Cue.Moved(a, b, previous?.cardCountForSeat(a) ?: 0, facesFor(b)),
+                        MonoTableDirector.Cue.Moved(b, a, previous?.cardCountForSeat(b) ?: 0, facesFor(a)),
+                    )
+                }
+                // A 0: every hand moves on one seat, the way play goes.
+                is MonoEvent.HandsPassed -> {
+                    val seats = previous?.players.orEmpty().filter { !it.removed && it.cardCount > 0 }.map { it.seat }.sorted()
+                    val forward = event.direction == CLOCKWISE
+                    seats.mapIndexed { i, seat ->
+                        val next = seats[(i + if (forward) 1 else seats.size - 1) % seats.size]
+                        MonoTableDirector.Cue.Moved(seat, next, previous?.cardCountForSeat(seat) ?: 0, facesFor(next))
+                    }.filter { it.fromSeat != it.toSeat }
+                }
+                else -> listOfNotNull(
+                    when (event) {
                 is MonoEvent.CardPlayed -> {
                     val look = event.card.look()
                     MonoTableDirector.Cue.Played(event.seat.value, look, top).also { top = look }
@@ -199,8 +236,37 @@ class MatchMonoViewModel(
                 is MonoEvent.MonoCalled -> MonoTableDirector.Cue.Called
                 is MonoEvent.MonoCaught, is MonoEvent.FalseCatch, is MonoEvent.MonoMissed -> MonoTableDirector.Cue.Caught
                 is MonoEvent.MatchEnded -> MonoTableDirector.Cue.Won
-                else -> null
+                        else -> null
+                    },
+                )
             }
+        }
+        return cues + unexplainedDraws(cues, previous, now)
+    }
+
+    /**
+     * Cards that appeared in a hand with no event to show them coming (a
+     * penalty the server sent only as a count, a missed update): they fly
+     * in from the deck too, so a hand never grows without a card arriving.
+     */
+    private fun unexplainedDraws(cues: List<MonoTableDirector.Cue>, previous: MonoMatch?, now: MonoMatch): List<MonoTableDirector.Cue> {
+        if (previous == null || cues.any { it is MonoTableDirector.Cue.Moved }) return emptyList()
+        val me = now.me?.seat
+        return now.players.mapNotNull { player ->
+            val seat = player.seat
+            val drawn = cues.sumOf { if (it is MonoTableDirector.Cue.Drew && it.seat == seat) it.count else 0 }
+            val gone = cues.sumOf {
+                when (it) {
+                    is MonoTableDirector.Cue.Played -> if (it.seat == seat) 1 else 0
+                    is MonoTableDirector.Cue.Discarded -> if (it.seat == seat) it.count else 0
+                    else -> 0
+                }
+            }
+            val extra = player.cardCount - previous.cardCountForSeat(seat) - drawn + gone
+            if (extra <= 0) return@mapNotNull null
+            // The viewer's new faces, found by comparing the hands (the server may sort them).
+            val faces = if (seat == me) MonoHandFaces.added(previous.me?.hand.orEmpty().map { it.look() }, player.hand.map { it.look() }) else emptyList()
+            MonoTableDirector.Cue.Drew(seat, extra, faces)
         }
     }
 
@@ -276,8 +342,11 @@ class MatchMonoViewModel(
                 elapsed = monoElapsed(m.startedAt, now),
                 title = m.title,
                 spectatorCount = m.spectatorCount,
-                audience = MonoUiMapper.audience(m),
-                micOn = me?.micOn == true,
+                audience = MonoUiMapper.audience(m, talking, mutedForMe),
+                // A spectator's mic is on their spectator entry.
+                micOn = (me?.micOn ?: m.spectators.firstOrNull { it.userId == m.viewerUserId }?.micOn) == true,
+                speakerOn = speakerOn,
+                mutedForMe = mutedForMe,
                 autoplay = me?.autoplay == true,
                 talking = talking,
                 vote = MonoUiMapper.vote(m.continueVote, me?.seat, now),
@@ -351,13 +420,20 @@ class MatchMonoViewModel(
         val turn = m.currentSeat to m.turnEndsAt
         if (autoDrewFor == turn) return
         autoDrewFor = turn
+        if (shown.canStack) note(MonoStrings.monoNoteStackOnYou(shown.activeStackPenalty))
         scope.launch {
-            delay(AUTO_DRAW_DELAY)
+            delay(if (shown.canStack) AUTO_STACK_DELAY else AUTO_DRAW_DELAY)
             val now = state.value
             if (now.myTurn && !now.canPass && now.playableIndexes.isEmpty() && match?.let { it.currentSeat to it.turnEndsAt } == turn) {
                 send(if (now.canStack) MonoCommand.AcceptStack else MonoCommand.DrawCard)
             }
         }
+    }
+
+    /** A short line across the table, in the finish banner's place, for a moment. */
+    private fun note(text: String) {
+        banner = text to clock.now()
+        render()
     }
 
     private suspend fun send(command: MonoCommand) {
@@ -386,5 +462,9 @@ class MatchMonoViewModel(
 }
 
 private const val REPORT_INVOLVED = 2
+/** The server's word for a hand pass that goes the way of play. */
+private const val CLOCKWISE = "clockwise"
 /** The beat before the table draws for a user with nothing to play. */
 private val AUTO_DRAW_DELAY = 700.milliseconds
+/** Longer for a stack, so its message can be read before the cards come. */
+private val AUTO_STACK_DELAY = 2_500.milliseconds

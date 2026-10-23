@@ -201,7 +201,8 @@ class YapNPlayDimens {
     /** The local player's own pod at the bottom left. */
     val monoLocalPodWidth: Dp get() = 150.dp.scaled()
     /** One colour choice in the Prism picker. */
-    val monoColourChip: Dp get() = 44.dp.scaled()
+    /** A player's avatar in the Rule of 7 swap choice. */
+    val monoSwapAvatar: Dp get() = 40.dp.scaled()
     /** How far a selected card rises out of the hand. */
     val monoCardLift: Dp get() = 24.dp.scaled()
     /** A seat: the round avatar, and the name pill beside it (as tall as this share of the avatar). */
@@ -288,7 +289,30 @@ class YapNPlayDimens {
     val boardLogoWidth: Dp get() = 96.dp.scaled()
     val boardLogoLogoHeight: Dp get() = 66.dp.scaled()
     val boardGameLogo: Dp get() = 100.dp.scaled()
-    val boardPanelWidth: Dp get() = 270.dp.scaled()
+    val boardPanelWidth: Dp get() = 240.dp.scaled()
+
+    // ── Leaderboard podium (ui/components/leaderboard/podium) ──
+    /** One podium place's width (its glass box); the player's card is a little narrower so neighbours never touch. */
+    val podiumWidth: Dp get() = 136.dp.scaled()
+    val podiumCardWidth: Dp get() = 122.dp.scaled()
+    val podiumCardHeight: Dp get() = 104.dp.scaled()
+    /** The box heights: 1st, 2nd, 3rd. */
+    val podiumBoxFirst: Dp get() = 100.dp.scaled()
+    val podiumBoxSecond: Dp get() = 78.dp.scaled()
+    val podiumBoxThird: Dp get() = 62.dp.scaled()
+    /** The glass box's top face (the card stands on it), and how far the card comes down over it. */
+    val podiumTopFace: Dp get() = 16.dp.scaled()
+    val podiumCardOverTop: Dp get() = 12.dp.scaled()
+    /** The plate inside the glass box sits this far in; both have this corner rounding. */
+    val podiumPlateInset: Dp get() = 8.dp.scaled()
+    val podiumCorner: Dp get() = 8.dp.scaled()
+    /** The avatar, and how much of it rises above the card. */
+    val podiumAvatar: Dp get() = 64.dp.scaled()
+    val podiumAvatarAbove: Dp get() = 38.dp.scaled()
+    /** The winner's crown, sitting wholly above the avatar. */
+    val podiumCrown: Dp get() = 36.dp.scaled()
+    /** The voice symbols either side of the name. */
+    val podiumSignal: Dp get() = 16.dp.scaled()
     val boardBottomBar: Dp get() = 64.dp.scaled()
     val boardButtonWidth: Dp get() = 200.dp.scaled()
     val bankButtonGlow: Dp get() = 10.dp.scaled()

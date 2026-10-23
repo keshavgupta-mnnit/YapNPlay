@@ -49,7 +49,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
  *  - the game's logo, larger than the bar, then the title pill: the
  *    game's name and the room under it. With no spectators (Quick Play) it
  *    stretches over the free width;
- *  - the spectator pill (room matches): who is watching and how many;
+ *  - the spectator pill (room matches), as tall as the title pill: who is
+ *    watching and how many; a long press on one mutes them for the user;
  *  - the match clock, then the settings and exit squares.
  *
  * Shared by MONO, Royal Ludo and City Royale (which adds its 2D / 3D
@@ -73,6 +74,8 @@ fun ArenaTopBar(
     onSwitch: () -> Unit = {},
     /** Opens the game's history; null hides it. */
     onHistory: (() -> Unit)? = null,
+    /** Mutes or unmutes a spectator (by user id) for the user only, from a long press on them; null: no long press. */
+    onToggleHearSpectator: ((String) -> Unit)? = null,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -144,7 +147,9 @@ fun ArenaTopBar(
                     horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    audience.forEach { person -> TableAudienceMember(person) }
+                    audience.forEach { person ->
+                        TableAudienceMember(person, onToggleHear = onToggleHearSpectator?.let { toggle -> { toggle(person.userId) } })
+                    }
                 }
                 AppIcon(imageVector = Icons.Rounded.Groups, tint = colors.ArenaDrawRim, size = dimens.iconSmall)
                 BasicText(text = spectatorLabel, style = typography.label.copy(color = colors.TextPrimary), maxLines = 1)

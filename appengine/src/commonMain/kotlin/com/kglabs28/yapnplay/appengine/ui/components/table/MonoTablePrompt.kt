@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -26,19 +27,6 @@ fun MonoTablePrompt(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(
-        modifier = modifier
-            .widthIn(max = YapNPlayTheme.dimens.modalWidth)
-            .arenaGlass(RoundedCornerShape(YapNPlayTheme.dimens.ludoCardRadius), YapNPlayTheme.colors.ArenaDrawRim)
-            .padding(horizontal = Spacing.Md, vertical = Spacing.Sm),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
-    ) {
-        BasicText(
-            text = title,
-            style = YapNPlayTheme.typography.title.copy(color = YapNPlayTheme.colors.TextPrimary, fontWeight = FontWeight.Bold),
-            maxLines = 1,
-        )
-        content()
-    }
+    // The app's dialog card, as every other choice in the app.
+    ModalCard(title = title, modifier = modifier.widthIn(max = YapNPlayTheme.dimens.modalWidth), content = content)
 }

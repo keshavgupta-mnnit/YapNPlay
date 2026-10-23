@@ -127,6 +127,8 @@ class MonoChaosEngine : Game {
             }
             MonoChaosPhase.AWAITING_COLOR_CHOICE -> chooseColor(s, seat, bestColour(s, seat.value), random)
             MonoChaosPhase.AWAITING_ROULETTE_COLOR -> chooseRouletteColor(s, seat, bestColour(s, seat.value), random)
+            // Only the server flips the Roulette card by card; this table draws it all at once.
+            MonoChaosPhase.AWAITING_ROULETTE_DRAW -> rejected("NOT_WAITING", "No roulette is flipping")
             MonoChaosPhase.AWAITING_STACK_CHOICE -> {
                 // Any draw card worth at least the last one stacks; colour does not matter.
                 val stackable = s.handForSeat(seat.value).withIndex()

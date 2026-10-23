@@ -26,4 +26,7 @@ interface VoiceEngine {
 
     /** People whose audio this device doesn't play; remembered across rooms. */
     fun setMuted(userIds: Set<String>)
+
+    /** Plays everyone's audio (true) or nobody's (false) on this device; remembered across rooms. */
+    fun setSpeakerOn(on: Boolean)
 }

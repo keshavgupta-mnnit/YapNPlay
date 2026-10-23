@@ -5,6 +5,10 @@ package com.kglabs28.yapnplay.appengine.core.common
  * Values already declared in games/base contracts are re-exported, not duplicated.
  */
 object AppConstants {
+    /** The Logcat tag for the rewarded-ad flow (filter on it to follow an ad from offer to reward). */
+    const val LOG_TAG_ADS = "YapAds"
+    /** The Logcat tag for every screen action reaching its view model (filter on it to see what a tap did). */
+    const val LOG_TAG_INTENTS = "YapIntent"
 
     /** Length of a room join code. */
     const val ROOM_CODE_LENGTH = 6
@@ -33,8 +37,6 @@ object AppConstants {
     const val PANEL_RETAP_MS = 400L
     /** Google Play Games: the game server (web) OAuth client the backend checks sign-ins with. Public, not a secret. */
     const val PLAY_GAMES_WEB_CLIENT_ID = "532749629825-lflcpgr3pn64o7emjnvfdld8i0inpqhq.apps.googleusercontent.com"
-    /** EXP for 1st, 2nd, 3rd and everyone after, until the server hands it out. */
-    val PLACE_EXP = listOf(400, 300, 200, 100)
     /** City Bazaar: a balance counting to its new value. */
     const val CB_CASH_COUNT_MS = 900
     /** In the background this long (not a quick glance) and the server is told the user is away. */

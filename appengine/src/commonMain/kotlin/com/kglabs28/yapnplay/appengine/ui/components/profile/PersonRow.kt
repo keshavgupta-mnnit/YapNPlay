@@ -13,12 +13,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
-/** One person in a list: avatar, name, @username and one more line, then [trailing] buttons. */
+/** One person in a list: avatar, name and one more line, then [trailing] buttons. */
 @Composable
 fun PersonRow(
     avatarId: String,
     name: String,
-    username: String,
     detail: String,
     modifier: Modifier = Modifier,
     trailing: @Composable RowScope.() -> Unit = {},
@@ -29,7 +28,6 @@ fun PersonRow(
         PresetAvatar(avatarId = avatarId, size = YapNPlayTheme.dimens.personRowAvatar)
         Column(modifier = Modifier.weight(1f)) {
             BasicText(text = name, style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (username.isNotEmpty()) BasicText(text = username, style = typography.micro.copy(color = colors.TextSecondary), maxLines = 1)
             BasicText(text = detail, style = typography.micro.copy(color = colors.TextSecondary), maxLines = 1)
         }
         trailing()

@@ -101,6 +101,8 @@ class MainViewModel(
                 emitEffect(MainEffect.OpenMatch(it.gameId, it.matchId))
             }
             MainIntent.DismissRejoin -> setState { copy(rejoin = null) }
+            MainIntent.AskExit -> setState { copy(exitAsked = true) }
+            MainIntent.DismissExit -> setState { copy(exitAsked = false) }
             // Only when an ad can play now: an offer that ends in "no ad" is worse than none.
             MainIntent.OpenGetCoins -> if (isAdReady().also { AppLog.d(AppConstants.LOG_TAG_ADS, "home: coins + tapped, ad ready=$it") }) {
                 setState { copy(coinsOffer = CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody)) }

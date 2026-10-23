@@ -8,7 +8,7 @@ import com.kglabs28.yapnplay.appengine.features.playrooms.domain.PlayRoomIcon
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
 
 /**
- * The user's profile: who they are (avatar, name, @username, YapNPlay ID,
+ * The user's profile: who they are (avatar, name, YapNPlay ID,
  * stats with their level), their friends (Online / Offline tabs, slider,
  * See All), then Add Friend, Friend Requests and Blocked Users.
  */
@@ -17,8 +17,6 @@ data class ProfileState(
     val settings: AppSettingsUi? = null,
     val loaded: Boolean = false,
     val name: String = "",
-    /** "@riya_28" (not unique). */
-    val username: String = "",
     /** The raw 6-character YapNPlay ID, for showing and copying. */
     val userCode: String = "",
     val avatarId: String = "",
@@ -62,7 +60,6 @@ data class ProfileStatUi(val kind: ProfileStatKind, val value: String, val label
 data class ProfilePersonUi(
     val userId: String,
     val name: String,
-    val username: String,
     val userCode: String,
     val avatarId: String,
     val online: Boolean,
@@ -71,14 +68,12 @@ data class ProfilePersonUi(
 
 data class ProfileRequestUi(val requestId: String, val person: ProfilePersonUi)
 
-data class ProfileBlockedUi(val userId: String, val name: String, val username: String, val avatarId: String, val blockedOn: String)
-
-enum class ProfileField { NAME, USERNAME }
+data class ProfileBlockedUi(val userId: String, val name: String, val avatarId: String, val blockedOn: String)
 
 sealed interface ProfileModal {
     data class AvatarPicker(val selected: String, val saving: Boolean = false) : ProfileModal
+    /** Edit Name. */
     data class EditText(
-        val field: ProfileField,
         val title: String,
         val label: String,
         val value: String,
@@ -115,7 +110,6 @@ sealed interface ProfileIntent : UiIntent {
     data class PickAvatar(val avatarId: String) : ProfileIntent
     data object SaveAvatar : ProfileIntent
     data object EditName : ProfileIntent
-    data object EditUsername : ProfileIntent
     data class EditTextChanged(val text: String) : ProfileIntent
     data object SaveText : ProfileIntent
     /** The screen copied the user's ID to the clipboard. */

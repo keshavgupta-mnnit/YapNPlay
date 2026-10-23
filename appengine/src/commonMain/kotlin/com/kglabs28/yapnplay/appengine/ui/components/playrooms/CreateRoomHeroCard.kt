@@ -75,11 +75,17 @@ fun CreateRoomHeroCard(
             PillButton(
                 text = RoomStrings.roomsCreateButton,
                 onClick = onCreateRoom,
-                gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),
-                contentColor = colors.CtaGreenContent,
+                gradient = listOf(colors.CtaGlassGreen),
+                contentColor = colors.TextPrimary,
+                rimColor = colors.CtaGlassGreenRim,
+                glassFill = colors.CtaGlassGreen,
                 leadingIcon = Icons.Rounded.AddCircle,
             )
         }
-        CreateRoomGraphic()
+        // The art fills the card's free side, whole (never cropped).
+        CreateRoomGraphic(modifier = Modifier.weight(HERO_ART_WEIGHT).fillMaxHeight())
     }
 }
+
+/** The art's share of the card beside the text (text 1). */
+private const val HERO_ART_WEIGHT = 1.7f

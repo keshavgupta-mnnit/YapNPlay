@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.clickable
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
@@ -34,8 +35,8 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
 import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
 
 /**
- * Top bar balances, two glass pills side by side: coins (a tap offers free
- * coins) and the level (a purple shield with the level number, then
+ * Top bar balances, two glass pills side by side (coins in the bell's frosted glass):
+ * coins with a "+" (a tap offers free coins) and the level (a purple shield with the level number, then
  * the XP text over a bar as wide as the text). Numbers keep a minimum
  * width and fade in once [balancesVisible], so loading never resizes them.
  */
@@ -51,13 +52,17 @@ fun AppCurrenciesPill(
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
-    val pill = Modifier
+    val coinPill = Modifier
+        .height(dimens.homeBarControl)
+        .glassPill(glowColor = colors.TopBarIcon, surface = colors.TopBarButtonFrost)
+        .padding(horizontal = Spacing.Xs)
+    val xpPill = Modifier
         .height(dimens.homeBarControl)
         .glassPill(glowColor = colors.TopBarIcon, surface = colors.TopBarCurrencyPill)
         .padding(horizontal = Spacing.Xs)
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
-        Row(modifier = pill, verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = coinPill, verticalAlignment = Alignment.CenterVertically) {
             CurrencyBalance(
                 icon = Icons.Rounded.MonetizationOn,
                 iconTint = colors.Gold,
@@ -67,7 +72,7 @@ fun AppCurrenciesPill(
             )
         }
         Row(
-            modifier = pill.revealWhen(balancesVisible),
+            modifier = xpPill.revealWhen(balancesVisible),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
@@ -82,7 +87,7 @@ fun AppCurrenciesPill(
             Column(modifier = Modifier.width(dimens.xpLabelMinWidth), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
                 // End-aligned, so the number grows to the left as XP climbs.
                 BasicText(text = xpLabel, style = YapNPlayTheme.typography.xpLabel.copy(color = colors.TextPrimary, textAlign = TextAlign.End), maxLines = 1, modifier = Modifier.fillMaxWidth())
-                Box(Modifier.fillMaxWidth().height(dimens.levelBarHeight).clip(CircleShape).background(colors.TopBarIcon.copy(alpha = LEVEL_TRACK))) {
+                Box(Modifier.fillMaxWidth(XP_BAR_SHARE).align(Alignment.End).height(dimens.levelBarHeight).clip(CircleShape).background(colors.TopBarIcon.copy(alpha = LEVEL_TRACK))) {
                     Box(Modifier.fillMaxHeight().fillMaxWidth(levelProgress).background(Brush.horizontalGradient(listOf(colors.LevelShieldTop, colors.FriendsAccent)), CircleShape))
                 }
             }
@@ -122,7 +127,14 @@ private fun CurrencyBalance(
                 color = colors.TextPrimary,
             ),
         )
+        AppIcon(
+            imageVector = Icons.Rounded.Add,
+            tint = colors.HomeTextSoft,
+            size = dimens.homeBarIcon,
+        )
     }
 }
 
 private const val LEVEL_TRACK = 0.3f
+/** The XP bar's share of the text's width, kept to the end. */
+private const val XP_BAR_SHARE = 0.9f

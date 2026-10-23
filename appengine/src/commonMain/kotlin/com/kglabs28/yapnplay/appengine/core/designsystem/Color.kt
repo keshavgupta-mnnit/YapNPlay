@@ -30,8 +30,15 @@ object YapNPlayColors {
     val HomeTextSoft = Color(0xFFECE0FC)
     /** The home cards' header icon circles: light frosted glass under a white icon (design). */
     val HomeIconFrost = Color(0x40E7E0FF)
-    /** The Create Room panel: frosted white glass with a pale rim. */
-    val CreateRoomFrost = Color(0x33FFFFFF)
+    /** Glassy call-to-action buttons (the selected tab's finish, other colours): lighter green, and dark red. */
+    val CtaGlassGreen = Color(0xFF34C9A0)
+    val CtaGlassGreenRim = Color(0xFFA8F7DC)
+    val CtaGlassRed = Color(0xB3701428)
+    val CtaGlassRedRim = Color(0xFFFF8FA6)
+    /** The Create Room panel's text: dark, on its frosted white glass. */
+    val CreateRoomPanelText = Color(0xFF1E1640)
+    /** The Create Room panel: frosted white glass (mostly white, a little see-through) with a pale rim. */
+    val CreateRoomFrost = Color(0xB3FFFFFF)
     val CreateRoomFrostRim = Color(0x80FFFFFF)
     /** The top bar's unselected tabs, and its bell and settings: lighter frosted glass (design). */
     val TopBarTabFrost = Color(0xFF594D7E)

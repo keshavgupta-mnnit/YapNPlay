@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Profile screen: loads the user, friends, requests and blocks; edits the
- * avatar, name and username; adds friends by ID; accepts, declines,
+ * avatar and name; adds friends by ID; accepts, declines,
  * removes, blocks and unblocks. After every friend action it reloads, so
  * the screen always shows what the server has.
  */
@@ -64,16 +64,8 @@ class ProfileViewModel(
             ProfileIntent.EditName -> data?.let {
                 showModal(
                     ProfileModal.EditText(
-                        ProfileField.NAME, ProfileStrings.profileEditNameTitle, ProfileStrings.profileNameLabel, it.profile.name,
+                        ProfileStrings.profileEditNameTitle, ProfileStrings.profileNameLabel, it.profile.name,
                         ProfileStrings.profileNameHint, AppConstants.MAX_NAME_LENGTH,
-                    ),
-                )
-            }
-            ProfileIntent.EditUsername -> data?.let {
-                showModal(
-                    ProfileModal.EditText(
-                        ProfileField.USERNAME, ProfileStrings.profileEditUsernameTitle, ProfileStrings.profileUsernameLabel, it.profile.username,
-                        ProfileStrings.profileUsernameHint, AppConstants.MAX_USERNAME_LENGTH,
                     ),
                 )
             }
@@ -137,20 +129,16 @@ class ProfileViewModel(
 
     private suspend fun saveText(modal: ProfileModal.EditText) {
         showModal(modal.copy(saving = true))
-        val result = when (modal.field) {
-            ProfileField.NAME -> updateProfile(name = modal.value)
-            ProfileField.USERNAME -> updateProfile(username = modal.value)
-        }
-        when (result) {
+        when (val result = updateProfile(name = modal.value)) {
             is AppResult.Success -> {
                 showModal(null)
                 reload()
             }
             is AppResult.Failure -> {
-                val error = when {
-                    result.error !is YapNPlayError.Validation -> ProfileStrings.profileNetworkError
-                    modal.field == ProfileField.NAME -> ProfileStrings.profileNameError(AppConstants.MAX_NAME_LENGTH)
-                    else -> ProfileStrings.profileUsernameError(AppConstants.MIN_USERNAME_LENGTH, AppConstants.MAX_USERNAME_LENGTH)
+                val error = if (result.error is YapNPlayError.Validation) {
+                    ProfileStrings.profileNameError(AppConstants.MAX_NAME_LENGTH)
+                } else {
+                    ProfileStrings.profileNetworkError
                 }
                 showModal(modal.copy(error = error))
             }

@@ -1,8 +1,10 @@
 package com.kglabs28.yapnplay.appengine.ui.placeholders
 
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.SportsEsports
 import androidx.compose.runtime.Composable
@@ -22,11 +24,9 @@ fun CreateRoomGraphic(
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
-    val dimens = YapNPlayTheme.dimens
 
     Box(
         modifier = modifier
-            .size(dimens.roomsHeroArt)
             .background(
                 Brush.radialGradient(
                     listOf(colors.SocialZoneAccent.copy(alpha = 0.45f), colors.Transparent),
@@ -34,10 +34,11 @@ fun CreateRoomGraphic(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        AppIcon(
-            imageVector = Icons.Rounded.SportsEsports,
-            tint = colors.Purple,
-            size = dimens.roomsHeroArt / 2,
+        CreateRoomArtwork(
+            modifier = Modifier.fillMaxSize().graphicsLayer {
+                scaleX = AppConstants.ROOMS_HERO_ART_ZOOM
+                scaleY = AppConstants.ROOMS_HERO_ART_ZOOM
+            },
         )
     }
 }

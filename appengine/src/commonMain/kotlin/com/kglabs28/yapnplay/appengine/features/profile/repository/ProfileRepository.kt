@@ -25,7 +25,7 @@ interface ProfileRepository {
     fun collectDailyBonus()
 
     suspend fun fetchProfileData(): AppResult<UserProfile>
-    suspend fun updateProfile(name: String? = null, username: String? = null, avatarId: String? = null): AppResult<UserProfile>
+    suspend fun updateProfile(name: String? = null, avatarId: String? = null): AppResult<UserProfile>
     suspend fun getFriendList(): AppResult<List<Friend>>
     suspend fun getFriendRequests(): AppResult<List<FriendRequest>>
     suspend fun sendFriendRequest(userCode: String): AppResult<FriendRequestOutcome>

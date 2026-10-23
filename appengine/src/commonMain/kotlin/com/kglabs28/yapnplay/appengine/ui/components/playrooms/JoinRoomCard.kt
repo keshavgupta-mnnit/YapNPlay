@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Box
@@ -50,7 +51,7 @@ fun JoinRoomCard(
                 glowColor = colors.IconMuted,
                 surface = colors.RoomsPanel.copy(alpha = 0.9f),
             )
-            .padding(Spacing.Xs),
+            .padding(horizontal = Spacing.Xs, vertical = Spacing.Xxs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
     ) {
@@ -63,11 +64,11 @@ fun JoinRoomCard(
                 .padding(horizontal = Spacing.Md),
             contentAlignment = Alignment.Center,
         ) {
-            BasicText(text = RoomStrings.roomsCodeLabel, style = typography.sectionTitle.copy(color = colors.TextSecondary), maxLines = 1)
+            BasicText(text = RoomStrings.roomsCodeLabel, style = typography.sectionTitle.copy(color = colors.TextSecondary, textAlign = TextAlign.Center), maxLines = 2)
         }
         Column(
             modifier = Modifier.weight(1f).padding(end = Spacing.Xs),
-            verticalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(Spacing.Xxs, Alignment.CenterVertically),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

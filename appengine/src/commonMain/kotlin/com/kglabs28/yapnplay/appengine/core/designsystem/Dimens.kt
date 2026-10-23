@@ -97,7 +97,6 @@ class YapNPlayDimens {
     val smallButtonHeight: Dp get() = 32.dp.scaled()
     val codeFieldHeight: Dp get() = 36.dp.scaled()
     val joinButtonWidth: Dp get() = 88.dp.scaled()
-    val roomsHeroArt: Dp get() = 110.dp.scaled()
 
     // Game pickers (Game Zone carousel/grid, room lobby)
     val carouselArrowWidth: Dp get() = 36.dp.scaled()

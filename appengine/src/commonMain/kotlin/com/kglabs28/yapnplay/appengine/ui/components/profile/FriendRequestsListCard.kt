@@ -47,7 +47,6 @@ fun FriendRequestsListCard(
                 PersonRow(
                     avatarId = p.avatarId,
                     name = p.name,
-                    username = p.username,
                     detail = ProfileStrings.profileYapIdLine(p.userCode),
                     modifier = Modifier.fillMaxWidth().clip(rowShape).background(YapNPlayTheme.colors.ListRow).clickable { onOpen(request.requestId) }.padding(Spacing.Xs),
                 ) {

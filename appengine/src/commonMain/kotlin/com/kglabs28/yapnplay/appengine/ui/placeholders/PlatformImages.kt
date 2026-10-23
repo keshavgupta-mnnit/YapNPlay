@@ -87,6 +87,11 @@ fun PresetAvatarArtwork(index: Int, modifier: Modifier = Modifier, contentDescri
     Image(painter = avatarPainter(index), contentDescription = contentDescription, modifier = modifier, contentScale = ContentScale.Crop)
 }
 
+@Composable
+fun CreateRoomArtwork(modifier: Modifier = Modifier, contentDescription: String? = null) {
+    Image(painter = builtInPainter(BuiltInImage.CREATE_ROOM_BACK), contentDescription = contentDescription, modifier = modifier, contentScale = ContentScale.Fit)
+}
+
 /**
  * The game icons share one canvas, but their artwork fills different
  * shares of its height ([fill]); each is drawn scaled to the same share,

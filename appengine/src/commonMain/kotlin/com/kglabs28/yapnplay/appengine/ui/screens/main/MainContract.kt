@@ -38,6 +38,8 @@ data class MainState(
     val coinsOffer: CoinsOfferUi? = null,
     /** The settings dialog (sound, music, match history); null when closed. */
     val settings: AppSettingsUi? = null,
+    /** Back was pressed here: "Exit YapNPlay?" is showing. */
+    val exitAsked: Boolean = false,
 ) : UiState
 
 /** The "your game is still on" dialog. */
@@ -65,6 +67,9 @@ sealed interface MainIntent : UiIntent {
     data class NotificationClicked(val roomId: String) : MainIntent
     data object Rejoin : MainIntent
     data object DismissRejoin : MainIntent
+    /** System Back on the main screen: ask before closing the app. */
+    data object AskExit : MainIntent
+    data object DismissExit : MainIntent
     /** The coins "+" in the top bar. */
     data object OpenGetCoins : MainIntent
     data object WatchAdForCoins : MainIntent

@@ -46,7 +46,7 @@ fun BlockListCard(
                 verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
             ) {
                 blocked.forEach { user ->
-                    PersonRow(avatarId = user.avatarId, name = user.name, username = user.username, detail = user.blockedOn, modifier = Modifier.fillMaxWidth().clip(rowShape).background(YapNPlayTheme.colors.ListRow).padding(Spacing.Xs)) {
+                    PersonRow(avatarId = user.avatarId, name = user.name, detail = user.blockedOn, modifier = Modifier.fillMaxWidth().clip(rowShape).background(YapNPlayTheme.colors.ListRow).padding(Spacing.Xs)) {
                         GlassPillButton(text = ProfileStrings.profileUnblock, onClick = { onUnblock(user.userId) }, accent = colors.SocialZoneAccent)
                     }
                 }

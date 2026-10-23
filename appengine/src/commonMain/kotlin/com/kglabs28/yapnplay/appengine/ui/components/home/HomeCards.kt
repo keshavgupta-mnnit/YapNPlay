@@ -15,6 +15,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 fun HomeCards(
     onEnterGameZone: () -> Unit,
     onPlayWithFriends: () -> Unit,
+    onCreateRoom: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     SlantedCardPair(
@@ -24,7 +25,7 @@ fun HomeCards(
         endBottom = FRIENDS_BOTTOM,
         modifier = modifier.fillMaxSize().padding(top = Spacing.Xs),
         start = { slant -> EnterGameZoneCard(onEnterGameZone = onEnterGameZone, slant = slant) },
-        end = { slant, gameZoneEdge -> PlayWithFriendsCard(onPlayWithFriends = onPlayWithFriends, slant = slant, gameZoneEdge = gameZoneEdge) },
+        end = { slant, gameZoneEdge -> PlayWithFriendsCard(onPlayWithFriends = onPlayWithFriends, onCreateRoom = onCreateRoom, slant = slant, gameZoneEdge = gameZoneEdge) },
     )
 }
 

@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Brush
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 
-/** "Edit Name" / "Edit Username": the field's label, the field, its error and a "12/24" count; Cancel / Save. */
+/** "Edit Name": the field's label, the field, its error and a "12/24" count; Cancel / Save. */
 @Composable
 fun ProfileEditCard(
     title: String,

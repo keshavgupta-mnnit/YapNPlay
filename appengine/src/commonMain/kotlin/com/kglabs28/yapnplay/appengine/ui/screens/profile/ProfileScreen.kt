@@ -42,7 +42,7 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 /**
  * The user's profile (from the Home avatar), as in the design: top bar
  * (back, logo, settings, log out); who they are (avatar with Change
- * Avatar, name and @username to edit, YapNPlay ID to copy, Player Stats
+ * Avatar and name to edit, YapNPlay ID to copy, Player Stats
  * with their level); My Friends across the full width (Online / Offline,
  * slider, See All); then Add Friend, Friend Requests and Blocked Users.
  * Fits one screen. Typing an ID: the in-app keyboard takes the place of
@@ -116,14 +116,12 @@ fun ProfileScreen(
                 ) {
                     ProfileIdentityCard(
                         name = state.name,
-                        username = state.username,
                         userCode = state.userCode,
                         avatarId = state.avatarId,
                         stats = state.stats,
                         codeCopied = state.codeCopied,
                         onChangeAvatar = { send(ProfileIntent.EditAvatar) },
                         onEditName = { send(ProfileIntent.EditName) },
-                        onEditUsername = { send(ProfileIntent.EditUsername) },
                         onOpenHistory = onOpenHistory,
                         onCopyCode = {
                             clipboard.setText(AnnotatedString(state.userCode))

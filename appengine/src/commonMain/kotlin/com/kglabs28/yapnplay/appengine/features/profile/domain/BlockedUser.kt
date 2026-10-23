@@ -4,7 +4,6 @@ package com.kglabs28.yapnplay.appengine.features.profile.domain
 data class BlockedUser(
     val userId: String,
     val name: String,
-    val username: String,
     val avatarId: String,
     val blockedAt: Long,
 )

@@ -22,8 +22,8 @@ fun SocialNetworkOrbitGraphic(
             // The PNG carries ~10% transparent margin; zoom so the art
             // itself fills the slot without spilling past it.
             .graphicsLayer {
-                scaleX = AppConstants.CARD_ART_ZOOM
-                scaleY = AppConstants.CARD_ART_ZOOM
+                scaleX = AppConstants.FRIENDS_ART_ZOOM
+                scaleY = AppConstants.FRIENDS_ART_ZOOM
             },
         contentAlignment = Alignment.Center,
     ) {

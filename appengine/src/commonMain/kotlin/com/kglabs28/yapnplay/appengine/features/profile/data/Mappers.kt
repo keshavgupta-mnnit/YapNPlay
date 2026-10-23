@@ -19,7 +19,6 @@ fun Me.toDomain(): UserProfile = UserProfile(
     level = level,
     coins = coins,
     gems = gems,
-    username = username,
     userCode = userCode,
     avatarId = avatarId,
     gamesPlayed = gamesPlayed,
@@ -33,7 +32,6 @@ fun FriendSummary.toDomain(): Friend = Friend(
     userId = userId,
     name = displayName,
     online = online,
-    username = username,
     userCode = userCode,
     avatarId = avatarId,
 )
@@ -50,4 +48,4 @@ fun FriendRequestOutcomeCode.toDomain(): FriendRequestOutcome = when (this) {
     FriendRequestOutcomeCode.ACCEPTED -> FriendRequestOutcome.ACCEPTED
 }
 
-fun BlockedUserSummary.toDomain(): BlockedUser = BlockedUser(userId, displayName, username, avatarId, blockedAt)
+fun BlockedUserSummary.toDomain(): BlockedUser = BlockedUser(userId, displayName, avatarId, blockedAt)

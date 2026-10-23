@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.rememberExitApp
+import com.kglabs28.yapnplay.appengine.ui.components.common.ExitAppCard
+import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
 import com.kglabs28.yapnplay.appengine.ui.components.home.HomeCards
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsDialog
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferCard
@@ -70,6 +73,12 @@ fun MainScreen(
                 MainEffect.OpenHistory -> onOpenHistory()
             }
         }
+    }
+    // Back here would leave an empty app: ask first. Dialogs opened later take Back before this.
+    BlockBackPress(enabled = !state.exitAsked, onBack = { viewModel?.onIntent(MainIntent.AskExit) })
+    val exitApp = rememberExitApp()
+    BlockingOverlay(visible = state.exitAsked, onDismiss = { viewModel?.onIntent(MainIntent.DismissExit) }) {
+        ExitAppCard(onExit = exitApp, onStay = { viewModel?.onIntent(MainIntent.DismissExit) })
     }
     state.rejoin?.let { rejoin ->
         BlockingOverlay(visible = true, onDismiss = { viewModel?.onIntent(MainIntent.DismissRejoin) }) {
@@ -172,8 +181,11 @@ fun MainScreen(
                         // The whole card opens Create New Group (on the Rooms tab).
                         onPlayWithFriends = {
                             viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
-                            playRoomsViewModel?.onIntent(PlayRoomsIntent.CreateRoom)
                         },
+                        onCreateRoom ={
+                            viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
+                            playRoomsViewModel?.onIntent(PlayRoomsIntent.CreateRoom)
+                        }
                     )
                     AppNavTab.GAMES -> GameZoneScreen(
                         onOpenMatch = onOpenMatch,

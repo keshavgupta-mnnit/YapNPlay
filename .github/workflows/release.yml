@@ -76,12 +76,12 @@ jobs:
           fi
           echo "mapping=$MAP" >> "$GITHUB_OUTPUT"
 
-      - name: Upload to Google Play (internal)
+      - name: Upload to Google Play (alpha)
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.kglabs28.yapnplay
           releaseFiles: ${{ steps.artifacts.outputs.aab }}
           mappingFile: ${{ steps.artifacts.outputs.mapping }}
-          tracks: internal
+          tracks: alpha
           status: completed

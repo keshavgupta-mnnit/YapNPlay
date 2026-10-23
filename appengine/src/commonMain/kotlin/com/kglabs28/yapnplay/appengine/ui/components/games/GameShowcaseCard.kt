@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.games
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
@@ -48,15 +48,13 @@ fun GameShowcaseCard(
         ) {
             GameArt(artKey = game.artKey)
         }
-        BasicText(
+        ShrinkText(
             text = game.name,
             style = nameStyle.copy(
                 color = colors.TextPrimary,
                 textAlign = TextAlign.Center,
                 shadow = Shadow(color = colors.SocialZoneAccent, blurRadius = nameStyle.fontSize.value),
             ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
         )
         if (showTagline) {
             BasicText(

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.games
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -31,7 +32,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
@@ -75,7 +75,7 @@ fun GameStage(
         // Selected game's name: white fill over a coloured outline, glowing.
         val outlinePx = with(LocalDensity.current) { YapNPlayTheme.dimens.titleOutline.toPx() }
         Box(contentAlignment = Alignment.Center) {
-            BasicText(
+            ShrinkText(
                 text = game.name,
                 style = typography.heroWord.copy(
                     color = colors.StageAccent,
@@ -83,17 +83,13 @@ fun GameStage(
                     drawStyle = Stroke(width = outlinePx),
                     shadow = Shadow(color = colors.StageAccent, blurRadius = typography.heroWord.fontSize.value),
                 ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
-            BasicText(
+            ShrinkText(
                 text = game.name,
                 style = typography.heroWord.copy(
                     color = colors.TextPrimary,
                     textAlign = TextAlign.Center,
                 ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
         }
         BasicText(

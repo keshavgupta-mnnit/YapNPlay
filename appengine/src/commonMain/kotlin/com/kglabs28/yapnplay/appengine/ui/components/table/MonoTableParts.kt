@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -104,6 +105,8 @@ fun MonoTableArena(
                 edge = colors.MonoDeckEdge,
                 edgeShade = colors.MonoDeckEdgeShade,
                 tiltZ = DECK_TURN,
+                // Lit like the discard pile, so the deck reads as clearly on the felt.
+                glow = hue.ring,
                 modifier = Modifier
                     .monoAnchor(anchors, MonoSpot.Deck)
                     .then(if (onDeckClick != null) Modifier.clickable(interactionSource = null, indication = null, onClick = onDeckClick) else Modifier),
@@ -133,12 +136,14 @@ fun MonoTableArena(
         }
         // Under the piles, past the table's inner ring (so its line never runs under the text) and
         // centred: the stack's total, then what just happened, between the piles and the hand.
-        // They float over the table and take no room, so the piles never move.
+        // They float over the table and take no room, so the piles never move; on a short table they
+        // may run past its bottom rather than be squeezed (a squeezed label shows cut in half).
         val pileHalf = cardWidth / CARD_W_PER_H * LYING_HEIGHT / 2
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(top = maxHeight / 2 + pileHalf + Spacing.Lg)
+                .align(Alignment.TopCenter)
+                .offset(y = maxHeight / 2 + pileHalf + Spacing.Lg)
+                .wrapContentHeight(align = Alignment.Top, unbounded = true)
                 .zIndex(1f),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),

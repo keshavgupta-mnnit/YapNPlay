@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
@@ -63,7 +62,7 @@ fun CbPromptFrame(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(modifier = Modifier.fillMaxWidth().background(Color.Black.copy(alpha = HEADER_ALPHA)).padding(horizontal = Spacing.Sm, vertical = Spacing.Xs)) {
-            BasicText(
+            ShrinkText(
                 text = title,
                 style = YapNPlayTheme.typography.title.copy(
                     color = accent,
@@ -71,8 +70,6 @@ fun CbPromptFrame(
                     textAlign = TextAlign.Center,
                     shadow = Shadow(color = accent, blurRadius = GLOW_BLUR),
                 ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.align(Alignment.Center).padding(horizontal = dimens.cutButtonMinWidth / 2),
             )
             Row(modifier = Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) {

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
@@ -161,18 +161,15 @@ private fun NotificationRow(item: NotificationUi, onClick: () -> Unit) {
     ) {
         IconCircle(imageVector = Icons.Rounded.Groups, fill = colors.SocialZoneAccent)
         Column(modifier = Modifier.weight(1f)) {
-            BasicText(
+            ShrinkText(
                 text = item.title,
                 style = typography.itemTitle.copy(color = colors.TextPrimary),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
             if (item.body.isNotEmpty()) {
-                BasicText(
+                ShrinkText(
                     text = item.body,
                     style = typography.caption.copy(color = colors.TextSecondary),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                    maxLines = BODY_LINES,
                 )
             }
         }
@@ -184,3 +181,6 @@ private fun NotificationRow(item: NotificationUi, onClick: () -> Unit) {
         }
     }
 }
+
+/** A notification's message: up to two lines, shrinking to fit. */
+private const val BODY_LINES = 2

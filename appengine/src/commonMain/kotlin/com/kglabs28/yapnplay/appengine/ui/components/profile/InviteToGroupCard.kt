@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.background
@@ -24,7 +25,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.common.EmptyStateText
@@ -74,7 +74,7 @@ fun InviteToGroupCard(
                         ) {
                             IconCircle(imageVector = badge.icon, fill = badge.fill, size = dimens.friendPickAvatar, iconSize = dimens.iconSmall)
                             Column(modifier = Modifier.weight(1f)) {
-                                BasicText(text = group.name, style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                ShrinkText(text = group.name, style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
                                 BasicText(text = group.detail, style = typography.micro.copy(color = colors.TextSecondary), maxLines = 1)
                             }
                             if (group.invited) {

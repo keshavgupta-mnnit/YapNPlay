@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.leaderboard
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
@@ -38,7 +38,7 @@ fun LeaderboardRow(entry: LeaderboardEntryUi, modifier: Modifier = Modifier) {
         BasicText(text = entry.placeLabel, style = typography.title.copy(color = colors.TextSecondary, fontWeight = FontWeight.Bold))
         LeaderboardAvatar(avatarId = entry.avatarId, size = dimens.boardAvatarRow, micOn = entry.micOn)
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
-            BasicText(text = entry.name.uppercase(), style = typography.label.copy(color = if (entry.isMe) colors.Cyan else Color.White, fontWeight = FontWeight.Black), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            ShrinkText(text = entry.name.uppercase(), style = typography.label.copy(color = if (entry.isMe) colors.Cyan else Color.White, fontWeight = FontWeight.Black))
             if (entry.coins.isNotEmpty()) BasicText(text = entry.coins, style = typography.label.copy(color = if (entry.coins.startsWith("-")) colors.PlayerRed else colors.Cyan, fontWeight = FontWeight.Bold))
             LeaderboardTitleChip(title = entry.title, place = entry.place)
         }

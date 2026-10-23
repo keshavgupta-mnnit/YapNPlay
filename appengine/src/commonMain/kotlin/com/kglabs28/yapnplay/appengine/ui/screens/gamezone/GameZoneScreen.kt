@@ -126,8 +126,11 @@ fun GameZoneScreen(
                 PillButton(
                     text = Strings.homeQuickPlay,
                     onClick = { viewModel?.onIntent(GameZoneIntent.PlayGame(state.focusedIndex)) },
-                    gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),
-                    contentColor = colors.CtaGreenContent,
+                    // The same glassy green as Home's Quick Play.
+                    gradient = listOf(colors.CtaGlassGreen),
+                    contentColor = colors.TextPrimary,
+                    rimColor = colors.CtaGlassGreenRim,
+                    glassFill = colors.CtaGlassGreen,
                     leadingIcon = Icons.Rounded.Bolt,
                     height = YapNPlayTheme.dimens.ctaLargeHeight,
                     textStyle = YapNPlayTheme.typography.title,

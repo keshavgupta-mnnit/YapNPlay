@@ -1,8 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.leaderboard.podium
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,15 +15,10 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.zIndex
 import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
@@ -46,7 +40,6 @@ fun PodiumPlayerCard(entry: LeaderboardEntryUi, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
-    var sliding by remember { mutableStateOf(false) }
     Box(modifier = modifier.width(dimens.podiumCardWidth), contentAlignment = Alignment.TopCenter) {
         Column(
             modifier = Modifier
@@ -61,15 +54,12 @@ fun PodiumPlayerCard(entry: LeaderboardEntryUi, modifier: Modifier = Modifier) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
                 AppIcon(imageVector = Icons.Rounded.GraphicEq, tint = colors.LiveGreen, size = dimens.podiumSignal)
-                BasicText(
+                // Shrinks to fit its two lines; too long even then, a tap slides it in full.
+                ShrinkText(
                     text = entry.name.uppercase(),
                     style = typography.podiumName.copy(color = if (entry.isMe) colors.Cyan else Color.White, textAlign = TextAlign.Center),
-                    maxLines = if (sliding) 1 else NAME_LINES,
-                    overflow = if (sliding) TextOverflow.Clip else TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .weight(1f, fill = false)
-                        .clickable(interactionSource = null, indication = null) { sliding = !sliding }
-                        .then(if (sliding) Modifier.basicMarquee() else Modifier),
+                    maxLines = NAME_LINES,
+                    modifier = Modifier.weight(1f, fill = false),
                 )
                 AppIcon(imageVector = Icons.Rounded.GraphicEq, tint = colors.LiveGreen, size = dimens.podiumSignal)
             }

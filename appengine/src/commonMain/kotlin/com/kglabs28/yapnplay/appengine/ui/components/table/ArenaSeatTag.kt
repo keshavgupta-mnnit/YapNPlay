@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.BasicText
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,10 +24,10 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 @Composable
 fun ArenaSeatTag(text: String, tint: Color, avatar: Dp, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
-    BasicText(
+    // A long word ("ELIMINATED") on a narrow seat shrinks to fit rather than being cut.
+    ShrinkText(
         text = text,
         style = YapNPlayTheme.typography.micro.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold),
-        maxLines = 1,
         modifier = modifier
             // The header is as tall as the avatar and the pill is centred in it: rise to the pill's bottom, then the gap.
             .padding(start = avatar + Spacing.Xxs)

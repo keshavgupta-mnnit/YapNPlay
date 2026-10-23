@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.groups
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextOverflow
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
@@ -37,7 +37,7 @@ fun SelectedMemberChip(name: String, avatarId: String, isHost: Boolean, onRemove
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
         PresetAvatar(avatarId = avatarId, size = dimens.memberChipAvatar)
-        BasicText(text = name, style = typography.label.copy(color = colors.TextPrimary), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        ShrinkText(text = name, style = typography.label.copy(color = colors.TextPrimary))
         if (isHost) {
             BasicText(
                 text = RoomStrings.groupHost,

@@ -108,6 +108,10 @@ class YapNPlayDimens {
     val carouselSideBlur: Dp get() = 1.5.dp.scaled()
     // Room lobby
     val lobbyBarHeight: Dp get() = 44.dp.scaled()
+    /** The lobby's ⋮ menu. */
+    val lobbyMenuWidth: Dp get() = 200.dp.scaled()
+    /** The sideways friends row in the lobby's Add Friends dialog. */
+    val lobbyFriendsRowHeight: Dp get() = 84.dp.scaled()
     val lobbyStartHeight: Dp get() = 52.dp.scaled()
     val lobbyStartCut: Dp get() = 12.dp.scaled()
     /** Gap between the START button and its outer outline. */
@@ -129,7 +133,6 @@ class YapNPlayDimens {
     val ludoAvatar: Dp get() = 46.dp.scaled()
     val ludoAvatarRing: Dp get() = 2.5.dp.scaled()
     val ludoAudienceAvatar: Dp get() = 30.dp.scaled()
-    val ludoLevelBadgeHeight: Dp get() = 14.dp.scaled()
     val ludoAudienceNameWidth: Dp get() = 52.dp.scaled()
     val ludoAudienceRing: Dp get() = 2.dp.scaled()
     val ludoCardRadius: Dp get() = 18.dp.scaled()
@@ -138,14 +141,12 @@ class YapNPlayDimens {
     val ludoGlossHeight: Dp get() = 40.dp.scaled()
     val ludoGlossRadius: Dp get() = 11.dp.scaled()
     val ludoTimerStroke: Dp get() = 5.dp.scaled()
-    val ludoPlaceBadgeHeight: Dp get() = 18.dp.scaled()
     val ludoMuteButton: Dp get() = 26.dp.scaled()
     val ludoMuteIcon: Dp get() = 15.dp.scaled()
     val modalCloseButton: Dp get() = 24.dp.scaled()
     val modalCloseIcon: Dp get() = 11.dp.scaled()
     val reportListMaxHeight: Dp get() = 160.dp.scaled()
     val ludoCardGlow: Dp get() = 18.dp.scaled()
-    val ludoSquareButton: Dp get() = 44.dp.scaled()
     val lobbyMemberRow: Dp get() = 56.dp.scaled()
     val lobbyAvatar: Dp get() = 38.dp.scaled()
     val crownSize: Dp get() = 18.dp.scaled()
@@ -185,19 +186,79 @@ class YapNPlayDimens {
     /** The same in the compact pod (many players). */
     val cbCardChromeCompact: Dp get() = 26.dp.scaled()
     val cbCardAvatarMin: Dp get() = 20.dp.scaled()
-    /** The talking wave on a table player card. */
-    val tableTalkWaveHeight: Dp get() = 14.dp.scaled()
     /** A compact city card in the My Properties list. */
     val cbCityCardHeight: Dp get() = 56.dp.scaled()
+    // MONO (cards are 2:3 portrait everywhere they appear).
+    /** A card in the local player's hand. */
+    val monoHandCardWidth: Dp get() = 50.dp.scaled()
+    /** A hand card once the hand is big (more than [com.kglabs28.yapnplay.appengine.core.common.AppConstants.MONO_BIG_HAND] cards). */
+    val monoHandCardWidthSmall: Dp get() = 44.dp.scaled()
+    /** A card on the centre pile, or an opponent's face-down card. */
+    val monoPileCardWidth: Dp get() = 68.dp.scaled()
+    /** The wide frosted pod across the top of the table. */
+    val monoPodWidth: Dp get() = 132.dp.scaled()
+    val monoPodWidthCompact: Dp get() = 122.dp.scaled()
+    /** The local player's own pod at the bottom left. */
+    val monoLocalPodWidth: Dp get() = 150.dp.scaled()
+    /** One colour choice in the Prism picker. */
+    /** A player's avatar in the Rule of 7 swap choice. */
+    val monoSwapAvatar: Dp get() = 40.dp.scaled()
+    /** How far a selected card rises out of the hand. */
+    val monoCardLift: Dp get() = 24.dp.scaled()
+    /** A seat: the round avatar, and the name pill beside it (as tall as this share of the avatar). */
+    val monoSeatAvatar: Dp get() = 50.dp.scaled()
+    val monoSeatAvatarCompact: Dp get() = 44.dp.scaled()
+    val monoSeatRing: Dp get() = 3.dp.scaled()
+    val monoSeatTimer: Dp get() = 3.dp.scaled()
+    /** The MONO table's top band: a seat (its fan sits beside it). */
+    val monoTopBandHeight: Dp get() = 60.dp.scaled()
+    /** A top-row seat's fan, beside its pill. */
+    val monoSideFanWidth: Dp get() = 90.dp.scaled()
+    /** The MONO table's bottom-left corner: the user's seat with its switches over the callout. */
+    val monoLocalCornerHeight: Dp get() = 170.dp.scaled()
+    /** The face-down fan under a seat. */
+    val monoSeatFanCard: Dp get() = 24.dp.scaled()
+    /** Each card's step of thickness in a pile (a few cards per step). */
+    val monoPileDepthStep: Dp get() = 1.dp.scaled()
+    /** A card flying between the piles, the hands and the seats. */
+    val monoFlightCard: Dp get() = 56.dp.scaled()
+    /** The top bar's height, and its square buttons. */
+    val arenaBarHeight: Dp get() = 46.dp.scaled()
+    /** The MONO / CAUGHT and Draw buttons. */
+    val arenaActionHeight: Dp get() = 50.dp.scaled()
+    val arenaCallWidth: Dp get() = 176.dp.scaled()
+    val arenaDrawWidth: Dp get() = 150.dp.scaled()
+    /** The round mic / autoplay switches under the user's seat. */
+    val arenaSwitchSize: Dp get() = 36.dp.scaled()
+    /** The most a Mic / Auto button grows to (it fills half the pill's width up to this). */
+    val arenaSwitchMax: Dp get() = 39.dp.scaled()
+    /** The dice icon on the bottom-right Roll Dice button. */
+    val arenaDiceIcon: Dp get() = 44.dp.scaled()
+    /** Kept free under the Ludo board, so the user's card and its switches fit by the bottom base. */
+    val ludoBoardBottomStrip: Dp get() = 0.dp
+    /** The game's logo beside the top bar (larger than the bar). */
+    val arenaLogoSize: Dp get() = 58.dp.scaled()
     val cbRollBadge: Dp get() = 22.dp.scaled()
     /** Pods get compact (tighter padding, smaller text) when each has less height than this. */
     val cbCardCompactBelow: Dp get() = 80.dp.scaled()
-    val cbStackCard: Dp get() = 27.dp.scaled()
     val cbStackOffset: Dp get() = 3.dp.scaled()
     val cbToastWidth: Dp get() = 300.dp.scaled()
     val cbAssetCardWidth: Dp get() = 108.dp.scaled()
     val cbHeaderChip: Dp get() = 14.dp.scaled()
     val cbControlHeight: Dp get() = 34.dp.scaled()
+    /** 3D City Royale: a seat card round the board and its avatar, My Properties in the bottom bar. */
+    val cb3dSeatWidth: Dp get() = 150.dp.scaled()
+    val cb3dSeatAvatar: Dp get() = 42.dp.scaled()
+    val cb3dPropertiesWidth: Dp get() = 100.dp.scaled()
+    /** 3D City Royale: how far the board sits below the top bar, and the bottom bar's height (seats keep above it). */
+    val cb3dBoardDrop: Dp get() = 34.dp.scaled()
+    val cb3dBarHeight: Dp get() = 76.dp.scaled()
+    /** 3D City Royale: the snackbar's band at the top, which the top seats keep below. */
+    val cb3dSnackReserve: Dp get() = 44.dp.scaled()
+    /** 3D City Royale: how far the turn dialogs and payment popups sit above centre, clear of the bottom bar. */
+    val cb3dDialogLift: Dp get() = 28.dp.scaled()
+    /** 3D City Royale: the gap between the info panel and the board's left corner. */
+    val cb3dPanelGap: Dp get() = 3.dp.scaled()
     val cbRowRadius: Dp get() = 8.dp.scaled()
 
     // Profile screen.
@@ -228,7 +289,30 @@ class YapNPlayDimens {
     val boardLogoWidth: Dp get() = 96.dp.scaled()
     val boardLogoLogoHeight: Dp get() = 66.dp.scaled()
     val boardGameLogo: Dp get() = 100.dp.scaled()
-    val boardPanelWidth: Dp get() = 270.dp.scaled()
+    val boardPanelWidth: Dp get() = 240.dp.scaled()
+
+    // ── Leaderboard podium (ui/components/leaderboard/podium) ──
+    /** One podium place's width (its glass box); the player's card is a little narrower so neighbours never touch. */
+    val podiumWidth: Dp get() = 136.dp.scaled()
+    val podiumCardWidth: Dp get() = 122.dp.scaled()
+    val podiumCardHeight: Dp get() = 104.dp.scaled()
+    /** The box heights: 1st, 2nd, 3rd. */
+    val podiumBoxFirst: Dp get() = 100.dp.scaled()
+    val podiumBoxSecond: Dp get() = 78.dp.scaled()
+    val podiumBoxThird: Dp get() = 62.dp.scaled()
+    /** The glass box's top face (the card stands on it), and how far the card comes down over it. */
+    val podiumTopFace: Dp get() = 16.dp.scaled()
+    val podiumCardOverTop: Dp get() = 12.dp.scaled()
+    /** The plate inside the glass box sits this far in; both have this corner rounding. */
+    val podiumPlateInset: Dp get() = 8.dp.scaled()
+    val podiumCorner: Dp get() = 8.dp.scaled()
+    /** The avatar, and how much of it rises above the card. */
+    val podiumAvatar: Dp get() = 64.dp.scaled()
+    val podiumAvatarAbove: Dp get() = 38.dp.scaled()
+    /** The winner's crown, sitting wholly above the avatar. */
+    val podiumCrown: Dp get() = 36.dp.scaled()
+    /** The voice symbols either side of the name. */
+    val podiumSignal: Dp get() = 16.dp.scaled()
     val boardBottomBar: Dp get() = 64.dp.scaled()
     val boardButtonWidth: Dp get() = 200.dp.scaled()
     val bankButtonGlow: Dp get() = 10.dp.scaled()

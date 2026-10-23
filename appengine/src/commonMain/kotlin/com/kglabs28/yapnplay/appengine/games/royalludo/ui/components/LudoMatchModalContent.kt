@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.LeaveMatchDialog
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.background
@@ -50,17 +51,14 @@ fun LudoMatchModalContent(
     val ctaHeight = YapNPlayTheme.dimens.ctaHeight
 
     when (modal) {
-        is LudoMatchModal.LeaveConfirm -> SeatPickerDialog(
-            title = LudoStrings.ludoLeaveTitle,
+        is LudoMatchModal.LeaveConfirm -> LeaveMatchDialog(
+            onStay = onDismiss,
+            onLeave = actions.onConfirmLeave,
             message = modal.body,
             countdown = modal.countdown,
             options = modal.seatOptions,
             selectedIndex = modal.selectedIndex,
             onSelect = actions.onPickSeatTaker,
-            secondaryLabel = TableStrings.seatCancel,
-            onSecondary = onDismiss,
-            primaryLabel = TableStrings.seatExit,
-            onPrimary = actions.onConfirmLeave,
             modifier = modifier,
         )
         is LudoMatchModal.Result -> ModalCard(

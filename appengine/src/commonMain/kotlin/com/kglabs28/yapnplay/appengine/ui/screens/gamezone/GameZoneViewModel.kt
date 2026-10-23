@@ -1,11 +1,14 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.gamezone
 
+import com.kglabs28.yapnplay.appengine.core.common.AppLog
+import com.kglabs28.yapnplay.appengine.features.coins.usecase.GetAdLimitStatusUseCase
 import com.kglabs28.yapnplay.appengine.ui.components.coins.LeaguePickerUi
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsUiMapper
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferUi
 import com.kglabs28.yapnplay.appengine.core.ui.CoinsStrings
 import com.kglabs28.yapnplay.appengine.features.matchmaking.domain.MatchmakingCancelReason
 import com.kglabs28.yapnplay.appengine.features.coins.domain.CoinLeagues
+import com.kglabs28.yapnplay.appengine.features.coins.usecase.IsRewardedAdReadyUseCase
 import com.kglabs28.yapnplay.appengine.features.coins.usecase.WatchAdForCoinsUseCase
 import com.kglabs28.yapnplay.appengine.features.coins.usecase.GetCoinLeaguesUseCase
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
@@ -47,6 +50,8 @@ class GameZoneViewModel(
     private val clearPenaltyWithAd: ClearPenaltyWithAdUseCase,
     private val getCoinLeagues: GetCoinLeaguesUseCase,
     private val watchAdForCoins: WatchAdForCoinsUseCase,
+    private val getAdLimitStatus: GetAdLimitStatusUseCase,
+    private val isAdReady: IsRewardedAdReadyUseCase,
     private val clock: AppClock,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<GameZoneState, GameZoneIntent, GameZoneEffect>(GameZoneState(), dispatchers) {
@@ -150,9 +155,11 @@ class GameZoneViewModel(
                         title = CoinsStrings.notEnoughTitle,
                         body = CoinsStrings.notEnoughBody(league.name, TextUtils.groupedThousands(league.entryCoins)),
                         offerFree = true,
+                        adReady = isAdReady(),
                     ),
                 )
             }
+            scope.launch { refreshAdLimits() }
             return
         }
         setState { copy(leagues = null) }
@@ -161,6 +168,15 @@ class GameZoneViewModel(
 
     /** Ad watched to the end → the server adds coins; the picker reopens with the new balance. */
     private suspend fun watchAdThenReload() {
+        val offer = state.value.coinsOffer
+        AppLog.d(AppConstants.LOG_TAG_ADS, "game zone: Watch Ad tapped (canWatch=${offer?.canWatch}, watching=${offer?.watchingAd}, adReady=${offer?.adReady})")
+        // Extra taps while one ad is loading or playing do nothing (one ad per tap).
+        if (offer?.watchingAd == true) return
+        // A cooldown or today's limit: say so rather than play nothing.
+        if (offer != null && !offer.canWatch) {
+            setState { copy(coinsOffer = coinsOffer?.copy(message = offer.note ?: CoinsStrings.adLimit)) }
+            return
+        }
         setState { copy(coinsOffer = coinsOffer?.copy(watchingAd = true, message = null)) }
         val result = watchAdForCoins.invoke()
         val message = CoinsUiMapper.adMessage(result)
@@ -169,7 +185,14 @@ class GameZoneViewModel(
             reloadLeagues(message)
         } else {
             setState { copy(coinsOffer = coinsOffer?.copy(watchingAd = false, message = message)) }
+            refreshAdLimits()
         }
+    }
+
+    /** Puts today's ad limits on the open offer (and greys the button out when none can pay). */
+    private suspend fun refreshAdLimits() {
+        val status = (getAdLimitStatus() as? AppResult.Success)?.data ?: return
+        setState { copy(coinsOffer = coinsOffer?.let { CoinsUiMapper.withLimits(it, status, clock.now()) }) }
     }
 
     private fun startSearch(entryCoins: Int) {
@@ -185,7 +208,8 @@ class GameZoneViewModel(
                     is MatchmakingStatus.Cancelled -> {
                         tickJob?.cancel()
                         if (status.reason == MatchmakingCancelReason.NOT_ENOUGH_COINS) {
-                            setState { copy(search = null, coinsOffer = CoinsOfferUi(CoinsStrings.notEnoughTitle, CoinsStrings.notEnoughBodyGeneric, offerFree = true)) }
+                            setState { copy(search = null, coinsOffer = CoinsOfferUi(CoinsStrings.notEnoughTitle, CoinsStrings.notEnoughBodyGeneric, offerFree = true, adReady = isAdReady())) }
+                            refreshAdLimits()
                         } else {
                             setState { copy(search = null, searchMessage = Strings.gameZoneNoMatch) }
                         }

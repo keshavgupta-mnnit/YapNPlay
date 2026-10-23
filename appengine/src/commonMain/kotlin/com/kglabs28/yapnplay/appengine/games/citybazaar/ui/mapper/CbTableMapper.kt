@@ -108,21 +108,15 @@ object CbTableMapper {
     fun sides(match: CityBazaarMatch, cards: List<CbPlayerCardUi>): Triple<CbPlayerCardUi?, List<CbPlayerCardUi>, List<CbPlayerCardUi>> {
         val mine = cards.firstOrNull { it.isMe }
         val start = match.me?.seat ?: 0
-        val others = cards.filterNot { it.isMe }.sortedBy { (it.seat - start + match.players.size) % match.players.size }
+        // A player who left takes no seat; everyone else spreads out round the table again.
+        val others = cards.filterNot { it.isMe || match.player(it.seat)?.removed == true }.sortedBy { (it.seat - start + match.players.size) % match.players.size }
         if (mine != null) return Triple(mine, others, emptyList())
         val rightCount = (others.size + 1) / 2
         return Triple(null, others.drop(rightCount), others.take(rightCount))
     }
 
     fun audience(match: CityBazaarMatch, speaking: Set<String>, mutedForMe: Set<String>): List<TableAvatarUi> =
-        match.spectators.map {
-            val ring = when {
-                !it.micOn -> AvatarRing.MUTED
-                it.userId in speaking && it.userId !in mutedForMe -> AvatarRing.TALKING
-                else -> AvatarRing.IDLE
-            }
-            TableAvatarUi(it.userId, it.name, ring)
-        }
+        match.spectators.map { TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in speaking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe) }
 
     /** The user's cities stacked by colour, in board colour order. */
     fun stacks(match: CityBazaarMatch): List<CbStackUi> {

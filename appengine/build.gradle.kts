@@ -51,6 +51,8 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
             implementation(libs.ktor.client.okhttp)
+            // Local (no-backend) mode only: answers the app's HTTP calls in-process.
+            implementation(libs.ktor.client.mock)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.client.websockets)
             implementation(libs.ktor.serialization.kotlinx.json)

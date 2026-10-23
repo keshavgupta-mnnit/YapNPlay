@@ -1,9 +1,12 @@
 package com.kglabs28.yapnplay.appengine.core.mvi
 
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +39,7 @@ abstract class MviViewModel<S : UiState, I : UiIntent, E : UiEffect>(
 
     /** Single entry point for every user action. */
     fun onIntent(intent: I) {
+        AppLog.d(AppConstants.LOG_TAG_INTENTS, "${this::class.simpleName} <- ${intent::class.simpleName} (scope active=${scope.isActive})")
         scope.launch { handleIntent(intent) }
     }
 

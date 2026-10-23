@@ -1,19 +1,17 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players
 
+import com.kglabs28.yapnplay.appengine.ui.components.table.ArenaSeatSwitches
 import com.kglabs28.yapnplay.appengine.ui.components.table.TablePlayerCard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoPlayerCardUi
 
-/** The user's own card with their controls (Mic, Autoplay, Roll Dice). */
+/** The user's own card, with Mic and Autoplay as round icons under the pill (Roll Dice is its own button). */
 @Composable
 fun LudoMyCard(
     card: LudoPlayerCardUi,
-    canRoll: Boolean,
-    moveHint: String?,
     autoplay: Boolean,
     micOn: Boolean,
-    onRoll: () -> Unit,
     onToggleAutoplay: () -> Unit,
     onToggleMic: () -> Unit,
     modifier: Modifier = Modifier,
@@ -26,14 +24,11 @@ fun LudoMyCard(
         badgeTint = card.badgeTint(),
         modifier = modifier,
     ) {
-        LudoMyControls(
-            canRoll = canRoll,
-            moveHint = moveHint,
-            autoplay = autoplay,
+        ArenaSeatSwitches(
             micOn = micOn,
-            onRoll = onRoll,
-            onToggleAutoplay = onToggleAutoplay,
+            autoplay = autoplay,
             onToggleMic = onToggleMic,
+            onToggleAutoplay = onToggleAutoplay,
         )
     }
 }

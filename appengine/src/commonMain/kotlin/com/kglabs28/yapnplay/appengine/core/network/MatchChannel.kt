@@ -34,7 +34,7 @@ import kotlinx.serialization.json.JsonObject
  * match and the requests every game has (autoplay, mic, presence, seat
  * handover). Game moves go through [request] with the game's own types.
  */
-class MatchChannel(private val realtime: RealtimeConnection) {
+class MatchChannel(private val realtime: RealtimeGateway) {
 
     /**
      * Every `MatchSnapshot` of [matchId]. The current one is asked for on

@@ -2,7 +2,6 @@ package com.kglabs28.yapnplay.appengine.games.royalludo.ui.mapper
 
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardEntryUi
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
@@ -183,7 +182,7 @@ object LudoMatchUiMapper {
 
     /** Top bar avatars: the spectators (not the players), ringed by voice state. */
     fun audience(match: LudoMatch, speaking: Set<String>, mutedForMe: Set<String>): List<TableAvatarUi> =
-        match.spectators.map { TableAvatarUi(it.userId, it.name, ring(it.userId in speaking && it.userId !in mutedForMe, it.micOn)) }
+        match.spectators.map { TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in speaking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe) }
 
     /** The end-of-match leaderboard: finishing order, a title, points and EXP for each place. */
     fun leaderboard(match: LudoMatch, duration: String): LeaderboardUi {
@@ -196,8 +195,9 @@ object LudoMatchUiMapper {
                     name = p.name,
                     avatarId = p.avatarId,
                     title = LudoStrings.ludoPlaceTitles[index.coerceAtMost(LudoStrings.ludoPlaceTitles.lastIndex)],
-                    score = TableStrings.leaderboardPts(AppConstants.PLACE_EXP[index.coerceAtMost(AppConstants.PLACE_EXP.lastIndex)]),
-                    exp = TableStrings.leaderboardExp(AppConstants.PLACE_EXP[index.coerceAtMost(AppConstants.PLACE_EXP.lastIndex)]),
+                    // XP (and so the points) are the server's, filled in by LeaderboardResult once it pays them.
+                    score = "",
+                    exp = "",
                     micOn = p.micOn,
                     tint = Color.Unspecified,
                     isMe = p.isMe,
@@ -205,7 +205,7 @@ object LudoMatchUiMapper {
                 )
             }
         }
-        return LeaderboardUi(LudoStrings.ludoTitle, duration, entries, entries.firstOrNull { it.isMe }?.placeLabel.orEmpty(), myExp = entries.firstOrNull { it.isMe }?.let { e -> TableStrings.leaderboardGain(AppConstants.PLACE_EXP[(e.place - 1).coerceAtMost(AppConstants.PLACE_EXP.lastIndex)].toString()) }.orEmpty())
+        return LeaderboardUi(LudoStrings.ludoTitle, duration, entries, entries.firstOrNull { it.isMe }?.placeLabel.orEmpty())
     }
 
     fun resultRows(match: LudoMatch): List<LudoResultRowUi> = match.ranking.mapIndexedNotNull { index, seat ->

@@ -1,7 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.matchmaking.data.remote
 
 import com.kglabs28.yapnplay.appengine.core.network.BackendPaths
-import com.kglabs28.yapnplay.appengine.core.network.RealtimeConnection
+import com.kglabs28.yapnplay.appengine.core.network.RealtimeGateway
 import com.kglabs28.yapnplay.appengine.protocol.ActiveMatch
 import com.kglabs28.yapnplay.appengine.protocol.JoinQueue
 import com.kglabs28.yapnplay.appengine.protocol.LeaveQueue
@@ -31,7 +31,7 @@ import kotlinx.coroutines.withContext
  */
 class MatchmakingClientImpl(
     private val client: HttpClient,
-    private val realtime: RealtimeConnection,
+    private val realtime: RealtimeGateway,
 ) : MatchmakingClient {
 
     override fun queue(gameId: String, entryCoins: Int): Flow<MatchmakingMessage> = channelFlow {

@@ -17,10 +17,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MicOff
-import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
@@ -148,13 +149,16 @@ private fun MemberAvatar(
             )
             PresenceDot(online = member.online, size = dimens.statusDotSmall, onlineColor = colors.LiveGreen)
         }
+        // The admin wears a crown on top of their avatar.
         if (member.isAdmin) {
-            AppIcon(
-                imageVector = Icons.Rounded.WorkspacePremium,
-                tint = colors.Gold,
-                size = dimens.crownSize,
-                contentDescription = RoomStrings.lobbyAdmin,
-                modifier = Modifier.align(Alignment.TopCenter),
+            val crownSp = with(LocalDensity.current) { dimens.crownSize.toSp() }
+            BasicText(
+                text = ADMIN_CROWN,
+                style = YapNPlayTheme.typography.label.copy(fontSize = crownSp),
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = -dimens.crownSize * CROWN_RISE)
+                    .semantics { contentDescription = RoomStrings.lobbyAdmin },
             )
         }
     }
@@ -178,3 +182,7 @@ private fun MicOffBadge() {
 
 private const val OFFLINE_CONTENT_ALPHA = 0.5f
 private const val DIVIDER_HEIGHT_FRACTION = 0.6f
+
+private const val ADMIN_CROWN = "\uD83D\uDC51"
+/** How far the crown rises above the avatar's top (× its size). */
+private const val CROWN_RISE = 0.45f

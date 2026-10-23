@@ -33,6 +33,10 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
 import com.kglabs28.yapnplay.appengine.ui.components.common.FieldClearButton
 import com.kglabs28.yapnplay.appengine.ui.components.keyboard.AppKeyboardRequest
 import com.kglabs28.yapnplay.appengine.ui.components.keyboard.LocalAppKeyboard
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onGloballyPositioned
 
 /**
  * The design's glass input: a rounded dark field with a soft rim (green
@@ -54,6 +58,8 @@ fun ProfileTextField(
     val style = YapNPlayTheme.typography.label.copy(color = colors.TextPrimary)
     val keyboard = LocalAppKeyboard.current
     val owner = remember { Any() }
+    /** Where this field's bottom edge is on screen (px), for the keyboard. */
+    var bottom by remember { mutableFloatStateOf(0f) }
     val active = keyboard.isOpenFor(owner)
     val change by rememberUpdatedState(onValueChange)
     val done by rememberUpdatedState(onDone)
@@ -77,8 +83,14 @@ fun ProfileTextField(
                 surface = colors.RoomsInput,
                 shape = RoundedCornerShape(dimens.cbRowRadius),
             )
+            // Tells the keyboard where this field is, so the screen can lift it clear of the keys.
+            .onGloballyPositioned {
+                bottom = it.boundsInRoot().bottom
+                keyboard.place(owner, bottom)
+            }
             .clickable(role = Role.Button) {
                 keyboard.open(AppKeyboardRequest(owner, hint, value, maxLength, { change(it) }, { done() }))
+                keyboard.place(owner, bottom)
             }
             .padding(horizontal = Spacing.Sm),
         verticalAlignment = Alignment.CenterVertically,

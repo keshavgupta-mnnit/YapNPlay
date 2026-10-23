@@ -1,7 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.playrooms.data.remote
 
 import com.kglabs28.yapnplay.appengine.core.network.BackendPaths
-import com.kglabs28.yapnplay.appengine.core.network.RealtimeConnection
+import com.kglabs28.yapnplay.appengine.core.network.RealtimeGateway
 import com.kglabs28.yapnplay.appengine.protocol.CreateRoom
 import com.kglabs28.yapnplay.appengine.protocol.InviteToRoomBody
 import com.kglabs28.yapnplay.appengine.protocol.InviteToRoomReply
@@ -29,7 +29,7 @@ import io.ktor.http.contentType
  */
 class PlayRoomsApiClient(
     private val client: HttpClient,
-    private val realtime: RealtimeConnection,
+    private val realtime: RealtimeGateway,
 ) : PlayRoomsApi {
 
     override suspend fun getMyRooms(): MyRooms = client.get(BackendPaths.MY_ROOMS).body()

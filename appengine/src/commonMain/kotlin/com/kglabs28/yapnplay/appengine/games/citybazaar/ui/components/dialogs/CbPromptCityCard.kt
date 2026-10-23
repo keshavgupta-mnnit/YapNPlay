@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.font.FontWeight
@@ -41,7 +40,8 @@ fun CbPromptCityCard(tint: Color, rates: List<CbRateRowUi>, costs: List<CbSheetR
     Column(
         modifier = modifier
             .width(dimens.promptCityCardWidth)
-            .shadow(elevation = dimens.promptGlow, shape = shape, ambientColor = tint, spotColor = tint)
+            // A drawn glow (a coloured elevation shadow can show as a box behind the card).
+            .cbRimGlow(tint, dimens.cardRadius)
             .clip(shape)
             .background(colors.Background)
             .border(dimens.promptRim, tint, shape),

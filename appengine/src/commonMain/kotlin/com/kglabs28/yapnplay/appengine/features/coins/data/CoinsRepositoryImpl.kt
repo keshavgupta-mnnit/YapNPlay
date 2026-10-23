@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.features.coins.data
 
+import kotlin.time.Duration.Companion.milliseconds
+import com.kglabs28.yapnplay.appengine.features.coins.domain.AdLimitStatus
+import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
@@ -16,6 +19,7 @@ import kotlinx.coroutines.withContext
 /** Maps the coins endpoints to domain. Never throws: failures come back typed. */
 class CoinsRepositoryImpl(
     private val client: CoinsClient,
+    private val clock: AppClock,
     private val dispatchers: DispatcherProvider,
 ) : CoinsRepository {
 
@@ -43,6 +47,21 @@ class CoinsRepositoryImpl(
         } catch (e: Exception) {
             CrashReporter.record(e, "CoinsRepository.claimAdReward")
             AppResult.Failure(YapNPlayError.Network("ad reward failed"))
+        }
+    }
+
+    override suspend fun adStatus(): AppResult<AdLimitStatus> = withContext(dispatchers.io) {
+        try {
+            val body = client.adStatus()
+            // The server's time re-based on this device's clock, so a skewed phone clock still counts down right.
+            val next = body.nextAdAt?.let { clock.now() + (it - body.serverTime).milliseconds }
+            // One step per ad allowed today: ads past the ladder pay its last step; an older server sends no ladder (all the same).
+            val ladder = body.adRewards.ifEmpty { listOf(body.coinsPerAd) }
+            val rewards = List(body.dailyLimit) { ladder.getOrElse(it) { ladder.last() } }
+            AppResult.Success(AdLimitStatus(body.coinsPerAd, body.dailyLimit, body.adsLeftToday, next, rewards))
+        } catch (e: Exception) {
+            CrashReporter.record(e, "CoinsRepository.adStatus")
+            AppResult.Failure(YapNPlayError.Network("ad status failed"))
         }
     }
 }

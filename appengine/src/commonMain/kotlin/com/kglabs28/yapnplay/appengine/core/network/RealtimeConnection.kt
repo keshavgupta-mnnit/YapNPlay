@@ -45,12 +45,12 @@ import kotlin.random.Random
  */
 class RealtimeConnection(
     private val http: HttpClient,
-    private val session: BackendSession,
+    private val session: SessionProvider,
     private val json: Json,
     private val scope: CoroutineScope,
     /** The backend address, read on every connect (AppManager can change it). */
     private val baseUrl: () -> String,
-) {
+) : RealtimeGateway {
     private val incoming = MutableSharedFlow<Envelope>(extraBufferCapacity = INCOMING_BUFFER)
     private val outbox = Outbox<String>(Outbox.UNLIMITED)
     private val pending = mutableMapOf<String, CompletableDeferred<Envelope>>()
@@ -64,27 +64,27 @@ class RealtimeConnection(
     private val loop: Job by lazy { scope.launch { connectForever() } }
 
     /** Goes up by one every time the socket (re)connects. */
-    val connections: StateFlow<Int> = _connections.asStateFlow()
-    val connected: StateFlow<Boolean> = _connected.asStateFlow()
+    override val connections: StateFlow<Int> = _connections.asStateFlow()
+    override val connected: StateFlow<Boolean> = _connected.asStateFlow()
     /** Reachability for the whole app (the connecting / can't connect screens). */
-    val status: StateFlow<ConnectionStatus> = _status.asStateFlow()
+    override val status: StateFlow<ConnectionStatus> = _status.asStateFlow()
 
     /** Starts connecting now (the app does this on launch). */
-    fun connect() = start()
+    override fun connect() = start()
 
     /** Tries again at once instead of waiting out the pause. */
-    fun retryNow() {
+    override fun retryNow() {
         start()
         retry.trySend(Unit)
     }
 
-    fun stream(channel: Channel): Flow<Envelope> {
+    override fun stream(channel: Channel): Flow<Envelope> {
         start()
         return incoming.filter { it.channel == channel }
     }
 
     /** Sends [value] as [type] on [channel] and waits for its reply. */
-    suspend fun <T> request(channel: Channel, type: String, serializer: KSerializer<T>, value: T): Envelope {
+    override suspend fun <T> request(channel: Channel, type: String, serializer: KSerializer<T>, value: T): Envelope {
         start()
         val requestId = newRequestId()
         val reply = CompletableDeferred<Envelope>()
@@ -104,7 +104,7 @@ class RealtimeConnection(
         }
     }
 
-    fun <T> decode(envelope: Envelope, serializer: KSerializer<T>): T = json.decodeFromJsonElement(serializer, envelope.payload)
+    override fun <T> decode(envelope: Envelope, serializer: KSerializer<T>): T = json.decodeFromJsonElement(serializer, envelope.payload)
 
     private fun start() {
         loop.start()

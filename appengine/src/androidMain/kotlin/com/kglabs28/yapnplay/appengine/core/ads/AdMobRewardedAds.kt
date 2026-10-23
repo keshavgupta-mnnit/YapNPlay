@@ -1,8 +1,12 @@
 package com.kglabs28.yapnplay.appengine.core.ads
 
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -15,13 +19,20 @@ import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import java.lang.ref.WeakReference
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 
 /**
  * AdMob rewarded ads. The unit id comes from AppManager (Google's test
  * unit until a real one is set). The ad needs the visible Activity, so
- * the app's resumed activity is tracked here.
+ * the app's resumed activity is tracked here (it is made when the app
+ * starts, so it sees the first one). One ad is loaded when the app
+ * launches (with the app's context, as the first screen opens) and the
+ * next one after each ad plays; a load that fails ("No fill") is not
+ * tried again until then. An offer is only shown when an ad can really play.
  */
 class AdMobRewardedAds(
     private val application: Application,
@@ -30,11 +41,31 @@ class AdMobRewardedAds(
 
     private var resumed = WeakReference<Activity>(null)
     private var initialized = false
+    private val readyFlow = MutableStateFlow(false)
+    override val readiness: StateFlow<Boolean> = readyFlow.asStateFlow()
+    /** The ad loaded ahead, ready to play. */
+    private var ready: RewardedAd? = null
+        set(value) {
+            field = value
+            readyFlow.value = value != null
+        }
+    private var loading = false
+    /** The launch load has started (screens coming back later don't load again). */
+    private var launched = false
+    private val main = Handler(Looper.getMainLooper())
 
     init {
+        AppLog.d(TAG, "created (enabled=${config.isEnabled()}, unit=${config.rewardedUnitId()})")
         application.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
-            override fun onActivityResumed(activity: Activity) { resumed = WeakReference(activity) }
-            override fun onActivityPaused(activity: Activity) = Unit
+            override fun onActivityResumed(activity: Activity) {
+                AppLog.d(TAG, "screen in front: ${activity::class.simpleName}")
+                resumed = WeakReference(activity)
+                if (!launched) {
+                    launched = true
+                    preload()
+                }
+            }
+            override fun onActivityPaused(activity: Activity) = AppLog.d(TAG, "screen paused: ${activity::class.simpleName}")
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
             override fun onActivityStarted(activity: Activity) = Unit
             override fun onActivityStopped(activity: Activity) = Unit
@@ -43,21 +74,71 @@ class AdMobRewardedAds(
         })
     }
 
+    override fun isReady(): Boolean = (config.isEnabled() && ready != null).also {
+        AppLog.d(TAG, "isReady=$it (enabled=${config.isEnabled()}, loaded=${ready != null}, loading=$loading)")
+    }
+
+    /** Starts loading the next ad unless one is ready or on its way (always on the main thread, as AdMob needs). */
+    override fun preload() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            main.post { preload() }
+            return
+        }
+        if (!config.isEnabled() || ready != null || loading) {
+            AppLog.d(TAG, "preload skipped (enabled=${config.isEnabled()}, loaded=${ready != null}, loading=$loading)")
+            return
+        }
+        initialize()
+        loading = true
+        AppLog.d(TAG, "preload started (unit=${config.rewardedUnitId()})")
+        RewardedAd.load(application, config.rewardedUnitId(), AdRequest.Builder().build(), object : RewardedAdLoadCallback() {
+            override fun onAdLoaded(ad: RewardedAd) {
+                AppLog.d(TAG, "preload: ad loaded")
+                loading = false
+                ready = ad
+            }
+            override fun onAdFailedToLoad(error: LoadAdError) {
+                AppLog.d(TAG, "preload failed: code=${error.code} message=${error.message} domain=${error.domain} response=${error.responseInfo}; not retried")
+                CrashReporter.record(IllegalStateException(error.message), "AdMobRewardedAds.preload:" + error.code)
+                loading = false
+            }
+        })
+    }
+
     override suspend fun show(): Boolean = withContext(Dispatchers.Main) {
-        if (!config.isEnabled()) return@withContext false
-        val activity = resumed.get() ?: return@withContext false
+        AppLog.d(TAG, "show requested (enabled=${config.isEnabled()}, loaded=${ready != null})")
+        if (!config.isEnabled()) return@withContext false.also { AppLog.d(TAG, "show: ads are switched off") }
+        val activity = resumed.get() ?: return@withContext false.also { AppLog.d(TAG, "show: no visible activity") }
+        AppLog.d(TAG, "show: on ${activity::class.simpleName} (finishing=${activity.isFinishing})")
+        initialize()
+        val ad = ready ?: load(activity) ?: return@withContext false.also { AppLog.d(TAG, "show: no ad could be loaded") }
+        ready = null
+        AppLog.d(TAG, "show: playing the ad")
+        play(activity, ad).also {
+            AppLog.d(TAG, "show: closed, reward earned=$it")
+            preload()
+        }
+    }
+
+    private fun initialize() {
         if (!initialized) {
-            MobileAds.initialize(application)
+            AppLog.d(TAG, "AdMob starting")
+            MobileAds.initialize(application) { status ->
+                status.adapterStatusMap.forEach { (name, adapter) -> AppLog.d(TAG, "AdMob adapter $name: ${adapter.initializationState} ${adapter.description}") }
+            }
             initialized = true
         }
-        val ad = load(activity) ?: return@withContext false
-        play(activity, ad)
     }
 
     private suspend fun load(activity: Activity): RewardedAd? = suspendCancellableCoroutine { cont ->
+        AppLog.d(TAG, "load on demand started")
         RewardedAd.load(activity, config.rewardedUnitId(), AdRequest.Builder().build(), object : RewardedAdLoadCallback() {
-            override fun onAdLoaded(ad: RewardedAd) { if (cont.isActive) cont.resume(ad) }
+            override fun onAdLoaded(ad: RewardedAd) {
+                AppLog.d(TAG, "load on demand: ad loaded")
+                if (cont.isActive) cont.resume(ad)
+            }
             override fun onAdFailedToLoad(error: LoadAdError) {
+                AppLog.d(TAG, "load on demand failed: code=${error.code} message=${error.message}")
                 CrashReporter.record(IllegalStateException(error.message), "AdMobRewardedAds.load:" + error.code)
                 if (cont.isActive) cont.resume(null)
             }
@@ -68,12 +149,23 @@ class AdMobRewardedAds(
     private suspend fun play(activity: Activity, ad: RewardedAd): Boolean = suspendCancellableCoroutine { cont ->
         var earned = false
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-            override fun onAdDismissedFullScreenContent() { if (cont.isActive) cont.resume(earned) }
+            override fun onAdShowedFullScreenContent() = AppLog.d(TAG, "play: ad on screen")
+            override fun onAdDismissedFullScreenContent() {
+                AppLog.d(TAG, "play: ad closed")
+                if (cont.isActive) cont.resume(earned)
+            }
             override fun onAdFailedToShowFullScreenContent(error: AdError) {
+                AppLog.d(TAG, "play failed: code=${error.code} message=${error.message}")
                 CrashReporter.record(IllegalStateException(error.message), "AdMobRewardedAds.show:" + error.code)
                 if (cont.isActive) cont.resume(false)
             }
         }
-        ad.show(activity) { earned = true }
+        ad.show(activity) {
+            AppLog.d(TAG, "play: reward earned")
+            earned = true
+        }
     }
 }
+
+private const val TAG = AppConstants.LOG_TAG_ADS
+

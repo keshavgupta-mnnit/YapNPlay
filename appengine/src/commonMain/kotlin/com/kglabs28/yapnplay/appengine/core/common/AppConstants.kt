@@ -5,6 +5,10 @@ package com.kglabs28.yapnplay.appengine.core.common
  * Values already declared in games/base contracts are re-exported, not duplicated.
  */
 object AppConstants {
+    /** The Logcat tag for the rewarded-ad flow (filter on it to follow an ad from offer to reward). */
+    const val LOG_TAG_ADS = "YapAds"
+    /** The Logcat tag for every screen action reaching its view model (filter on it to see what a tap did). */
+    const val LOG_TAG_INTENTS = "YapIntent"
 
     /** Length of a room join code. */
     const val ROOM_CODE_LENGTH = 6
@@ -33,8 +37,6 @@ object AppConstants {
     const val PANEL_RETAP_MS = 400L
     /** Google Play Games: the game server (web) OAuth client the backend checks sign-ins with. Public, not a secret. */
     const val PLAY_GAMES_WEB_CLIENT_ID = "532749629825-lflcpgr3pn64o7emjnvfdld8i0inpqhq.apps.googleusercontent.com"
-    /** EXP for 1st, 2nd, 3rd and everyone after, until the server hands it out. */
-    val PLACE_EXP = listOf(400, 300, 200, 100)
     /** City Bazaar: a balance counting to its new value. */
     const val CB_CASH_COUNT_MS = 900
     /** In the background this long (not a quick glance) and the server is told the user is away. */
@@ -51,12 +53,6 @@ object AppConstants {
     const val LUDO_NEON_BREATH_MS = 1_600
     const val LUDO_TIMER_TICK_MS = 100L
 
-    /** Ludo table: width share of each player-card column, talking glow blink. */
-    const val LUDO_CARD_COLUMN_WEIGHT = 0.2f
-    /** Board width share: it sits right of the user's card, before the opponents. */
-    const val LUDO_BOARD_WIDTH_WEIGHT = 0.68f
-    /** Spectating: a column of cards on each side, the board centred between them. */
-    const val LUDO_SPECTATOR_BOARD_WIDTH_WEIGHT = 0.6f
     /** The exit dialog closes by itself after this long without a choice. */
     const val EXIT_DIALOG_SECONDS = 30L
 
@@ -148,6 +144,10 @@ object AppConstants {
 
     /** Game grid columns (Grid View). */
     const val GAME_GRID_COLUMNS = 6
+    /** A MONO hand bigger than this uses the smaller card size. */
+    const val MONO_BIG_HAND = 12
+    /** The room lobby's game grid: fewer columns, so its tiles are bigger. */
+    const val LOBBY_GAME_GRID_COLUMNS = 3
 
     /** Game Zone QUICK PLAY button width as a share of the screen. */
     const val GAME_ZONE_CTA_WIDTH_FRACTION = 0.36f
@@ -188,4 +188,7 @@ object AppConstants {
     const val AVATAR_PICKER_COLUMNS = 6
     /** How long "Copied" shows after copying the user's ID. */
     const val PROFILE_COPIED_MS = 1_500L
+
+    /** Remote Config re-fetch gap: changed values reach players within an hour. */
+    const val REMOTE_CONFIG_FETCH_SECONDS = 3_600L
 }

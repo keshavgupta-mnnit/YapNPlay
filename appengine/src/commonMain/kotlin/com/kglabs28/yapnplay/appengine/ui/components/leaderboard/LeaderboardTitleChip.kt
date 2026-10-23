@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.leaderboard
 
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
@@ -17,7 +18,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
 /** A fun title ("🔥 Chaos King") in a glowing pill, coloured by place. */
 @Composable
-fun LeaderboardTitleChip(title: String, place: Int, modifier: Modifier = Modifier) {
+fun LeaderboardTitleChip(title: String, place: Int, modifier: Modifier = Modifier, textStyle: TextStyle = YapNPlayTheme.typography.micro) {
     val colors = YapNPlayTheme.colors
     val tint = when (place) {
         1 -> colors.Error
@@ -30,7 +31,7 @@ fun LeaderboardTitleChip(title: String, place: Int, modifier: Modifier = Modifie
     // Centred under the name; a long title shrinks to fit instead of being cut.
     ShrinkText(
         text = title,
-        style = YapNPlayTheme.typography.micro.copy(color = Color.White, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
+        style = textStyle.copy(color = Color.White, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
         minScale = CHIP_MIN_SCALE,
         modifier = modifier
             .background(Brush.verticalGradient(listOf(tint.copy(alpha = TOP), tint.copy(alpha = BOTTOM))), CircleShape)

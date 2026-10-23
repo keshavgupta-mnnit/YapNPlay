@@ -23,6 +23,9 @@ sealed interface LobbyCommand {
     /** Admin: turn down [userId]'s request. */
     data class DeclineJoin(val userId: String) : LobbyCommand
 
+    /** Admin: rename the group. */
+    data class RenameRoom(val name: String) : LobbyCommand
+
     /** Admin: take [userId] out of the room. */
     data class RemoveMember(val userId: String) : LobbyCommand
     /** Back arrow: stop being present, stay a member. */

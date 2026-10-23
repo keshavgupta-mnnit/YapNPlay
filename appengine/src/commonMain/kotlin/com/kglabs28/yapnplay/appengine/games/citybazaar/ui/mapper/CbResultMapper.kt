@@ -1,13 +1,11 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper
 
-import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbNoticeArt
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.MoneyReason
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarEvent
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarExtensionVoteInfo
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardEntryUi
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
@@ -61,8 +59,9 @@ object CbResultMapper {
                     name = p.name,
                     avatarId = p.avatarId,
                     title = CityBazaarStrings.cbPlaceTitles[index.coerceAtMost(CityBazaarStrings.cbPlaceTitles.lastIndex)],
-                    score = TableStrings.leaderboardPts(AppConstants.PLACE_EXP[index.coerceAtMost(AppConstants.PLACE_EXP.lastIndex)]),
-                    exp = TableStrings.leaderboardExp(AppConstants.PLACE_EXP[index.coerceAtMost(AppConstants.PLACE_EXP.lastIndex)]),
+                    // XP (and so the points) are the server's, filled in by LeaderboardResult once it pays them.
+                    score = "",
+                    exp = "",
                     micOn = p.micOn,
                     tint = Color.Unspecified,
                     isMe = p.isMe,
@@ -71,7 +70,7 @@ object CbResultMapper {
             }
         }
         val mine = entries.firstOrNull { it.isMe }?.placeLabel.orEmpty()
-        return LeaderboardUi(CityBazaarStrings.cbTitle, duration, entries, mine, myExp = entries.firstOrNull { it.isMe }?.let { e -> TableStrings.leaderboardGain(AppConstants.PLACE_EXP[(e.place - 1).coerceAtMost(AppConstants.PLACE_EXP.lastIndex)].toString()) }.orEmpty())
+        return LeaderboardUi(CityBazaarStrings.cbTitle, duration, entries, mine)
     }
 
     fun result(match: CityBazaarMatch): CbModal.Result = CbModal.Result(

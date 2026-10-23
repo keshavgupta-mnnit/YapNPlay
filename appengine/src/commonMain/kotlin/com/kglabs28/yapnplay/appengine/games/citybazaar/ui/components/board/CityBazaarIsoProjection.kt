@@ -77,6 +77,15 @@ class CityBazaarIsoProjection private constructor(private val origin: Offset, pr
         fun deckCentre(deck: CardDeck): Offset =
             if (deck == CardDeck.CHEST) Offset(CENTRE - DECK_OFFSET, CENTRE - DECK_OFFSET) else Offset(CENTRE + DECK_OFFSET, CENTRE + DECK_OFFSET)
 
+        /** The board's four tips where [fit] puts it in [size]: left, top, right, bottom. */
+        fun tips(size: Size): List<Offset> {
+            val p = fit(size)
+            val lo = -FRAME
+            val hi = CityBazaarBoardGeometry.SIDE + FRAME
+            val corners = listOf(Offset(lo, lo), Offset(hi, lo), Offset(hi, hi), Offset(lo, hi)).map { p.project(it) }
+            return listOf(corners.minBy { it.x }, corners.minBy { it.y }, corners.maxBy { it.x }, corners.maxBy { it.y })
+        }
+
         /** The largest board that fits [size], centred. */
         fun fit(size: Size): CityBazaarIsoProjection {
             val unit = CityBazaarIsoProjection(Offset.Zero, 1f)

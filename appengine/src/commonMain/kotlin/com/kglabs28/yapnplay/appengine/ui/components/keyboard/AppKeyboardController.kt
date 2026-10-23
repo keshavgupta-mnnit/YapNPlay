@@ -12,6 +12,18 @@ class AppKeyboardController {
     var request: AppKeyboardRequest? by mutableStateOf(null)
         private set
 
+    /** Where the open field's bottom edge is on screen (px), as if the screen were not lifted. */
+    var fieldBottom: Float by mutableStateOf(0f)
+        private set
+
+    /** How far the screen is lifted right now (px), so the field clears the keys. */
+    var lift: Float by mutableStateOf(0f)
+
+    /** The field [owner] is at [bottom] on screen right now (px, including any current lift). */
+    fun place(owner: Any, bottom: Float) {
+        if (request?.owner === owner) fieldBottom = bottom + lift
+    }
+
     fun open(next: AppKeyboardRequest) {
         request = next
     }

@@ -16,6 +16,18 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
+ * Where the app's bearer token comes from: a guest account created over
+ * HTTP and cached on the device.
+ */
+interface SessionProvider {
+    /** The account to authenticate with, creating one first if needed. */
+    suspend fun credentials(): BackendCredentials
+
+    /** This device's user id, once an account exists (null before the first call). */
+    fun currentUserId(): String?
+}
+
+/**
  * The signed-in account. The first time anything needs the backend, a guest
  * account is created (`POST /auth/guest`) and its secret saved on the
  * device; afterwards the same account is reused, also across restarts.
@@ -24,7 +36,7 @@ import kotlinx.coroutines.sync.withLock
 class BackendSession(
     private val http: HttpClient,
     private val store: CredentialStore,
-) {
+) : SessionProvider {
     private val lock = Mutex()
     private val rejected = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
@@ -36,7 +48,7 @@ class BackendSession(
     }
 
     /** The saved account, creating one first if this device has none. */
-    suspend fun credentials(): BackendCredentials =
+    override suspend fun credentials(): BackendCredentials =
         store.load() ?: lock.withLock {
             store.load() ?: http.post(BackendPaths.GUEST).body<GuestCreated>()
                 .let { BackendCredentials(it.userId, it.secret) }
@@ -59,5 +71,5 @@ class BackendSession(
     }
 
     /** This device's user id, once an account exists (null before the first call). */
-    fun currentUserId(): String? = store.load()?.userId
+    override fun currentUserId(): String? = store.load()?.userId
 }

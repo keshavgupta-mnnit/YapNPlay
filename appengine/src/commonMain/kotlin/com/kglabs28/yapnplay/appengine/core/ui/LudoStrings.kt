@@ -4,13 +4,10 @@ package com.kglabs28.yapnplay.appengine.core.ui
 object LudoStrings {
     const val ludoTitle = "ROYAL LUDO"
     const val ludoRollDice = "Roll Dice"
-    const val ludoAutoplay = "Autoplay"
     const val ludoSpectators = "spectators"
-    const val ludoMatchTime = "Match time"
     const val ludoSettings = "Settings"
     const val ludoExit = "Leave match"
-    const val ludoLeaveTitle = "Leave the match?"
-    const val ludoLeaveBody = "A CPU will play your seat for the rest of the match."
+    const val ludoLeaveBody = "If you leave, you're out of this match: your pieces leave the board and your entry is lost."
     const val ludoResultTitle = "Match over"
     const val ludoDone = "Done"
     const val ludoSoundEffects = "Sound effects"
@@ -45,12 +42,7 @@ object LudoStrings {
     fun ludoMove(steps: Int) = "Move $steps"
     const val ludoAway = "Away"
     fun ludoClock(minutes: Long, seconds: Long) = "$minutes:${seconds.toString().padStart(2, '0')}"
-    fun ludoPlace(place: Int) = when (place) {
-        1 -> "1st"
-        2 -> "2nd"
-        3 -> "3rd"
-        else -> "${place}th"
-    }
-    val ludoPlaceTitles = listOf("🔥 Chaos King", "⚡ Speed Runner", "🎯 Token Hunter", "🐢 Slow & Steady", "🎲 Pure Luck", "👀 Pro Spectator")
+    fun ludoPlace(place: Int) = TableStrings.placeLabel(place)
+    val ludoPlaceTitles = listOf("🔥 Chaos King", "⚡ Speedy", "🎯 Hunter", "🐢 Slowpoke", "🎲 Lucky", "👀 Spectator")
 
 }

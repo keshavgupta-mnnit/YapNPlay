@@ -18,6 +18,8 @@ import com.kglabs28.yapnplay.appengine.core.common.DeepLink
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.PlayRoomLobbyScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainScreen
+import com.kglabs28.yapnplay.appengine.ui.screens.mono.MatchMonoChaosScreen
+import com.kglabs28.yapnplay.appengine.ui.screens.mono.MatchMonoScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsViewModel
@@ -114,6 +116,20 @@ fun YapNPlayNavHost(
                 matchId = entry.toRoute<RoyalLudoMatch>().matchId,
                 // Only while this table is on top: a second close mustn't pop the screen under it (black screen).
                 onClose = { if (navController.currentBackStackEntry?.id == entry.id) navController.popBackStack() },
+                viewModel = entry.rememberScreenViewModel(),
+            )
+        }
+        composable<MonoMatchRoute> { entry ->
+            MatchMonoScreen(
+                matchId = entry.toRoute<MonoMatchRoute>().matchId,
+                onClose = { navController.popBackStack() },
+                viewModel = entry.rememberScreenViewModel(),
+            )
+        }
+        composable<MonoChaosMatchRoute> { entry ->
+            MatchMonoChaosScreen(
+                matchId = entry.toRoute<MonoChaosMatchRoute>().matchId,
+                onClose = { navController.popBackStack() },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }

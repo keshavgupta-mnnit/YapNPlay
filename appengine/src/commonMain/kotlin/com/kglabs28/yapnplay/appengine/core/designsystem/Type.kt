@@ -118,4 +118,12 @@ class YapNPlayTypography(
             fontSize = 10.scaledSp,
             lineHeight = 13.scaledSp,
         )
+
+    /** The leaderboard podium's player card: name, coins won, and the title chip. */
+    val podiumName: TextStyle
+        get() = TextStyle(fontFamily = headlineFamily, fontWeight = FontWeight.Black, fontSize = 15.scaledSp, lineHeight = 18.scaledSp)
+    val podiumCoins: TextStyle
+        get() = TextStyle(fontFamily = headlineFamily, fontWeight = FontWeight.Bold, fontSize = 16.scaledSp, lineHeight = 20.scaledSp)
+    val podiumChip: TextStyle
+        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Bold, fontSize = 12.scaledSp, lineHeight = 15.scaledSp)
 }

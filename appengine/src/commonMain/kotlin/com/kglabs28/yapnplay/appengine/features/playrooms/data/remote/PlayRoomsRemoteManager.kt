@@ -52,8 +52,8 @@ class PlayRoomsRemoteManager(private val api: PlayRoomsApi) {
     }
 
     /** The ids that got an invite. */
-    suspend fun inviteToRoom(roomId: String, userIds: List<String>): AppResult<List<String>> = try {
-        AppResult.Success(api.inviteToRoom(roomId, InviteToRoomBody(userIds)).invited)
+    suspend fun inviteToRoom(roomId: String, userIds: List<String>, userCodes: List<String> = emptyList()): AppResult<List<String>> = try {
+        AppResult.Success(api.inviteToRoom(roomId, InviteToRoomBody(userIds, userCodes)).invited)
     } catch (e: Exception) {
         CrashReporter.record(e, "PlayRoomsRemoteManager.inviteToRoom")
         AppResult.Failure(YapNPlayError.Network(INVITE_FAILED))

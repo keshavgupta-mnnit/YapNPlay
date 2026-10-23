@@ -10,6 +10,9 @@ import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMicOnUseCas
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMySpeakingUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetLocallyMutedUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOnUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveSpeakerOnUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetSpeakerOnUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.TableVoiceUseCases
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOpenUseCase
 import org.koin.dsl.module
 
@@ -25,4 +28,7 @@ val voiceModule = module {
     factory { SetMicOpenUseCase(get()) }
     factory { ObserveMicOnUseCase(get()) }
     factory { SetMicOnUseCase(get()) }
+    factory { ObserveSpeakerOnUseCase(get()) }
+    factory { SetSpeakerOnUseCase(get()) }
+    factory { TableVoiceUseCases(get(), get(), get(), get()) }
 }

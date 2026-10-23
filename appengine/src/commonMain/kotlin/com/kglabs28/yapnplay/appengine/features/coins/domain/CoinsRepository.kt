@@ -9,4 +9,6 @@ import com.kglabs28.yapnplay.appengine.core.common.AppResult
 interface CoinsRepository {
     suspend fun leagues(): AppResult<CoinLeagues>
     suspend fun claimAdReward(adId: String): AppResult<AdCoinsReward>
+    /** The free-coin ad limits now (daily count and cooldown). */
+    suspend fun adStatus(): AppResult<AdLimitStatus>
 }

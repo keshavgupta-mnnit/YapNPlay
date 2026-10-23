@@ -50,7 +50,8 @@ fun CbPromptArt(tile: Int, name: String, price: String, tint: Color, withHouse: 
                 .rotate(TILT)
                 .width(dimens.promptNameCardWidth)
                 .height(dimens.promptNameCardHeight)
-                .shadow(elevation = dimens.promptGlow, shape = shape, ambientColor = tint, spotColor = tint)
+                // A drawn glow: an elevation shadow showed through the see-through fill as a dark box.
+                .cbRimGlow(tint, dimens.cardRadius)
                 .clip(shape)
                 .background(Brush.verticalGradient(listOf(tint, tint.copy(alpha = CARD_BOTTOM))))
                 .border(dimens.promptRim, Brush.verticalGradient(listOf(Color.White.copy(alpha = RIM_SHINE), tint)), shape)

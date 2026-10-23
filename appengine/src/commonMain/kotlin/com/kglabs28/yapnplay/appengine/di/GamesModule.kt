@@ -13,6 +13,8 @@ import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.GetOnlinePla
 import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.LeaveQuickPlayQueueUseCase
 import com.kglabs28.yapnplay.appengine.games.base.GameRegistry
 import com.kglabs28.yapnplay.appengine.games.citybazaar.engine.CityBazaarEngine
+import com.kglabs28.yapnplay.appengine.games.mono.engine.MonoEngine
+import com.kglabs28.yapnplay.appengine.games.monochaos.engine.MonoChaosEngine
 import com.kglabs28.yapnplay.appengine.games.royalludo.engine.RoyalLudoEngine
 import org.koin.dsl.module
 
@@ -26,6 +28,8 @@ val gamesModule = module {
             listOf(
                 RoyalLudoEngine(),
                 CityBazaarEngine(),
+                MonoEngine(),
+                MonoChaosEngine(),
             ),
         )
     }

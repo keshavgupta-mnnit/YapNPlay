@@ -32,5 +32,6 @@ val platformAppManagerModule = module {
     single<AppVersionProvider> { AndroidAppVersionProvider(androidContext()) }
     single<MicLevelMonitor> { AndroidMicLevelMonitor(androidContext()) }
     single<VoiceEngine> { LiveKitVoiceEngine(androidContext()) }
-    single<RewardedAds> { AdMobRewardedAds(androidApplication(), get()) }
+    // Made at start, so it sees the first screen resume (it needs the visible Activity to play).
+    single<RewardedAds>(createdAtStart = true) { AdMobRewardedAds(androidApplication(), get()) }
 }

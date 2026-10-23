@@ -22,8 +22,9 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 
 /**
  * The START MATCH button design at dialog size: top-left and bottom-right
- * corners cut, a thin outline of the same shape a small gap outside. [lit]
- * is the glowing gold body; otherwise dark glass with a gold rim.
+ * corners cut, a thin outline of the same shape a small gap outside.
+ * See-through glass like every other button: [lit] (the main choice) is
+ * glass tinted orange-gold and glowing, otherwise dark glass with a gold rim.
  * Disabled is grey and ignores taps.
  */
 @Composable
@@ -44,8 +45,8 @@ fun CutCornerButton(
     val rim = if (enabled) colors.StartButtonRim else colors.StartButtonDisabledRim
     val body = when {
         !enabled -> Brush.verticalGradient(listOf(colors.StartButtonDisabledTop, colors.StartButtonDisabledBottom))
-        lit -> Brush.verticalGradient(listOf(colors.StartButtonTop, colors.StartButtonBottom))
-        else -> Brush.verticalGradient(listOf(colors.RoomsSmallButton, colors.RoomsPanel))
+        lit -> Brush.verticalGradient(listOf(colors.StartButtonTop.copy(alpha = LIT_GLASS_ALPHA), colors.StartButtonBottom.copy(alpha = LIT_GLASS_ALPHA)))
+        else -> Brush.verticalGradient(listOf(colors.RoomsSmallButton.copy(alpha = GLASS_ALPHA), colors.RoomsPanel.copy(alpha = GLASS_ALPHA)))
     }
     Box(
         modifier = modifier
@@ -85,3 +86,6 @@ fun CutCornerButton(
 
 private const val OUTLINE_ALPHA = 0.7f
 private const val SHADOW_BLUR = 12f
+/** The glass body is this see-through; the lit one's orange tint a little less. */
+private const val GLASS_ALPHA = 0.6f
+private const val LIT_GLASS_ALPHA = 0.7f

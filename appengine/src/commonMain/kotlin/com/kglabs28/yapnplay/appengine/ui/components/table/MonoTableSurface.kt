@@ -1,0 +1,164 @@
+package com.kglabs28.yapnplay.appengine.ui.components.table
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import kotlin.math.PI
+import kotlin.math.atan2
+import androidx.compose.ui.graphics.Brush
+import kotlin.math.cos
+import kotlin.math.sin
+
+/**
+ * The direction arrows inside the oval: two curved arrows, one down each
+ * side, chasing each other round the piles and flipping when the turn
+ * order reverses. They are in the colour in force; like a keyboard's
+ * light chase, a bright band runs along each arrow from its tail to its
+ * head, over and over, leaving a fading trail, so the direction reads at
+ * a glance. The arrowhead flares as the band reaches it.
+ */
+@Composable
+fun MonoTurnRing(
+    hue: MonoHue?,
+    clockwise: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    // 0 → 1 over one run of the wave.
+    val phase by rememberInfiniteTransition(label = "turn-ring").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(WAVE_MS, easing = LinearEasing)),
+        label = "turn-ring-wave",
+    )
+    val base = hue.ring
+    Canvas(modifier = modifier) {
+        val inset = size.minDimension * (OVAL_INSET + ARROW_INSET)
+        val rx = size.width / 2 - inset
+        val ry = size.height / 2 - inset
+        val stroke = size.minDimension * ARROW_STROKE
+        // Right side, then left side: each sweeps through its own half.
+        listOf(RIGHT_START, RIGHT_START + HALF_TURN).forEach { start ->
+            drawWaveArc(center, rx, ry, start, ARC_SWEEP, clockwise, stroke, base, phase)
+        }
+    }
+}
+
+/**
+ * One arc drawn as a single smooth stroke (a soft glow under a bright core)
+ * whose colour runs along it through a sweep gradient, then an arrowhead
+ * at the leading end in the colour arriving there.
+ */
+private fun DrawScope.drawWaveArc(c: Offset, rx: Float, ry: Float, startDeg: Float, sweepDeg: Float, clockwise: Boolean, stroke: Float, base: Color, phase: Float) {
+    val box = Offset(c.x - rx, c.y - ry)
+    val oval = Size(rx * 2, ry * 2)
+    val brush = waveBrush(c, rx, ry, startDeg, sweepDeg, clockwise, base, phase)
+    drawArc(brush, startDeg, sweepDeg, false, box, oval, alpha = GLOW_ALPHA, style = Stroke(stroke * ARROW_GLOW, cap = StrokeCap.Round))
+    drawArc(brush, startDeg, sweepDeg, false, box, oval, style = Stroke(stroke, cap = StrokeCap.Round))
+    val headColour = chaseColour(base, 1f, phase)
+    // Clockwise (screen angles grow clockwise) the head sits at the sweep's end; otherwise at its start.
+    val headDeg = if (clockwise) startDeg + sweepDeg else startDeg
+    val t = headDeg * PI.toFloat() / HALF_TURN
+    val tip = Offset(c.x + rx * cos(t), c.y + ry * sin(t))
+    // The tangent of the ellipse, pointing the way play runs.
+    val dir = if (clockwise) 1f else -1f
+    val tx = -rx * sin(t) * dir
+    val ty = ry * cos(t) * dir
+    val len = kotlin.math.sqrt(tx * tx + ty * ty)
+    val ux = tx / len
+    val uy = ty / len
+    val head = stroke * HEAD
+    // The head's base sits a little back over the line's end, so line and head read as one arrow.
+    val base = Offset(tip.x - ux * stroke * HEAD_OVERLAP, tip.y - uy * stroke * HEAD_OVERLAP)
+    val path = Path().apply {
+        moveTo(tip.x + ux * head, tip.y + uy * head)
+        lineTo(base.x - uy * head * HEAD_WIDE, base.y + ux * head * HEAD_WIDE)
+        lineTo(base.x + uy * head * HEAD_WIDE, base.y - ux * head * HEAD_WIDE)
+        close()
+    }
+    // The same soft glow as the line, then the head with rounded corners.
+    drawPath(path, headColour.copy(alpha = GLOW_ALPHA), style = Stroke(stroke * ARROW_GLOW, join = StrokeJoin.Round))
+    drawPath(path, headColour)
+    drawPath(path, headColour, style = Stroke(stroke * HEAD_ROUND, join = StrokeJoin.Round))
+}
+
+/**
+ * A sweep gradient round [c] that gives each point of the arc the chase
+ * colour for its place along the arrow. Samples are taken along the arc
+ * and placed by their angle round the centre (the gradient's own measure);
+ * an arc crossing the 0° line gets the colour there at both ends of the
+ * gradient, so it stays seamless.
+ */
+private fun waveBrush(c: Offset, rx: Float, ry: Float, startDeg: Float, sweepDeg: Float, clockwise: Boolean, base: Color, phase: Float): Brush {
+    val stops = (0..SAMPLES).map { i ->
+        val t = (startDeg + sweepDeg * i / SAMPLES) * PI.toFloat() / HALF_TURN
+        var at = atan2(ry * sin(t), rx * cos(t)) / (2 * PI.toFloat())
+        if (at < 0f) at += 1f
+        val along = if (clockwise) i / SAMPLES.toFloat() else 1f - i / SAMPLES.toFloat()
+        at to chaseColour(base, along, phase)
+    }.toMutableList()
+    // Where the arc crosses 0°, both ends of the gradient take the colour found there.
+    val wrap = stops.zipWithNext().firstOrNull { (p, q) -> kotlin.math.abs(p.first - q.first) > HALF }
+    if (wrap != null) {
+        val there = lerp(wrap.first.second, wrap.second.second, HALF)
+        stops += 0f to there
+        stops += 1f to there
+    }
+    return Brush.sweepGradient(*stops.sortedBy { it.first }.toTypedArray(), center = c)
+}
+
+/**
+ * The colour at [along] (0 tail … 1 head) when the band is at [phase]: the
+ * arrow's own [base], brightened towards white where the band is and
+ * fading along the trail behind it.
+ */
+private fun chaseColour(base: Color, along: Float, phase: Float): Color {
+    // How far behind the band this point is (0 = in it), wrapping round.
+    val behind = (phase * CHASE_RUN - along).mod(CHASE_RUN)
+    val lit = (1f - behind / CHASE_TRAIL).coerceIn(0f, 1f)
+    val bright = lerp(base, Color.White, CHASE_WHITE)
+    return lerp(base.copy(alpha = CHASE_DIM), bright, lit)
+}
+
+/** Fractions of the arena's shorter side. */
+private const val OVAL_INSET = 0.04f
+private const val ARROW_INSET = 0.1f
+private const val ARROW_STROKE = 0.04f
+private const val ARROW_GLOW = 2.4f
+private const val GLOW_ALPHA = 0.28f
+private const val HEAD = 2.4f
+private const val HEAD_WIDE = 0.9f
+/** How far the head reaches back over the line (× stroke), and how round its corners are (× stroke). */
+private const val HEAD_OVERLAP = 0.6f
+private const val HEAD_ROUND = 0.5f
+/** The right arc runs from upper right to lower right (screen degrees). */
+private const val RIGHT_START = -40f
+private const val ARC_SWEEP = 80f
+private const val HALF_TURN = 180f
+/**
+ * The chase: colour samples along each arrow; how far the band runs per
+ * cycle (past the head, so the trail clears before it starts again); how
+ * long its trail is (fraction of the arrow); how much it whitens; how dim
+ * the rest is; one cycle's length.
+ */
+private const val SAMPLES = 48
+private const val HALF = 0.5f
+private const val CHASE_RUN = 1.5f
+private const val CHASE_TRAIL = 0.55f
+private const val CHASE_WHITE = 0.55f
+private const val CHASE_DIM = 0.55f
+private const val WAVE_MS = 1300

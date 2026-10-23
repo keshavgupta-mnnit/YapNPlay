@@ -50,6 +50,8 @@ data class RoyalLudoMatchState(
     val rightCards: List<LudoPlayerCardUi> = emptyList(),
     val autoplay: Boolean = false,
     val micOn: Boolean = false,
+    /** The user's speaker: off, they hear nobody (only on their device). */
+    val speakerOn: Boolean = true,
     val modal: LudoMatchModal? = null,
     /** The match is over: the full-screen leaderboard. */
     val leaderboard: LeaderboardUi? = null,
@@ -153,6 +155,10 @@ sealed interface RoyalLudoMatchIntent : UiIntent {
     data object OpenAppSettings : RoyalLudoMatchIntent
     /** Mute or unmute this player for the user only. */
     data class ToggleHear(val seat: Int) : RoyalLudoMatchIntent
+    /** The user's speaker on or off (for them only). */
+    data object ToggleSpeaker : RoyalLudoMatchIntent
+    /** Mute or unmute a spectator for the user only. */
+    data class ToggleHearSpectator(val userId: String) : RoyalLudoMatchIntent
     /** Long press on a player card: add or remove them as a friend. */
     data class PlayerLongPressed(val seat: Int) : RoyalLudoMatchIntent
     data object ConfirmFriendAction : RoyalLudoMatchIntent

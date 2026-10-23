@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogUi
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedLineUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.TablePlayerCardUi
@@ -43,6 +44,8 @@ data class CityBazaarMatchState(
     val rollLabel: String = "",
     val autoplay: Boolean = false,
     val micOn: Boolean = false,
+    /** The user's speaker: off, they hear nobody (only on their device). */
+    val speakerOn: Boolean = true,
     /** A short balance-sheet note at the top (rent, tax, cards); goes by itself. */
     val toast: CbToastUi? = null,
     /** The latest money transfer, as a popup for a few seconds. */
@@ -61,7 +64,14 @@ data class CityBazaarMatchState(
     val friendAction: PlayerFriendActionUi? = null,
     /** Info in the left column (a tapped tile, player, pile or stack); any touch elsewhere closes it. */
     val panel: CbPanel? = null,
-) : UiState
+) : UiState {
+    /**
+     * Everyone but the user in turn order, starting after the user (the 3D
+     * board seats them clockwise in this order). Watching, the right column
+     * holds the first half of the turn order.
+     */
+    val seatsInTurnOrder: List<CbPlayerCardUi> get() = if (spectating) rightCards + leftCards else leftCards + rightCards
+}
 
 /** One tile as drawn: its owner's colour and buildings (0 land … 4 hotel). */
 data class CbTileUi(val index: Int, val ownerColour: CityBazaarColour?, val level: Int)
@@ -267,7 +277,8 @@ sealed interface CbModal {
     data class ExtensionVote(val body: String, val tally: String, val status: String?, val canVote: Boolean, val countdown: String) : CbModal
     /** Someone asked to end the game: end or keep playing (play is paused). */
     data class EndVote(val body: String, val tally: String, val status: String?, val canVote: Boolean, val countdown: String) : CbModal
-    data object LeaveConfirm : CbModal
+    /** The shared exit dialog. */
+    data class LeaveConfirm(val dialog: LeaveDialogUi) : CbModal
     data object MicPermissionNeeded : CbModal
     data class Settings(val effectsOn: Boolean, val musicOn: Boolean, val canProposeEnd: Boolean = false) : CbModal
     data class Report(val people: List<ReportPersonUi>, val selectedUserId: String?, val warning: String, val error: String?) : CbModal
@@ -298,6 +309,8 @@ sealed interface CityBazaarMatchIntent : UiIntent {
     data object OpenHistory : CityBazaarMatchIntent
     data object OpenBank : CityBazaarMatchIntent
     data class VoteExtension(val keepPlaying: Boolean) : CityBazaarMatchIntent
+    /** The exit dialog's pick of who takes the seat (a CPU first, then each spectator). */
+    data class PickSeatTaker(val index: Int) : CityBazaarMatchIntent
     /** Settings: ask everyone to end the game. */
     data object ProposeEnd : CityBazaarMatchIntent
     data class VoteEnd(val agree: Boolean) : CityBazaarMatchIntent
@@ -311,6 +324,10 @@ sealed interface CityBazaarMatchIntent : UiIntent {
     data class MicPermissionResult(val granted: Boolean) : CityBazaarMatchIntent
     data object OpenAppSettings : CityBazaarMatchIntent
     data class ToggleHear(val seat: Int) : CityBazaarMatchIntent
+    /** The user's speaker on or off (for them only). */
+    data object ToggleSpeaker : CityBazaarMatchIntent
+    /** Mute or unmute a spectator for the user only. */
+    data class ToggleHearSpectator(val userId: String) : CityBazaarMatchIntent
     /** Long press on a player card: add or remove them as a friend. */
     data class PlayerLongPressed(val seat: Int) : CityBazaarMatchIntent
     data object ConfirmFriendAction : CityBazaarMatchIntent

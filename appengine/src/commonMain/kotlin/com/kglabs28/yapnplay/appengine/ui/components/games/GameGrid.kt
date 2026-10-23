@@ -16,8 +16,10 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.glassPanel
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.domain.GameCatalogItem
 
 /**
- * Reusable game grid (Grid View): every game as a small glass tile; the
- * [focusedIndex] tile glows green. A tap reports through [onGameClick].
+ * Reusable game grid (Grid View): every game as a glass tile with its art
+ * and name (no tagline); the [focusedIndex] tile glows green. [columns]
+ * sets the tile size (fewer columns, bigger tiles). A tap reports through
+ * [onGameClick].
  */
 @Composable
 fun GameGrid(
@@ -25,11 +27,12 @@ fun GameGrid(
     focusedIndex: Int,
     onGameClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    columns: Int = AppConstants.GAME_GRID_COLUMNS,
 ) {
     val colors = YapNPlayTheme.colors
 
     LazyVerticalGrid(
-        columns = GridCells.Fixed(AppConstants.GAME_GRID_COLUMNS),
+        columns = GridCells.Fixed(columns),
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
         verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
@@ -38,6 +41,7 @@ fun GameGrid(
             GameShowcaseCard(
                 game = game,
                 nameStyle = YapNPlayTheme.typography.sectionTitle,
+                showTagline = false,
                 modifier = Modifier
                     .aspectRatio(1f)
                     .glassPanel(

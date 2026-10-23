@@ -55,6 +55,14 @@ class VoiceClientImpl(
         engine.setMuted(this.muted.value)
     }
 
+    private val speaker = MutableStateFlow(true)
+    override val speakerOn: StateFlow<Boolean> = speaker.asStateFlow()
+
+    override fun setSpeakerOn(on: Boolean) {
+        speaker.value = on
+        engine.setSpeakerOn(on)
+    }
+
     private val micSwitch = MutableStateFlow(false)
     override val micOn: StateFlow<Boolean> = micSwitch.asStateFlow()
 

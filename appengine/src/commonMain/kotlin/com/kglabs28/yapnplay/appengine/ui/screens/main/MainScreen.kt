@@ -31,6 +31,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.home.PlayWithFriendsCard
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
+import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsIntent
 import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsViewModel
 
@@ -161,8 +162,10 @@ fun MainScreen(
                         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
                     ) {
                         PlayWithFriendsCard(
+                            // The whole card opens Create New Group (on the Rooms tab).
                             onPlayWithFriends = {
                                 viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
+                                playRoomsViewModel?.onIntent(PlayRoomsIntent.CreateRoom)
                             },
                             modifier = Modifier.weight(1f),
                         )

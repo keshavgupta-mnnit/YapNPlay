@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import com.kglabs28.yapnplay.appengine.core.common.StartupGate
 import com.kglabs28.yapnplay.appengine.ui.components.common.SlidingTextHost
 import com.kglabs28.yapnplay.appengine.ui.components.common.UpdateGate
 import androidx.compose.foundation.background
@@ -45,8 +48,11 @@ fun YapNPlayRoot(
         ) {
             // One host for blocking modals (e.g. the matching snackbar):
             // it frosts the whole app behind them and swallows input.
-            // Mic + notifications, asked once per launch for anything not yet granted.
-            RequestStartupPermissions()
+            // Play Games signs in first; the rest waits so nothing knocks its dialog away.
+            val startupGate: StartupGate = koinInject()
+            val startupReady by startupGate.ready.collectAsState()
+            // Mic + notifications, asked once per launch for anything not yet granted (after sign-in).
+            RequestStartupPermissions(ready = startupReady)
             // Play Games links this account (or brings back the one linked
             // before, on a new phone or after a reinstall: then the app reloads).
             val playGames = rememberPlayGamesAuth()
@@ -59,6 +65,7 @@ fun YapNPlayRoot(
                     if (result is AppResult.Success && result.data) playGames.reloadApp()
                 }
                 signIn()
+                startupGate.open()
                 // Refused later (the account was restored on another phone): sign in again, one at a time.
                 observeSignInNeeded().collect { signIn() }
             }

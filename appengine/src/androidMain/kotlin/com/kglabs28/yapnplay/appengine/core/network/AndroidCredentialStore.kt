@@ -14,7 +14,9 @@ class AndroidCredentialStore(context: Context) : CredentialStore {
     }
 
     override fun save(credentials: BackendCredentials) {
-        prefs.edit().putString(KEY_USER_ID, credentials.userId).putString(KEY_SECRET, credentials.secret).apply()
+        // Written at once (commit, not apply): a restored account restarts the app right after,
+        // and an asynchronous write would be lost with the process (the restore would loop).
+        prefs.edit().putString(KEY_USER_ID, credentials.userId).putString(KEY_SECRET, credentials.secret).commit()
     }
 
     override fun clear() {

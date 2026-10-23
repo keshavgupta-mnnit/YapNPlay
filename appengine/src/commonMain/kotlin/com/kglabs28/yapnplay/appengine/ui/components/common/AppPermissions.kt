@@ -22,7 +22,8 @@ expect fun rememberPermissionRequester(permission: AppPermission): PermissionReq
 /**
  * Asks, once per app start, for every permission not granted yet
  * (microphone; notifications on Android 13+). Denying is fine: the mic is
- * asked for again when the user turns it on.
+ * asked for again when the user turns it on. Waits for [ready] (the launch's
+ * Play Games sign-in done), so the request never closes that dialog.
  */
 @Composable
-expect fun RequestStartupPermissions()
+expect fun RequestStartupPermissions(ready: Boolean)

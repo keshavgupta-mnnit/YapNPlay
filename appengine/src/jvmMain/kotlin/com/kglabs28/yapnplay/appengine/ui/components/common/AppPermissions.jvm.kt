@@ -8,4 +8,4 @@ actual fun rememberPermissionRequester(permission: AppPermission): PermissionReq
     PermissionRequester(isGranted = { true }, request = { it(true) }, openSettings = {})
 
 @Composable
-actual fun RequestStartupPermissions() = Unit
+actual fun RequestStartupPermissions(ready: Boolean) = Unit

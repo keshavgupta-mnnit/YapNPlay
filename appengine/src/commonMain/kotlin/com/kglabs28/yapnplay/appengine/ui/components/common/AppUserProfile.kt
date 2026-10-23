@@ -66,7 +66,7 @@ fun AppUserProfile(
         PresenceDot(
             online = online,
             modifier = Modifier.revealWhen(statusVisible),
-            size = dimens.statusDot,
+            size = dimens.statusDotSmall,
         )
     }
 }

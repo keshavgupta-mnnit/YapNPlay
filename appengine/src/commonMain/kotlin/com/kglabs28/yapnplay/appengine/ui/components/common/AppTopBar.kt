@@ -81,6 +81,7 @@ fun AppTopBar(
             onToggle = onToggleNotifications,
             onDismiss = onDismissNotifications,
             onNotificationClick = onNotificationClick,
+            size = dimens.homeBarControl,
         )
         GlassIconButton(
             imageVector = Icons.Rounded.Settings,
@@ -88,6 +89,8 @@ fun AppTopBar(
             onClick = onOpenSettings,
             surface = colors.TopBarButtonFrost,
             tint = colors.HomeTextSoft,
+            size = dimens.homeBarControl,
+            iconSize = dimens.homeBarIcon,
         )
         AppUserProfile(
             online = online,

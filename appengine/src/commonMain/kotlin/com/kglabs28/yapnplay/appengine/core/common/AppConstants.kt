@@ -106,7 +106,7 @@ object AppConstants {
     const val CARD_ART_ZOOM = 1.2f
 
     /** Home QUICK PLAY button width as a share of its card. */
-    const val HOME_CTA_WIDTH_FRACTION = 0.65f
+    const val HOME_CTA_WIDTH_FRACTION = 0.74f
 
     /**
      * Rooms tab split. Columns are 60:40 (create/join left, lists right);

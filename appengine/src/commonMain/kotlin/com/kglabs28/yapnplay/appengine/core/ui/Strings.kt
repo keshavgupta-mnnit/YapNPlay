@@ -16,7 +16,7 @@ object Strings {
     const val dailyBonusCollect = "COLLECT"
     const val homeEnterGameZoneTitlePart1 = "ENTER "
     const val homeEnterGameZoneTitlePart2 = "GAME ZONE"
-    const val homeEnterGameZoneSubtitle = "Jump into a game, meet new people, and create unforgettable moments!"
+    const val homeEnterGameZoneSubtitle = "Jump into a game, meet new people, and\ncreate unforgettable moments!"
     const val homeFeaturePopularGames = "Popular Games"
     const val homeFeaturePopularGamesSub = "Ludo, UNO & More"
     const val homeFeatureHouseRules = "Custom House Rules"
@@ -80,7 +80,7 @@ object Strings {
     const val topBarProfile = "Profile"
     const val homePlayWithFriendsTitlePart1 = "PLAY WITH "
     const val homePlayWithFriendsTitlePart2 = "FRIENDS"
-    const val homePlayWithFriendsSubtitle = "Your crew. Your rooms. Your rules. Create or join a room and keep the fun going!"
+    const val homePlayWithFriendsSubtitle = "Your crew. Your rooms. Your rules.\nCreate or join a room and keep the fun going!"
     const val homeCreateRoomBannerText = "Create a private room, set your own house rules, and invite your friends to join the fun!"
     const val homeCreateRoom = "Create Room"
 

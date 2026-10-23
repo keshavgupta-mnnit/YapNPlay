@@ -1,5 +1,10 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -27,8 +32,10 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
  * and a rim glowing in the button's colour — the brightest of [gradient]
  * (or [rimColor] when they're all dark). A dark [contentColor] (meant for
  * the old solid fill) reads in that colour instead, so it stays legible
- * on the glass. A null [leadingIcon] or [trailingIcon] is simply not
- * drawn. Disabled dims the button and ignores taps.
+ * on the glass. [solid] instead fills it with [gradient] (left to right)
+ * under a glossy sheen, text in [contentColor]: the home design's QUICK
+ * PLAY and Create Room. A null [leadingIcon] or [trailingIcon] is simply
+ * not drawn. Disabled dims the button and ignores taps.
  */
 @Composable
 fun PillButton(
@@ -44,17 +51,28 @@ fun PillButton(
     trailingIcon: ImageVector? = Icons.Rounded.ChevronRight,
     iconSize: Dp = YapNPlayTheme.dimens.iconMedium,
     textStyle: TextStyle = YapNPlayTheme.typography.button,
+    solid: Boolean = false,
 ) {
     val brightest = gradient.maxByOrNull { it.luminance() } ?: rimColor
     val glow = if (brightest.luminance() < DARK_GLOW) rimColor.copy(alpha = 1f) else brightest
-    val content = if (contentColor.luminance() < DARK_TEXT) glow else contentColor
+    val content = if (solid || contentColor.luminance() >= DARK_TEXT) contentColor else glow
+    val shape = YapNPlayTheme.shapes.pill
+    val surface = if (solid) {
+        Modifier
+            .clip(shape)
+            .background(Brush.horizontalGradient(gradient))
+            .background(AppBrushes.glassSheen)
+            .border(YapNPlayTheme.dimens.hairline, rimColor, shape)
+    } else {
+        Modifier.glassPill(glowColor = glow, surface = YapNPlayTheme.colors.RoomsPanel)
+    }
 
     Row(
         modifier = modifier
             // Disabled dimming on one layer, read at draw time, so enabled ↔ disabled always redraws.
             .graphicsLayer { alpha = if (enabled) 1f else DISABLED_ALPHA }
             .height(height)
-            .glassPill(glowColor = glow, surface = YapNPlayTheme.colors.RoomsPanel)
+            .then(surface)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = Spacing.Md),
         verticalAlignment = Alignment.CenterVertically,

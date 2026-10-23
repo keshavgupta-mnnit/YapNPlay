@@ -1,6 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
-import com.kglabs28.yapnplay.appengine.ui.components.home.SlantedCardPair
+import com.kglabs28.yapnplay.appengine.ui.components.home.HomeCards
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsDialog
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.DailyBonusDialog
@@ -28,8 +28,6 @@ import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppTopBar
-import com.kglabs28.yapnplay.appengine.ui.components.home.EnterGameZoneCard
-import com.kglabs28.yapnplay.appengine.ui.components.home.PlayWithFriendsCard
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
@@ -169,33 +167,14 @@ fun MainScreen(
                     .padding(horizontal = Spacing.Md),
             ) {
                 when (state.selectedTab) {
-                    AppNavTab.HOME -> Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
-                    ) {
-                        // Game Zone on the left, friends on the right, one diagonal gap between them.
-                        SlantedCardPair(
-                            startSlant = YapNPlayTheme.dimens.homeCardSlant,
-                            gap = YapNPlayTheme.dimens.homeCardGap,
-                            modifier = Modifier.fillMaxSize(),
-                            start = {
-                                EnterGameZoneCard(
-                                    onEnterGameZone = {
-                                        viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.GAMES))
-                                    },
-                                )
-                            },
-                            end = {
-                                PlayWithFriendsCard(
-                                    // The whole card opens Create New Group (on the Rooms tab).
-                                    onPlayWithFriends = {
-                                        viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
-                                        playRoomsViewModel?.onIntent(PlayRoomsIntent.CreateRoom)
-                                    },
-                                )
-                            },
-                        )
-                    }
+                    AppNavTab.HOME -> HomeCards(
+                        onEnterGameZone = { viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.GAMES)) },
+                        // The whole card opens Create New Group (on the Rooms tab).
+                        onPlayWithFriends = {
+                            viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
+                            playRoomsViewModel?.onIntent(PlayRoomsIntent.CreateRoom)
+                        },
+                    )
                     AppNavTab.GAMES -> GameZoneScreen(
                         onOpenMatch = onOpenMatch,
                         viewModel = gameZoneViewModel,

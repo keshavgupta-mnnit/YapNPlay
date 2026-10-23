@@ -23,13 +23,16 @@ object YapNPlayColors {
     // Functional Feature Zone Tokens (Semantic, sampled from the home design)
     val GameZoneAccent = Color(0xFF20E8A0)
     val GameZoneSurface = Color(0xFF191934)
-    val GameZoneIconFill = Color(0xFF1C4579)
 
     val SocialZoneAccent = Color(0xFFB834F7)
     val SocialZoneSurface = Color(0xFF1E1A45)
-    val SocialZoneIconFill = Color(0xFF36276C)
     /** Home and top bar text that the design shows as soft white (subtitles, tagline, unselected tabs). */
     val HomeTextSoft = Color(0xFFECE0FC)
+    /** The home cards' header icon circles: light frosted glass under a white icon (design). */
+    val HomeIconFrost = Color(0x40E7E0FF)
+    /** The Create Room panel: frosted white glass with a pale rim. */
+    val CreateRoomFrost = Color(0x33FFFFFF)
+    val CreateRoomFrostRim = Color(0x80FFFFFF)
     /** The top bar's unselected tabs, and its bell and settings: lighter frosted glass (design). */
     val TopBarTabFrost = Color(0xFF594D7E)
     val TopBarButtonFrost = Color(0xFF8C799B)

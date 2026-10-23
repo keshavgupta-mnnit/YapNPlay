@@ -77,10 +77,10 @@ class YapNPlayDimens {
     // topBarControlHeight so their tops and bottoms line up.
     val topBarHeight: Dp get() = 68.dp.scaled()
     val topBarControlHeight: Dp get() = 38.dp.scaled()
-    val topBarAvatar: Dp get() = 42.dp.scaled()
+    val topBarAvatar: Dp get() = 34.dp.scaled()
     val iconSmall: Dp get() = 14.dp.scaled()
     /** Space reserved for a balance before it loads (fits "99,999"). */
-    val balanceMinWidth: Dp get() = 44.dp.scaled()
+    val balanceMinWidth: Dp get() = 36.dp.scaled()
     val iconMedium: Dp get() = 20.dp.scaled()
 
     // Home + Rooms cards (from the designs, raised to comfortable touch
@@ -275,18 +275,22 @@ class YapNPlayDimens {
     /** The top bar's brand logo (beside the name), and the hairline dividers between its groups. */
     val topBarBrandLogo: Dp get() = 58.dp.scaled()
     /** The level's shield in the XP pill. */
-    val levelShield: Dp get() = 22.dp.scaled()
-    /** A home feature pillar's icon circle. */
-    val pillarIconCircle: Dp get() = 24.dp.scaled()
+    val levelShield: Dp get() = 18.dp.scaled()
     val topBarDividerHeight: Dp get() = 30.dp.scaled()
-    /** How far the home cards' facing edges lean, and the diagonal gap between them. */
-    val homeCardSlant: Dp get() = 40.dp.scaled()
-    val homeCardGap: Dp get() = 40.dp.scaled()
-    /** The friends card leans further (its bottom edge shorter), and its banner juts out by about this much. */
-    val homeFriendsSlant: Dp get() = 82.dp.scaled()
-    val homeBannerInset: Dp get() = 28.dp.scaled()
+    /** The top bar's right group (coins, XP, bell, settings): its pills' and buttons' height, and their icons. */
+    val homeBarControl: Dp get() = 30.dp.scaled()
+    val homeBarIcon: Dp get() = 14.dp.scaled()
+    /** Home's cards (design): the header's and the pillars' icon circles, and the buttons. */
+    val homeHeaderIcon: Dp get() = 24.dp.scaled()
+    val homePillarIcon: Dp get() = 14.dp.scaled()
+    val homeCtaHeight: Dp get() = 28.dp.scaled()
+    val homeBannerButtonHeight: Dp get() = 30.dp.scaled()
+    /** The home cards' corners on their leaning edges (rounder than their outer ones). */
+    val homeCardInnerRadius: Dp get() = 30.dp.scaled()
+    /** The space the Create Room panel leaves between itself and Game Zone's corner. */
+    val homeBannerClearance: Dp get() = 12.dp.scaled()
     /** The XP pill's text keeps at least this width, so big numbers still fit. */
-    val xpLabelMinWidth: Dp get() = 70.dp.scaled()
+    val xpLabelMinWidth: Dp get() = 76.dp.scaled()
     /** The Create New Room card's neon rim. */
     val neonRim: Dp get() = 2.dp.scaled()
     val dailyBonusWidth: Dp get() = 340.dp.scaled()

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.home
 
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Brush
 import com.kglabs28.yapnplay.appengine.core.designsystem.SlantedSide
 import com.kglabs28.yapnplay.appengine.core.designsystem.SlantedCardShape
@@ -33,38 +34,42 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.GameZoneGraphic
 @Composable
 fun EnterGameZoneCard(
     onEnterGameZone: () -> Unit,
+    /** How far its right edge leans (in from the bottom right to the top right). */
+    slant: Dp,
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
-    val slant = dimens.homeCardSlant
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .glassPanel(
-                shape = SlantedCardShape(dimens.cardRadius, slant, SlantedSide.END),
+                shape = SlantedCardShape(dimens.cardRadius, slant, SlantedSide.END, dimens.homeCardInnerRadius),
                 glowColor = colors.GameZoneAccent,
                 surfaceBrush = Brush.verticalGradient(listOf(colors.HomeCardFrostTop, colors.HomeCardFrostBottom)),
             )
             .clickable(onClick = onEnterGameZone)
-            // Clear of the leaning edge.
-            .padding(end = Spacing.Md + slant, start = Spacing.Md, top = Spacing.Sm, bottom = Spacing.Sm),
+            .padding(horizontal = Spacing.Md, vertical = Spacing.Sm),
         verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
         ZoneCardHeader(
             icon = Icons.Rounded.SportsEsports,
-            iconFill = colors.GameZoneIconFill,
+            iconFill = colors.HomeIconFrost,
             title = Strings.homeEnterGameZoneTitlePart1,
             titleAccent = Strings.homeEnterGameZoneTitlePart2,
             accentColor = colors.GameZoneAccent,
             subtitle = Strings.homeEnterGameZoneSubtitle,
+            // Near the top the card is narrower by the whole lean.
+            modifier = Modifier.padding(end = slant),
         )
 
         Box(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                // Halfway down the card is narrower by half the lean.
+                .padding(end = slant / 2),
             contentAlignment = Alignment.Center,
         ) {
             GameZoneGraphic()
@@ -78,6 +83,9 @@ fun EnterGameZoneCard(
             gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),
             contentColor = colors.CtaGreenContent,
             leadingIcon = Icons.Rounded.Bolt,
+            height = YapNPlayTheme.dimens.homeCtaHeight,
+            solid = true,
+            iconSize = YapNPlayTheme.dimens.homeBarIcon,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .fillMaxWidth(AppConstants.HOME_CTA_WIDTH_FRACTION),

@@ -37,7 +37,8 @@ fun ZoneCardHeader(
         IconCircle(
             imageVector = icon,
             fill = iconFill,
-            iconSize = YapNPlayTheme.dimens.iconMedium,
+            size = YapNPlayTheme.dimens.homeHeaderIcon,
+            iconSize = YapNPlayTheme.dimens.homeBarIcon,
         )
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
             Row {

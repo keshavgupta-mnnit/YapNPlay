@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.home
 
+import androidx.compose.ui.unit.coerceAtLeast
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Brush
 import com.kglabs28.yapnplay.appengine.core.designsystem.SlantedSide
 import com.kglabs28.yapnplay.appengine.core.designsystem.SlantedCardShape
@@ -31,11 +33,14 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.SocialNetworkOrbitGraphic
 @Composable
 fun PlayWithFriendsCard(
     onPlayWithFriends: () -> Unit,
+    /** How far its left edge leans (in from the top left to the bottom left). */
+    slant: Dp,
+    /** Where Game Zone's bottom right corner sits, from this card's left: the panel stops short of it. */
+    gameZoneEdge: Dp,
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
-    val slant = dimens.homeFriendsSlant
 
     // The glass is its own layer (clipped to the leaning shape); the content is not clipped, so the
     // Create Room banner can stand out past the card's leaning edge like a cutout (design).
@@ -44,7 +49,7 @@ fun PlayWithFriendsCard(
             Modifier
                 .matchParentSize()
                 .glassPanel(
-                    shape = SlantedCardShape(dimens.cardRadius, slant, SlantedSide.START),
+                    shape = SlantedCardShape(dimens.cardRadius, slant, SlantedSide.START, dimens.homeCardInnerRadius),
                     glowColor = colors.FriendsAccent,
                     surfaceBrush = Brush.verticalGradient(listOf(colors.HomeCardFrostTop, colors.HomeCardFrostBottom)),
                 ),
@@ -57,24 +62,29 @@ fun PlayWithFriendsCard(
         ) {
             ZoneCardHeader(
                 icon = Icons.Rounded.Groups,
-                iconFill = colors.SocialZoneIconFill,
+                iconFill = colors.HomeIconFrost,
                 title = Strings.homePlayWithFriendsTitlePart1,
                 titleAccent = Strings.homePlayWithFriendsTitlePart2,
                 accentColor = colors.FriendsAccent,
                 subtitle = Strings.homePlayWithFriendsSubtitle,
+                // Its icon clear of the rounded top left corner.
+                modifier = Modifier.padding(start = Spacing.Sm),
             )
 
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    // Halfway down the card is narrower by half the lean.
+                    .padding(start = slant / 2),
                 contentAlignment = Alignment.Center,
             ) {
                 SocialNetworkOrbitGraphic()
             }
 
-            // Juts out past the card's short bottom edge, still clear of the other card.
-            CreateRoomBanner(onCreateRoom = onPlayWithFriends, modifier = Modifier.padding(start = dimens.homeBannerInset))
+            // At the bottom the card starts the whole lean in; the panel spreads out past it into the gap,
+            // stopping a little short of Game Zone's corner.
+            CreateRoomBanner(onCreateRoom = onPlayWithFriends, modifier = Modifier.padding(start = (gameZoneEdge + dimens.homeBannerClearance - Spacing.Md).coerceAtLeast(dimens.zero)))
         }
     }
 }

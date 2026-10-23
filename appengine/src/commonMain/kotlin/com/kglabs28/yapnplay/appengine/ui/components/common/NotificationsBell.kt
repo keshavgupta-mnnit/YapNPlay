@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +49,7 @@ fun NotificationsBell(
     onDismiss: () -> Unit,
     onNotificationClick: (roomId: String) -> Unit,
     modifier: Modifier = Modifier,
+    size: Dp = YapNPlayTheme.dimens.topBarControlHeight,
 ) {
     val dimens = YapNPlayTheme.dimens
     Box(modifier = modifier) {
@@ -57,6 +59,8 @@ fun NotificationsBell(
             onClick = onToggle,
             tint = if (expanded) YapNPlayTheme.colors.TextPrimary else YapNPlayTheme.colors.HomeTextSoft,
             surface = YapNPlayTheme.colors.TopBarButtonFrost,
+            size = size,
+            iconSize = size / 2,
         )
         if (unreadCount > 0) {
             UnreadBadge(count = unreadCount, modifier = Modifier.align(Alignment.TopEnd))

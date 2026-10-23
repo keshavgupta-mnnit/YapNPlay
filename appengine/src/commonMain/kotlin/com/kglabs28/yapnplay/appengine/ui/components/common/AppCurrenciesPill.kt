@@ -1,6 +1,5 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.clickable
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
@@ -53,7 +52,7 @@ fun AppCurrenciesPill(
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val pill = Modifier
-        .height(dimens.topBarControlHeight)
+        .height(dimens.homeBarControl)
         .glassPill(glowColor = colors.TopBarIcon, surface = colors.TopBarCurrencyPill)
         .padding(horizontal = Spacing.Xs)
 
@@ -80,8 +79,9 @@ fun AppCurrenciesPill(
             ) {
                 BasicText(text = level, style = YapNPlayTheme.typography.levelBadge.copy(color = colors.TextPrimary))
             }
-            Column(modifier = Modifier.width(IntrinsicSize.Max).widthIn(min = dimens.xpLabelMinWidth), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
-                BasicText(text = xpLabel, style = YapNPlayTheme.typography.xpLabel.copy(color = colors.TextPrimary), maxLines = 1)
+            Column(modifier = Modifier.width(dimens.xpLabelMinWidth), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
+                // End-aligned, so the number grows to the left as XP climbs.
+                BasicText(text = xpLabel, style = YapNPlayTheme.typography.xpLabel.copy(color = colors.TextPrimary, textAlign = TextAlign.End), maxLines = 1, modifier = Modifier.fillMaxWidth())
                 Box(Modifier.fillMaxWidth().height(dimens.levelBarHeight).clip(CircleShape).background(colors.TopBarIcon.copy(alpha = LEVEL_TRACK))) {
                     Box(Modifier.fillMaxHeight().fillMaxWidth(levelProgress).background(Brush.horizontalGradient(listOf(colors.LevelShieldTop, colors.FriendsAccent)), CircleShape))
                 }
@@ -110,15 +110,15 @@ private fun CurrencyBalance(
         AppIcon(
             imageVector = icon,
             tint = iconTint,
+            size = dimens.homeBarIcon,
         )
         BasicText(
             text = balance,
             modifier = Modifier
                 .widthIn(min = dimens.balanceMinWidth)
                 .revealWhen(visible),
-            style = YapNPlayTheme.typography.label.copy(
+            style = YapNPlayTheme.typography.topBarValue.copy(
                 textAlign = TextAlign.Start,
-                fontWeight = FontWeight.SemiBold,
                 color = colors.TextPrimary,
             ),
         )

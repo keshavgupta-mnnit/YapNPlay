@@ -44,6 +44,7 @@ object RoomStrings {
     const val lobbyEditName = "Edit Name"
     const val lobbyAddFriendsTitle = "Add friends to this room"
     const val lobbyAddFriendsEmpty = "All your friends are already here."
+    const val lobbyAddFriendsWaiting = "Invited, waiting for their answer"
     const val lobbyAddFriendsCodeHint = "Player code (6 characters)"
     const val lobbyAddFriendsSend = "SEND INVITES"
     const val lobbyAddFriendsFailed = "Couldn't send the invites. Try again."

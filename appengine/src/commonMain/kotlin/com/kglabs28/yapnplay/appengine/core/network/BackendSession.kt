@@ -66,6 +66,16 @@ class BackendSession(
     private val rejected = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     private val offers = MutableStateFlow<DeviceAccountOffer?>(null)
+    private val welcome = MutableStateFlow(store.welcomeNeeded())
+
+    /** A brand-new account on this phone: the welcome (name and avatar) is still to show. */
+    val welcomeNeeded: StateFlow<Boolean> = welcome.asStateFlow()
+
+    /** The welcome was answered (saved or skipped): never again for this account. */
+    fun finishWelcome() {
+        store.setWelcomeNeeded(false)
+        welcome.value = false
+    }
     private var answer: CompletableDeferred<Boolean>? = null
 
     /** An account already made on this phone, waiting for the player to continue it or start new. */
@@ -127,9 +137,15 @@ class BackendSession(
         // Refused (not just unreachable): the next try picks a fresh account.
         if (response.status.value in CLIENT_ERRORS) store.savePending(null)
         val created = response.body<GuestCreated>()
+        // Made just now (not this phone's earlier account handed back): welcome them.
+        val brandNew = !restore && created.userId == picked.userId
         return BackendCredentials(created.userId, created.secret).also {
             store.save(it)
             store.savePending(null)
+            if (brandNew) {
+                store.setWelcomeNeeded(true)
+                welcome.value = true
+            }
         }
     }
 

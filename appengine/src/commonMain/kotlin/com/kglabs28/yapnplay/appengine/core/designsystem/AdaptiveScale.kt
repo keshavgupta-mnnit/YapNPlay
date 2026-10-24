@@ -1,6 +1,5 @@
 package com.kglabs28.yapnplay.appengine.core.designsystem
 
-import kotlin.math.max
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -30,22 +29,26 @@ object AdaptiveScale {
         multiplier = resolveMultiplier(windowWidthDp, windowHeightDp)
     }
 
-    /** The tighter of width and height against the reference screen (landscape: the long side is the width). */
+    /**
+     * The tighter of width and height against the reference screen, as the
+     * window really is: the design frame is fitted the same way, so even a
+     * window turned upright (should Android ever force it) shows the whole
+     * design, smaller, instead of spilling off the sides.
+     */
     fun resolveMultiplier(windowWidthDp: Int, windowHeightDp: Int): Float {
         if (windowWidthDp <= 0 || windowHeightDp <= 0) return 1f
-        val long = max(windowWidthDp, windowHeightDp).toFloat()
-        val short = min(windowWidthDp, windowHeightDp).toFloat()
-        return min(long / REFERENCE_WIDTH_DP, short / REFERENCE_HEIGHT_DP).coerceIn(MIN_MULTIPLIER, MAX_MULTIPLIER)
+        return min(windowWidthDp / REFERENCE_WIDTH_DP, windowHeightDp / REFERENCE_HEIGHT_DP).coerceIn(MIN_MULTIPLIER, MAX_MULTIPLIER)
     }
 
     /**
-     * The screen the design is drawn for: 800 × 360, the most used phone
-     * screen in India (Statcounter, mid-2026: 360 × 800 portrait, ~18% of
-     * phones; next 393 × 873). Bigger phones and tablets grow from it,
-     * smaller ones shrink.
+     * The screen the design's numbers are drawn for (landscape, dp). Set so
+     * a 6.7" phone (914 × 411) shows exactly the look of the Play Store
+     * release (1.05 there); the most used phone in India, 800 × 360
+     * (Statcounter, mid-2026), gets the same layout 8% smaller, tablets and
+     * bigger phones the same layout bigger.
      */
-    const val REFERENCE_WIDTH_DP = 800f
-    const val REFERENCE_HEIGHT_DP = 360f
+    const val REFERENCE_WIDTH_DP = 870f
+    const val REFERENCE_HEIGHT_DP = 391f
     private const val MIN_MULTIPLIER = 0.3f
     private const val MAX_MULTIPLIER = 2f
 

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.ui.text.style.TextAlign
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -114,8 +115,8 @@ fun ArenaTopBar(
                     AppIcon(imageVector = Icons.Rounded.WorkspacePremium, tint = colors.ArenaCrown, size = dimens.iconMedium)
                 }
             }
-            // The wide bar reads in one line: the game's name, big and bold, at the start; the mode and round at the end.
-            // In a room match the pill is shorter: both shrink to fit rather than being cut.
+            // The wide bar reads in one line: the game's name, big and bold, at the start; the mode and round
+            // as one line at the end. In a room match the pill is shorter: both shrink to fit rather than being cut.
             ShrinkText(
                 text = title,
                 style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Black, fontSize = typography.title.fontSize * TITLE_GROW),
@@ -123,8 +124,12 @@ fun ArenaTopBar(
             )
             ShrinkText(
                 text = subtitle,
-                style = typography.label.copy(color = colors.TextSecondary, fontWeight = FontWeight.SemiBold, fontSize = typography.label.fontSize * SUBTITLE_GROW),
-                modifier = Modifier.weight(1f, fill = false),
+                style = typography.label.copy(
+                    color = colors.TextSecondary,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = typography.label.fontSize * SUBTITLE_GROW,
+                    textAlign = TextAlign.End,
+                ),
             )
         }
 

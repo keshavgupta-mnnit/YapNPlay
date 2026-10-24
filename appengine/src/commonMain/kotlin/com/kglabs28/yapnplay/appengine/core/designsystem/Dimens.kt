@@ -79,10 +79,6 @@ class YapNPlayDimens {
     val buttonCut: Dp get() = 12.dp.scaled()
     val borderThin: Dp get() = 1.5.dp.scaled()
     val hairline: Dp get() = 1.dp.scaled()
-    /** Home's two card arts are at most this tall (a taller screen centres them, never blows them up). */
-    val homeArtMaxHeight: Dp get() = 126.dp.scaled()
-    /** A game's art in the carousel and grid is at most this tall. */
-    val gameArtMaxHeight: Dp get() = 116.dp.scaled()
     /** The coins offer's split line. */
     val offerDivider: Dp get() = 2.dp.scaled()
     /** Room between a field and the top of the app's keyboard. */

@@ -33,6 +33,12 @@ class AndroidCredentialStore(context: Context) : CredentialStore {
         edit.commit()
     }
 
+    override fun welcomeNeeded(): Boolean = prefs.getBoolean(KEY_WELCOME, false)
+
+    override fun setWelcomeNeeded(needed: Boolean) {
+        prefs.edit().putBoolean(KEY_WELCOME, needed).apply()
+    }
+
     override fun clear() {
         prefs.edit().clear().apply()
     }
@@ -43,5 +49,6 @@ class AndroidCredentialStore(context: Context) : CredentialStore {
         const val KEY_SECRET = "secret"
         const val KEY_PENDING_USER_ID = "pending_user_id"
         const val KEY_PENDING_SECRET = "pending_secret"
+        const val KEY_WELCOME = "welcome_needed"
     }
 }

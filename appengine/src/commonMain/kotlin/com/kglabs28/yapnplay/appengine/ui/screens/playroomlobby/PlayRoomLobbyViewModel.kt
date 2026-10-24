@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
+import com.kglabs28.yapnplay.appengine.features.playroomlobby.usecase.GetRoomPendingInvitesUseCase
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.RoomMemberRecord
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.usecase.GetRoomLeaderboardUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.RoomInvites
@@ -50,6 +51,7 @@ class PlayRoomLobbyViewModel(
     private val clock: AppClock,
     private val roomInvites: RoomInvites,
     private val getRoomLeaderboard: GetRoomLeaderboardUseCase,
+    private val getPendingInvites: GetRoomPendingInvitesUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<PlayRoomLobbyState, PlayRoomLobbyIntent, PlayRoomLobbyEffect>(PlayRoomLobbyState(), dispatchers) {
 
@@ -137,7 +139,12 @@ class PlayRoomLobbyViewModel(
                 copy(code = intent.code.uppercase().take(AppConstants.USER_CODE_LENGTH), error = null)
             }
             is PlayRoomLobbyIntent.ToggleInvite -> updateAddFriends {
-                copy(selected = if (intent.userId in selected) selected - intent.userId else selected + intent.userId)
+                when {
+                    // Already invited, waiting for their answer: not again.
+                    intent.userId in pending -> this
+                    intent.userId in selected -> copy(selected = selected - intent.userId)
+                    else -> copy(selected = selected + intent.userId)
+                }
             }
             PlayRoomLobbyIntent.SendInvites -> sendInvites()
             PlayRoomLobbyIntent.OpenEditName -> setState { copy(sheet = LobbySheet.EditName(roomName)) }
@@ -226,14 +233,15 @@ class PlayRoomLobbyViewModel(
         if (options.isNotEmpty()) showModal(LobbyModal.MemberMenu(target.userId, target.name, options))
     }
 
-    /** Add Friends: the user's friends who aren't in the group yet, online first. */
+    /** Add Friends: the user's friends who aren't in the group yet, online first; those already invited wait at the end. */
     private suspend fun openAddFriends() {
         setState { copy(sheet = LobbySheet.AddFriends()) }
         val members = state.value.members.map { it.userId }.toSet()
+        val pending = roomId?.let { (getPendingInvites(it) as? AppResult.Success)?.data }.orEmpty()
         val friends = (getFriends() as? AppResult.Success)?.data.orEmpty()
             .filter { it.userId !in members }
-            .sortedWith(compareBy({ !it.online }, { it.name.lowercase() }))
-        updateAddFriends { copy(friends = friends, loading = false) }
+            .sortedWith(compareBy({ it.userId in pending }, { !it.online }, { it.name.lowercase() }))
+        updateAddFriends { copy(friends = friends, pending = pending, loading = false) }
     }
 
     private suspend fun sendInvites() {

@@ -7,7 +7,6 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -18,7 +17,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.kglabs28.yapnplay.appengine.YapNPlayRoot
 import com.kglabs28.yapnplay.appengine.core.common.DeepLink
 import com.kglabs28.yapnplay.appengine.core.common.DeepLinks
-import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 
 /**
  * Single activity. Landscape-locked via the manifest, fullscreen like
@@ -47,13 +45,8 @@ class MainActivity : ComponentActivity() {
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
         setContent {
+            // The screen-size scale is set by YapNPlayRoot from the real screen.
             val configuration = LocalConfiguration.current
-            SideEffect {
-                AdaptiveScale.updateFor(
-                    configuration.screenWidthDp,
-                    configuration.screenHeightDp,
-                )
-            }
             YapNPlayRoot(
                 windowWidthDp = configuration.screenWidthDp,
                 deepLink = deepLink,

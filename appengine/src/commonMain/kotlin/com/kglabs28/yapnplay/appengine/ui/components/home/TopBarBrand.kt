@@ -18,7 +18,7 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.HomeLogoArtwork
 fun TopBarBrand(modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
         HomeLogoArtwork(modifier = Modifier.size(YapNPlayTheme.dimens.topBarBrandLogo), contentDescription = Strings.homeLogoTitle)
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             BasicText(text = Strings.homeLogoTitle, style = typography.topBarBrand.copy(color = colors.TextPrimary), maxLines = 1)

@@ -46,6 +46,8 @@ sealed interface LobbySheet {
         val code: String = "",
         val friends: List<Friend> = emptyList(),
         val selected: Set<String> = emptySet(),
+        /** Friends already invited and not answered yet: shown waiting, can't be picked. */
+        val pending: Set<String> = emptySet(),
         val loading: Boolean = true,
         val sending: Boolean = false,
         val error: String? = null,

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.navigation
 
+import com.kglabs28.yapnplay.appengine.ui.screens.welcome.WelcomeViewModel
 import com.kglabs28.yapnplay.appengine.ui.components.keyboard.LocalAppKeyboard
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -89,6 +90,7 @@ fun YapNPlayNavHost(
             val mainViewModel: MainViewModel = entry.rememberScreenViewModel()
             val gameZoneViewModel: GameZoneViewModel = entry.rememberScreenViewModel()
             val playRoomsViewModel: PlayRoomsViewModel = entry.rememberScreenViewModel()
+            val welcomeViewModel: WelcomeViewModel = entry.rememberScreenViewModel()
             MainScreen(
                 onOpenMatch = { gameId, matchId -> navController.openMatch(gameId, matchId) },
                 onOpenRoom = { roomId -> navController.navigate(RoomLobby(roomId)) },
@@ -105,6 +107,7 @@ fun YapNPlayNavHost(
                 viewModel = mainViewModel,
                 gameZoneViewModel = gameZoneViewModel,
                 playRoomsViewModel = playRoomsViewModel,
+                welcomeViewModel = welcomeViewModel,
             )
         }
         composable<Profile> { entry ->

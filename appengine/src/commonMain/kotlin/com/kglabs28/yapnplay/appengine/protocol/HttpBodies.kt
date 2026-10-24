@@ -390,3 +390,9 @@ data class RoomStanding(
 data class RoomLeaderboard(
     val standings: List<RoomStanding> = emptyList(),
 )
+
+/** `GET /rooms/{roomId}/invites`: users with an invite to the room they haven't answered yet. */
+@Serializable
+data class RoomPendingInvites(
+    val userIds: List<String> = emptyList(),
+)

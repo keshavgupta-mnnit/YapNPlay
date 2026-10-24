@@ -38,6 +38,7 @@ fun CozyHomeBackground(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                
                 .revealWhen(frosted)
                 .background(
                     Brush.verticalGradient(

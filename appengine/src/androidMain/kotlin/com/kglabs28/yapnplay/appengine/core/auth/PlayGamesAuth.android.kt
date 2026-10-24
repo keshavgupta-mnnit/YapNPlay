@@ -87,6 +87,16 @@ private class AndroidPlayGamesAuth(private val context: Context) : PlayGamesAuth
         }
     }
 
+    override suspend fun playerName(): String? {
+        val activity = context.findActivity() ?: return null
+        return try {
+            withTimeoutOrNull(NAME_TIMEOUT) { PlayGames.getPlayersClient(activity).currentPlayer.await() }?.displayName?.trim()?.takeIf { it.isNotEmpty() }
+        } catch (e: Exception) {
+            AppLog.d(AppConstants.LOG_TAG_AUTH, "play games: no player name ${e::class.simpleName}: ${e.message}")
+            null
+        }
+    }
+
     override fun reloadApp() {
         val launch = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return
         launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -107,5 +117,7 @@ private class AndroidPlayGamesAuth(private val context: Context) : PlayGamesAuth
 /** How long to wait for each answer from Play Games; the sign-in prompt waits on the player too. */
 private val PLAY_TIMEOUT = 15.seconds
 private val PROMPT_TIMEOUT = 120.seconds
+/** The player's name is a nicety: never hold the start up long for it. */
+private val NAME_TIMEOUT = 5.seconds
 /** How much of a player id goes in the debug log. */
 private const val PLAYER_ID_SHOWN = 6

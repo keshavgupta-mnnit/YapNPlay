@@ -36,13 +36,13 @@ class LayoutTierTest {
 
     @Test
     fun `multiplier follows the tighter side against the reference screen`() {
-        assertEquals(1f, AdaptiveScale.resolveMultiplier(800, 360))
+        assertEquals(1f, AdaptiveScale.resolveMultiplier(870, 391))
         // Wide but short: the height decides.
-        assertEquals(1f, AdaptiveScale.resolveMultiplier(1600, 360))
+        assertEquals(1f, AdaptiveScale.resolveMultiplier(1740, 391))
         // Narrow: the width decides.
-        assertEquals(640f / 800f, AdaptiveScale.resolveMultiplier(640, 360))
-        // Portrait reads the same as landscape.
-        assertEquals(AdaptiveScale.resolveMultiplier(800, 360), AdaptiveScale.resolveMultiplier(360, 800))
+        assertEquals(696f / 870f, AdaptiveScale.resolveMultiplier(696, 391))
+        // Upright: the narrow width decides, so the whole design still fits.
+        assertEquals(391f / 870f, AdaptiveScale.resolveMultiplier(391, 870))
     }
 
     @Test

@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.ui.components.profile.WelcomeCard
+import com.kglabs28.yapnplay.appengine.ui.screens.welcome.WelcomeIntent
+import com.kglabs28.yapnplay.appengine.ui.screens.welcome.WelcomeViewModel
 import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberExitApp
@@ -63,6 +66,7 @@ fun MainScreen(
     viewModel: MainViewModel? = null,
     gameZoneViewModel: GameZoneViewModel? = null,
     playRoomsViewModel: PlayRoomsViewModel? = null,
+    welcomeViewModel: WelcomeViewModel? = null,
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: MainState()
     // Every time home comes back (after a match, from the background): fresh coins and level.
@@ -83,6 +87,17 @@ fun MainScreen(
     // Back here would leave an empty app: ask first. Dialogs opened later take Back before this.
     BlockBackPress(enabled = !state.exitAsked, onBack = { viewModel?.onIntent(MainIntent.AskExit) })
     val exitApp = rememberExitApp()
+    // First launch of a new account: name and avatar (no tap outside closes it; Skip does).
+    val welcome = welcomeViewModel?.state?.collectAsState()?.value
+    BlockingOverlay(visible = welcome?.visible == true) {
+        if (welcome != null) WelcomeCard(
+            state = welcome,
+            onNameChange = { welcomeViewModel.onIntent(WelcomeIntent.NameChanged(it)) },
+            onPickAvatar = { welcomeViewModel.onIntent(WelcomeIntent.PickAvatar(it)) },
+            onSave = { welcomeViewModel.onIntent(WelcomeIntent.Save) },
+            onSkip = { welcomeViewModel.onIntent(WelcomeIntent.Skip) },
+        )
+    }
     BlockingOverlay(visible = state.exitAsked, onDismiss = { viewModel?.onIntent(MainIntent.DismissExit) }) {
         ExitAppCard(onExit = exitApp, onStay = { viewModel?.onIntent(MainIntent.DismissExit) })
     }

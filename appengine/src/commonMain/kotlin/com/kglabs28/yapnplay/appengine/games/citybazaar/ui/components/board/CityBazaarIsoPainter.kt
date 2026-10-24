@@ -423,9 +423,11 @@ private const val DECK_EDGE = 0.04f
 private const val DECK_GLYPH = 0.55f
 private const val DECK_TEXT = 0.22f
 private const val DECK_TEXT_ROOM = 1.1f
-private const val PAWN_BASE = 0.2f
-private const val PAWN_HEIGHT = 0.5f
-private const val PAWN_HEAD = 0.13f
+/** Pawns are drawn this much bigger than their first design (easier to see on the board). */
+private const val PAWN_SCALE = 1.25f
+private const val PAWN_BASE = 0.2f * PAWN_SCALE
+private const val PAWN_HEIGHT = 0.5f * PAWN_SCALE
+private const val PAWN_HEAD = 0.13f * PAWN_SCALE
 private const val PAWN_HOP = 0.8f
 private const val BODY_WIDTH = 0.7f
 private const val DISC_FLAT = 0.55f

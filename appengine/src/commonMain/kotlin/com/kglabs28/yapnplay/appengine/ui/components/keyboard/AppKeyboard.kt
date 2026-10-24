@@ -56,7 +56,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
 /**
  * The app's own keyboard (the phone's is never used): on top, what's being
  * typed (or the field's hint) with a caret and ×; then a phone-style
- * QWERTY with Shift (capital first letter by itself) and backspace, a 123
+ * QWERTY with Shift (a capital to start each sentence by itself) and backspace, a 123
  * page for digits and symbols, and a wide space bar with Done.
  */
 @Composable
@@ -73,8 +73,8 @@ fun AppKeyboard(
     val value = request.value
     var shift by remember(request.owner) { mutableStateOf(false) }
     var numbers by remember(request.owner) { mutableStateOf(false) }
-    // A capital to start a name, then small letters (unless Shift).
-    val upper = shift || value.isEmpty() || value.endsWith(' ')
+    // A capital to start the text and each sentence (like a phone keyboard), then small letters (unless Shift).
+    val upper = shift || startsSentence(value)
     val full = value.length >= request.maxLength
     val caretAlpha by rememberInfiniteTransition().animateFloat(
         initialValue = 1f,
@@ -215,3 +215,11 @@ private const val WIDE_KEY = 1.5f
 private const val SPACE_KEY = 5f
 private const val HALF_KEY = 0.5f
 private const val DONE_KEY = 2f
+
+/** At the very start, or after a sentence ends ("Hi. ", "Done! ", "Why? "). */
+private fun startsSentence(value: String): Boolean {
+    val text = value.trimEnd()
+    return text.isEmpty() || (value.length > text.length && text.last() in SENTENCE_ENDS)
+}
+
+private val SENTENCE_ENDS = setOf('.', '!', '?')

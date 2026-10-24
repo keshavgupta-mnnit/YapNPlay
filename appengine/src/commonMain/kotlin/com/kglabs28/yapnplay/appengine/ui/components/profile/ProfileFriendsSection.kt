@@ -37,7 +37,7 @@ import com.kglabs28.yapnplay.appengine.ui.screens.profile.FriendsTab
 import kotlinx.coroutines.launch
 
 /**
- * "My Friends", full width: the title, Online / Offline tabs, then (at the
+ * "My Friends", full width: the title, All / Online / Offline tabs, then (at the
  * end of that row) See All and the slider arrows; under it the sliding
  * row of friends, as on the Rooms tab. A tap opens a friend's card.
  */
@@ -69,7 +69,11 @@ fun ProfileFriendsSection(
             AppIcon(imageVector = Icons.Rounded.Groups, tint = colors.SocialZoneAccent, size = dimens.iconMedium)
             BasicText(text = ProfileStrings.profileMyFriends, style = YapNPlayTheme.typography.sectionTitle.copy(color = colors.TextPrimary))
             PillTabs(
-                tabs = listOf(FriendsTab.ONLINE to ProfileStrings.profileTabOnline(onlineCount), FriendsTab.OFFLINE to ProfileStrings.profileTabOffline(offlineCount)),
+                tabs = listOf(
+                    FriendsTab.ALL to ProfileStrings.profileTabAll(onlineCount + offlineCount),
+                    FriendsTab.ONLINE to ProfileStrings.profileTabOnline(onlineCount),
+                    FriendsTab.OFFLINE to ProfileStrings.profileTabOffline(offlineCount),
+                ),
                 selected = tab,
                 onSelect = onSelectTab,
             )

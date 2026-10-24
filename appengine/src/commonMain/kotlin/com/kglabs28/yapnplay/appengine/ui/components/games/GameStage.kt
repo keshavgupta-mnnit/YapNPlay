@@ -109,10 +109,11 @@ fun GameStage(
                 sideTop = colors.StagePlatformSideTop,
                 sideBottom = colors.StagePlatformSideBottom,
             )
+            val strokeStep = with(LocalDensity.current) { YapNPlayTheme.dimens.stageStrokeStep.toPx() }
             Canvas(modifier = Modifier.fillMaxSize()) {
                 drawBeam(palette)
                 drawSpecks(palette, drift)
-                drawPlatform(palette)
+                drawPlatform(palette, strokeStep)
             }
             val bobPx = YapNPlayTheme.dimens.stageBob
             // Starts a bob's height plus a gap below the tagline and grows downward,
@@ -198,7 +199,8 @@ private fun DrawScope.drawSpecks(p: StagePalette, drift: Float) {
     }
 }
 
-private fun DrawScope.drawPlatform(p: StagePalette) {
+/** [step]: one stroke step in px (the rims are so many steps wide). */
+private fun DrawScope.drawPlatform(p: StagePalette, step: Float) {
     val (center, width, height) = platform()
     val depth = height * 0.45f
     val left = center.x - width / 2
@@ -215,19 +217,19 @@ private fun DrawScope.drawPlatform(p: StagePalette) {
     val outer = Size(width * 0.92f, height * 0.92f)
     val outerTopLeft = Offset(center.x - outer.width / 2, center.y - outer.height / 2)
     listOf(10f to 0.10f, 6f to 0.2f, 2.5f to 0.9f).forEach { (stroke, alpha) ->
-        drawOval(p.light.copy(alpha = alpha), outerTopLeft, outer, style = Stroke(width = stroke))
+        drawOval(p.light.copy(alpha = alpha), outerTopLeft, outer, style = Stroke(width = stroke * step))
     }
     val inner = Size(width * 0.62f, height * 0.62f)
     val innerTopLeft = Offset(center.x - inner.width / 2, center.y - inner.height / 2)
     listOf(8f to 0.12f, 2f to 0.8f).forEach { (stroke, alpha) ->
-        drawOval(p.accent.copy(alpha = alpha), innerTopLeft, inner, style = Stroke(width = stroke))
+        drawOval(p.accent.copy(alpha = alpha), innerTopLeft, inner, style = Stroke(width = stroke * step))
     }
     // Rim light along the front edge of the side.
     drawOval(
         p.accent.copy(alpha = 0.6f),
         topLeft = Offset(left, center.y + depth - height / 2),
         size = Size(width, height),
-        style = Stroke(width = 2f),
+        style = Stroke(width = 2f * step),
     )
 }
 

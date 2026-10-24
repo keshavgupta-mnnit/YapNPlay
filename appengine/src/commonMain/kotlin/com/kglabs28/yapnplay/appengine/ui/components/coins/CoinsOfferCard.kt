@@ -29,7 +29,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -144,10 +143,11 @@ private fun CoinsAdProgress(watched: Int, total: Int) {
             }
             // A divider between each ad's stretch, so the bar reads in steps.
             val divider = colors.Background.copy(alpha = DIVIDER_ALPHA)
+            val dividerWidth = YapNPlayTheme.dimens.offerDivider
             Canvas(modifier = Modifier.matchParentSize()) {
                 for (step in 1 until total) {
                     val x = size.width * step / total
-                    drawLine(divider, Offset(x, 0f), Offset(x, size.height), strokeWidth = DIVIDER_WIDTH.toPx())
+                    drawLine(divider, Offset(x, 0f), Offset(x, size.height), strokeWidth = dividerWidth.toPx())
                 }
             }
         }
@@ -204,4 +204,3 @@ private fun ladderColours(): List<Color> {
 
 private const val DONE_ALPHA = 0.55f
 private const val DIVIDER_ALPHA = 0.85f
-private val DIVIDER_WIDTH = 2.dp

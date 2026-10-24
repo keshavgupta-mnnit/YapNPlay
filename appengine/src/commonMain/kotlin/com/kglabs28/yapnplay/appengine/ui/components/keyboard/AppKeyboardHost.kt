@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
 
@@ -39,7 +38,7 @@ fun AppKeyboardHost(modifier: Modifier = Modifier, content: @Composable () -> Un
         BoxWithConstraints(modifier = modifier.fillMaxSize()) {
             val density = LocalDensity.current
             val request = controller.request
-            val keysTop = with(density) { (maxHeight - YapNPlayTheme.dimens.appKeyboardHeight - KEYBOARD_GAP).toPx() }
+            val keysTop = with(density) { (maxHeight - YapNPlayTheme.dimens.appKeyboardHeight - YapNPlayTheme.dimens.appKeyboardGap).toPx() }
             val wanted = if (request == null) 0f else (controller.fieldBottom - keysTop).coerceAtLeast(0f)
             val lift by animateFloatAsState(wanted, tween(LIFT_MS), label = "keyboard-lift")
             SideEffect { controller.lift = lift }
@@ -80,4 +79,3 @@ fun AppKeyboardHost(modifier: Modifier = Modifier, content: @Composable () -> Un
 private const val SHADE_ALPHA = 0.25f
 private const val LIFT_MS = 200
 /** Room between the field and the top of the keys. */
-private val KEYBOARD_GAP = 12.dp

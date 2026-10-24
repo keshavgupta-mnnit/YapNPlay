@@ -54,7 +54,7 @@ fun AppTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = Spacing.Md, end = Spacing.Md, top = Spacing.Xs)
+            .padding(start = Spacing.Sm, end = Spacing.Sm, top = Spacing.Xs)
             .height(dimens.topBarHeight)
             .glassPill(glowColor = colors.TopBarIcon, surface = colors.TopBarPill)
             .padding(start = Spacing.Sm, end = Spacing.Xs),
@@ -64,7 +64,9 @@ fun AppTopBar(
         TopBarBrand()
         TopBarDivider()
         AppNavTabs(selectedTab = selectedTab, onSelectTab = onSelectTab)
+        // Groups split by the same hairline divider; any free room sits before the coins.
         Spacer(Modifier.weight(1f))
+        TopBarDivider()
         AppCurrenciesPill(
             coinBalance = coinBalance,
             level = level,

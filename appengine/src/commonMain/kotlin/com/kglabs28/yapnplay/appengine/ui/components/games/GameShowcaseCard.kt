@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.games
 
+import androidx.compose.foundation.layout.heightIn
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,7 +47,10 @@ fun GameShowcaseCard(
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
-            GameArt(artKey = game.artKey)
+            // Never taller than the design's art: a taller screen leaves room around it instead.
+            Box(modifier = Modifier.heightIn(max = YapNPlayTheme.dimens.gameArtMaxHeight), contentAlignment = Alignment.Center) {
+                GameArt(artKey = game.artKey)
+            }
         }
         ShrinkText(
             text = game.name,

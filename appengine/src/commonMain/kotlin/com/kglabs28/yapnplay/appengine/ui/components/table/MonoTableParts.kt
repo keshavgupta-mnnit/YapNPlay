@@ -45,7 +45,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
@@ -90,8 +89,9 @@ fun MonoTableArena(
     ) {
         // The piles stay inside the table's innermost ring, and inside the arena, however short it is.
         val ring = with(density) { innerRingSize(screen).let { Size(it.width.toDp().value, it.height.toDp().value) } }
-        val byRing = if (ring.width > 0f) minOf(ring.height * RING_FILL_H * CARD_W_PER_H, (ring.width * RING_FILL_W - Spacing.Xl.value) / 2).dp else cardWidth
-        val cardWidth = minOf(cardWidth, byRing, maxHeight * PILE_OF_ARENA * CARD_W_PER_H).coerceAtLeast(MIN_PILE_WIDTH)
+        // The ring's measured size (already dp values), back into a Dp.
+        val byRing = if (ring.width > 0f) Dp(minOf(ring.height * RING_FILL_H * CARD_W_PER_H, (ring.width * RING_FILL_W - Spacing.Xl.value) / 2)) else cardWidth
+        val cardWidth = minOf(cardWidth, byRing, maxHeight * PILE_OF_ARENA * CARD_W_PER_H).coerceAtLeast(YapNPlayTheme.dimens.monoMinPileWidth)
         MonoTurnRing(
             hue = hue,
             clockwise = clockwise,
@@ -334,7 +334,6 @@ private const val FAN_MARGIN = 0.6f
 /** A pile may take this much of the arena's height (tilted, it looks shorter); a card is 0.68 as wide as tall. */
 private const val PILE_OF_ARENA = 1f
 /** The smallest a pile's card may get, however short the arena. */
-private val MIN_PILE_WIDTH = 34.dp
 /** The table picture (bg_game_table_arena) and its innermost ring, as fractions of the picture. */
 private const val TABLE_IMAGE_W = 2752f
 private const val TABLE_IMAGE_H = 1536f

@@ -1,9 +1,26 @@
 package com.kglabs28.yapnplay.appengine.core.designsystem
 
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+
+/*
+ * The only file that writes dp or sp. Every size, gap, corner, stroke and
+ * font size in the app is a value here (or in Type, through [scaledSp]),
+ * and each multiplies with the screen through [AdaptiveScale] at read time.
+ */
+
+/** A design size (drawn for the reference screen) at this screen's scale. Dimens only. */
+internal fun Dp.scaled(): Dp = this * AdaptiveScale.multiplier
+
+/** A font size (drawn for the reference screen) at this screen's scale. Usage (Type): `16.scaledSp`. */
+internal val Int.scaledSp: TextUnit get() = (this * AdaptiveScale.multiplier).sp
+
+/** A font size (drawn for the reference screen) at this screen's scale. */
+internal val Float.scaledSp: TextUnit get() = (this * AdaptiveScale.multiplier).sp
 
 /**
  * Layout tiers from window width. S = phones, M = large phones and
@@ -62,6 +79,20 @@ class YapNPlayDimens {
     val buttonCut: Dp get() = 12.dp.scaled()
     val borderThin: Dp get() = 1.5.dp.scaled()
     val hairline: Dp get() = 1.dp.scaled()
+    /** Home's two card arts are at most this tall (a taller screen centres them, never blows them up). */
+    val homeArtMaxHeight: Dp get() = 126.dp.scaled()
+    /** A game's art in the carousel and grid is at most this tall. */
+    val gameArtMaxHeight: Dp get() = 116.dp.scaled()
+    /** The coins offer's split line. */
+    val offerDivider: Dp get() = 2.dp.scaled()
+    /** Room between a field and the top of the app's keyboard. */
+    val appKeyboardGap: Dp get() = 12.dp.scaled()
+    /** A MONO card narrower than this draws its small face. */
+    val monoSmallCard: Dp get() = 40.dp.scaled()
+    /** The MONO piles never get narrower than this. */
+    val monoMinPileWidth: Dp get() = 34.dp.scaled()
+    /** One step of the game stage's neon rims (they are drawn in steps of this). */
+    val stageStrokeStep: Dp get() = 0.4.dp.scaled()
     val zero: Dp get() = 0.dp.scaled()
     val statusDot: Dp get() = 12.dp.scaled()
     val statusDotSmall: Dp get() = 6.dp.scaled()

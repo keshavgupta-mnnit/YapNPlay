@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine
 
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.platform.LocalDensity
 import com.kglabs28.yapnplay.appengine.ui.components.keyboard.TapOutsideClosesKeyboard
 import androidx.compose.foundation.layout.imePadding
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
@@ -46,6 +49,10 @@ fun YapNPlayRoot(
     onDeepLinkHandled: () -> Unit = {},
 ) {
     val tier = windowWidthDp?.let(::layoutTierFor)
+    // Text follows the screen size only (AdaptiveScale), not the phone's font-size setting,
+    // so a large system font never pushes the design off the screen.
+    val density = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
     YapNPlayTheme(tierOverride = tier) {
         Box(
             modifier = modifier
@@ -107,5 +114,6 @@ fun YapNPlayRoot(
             }
             }
         }
+    }
     }
 }

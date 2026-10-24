@@ -32,7 +32,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayColors
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.headlineFontFamily
@@ -109,7 +108,7 @@ fun MonoCardFace(
 ) {
     val density = LocalDensity.current
     val liftPx = with(density) { YapNPlayTheme.dimens.monoCardLift.toPx() }
-    val smallPx = with(density) { SMALL_CARD.toPx() }
+    val smallPx = with(density) { YapNPlayTheme.dimens.monoSmallCard.toPx() }
     val measurer = rememberTextMeasurer()
     val font = headlineFontFamily()
     val shaped = modifier
@@ -660,7 +659,6 @@ private const val DOT_ALPHA = 0.8f
 // Behaviour.
 private const val MIN_TEXT_PX = 4f
 private const val FIT_STEP = 0.92f
-private val SMALL_CARD = 40.dp
 
 
 

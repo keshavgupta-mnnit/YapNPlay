@@ -26,33 +26,33 @@ class AppManagerTest {
     @Test
     fun `empty store yields defaults`() {
         val manager = AppManager(FakeStore())
-        assertTrue(manager.isVoiceEnabled())
-        assertTrue(manager.isRoyalLudoEnabled())
-        assertTrue(manager.isPartyChatEnabled())
-        assertEquals("", manager.updateConfig())
+        assertTrue(manager.get(AppManagerKeys.App.VOICE_ENABLED))
+        assertTrue(manager.get(AppManagerKeys.Games.ROYAL_LUDO_ENABLED))
+        assertTrue(manager.get(AppManagerKeys.App.PARTY_CHAT_ENABLED))
+        assertEquals("", manager.get(AppManagerKeys.App.UPDATE_CONFIG))
     }
 
     @Test
     fun `local values load at construction`() {
-        val manager = AppManager(FakeStore(mapOf(AppManagerConstants.Key.VOICE_ENABLED to "false")))
-        assertFalse(manager.isVoiceEnabled())
-        assertTrue(manager.isRoyalLudoEnabled())
+        val manager = AppManager(FakeStore(mapOf(AppManagerKeys.App.VOICE_ENABLED.name to "false")))
+        assertFalse(manager.get(AppManagerKeys.App.VOICE_ENABLED))
+        assertTrue(manager.get(AppManagerKeys.Games.ROYAL_LUDO_ENABLED))
     }
 
     @Test
     fun `remote merges over local and persists`() {
-        val store = FakeStore(mapOf(AppManagerConstants.Key.VOICE_ENABLED to "true"))
+        val store = FakeStore(mapOf(AppManagerKeys.App.VOICE_ENABLED.name to "true"))
         val manager = AppManager(store)
-        manager.syncWithRemote(mapOf(AppManagerConstants.Key.VOICE_ENABLED to "false"))
-        assertFalse(manager.isVoiceEnabled())
-        assertEquals("false", store.saved[AppManagerConstants.Key.VOICE_ENABLED])
+        manager.syncWithRemote(mapOf(AppManagerKeys.App.VOICE_ENABLED.name to "false"))
+        assertFalse(manager.get(AppManagerKeys.App.VOICE_ENABLED))
+        assertEquals("false", store.saved[AppManagerKeys.App.VOICE_ENABLED.name])
     }
 
     @Test
     fun `empty remote keeps local values`() {
-        val manager = AppManager(FakeStore(mapOf(AppManagerConstants.Key.VOICE_ENABLED to "false")))
+        val manager = AppManager(FakeStore(mapOf(AppManagerKeys.App.VOICE_ENABLED.name to "false")))
         manager.syncWithRemote(emptyMap())
-        assertFalse(manager.isVoiceEnabled())
+        assertFalse(manager.get(AppManagerKeys.App.VOICE_ENABLED))
     }
 
     @Test
@@ -60,12 +60,12 @@ class AppManagerTest {
         val manager = AppManager(
             FakeStore(
                 mapOf(
-                    AppManagerConstants.Key.VOICE_ENABLED to "maybe",
+                    AppManagerKeys.App.VOICE_ENABLED.name to "maybe",
                     "custom_int" to "abc",
                 ),
             ),
         )
-        assertTrue(manager.isVoiceEnabled())
+        assertTrue(manager.get(AppManagerKeys.App.VOICE_ENABLED))
         assertEquals(7, manager.getInt("custom_int", 7))
     }
 
@@ -76,11 +76,11 @@ class AppManagerTest {
             override fun saveAll(map: Map<String, String>) = throw IllegalStateException("disk gone")
         }
         val manager = AppManager(broken)
-        assertTrue(manager.isVoiceEnabled())
+        assertTrue(manager.get(AppManagerKeys.App.VOICE_ENABLED))
         // Persist fails internally but must not throw out; memory still
         // takes the fresher remote value for this session.
-        manager.syncWithRemote(mapOf(AppManagerConstants.Key.VOICE_ENABLED to "false"))
-        assertFalse(manager.isVoiceEnabled())
+        manager.syncWithRemote(mapOf(AppManagerKeys.App.VOICE_ENABLED.name to "false"))
+        assertFalse(manager.get(AppManagerKeys.App.VOICE_ENABLED))
     }
 
     @Test

@@ -92,14 +92,19 @@ class BackendSession(
         return store.load() ?: lock.withLock { store.load() ?: createGuest() }
     }
 
-    /** An account already made on this phone: the player decides whether to continue it (no account: false). */
+    /**
+     * An account already made on this phone: the player decides whether to
+     * continue it (no account: false). If the server can't be asked (asleep,
+     * offline, busy) this throws, so sign-up waits and tries again instead of
+     * making a second account for the same phone.
+     */
     private suspend fun continuesPhoneAccount(deviceId: String): Boolean {
-        val found = runCatching {
-            http.post(BackendPaths.DEVICE_ACCOUNT) {
-                contentType(ContentType.Application.Json)
-                setBody(DeviceAccountBody(deviceId))
-            }.body<DeviceAccount>()
-        }.getOrNull()?.takeIf { it.found } ?: return false
+        val response = http.post(BackendPaths.DEVICE_ACCOUNT) {
+            contentType(ContentType.Application.Json)
+            setBody(DeviceAccountBody(deviceId))
+        }
+        check(response.status.isSuccess()) { "device account lookup failed: ${response.status}" }
+        val found = response.body<DeviceAccount>().takeIf { it.found } ?: return false
         val choice = CompletableDeferred<Boolean>().also { answer = it }
         offers.value = DeviceAccountOffer(found.displayName, found.avatarId, found.level)
         return choice.await()

@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetPlayGamesNameUseCase
+import com.kglabs28.yapnplay.appengine.ui.screens.welcome.WelcomeViewModel
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.FinishWelcomeUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveWelcomeNeededUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.FriendInvites
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.AnswerDeviceAccountOfferUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveDeviceAccountOfferUseCase
@@ -44,6 +48,10 @@ val profileModule = module {
     factory { ObserveDailyBonusUseCase(get()) }
     factory { CollectDailyBonusUseCase(get()) }
     factory { UpdateProfileUseCase(get()) }
+    factory { ObserveWelcomeNeededUseCase(get()) }
+    factory { FinishWelcomeUseCase(get()) }
+    factory { GetPlayGamesNameUseCase(get()) }
+    factory { WelcomeViewModel(get(), get(), get(), get(), get(), get(), get()) }
     factory { SendFriendRequestUseCase(get()) }
     factory { RespondToFriendRequestUseCase(get()) }
     factory { RemoveFriendUseCase(get()) }

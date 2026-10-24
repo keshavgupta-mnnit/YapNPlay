@@ -1,6 +1,5 @@
 package com.kglabs28.yapnplay.appengine.ui.components.home
 
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Brush
@@ -89,7 +88,7 @@ private fun GameZoneContent(onEnterGameZone: () -> Unit, slant: Dp) {
                 .padding(end = slant / 2),
             contentAlignment = Alignment.Center,
         ) {
-            GameZoneGraphic(modifier = Modifier.heightIn(max = YapNPlayTheme.dimens.homeArtMaxHeight))
+            GameZoneGraphic()
         }
 
         GameZoneFeaturePillarsRow()

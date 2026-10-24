@@ -1,6 +1,5 @@
 package com.kglabs28.yapnplay.appengine.ui.components.home
 
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.Dp
@@ -86,7 +85,7 @@ fun PlayWithFriendsCard(
                     .padding(start = slant / FRIENDS_ART_INSET),
                 contentAlignment = Alignment.Center,
             ) {
-                SocialNetworkOrbitGraphic(modifier = Modifier.heightIn(max = YapNPlayTheme.dimens.homeArtMaxHeight))
+                SocialNetworkOrbitGraphic()
             }
 
             // At the bottom the card starts the whole lean in; the panel spreads out past it into the gap,

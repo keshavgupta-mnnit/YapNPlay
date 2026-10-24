@@ -19,6 +19,7 @@ object BackendPaths {
     const val MATCH_HISTORY = "/matches/history"
     const val FEEDBACK = "/feedback"
     fun roomLeaderboard(roomId: String) = "/rooms/$roomId/leaderboard"
+    fun roomPendingInvites(roomId: String) = "/rooms/$roomId/invites"
     fun feedbackTicket(ticketId: String) = "/feedback/$ticketId"
     const val AD_REWARD = "/coins/ad-reward"
     const val AD_STATUS = "/coins/ad-status"

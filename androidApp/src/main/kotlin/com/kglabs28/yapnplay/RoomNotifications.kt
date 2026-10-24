@@ -16,10 +16,11 @@ import com.kglabs28.yapnplay.appengine.core.common.DeepLinks
 import com.kglabs28.yapnplay.appengine.protocol.PushKeys
 
 /**
- * Room notifications: activity ("Neha entered College Crew", one per room,
- * replaced as the count changes; a tap opens that room's lobby through
- * yapnplay://room/<roomId>) and group invites ("Riya invited you to
- * Hostel Squad"; a tap opens the app, whose Rooms tab shows the invite).
+ * Phone notifications: room activity ("Neha entered College Crew", one per
+ * room, replaced as the count changes; a tap opens that room's lobby
+ * through yapnplay://room/<roomId>), group invites ("Riya invited you to
+ * Hostel Squad"), and friends ("Neha sent you a friend request", "Neha
+ * accepted your friend request"); those open the app.
  */
 object RoomNotifications {
 
@@ -36,19 +37,23 @@ object RoomNotifications {
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
-    /** Shows a room-activity or group-invite push; ignores anything else or when not allowed. */
+    /** Shows a room-activity, group-invite or friend push; ignores anything else or when not allowed. */
     fun show(context: Context, data: Map<String, String>) {
         val type = data[PushKeys.TYPE]
-        if (type != PushKeys.TYPE_ROOM_ACTIVITY && type != PushKeys.TYPE_ROOM_INVITE) return
-        val roomId = data[PushKeys.ROOM_ID] ?: return
         if (!canNotify(context)) return
-        val invite = type == PushKeys.TYPE_ROOM_INVITE
-        val key = if (invite) (data[PushKeys.INVITE_ID] ?: roomId).hashCode() else roomId.hashCode()
+        // One notification per room, invite, or friend (and kind), replaced when it comes again.
+        val key = when (type) {
+            PushKeys.TYPE_ROOM_ACTIVITY -> data[PushKeys.ROOM_ID] ?: return
+            PushKeys.TYPE_ROOM_INVITE -> data[PushKeys.INVITE_ID] ?: data[PushKeys.ROOM_ID] ?: return
+            PushKeys.TYPE_FRIEND_REQUEST, PushKeys.TYPE_FRIEND_ACCEPTED -> type + (data[PushKeys.USER_ID] ?: return)
+            else -> return
+        }.hashCode()
 
-        val open = if (invite) {
-            Intent(context, MainActivity::class.java)
-        } else {
+        val roomId = data[PushKeys.ROOM_ID]
+        val open = if (type == PushKeys.TYPE_ROOM_ACTIVITY && roomId != null) {
             Intent(Intent.ACTION_VIEW, Uri.parse(DeepLinks.roomUri(roomId)), context, MainActivity::class.java)
+        } else {
+            Intent(context, MainActivity::class.java)
         }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val tap = PendingIntent.getActivity(
             context,

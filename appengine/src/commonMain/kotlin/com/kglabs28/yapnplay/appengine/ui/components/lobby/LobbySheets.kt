@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import androidx.compose.ui.draw.alpha
+import androidx.compose.material.icons.rounded.HourglassTop
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -76,13 +78,22 @@ fun LobbyAddFriendsDialog(
                 else -> LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm), verticalAlignment = Alignment.CenterVertically) {
                     items(sheet.friends, key = { it.userId }) { friend ->
                         val picked = friend.userId in sheet.selected
+                        // Invited already, waiting for their answer: dimmed, an hourglass, and no tap.
+                        val waiting = friend.userId in sheet.pending
                         Box(contentAlignment = Alignment.TopEnd) {
                             FriendAvatarItem(
                                 friend = friend,
-                                onClick = { onToggle(friend.userId) },
-                                modifier = if (picked) Modifier.clip(YapNPlayTheme.shapes.button).border(dimens.borderThin, colors.CtaGreenStart, YapNPlayTheme.shapes.button) else Modifier,
+                                onClick = if (waiting) null else ({ onToggle(friend.userId) }),
+                                modifier = when {
+                                    waiting -> Modifier.alpha(WAITING_ALPHA)
+                                    picked -> Modifier.clip(YapNPlayTheme.shapes.button).border(dimens.borderThin, colors.CtaGreenStart, YapNPlayTheme.shapes.button)
+                                    else -> Modifier
+                                },
                             )
-                            if (picked) AppIcon(imageVector = Icons.Rounded.CheckCircle, tint = colors.CtaGreenStart, size = dimens.iconSmall, modifier = Modifier.clip(CircleShape))
+                            when {
+                                waiting -> AppIcon(imageVector = Icons.Rounded.HourglassTop, contentDescription = RoomStrings.lobbyAddFriendsWaiting, tint = colors.Gold, size = dimens.iconSmall)
+                                picked -> AppIcon(imageVector = Icons.Rounded.CheckCircle, tint = colors.CtaGreenStart, size = dimens.iconSmall, modifier = Modifier.clip(CircleShape))
+                            }
                         }
                     }
                 }
@@ -128,3 +139,6 @@ fun LobbyEditNameDialog(
         )
     }
 }
+
+/** A friend already invited (waiting for their answer) is shown faded. */
+private const val WAITING_ALPHA = 0.55f

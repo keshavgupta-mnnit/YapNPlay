@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.core.auth.PlayGamesPlayer
 import com.kglabs28.yapnplay.appengine.core.common.StartupGate
 import com.kglabs28.yapnplay.appengine.features.coins.usecase.GetAdLimitStatusUseCase
 import com.kglabs28.yapnplay.appengine.core.ads.LaunchCoinsOffer
@@ -18,6 +19,7 @@ val coinsModule = module {
     single<CoinsRepository> { CoinsRepositoryImpl(get(), get(), get()) }
     single { LaunchCoinsOffer() }
     single { StartupGate() }
+    single { PlayGamesPlayer() }
     factory { GetCoinLeaguesUseCase(get()) }
     factory { GetAdLimitStatusUseCase(get()) }
     factory { WatchAdForCoinsUseCase(get(), get()) }

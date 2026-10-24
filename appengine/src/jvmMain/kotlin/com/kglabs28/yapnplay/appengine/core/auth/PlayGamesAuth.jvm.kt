@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 actual fun rememberPlayGamesAuth(): PlayGamesAuth = remember {
     object : PlayGamesAuth {
         override suspend fun serverAuthCode(): String? = null
+        override suspend fun playerName(): String? = null
         override fun reloadApp() = Unit
     }
 }

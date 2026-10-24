@@ -88,7 +88,7 @@ private fun NavTabItem(
             .clip(shape)
             .then(selectionModifier)
             .clickable(role = Role.Tab, onClick = onClick)
-            .padding(horizontal = Spacing.Xs),
+            .padding(horizontal = Spacing.Sm),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {

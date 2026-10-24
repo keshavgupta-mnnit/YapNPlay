@@ -1,5 +1,10 @@
 package com.kglabs28.yapnplay.appengine
 
+import com.kglabs28.yapnplay.appengine.core.auth.PlayGamesPlayer
+import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
+import kotlin.math.roundToInt
+import androidx.compose.runtime.SideEffect
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.platform.LocalDensity
@@ -54,10 +59,14 @@ fun YapNPlayRoot(
     val density = LocalDensity.current
     CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
     YapNPlayTheme(tierOverride = tier) {
+        // The whole screen, never the room the keyboard leaves: every size scales with it.
+        BoxWithConstraints(modifier = modifier.fillMaxSize().background(YapNPlayTheme.colors.Background)) {
+        val screenWidthDp = maxWidth.value.roundToInt()
+        val screenHeightDp = maxHeight.value.roundToInt()
+        SideEffect { AdaptiveScale.updateFor(screenWidthDp, screenHeightDp) }
         Box(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
-                .background(YapNPlayTheme.colors.Background)
                 // The phone's keyboard (when chosen) takes room from the bottom instead of covering the screen.
                 .imePadding(),
         ) {
@@ -72,6 +81,7 @@ fun YapNPlayRoot(
             // before, on a new phone or after a reinstall: then the app reloads).
             val playGames = rememberPlayGamesAuth()
             val signInWithPlayGames: SignInWithPlayGamesUseCase = koinInject()
+            val playGamesPlayer: PlayGamesPlayer = koinInject()
             val observeSignInNeeded: ObserveSignInNeededUseCase = koinInject()
             LaunchedEffect(playGames) {
                 suspend fun signIn() {
@@ -80,6 +90,8 @@ fun YapNPlayRoot(
                     if (result is AppResult.Success && result.data) playGames.reloadApp()
                 }
                 signIn()
+                // Their Play Games name, to suggest on the first-launch welcome.
+                playGamesPlayer.remember(playGames.playerName())
                 startupGate.open()
                 // Refused later (the account was restored on another phone): sign in again, one at a time.
                 observeSignInNeeded().collect { signIn() }
@@ -113,6 +125,7 @@ fun YapNPlayRoot(
             }
             }
             }
+        }
         }
     }
     }

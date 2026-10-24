@@ -25,7 +25,7 @@ class RoyalLudoAutoplayTest {
             pieces = mapOf(1 to listOf(54, -1, -1, -1)),
             currentSeat = 1, phase = Phase.AWAITING_MOVE, lastRoll = 2, legalPieces = listOf(0),
         )
-        val result = engine.autoplay(state, SeatNumber(1))
+        val result = engine.autoplay(state, SeatNumber(1), SeededRandom(1L))
         assertIs<ApplyResult.Success>(result)
         val s = result.state as RoyalLudoState
         assertEquals(PROGRESS_FINISHED, s.piecesForSeat(1)[0])
@@ -41,7 +41,7 @@ class RoyalLudoAutoplayTest {
             pieces = mapOf(1 to listOf(4, -1, -1, -1), 2 to listOf(23, -1, -1, -1)),
             currentSeat = 1, phase = Phase.AWAITING_MOVE, lastRoll = 6, legalPieces = listOf(0),
         )
-        val result = engine.autoplay(state, SeatNumber(1))
+        val result = engine.autoplay(state, SeatNumber(1), SeededRandom(1L))
         assertIs<ApplyResult.Success>(result)
         val s = result.state as RoyalLudoState
         assertEquals(PROGRESS_IN_BASE, s.piecesForSeat(2)[0])
@@ -57,7 +57,7 @@ class RoyalLudoAutoplayTest {
             pieces = mapOf(1 to listOf(-1, -1, -1, -1)),
             currentSeat = 1, phase = Phase.AWAITING_MOVE, lastRoll = 6, legalPieces = listOf(0, 1, 2, 3),
         )
-        val result = engine.autoplay(state, SeatNumber(1))
+        val result = engine.autoplay(state, SeatNumber(1), SeededRandom(1L))
         assertIs<ApplyResult.Success>(result)
         val s = result.state as RoyalLudoState
         assertEquals(3, s.piecesForSeat(1).count { it == PROGRESS_IN_BASE })
@@ -74,8 +74,8 @@ class RoyalLudoAutoplayTest {
             pieces = mapOf(1 to listOf(4, 3, -1, -1), 2 to listOf(-1, -1, -1, -1)),
             currentSeat = 1, phase = Phase.AWAITING_MOVE, lastRoll = 6, legalPieces = listOf(0, 1),
         )
-        val r1 = engine.autoplay(state, SeatNumber(1)) as ApplyResult.Success
-        val r2 = engine.autoplay(state, SeatNumber(1)) as ApplyResult.Success
+        val r1 = engine.autoplay(state, SeatNumber(1), SeededRandom(1L)) as ApplyResult.Success
+        val r2 = engine.autoplay(state, SeatNumber(1), SeededRandom(1L)) as ApplyResult.Success
         val s1 = r1.state as RoyalLudoState
         val s2 = r2.state as RoyalLudoState
         assertEquals(s1.pieces, s2.pieces)

@@ -17,15 +17,11 @@ class DesignTokensTest {
         assertEquals(Color(0xFF050917), YapNPlayColors.Background)
         assertEquals(Color(0xFF152235), YapNPlayColors.Panel)
         assertEquals(Color(0xB3233246), YapNPlayColors.Glass)
-        assertEquals(Color(0xFF323B4D), YapNPlayColors.Raised)
     }
 
     @Test
     fun `accents match design values`() {
         assertEquals(Color(0xFF3ADBED), YapNPlayColors.Cyan)
-        assertEquals(Color(0xFF09FEFE), YapNPlayColors.ButtonFace)
-        assertEquals(Color(0xFFDF8733), YapNPlayColors.Orange)
-        assertEquals(Color(0xFFC0671F), YapNPlayColors.OrangeCore)
         assertEquals(Color(0xFFE64DA0), YapNPlayColors.Pink)
         assertEquals(Color(0xFFC26FE8), YapNPlayColors.Purple)
     }

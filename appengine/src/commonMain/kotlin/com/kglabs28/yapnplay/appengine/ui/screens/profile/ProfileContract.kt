@@ -28,7 +28,7 @@ data class ProfileState(
     val onlineCount: Int = 0,
     val offlineCount: Int = 0,
     /** My Friends: which tab, and the friends it shows. */
-    val friendsTab: FriendsTab = FriendsTab.ONLINE,
+    val friendsTab: FriendsTab = FriendsTab.ALL,
     val tabFriends: List<Friend> = emptyList(),
     /** See All: which tab, and the friends it shows. */
     val allFriendsTab: FriendsTab = FriendsTab.ALL,

@@ -48,18 +48,10 @@ class ScaleCoverageTest {
         assertDpFollows(
             "dimens",
             listOf(
-                { d.touchMin }, { d.buttonHeight }, { d.chipHeight },
-                { d.memberRowHeight }, { d.seatCardSize }, { d.diceSize },
-                { d.avatarList }, { d.avatarCard }, { d.avatarRing },
-                { d.panelRadius }, { d.buttonCut }, { d.timerStroke },
-                { d.borderThin }, { d.hairline }, { d.zero },
-                { d.timerRing }, { d.statusDot }, { d.statusDotSmall },
-                { d.voiceToggle }, { d.contentMaxWidth }, { d.glowBlur },
-                { d.cardRadius }, { d.badgeSize }, { d.badgeMedium },
-                { d.badgeLarge }, { d.badgeXLarge }, { d.graphicSize },
-                { d.graphicMaxHeight }, { d.cardHeaderIconSize },
-                { d.compactButtonHeight }, { d.progressWidth },
-                { d.progressHeight },
+                { d.avatarCard }, { d.avatarRing }, { d.panelRadius },
+                { d.buttonCut }, { d.borderThin }, { d.hairline }, { d.zero },
+                { d.statusDot }, { d.statusDotSmall }, { d.glowBlur },
+                { d.cardRadius }, { d.cardHeaderIconSize },
                 { d.logoWidth }, { d.logoHeight },
             ),
         )

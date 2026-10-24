@@ -65,8 +65,7 @@ fun GameZoneScreen(
             .padding(bottom = Spacing.Xs),
         verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
-        // The game area fills from the top; the online pill and view toggle
-        // float over its top-right corner instead of taking their own row.
+        // The game area fills from the top; the online pill and view toggle sit in the bottom row.
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -88,9 +87,7 @@ fun GameZoneScreen(
                         games = state.games,
                         focusedIndex = state.focusedIndex,
                         onGameClick = { viewModel?.onIntent(GameZoneIntent.PlayGame(it)) },
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = YapNPlayTheme.dimens.smallButtonHeight + Spacing.Xs),
+                        modifier = Modifier.fillMaxSize(),
                     )
                     else -> GameCarousel(
                         games = state.games,
@@ -100,26 +97,20 @@ fun GameZoneScreen(
                     )
                 }
             }
-            Row(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .revealWhen(state.loaded),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                OnlineCountPill(label = state.onlineLabel)
-                ViewModeToggle(
-                    isGrid = state.viewMode == GamePickerViewMode.GRID,
-                    onToggle = { viewModel?.onIntent(GameZoneIntent.ToggleViewMode) },
-                )
-            }
         }
 
-        Column(
+        // Bottom row: online count at the start, QUICK PLAY in the middle, the view toggle at the end
+        // (clear of the games, so they never cover a card).
+        Box(
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
+            contentAlignment = Alignment.Center,
         ) {
+            OnlineCountPill(label = state.onlineLabel, modifier = Modifier.align(Alignment.CenterStart).revealWhen(state.loaded))
+            ViewModeToggle(
+                isGrid = state.viewMode == GamePickerViewMode.GRID,
+                onToggle = { viewModel?.onIntent(GameZoneIntent.ToggleViewMode) },
+                modifier = Modifier.align(Alignment.CenterEnd).revealWhen(state.loaded),
+            )
             if (state.viewMode == GamePickerViewMode.CAROUSEL) {
                 // Fades in together with the games (never ahead of them).
                 val ready = state.loaded && state.games.isNotEmpty()

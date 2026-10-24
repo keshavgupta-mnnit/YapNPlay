@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.elements.dice.ui
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.atGameSpeed
 import com.kglabs28.yapnplay.appengine.games.elements.dice.utils.DiceMeshGeometry
 import com.kglabs28.yapnplay.appengine.games.elements.dice.utils.DiceOrientation
 import androidx.compose.animation.core.Animatable
@@ -53,14 +54,17 @@ class GlassDiceState(initialFace: Int = 1) {
             z = DiceMeshGeometry.landing(from.z, DiceMeshGeometry.baseZ(result), Random.nextInt(MIN_TURNS_Z, MAX_TURNS_Z)),
         )
         try {
-            Animatable(0f).animateTo(1f, tween(durationMs, easing = ROLL_EASING)) {
-                val t = value
-                progress = t
-                angles = DiceOrientation(
-                    from.x + (to.x - from.x) * t,
-                    from.y + (to.y - from.y) * t,
-                    from.z + (to.z - from.z) * t,
-                )
+            // Full length even with the phone's animations off (else it would only show the number).
+            atGameSpeed {
+                Animatable(0f).animateTo(1f, tween(durationMs, easing = ROLL_EASING)) {
+                    val t = value
+                    progress = t
+                    angles = DiceOrientation(
+                        from.x + (to.x - from.x) * t,
+                        from.y + (to.y - from.y) * t,
+                        from.z + (to.z - from.z) * t,
+                    )
+                }
             }
         } finally {
             val turn = DiceMeshGeometry.FULL_TURN

@@ -1,7 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
 import com.kglabs28.yapnplay.appengine.ui.components.keyboard.LocalFocusedField
-import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -55,6 +55,7 @@ fun SystemFieldInput(
     val focusedField = LocalFocusedField.current
     val token = remember { Any() }
     var focused by remember { mutableStateOf(false) }
+    val placed = remember { arrayOfNulls<LayoutCoordinates>(1) }
     val keyboardHeight = WindowInsets.ime.getBottom(LocalDensity.current)
     LaunchedEffect(focused, keyboardHeight) { if (focused) inView.bringIntoView() }
     DisposableEffect(token) { onDispose { focusedField.clear(token) } }
@@ -70,10 +71,15 @@ fun SystemFieldInput(
         modifier = modifier
             .bringIntoViewRequester(inView)
             // Where the focused box is, so a tap anywhere else closes the keyboard.
-            .onGloballyPositioned { if (focused) focusedField.set(token, it.boundsInWindow()) }
+            .onGloballyPositioned { placed[0] = it }
             .onFocusEvent {
                 focused = it.isFocused
-                if (it.isFocused) scope.launch { inView.bringIntoView() } else focusedField.clear(token)
+                if (it.isFocused) {
+                    focusedField.set(token, placed[0])
+                    scope.launch { inView.bringIntoView() }
+                } else {
+                    focusedField.clear(token)
+                }
             },
         decorationBox = { inner ->
             Box(contentAlignment = if (lines == 1) Alignment.CenterStart else Alignment.TopStart) {

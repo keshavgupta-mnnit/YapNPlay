@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.board
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.atGameSpeed
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -34,7 +35,9 @@ class PieceMotionState(start: Offset) {
     /** Height above the board, in grid units. */
     val lift: Float get() = sin(PI.toFloat() * arc.value) * arcHeight
 
-    suspend fun moveTo(target: Offset, motion: PieceMotion) = coroutineScope {
+    suspend fun moveTo(target: Offset, motion: PieceMotion) = atGameSpeed { moveAtGameSpeed(target, motion) }
+
+    private suspend fun moveAtGameSpeed(target: Offset, motion: PieceMotion) = coroutineScope {
         if (target == position.targetValue) return@coroutineScope
         val duration = when (motion) {
             PieceMotion.HOP -> AppConstants.LUDO_HOP_MS

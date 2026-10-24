@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.engine
 
+import com.kglabs28.yapnplay.appengine.games.base.play.DefaultGameRandom
 import com.kglabs28.yapnplay.appengine.games.royalludo.utils.*
 
 import com.kglabs28.yapnplay.appengine.games.base.identity.*
@@ -27,7 +28,7 @@ class RoyalLudoSimulationTest {
                 var turns = 0L
                 while (!engine.isFinished(state) && turns < maxTurns) {
                     val s = state as RoyalLudoState
-                    val result = engine.autoplay(state, SeatNumber(s.currentSeat))
+                    val result = engine.autoplay(state, SeatNumber(s.currentSeat), DefaultGameRandom())
                     assertIs<ApplyResult.Success>(result)
                     state = result.state
                     turns++

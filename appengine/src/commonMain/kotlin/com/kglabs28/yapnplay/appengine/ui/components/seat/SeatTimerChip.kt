@@ -1,9 +1,9 @@
 package com.kglabs28.yapnplay.appengine.ui.components.seat
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.StableDigitsText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.runtime.Composable
@@ -29,6 +29,6 @@ fun SeatTimerChip(
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
         AppIcon(imageVector = Icons.Rounded.Schedule, tint = colors.TextSecondary, size = YapNPlayTheme.dimens.iconSmall)
-        BasicText(text = text, style = YapNPlayTheme.typography.title.copy(color = colors.TextPrimary))
+        StableDigitsText(text = text, style = YapNPlayTheme.typography.title.copy(color = colors.TextPrimary))
     }
 }

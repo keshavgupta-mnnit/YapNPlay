@@ -88,6 +88,9 @@ class VoiceClientImpl(
 
     private class Entry(val target: VoiceTarget)
 
+    /** Targets whose screen needs voice now (someone to talk with, a mic on). Declared before init, which reads it. */
+    private val wanted = MutableStateFlow<Set<VoiceTarget>>(emptySet())
+
     override fun speakers(target: VoiceTarget): Flow<Set<String>> = flow {
         val entry = Entry(target)
         open.update { it + entry }
@@ -113,9 +116,6 @@ class VoiceClientImpl(
         }
         scope.launch { follow() }
     }
-
-    /** Targets whose screen needs voice now (someone to talk with, a mic on). */
-    private val wanted = MutableStateFlow<Set<VoiceTarget>>(emptySet())
 
     override fun setVoiceWanted(target: VoiceTarget, wanted: Boolean) {
         this.wanted.update { if (wanted) it + target else it - target }

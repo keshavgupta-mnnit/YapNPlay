@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.StableDigitsText
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
@@ -30,6 +31,6 @@ fun EndVoteCard(vote: EndVoteUi, onVote: (agree: Boolean) -> Unit, modifier: Mod
     ) {
         BasicText(text = vote.tally, style = typography.label.copy(color = colors.Cyan))
         vote.status?.let { BasicText(text = it, style = typography.label.copy(color = colors.TextSecondary)) }
-        BasicText(text = vote.countdown, style = typography.label.copy(color = colors.Gold))
+        StableDigitsText(text = vote.countdown, style = typography.label.copy(color = colors.Gold))
     }
 }

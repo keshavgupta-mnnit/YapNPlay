@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -57,7 +58,8 @@ fun CityBazaarCardColumn(
                     onToggleHear = { onToggleHear(card.seat) },
                     onClick = { onCardClick(card.seat) },
                     onLongPress = { onCardLongPress(card.seat) },
-                    modifier = Modifier.fillMaxWidth().then(cardModifier(card.seat)),
+                    // A fixed slot (its status tag included), so a tag coming or going never moves the cards below.
+                    modifier = Modifier.fillMaxWidth().heightIn(min = slot).then(cardModifier(card.seat)),
                 )
             }
         }

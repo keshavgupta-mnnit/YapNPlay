@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.StableDigitsText
 import androidx.compose.ui.text.style.TextAlign
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
@@ -170,7 +171,7 @@ fun ArenaTopBar(
             horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
         ) {
             AppIcon(imageVector = Icons.Rounded.Schedule, tint = colors.TextPrimary, size = dimens.iconSmall)
-            BasicText(text = elapsed, style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold), maxLines = 1)
+            StableDigitsText(text = elapsed, style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
         }
         switchLabel?.let { label ->
             Box(

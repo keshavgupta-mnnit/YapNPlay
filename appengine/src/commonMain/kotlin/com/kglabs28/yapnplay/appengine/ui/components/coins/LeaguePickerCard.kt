@@ -64,37 +64,3 @@ fun LeaguePickerCard(
         }
     }
 }
-
-@Composable
-private fun LeagueRow(league: LeagueUi, tier: TierLook, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val colors = YapNPlayTheme.colors
-    val dimens = YapNPlayTheme.dimens
-    val shape = RoundedCornerShape(dimens.cardRadius)
-    val accent = if (league.canEnter) tier.rim else colors.TextSecondary
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(dimens.leagueRowHeight)
-            .alpha(if (league.canEnter) 1f else LOCKED_ALPHA)
-            .clip(shape)
-            .background(Brush.linearGradient(tier.fill))
-            .border(if (tier.royal) dimens.borderThin else dimens.promptRim, tier.rim.copy(alpha = RIM_ALPHA), shape)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = Spacing.Md),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
-    ) {
-        if (tier.royal) AppIcon(imageVector = Icons.Rounded.WorkspacePremium, tint = tier.rim, size = dimens.iconSmall)
-        BasicText(
-            text = league.name,
-            modifier = Modifier.weight(1f),
-            style = YapNPlayTheme.typography.title.copy(color = if (league.canEnter) colors.TextPrimary else colors.TextSecondary, fontWeight = FontWeight.Bold),
-        )
-        if (!league.canEnter) AppIcon(imageVector = Icons.Rounded.Lock, tint = colors.TextSecondary, size = dimens.iconSmall)
-        if (league.entryCoins > 0) AppIcon(imageVector = Icons.Rounded.MonetizationOn, tint = accent, size = dimens.iconSmall)
-        BasicText(text = league.feeLabel, style = YapNPlayTheme.typography.title.copy(color = accent, fontWeight = FontWeight.Black))
-    }
-}
-
-private const val RIM_ALPHA = 0.85f
-private const val LOCKED_ALPHA = 0.7f

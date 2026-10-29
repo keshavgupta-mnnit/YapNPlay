@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.core.designsystem
 
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
@@ -50,6 +51,8 @@ fun YapNPlayTheme(
     CompositionLocalProvider(
         LocalThemeData provides data,
         LocalLayoutTier provides tier,
+        // Every tap dims the control itself, in its own shape (no grey box over the tap area).
+        LocalIndication provides PressDimIndication,
         content = content,
     )
 }

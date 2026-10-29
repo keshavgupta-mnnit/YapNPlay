@@ -17,7 +17,7 @@ import org.koin.dsl.module
 val coinsModule = module {
     single<CoinsClient> { CoinsClientImpl(get()) }
     single<CoinsRepository> { CoinsRepositoryImpl(get(), get(), get()) }
-    single { LaunchCoinsOffer() }
+    single { LaunchCoinsOffer(get()) }
     single { StartupGate() }
     single { PlayGamesPlayer() }
     factory { GetCoinLeaguesUseCase(get()) }

@@ -104,7 +104,7 @@ object ProfileStrings {
     const val profileUnblockBody = "They'll be able to send you friend requests and room invites again."
     const val profileKeyboardTitle = "Enter YapNPlay ID"
     const val profileKeyboardDelete = "Delete"
-    const val profileInviteToGroup = "Invite to Playroom"
+    const val profileInviteToGroup = "Invite to Game Room"
     fun profileInviteTitle(name: String) = "Invite $name"
     const val profileInviteHint = "Pick one of your rooms, or start a new one with them."
     const val profileInvite = "Invite"

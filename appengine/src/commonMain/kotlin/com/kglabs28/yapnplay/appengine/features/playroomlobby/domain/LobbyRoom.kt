@@ -18,6 +18,10 @@ data class LobbyRoom(
     val selectedGameId: String?,
     val houseRules: Map<String, Boolean>,
     val botFill: Boolean,
+    /** The room's league (each player's entry, coins), the leagues on offer, and the most the lobby can pay. */
+    val entryCoins: Int = 0,
+    val leagueFees: List<Int> = emptyList(),
+    val affordableEntry: Int = Int.MAX_VALUE,
     val countdownEndsAt: Instant?,
     /** A match already running in this room (members can watch it), or null. */
     val matchInProgress: String? = null,

@@ -59,9 +59,19 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel? = null,
     onCreateGroupWith: (userId: String) -> Unit = {},
+    /** A friend request push was tapped: open the requests. */
+    showRequests: Boolean = false,
+    onRequestsShown: () -> Unit = {},
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: ProfileState()
     val send: (ProfileIntent) -> Unit = { viewModel?.onIntent(it) }
+    // The view model reloads first, so a request that just came in is in the list.
+    LaunchedEffect(showRequests, viewModel) {
+        if (showRequests && viewModel != null) {
+            send(ProfileIntent.ShowRequestsFromPush)
+            onRequestsShown()
+        }
+    }
     val clipboard = LocalClipboardManager.current
     val share = rememberShareSheet()
     LaunchedEffect(viewModel) {

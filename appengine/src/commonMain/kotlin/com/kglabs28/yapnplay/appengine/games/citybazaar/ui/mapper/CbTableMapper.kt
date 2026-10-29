@@ -99,6 +99,7 @@ object CbTableMapper {
                 },
                 mutedForMe = muted,
                 canSpeak = !cpuPlays,
+                micOn = p.micOn,
                 out = p.bankrupt,
             )
         }

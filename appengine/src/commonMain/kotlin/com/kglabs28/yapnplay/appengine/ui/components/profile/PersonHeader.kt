@@ -16,7 +16,7 @@ import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfilePersonUi
 
 /** The top of a person's card: big avatar with its online dot, name, their ID pill. */
 @Composable
-fun PersonHeader(person: ProfilePersonUi, onCopyCode: () -> Unit, modifier: Modifier = Modifier) {
+fun PersonHeader(person: ProfilePersonUi, onCopyCode: () -> Unit, modifier: Modifier = Modifier, idPillModifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
@@ -26,6 +26,6 @@ fun PersonHeader(person: ProfilePersonUi, onCopyCode: () -> Unit, modifier: Modi
             PresenceDot(online = person.online, size = dimens.statusDot, onlineColor = colors.LiveGreen)
         }
         BasicText(text = person.name, style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold), maxLines = 1)
-        ProfileIdPill(code = person.userCode, copied = false, onCopy = onCopyCode)
+        ProfileIdPill(code = person.userCode, copied = false, onCopy = onCopyCode, modifier = idPillModifier)
     }
 }

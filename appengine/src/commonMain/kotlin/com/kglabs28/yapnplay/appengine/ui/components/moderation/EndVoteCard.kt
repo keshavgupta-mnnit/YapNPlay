@@ -1,36 +1,30 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
-import com.kglabs28.yapnplay.appengine.ui.components.common.StableDigitsText
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
-import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
-import com.kglabs28.yapnplay.appengine.ui.components.profile.ProfileActionButton
-import com.kglabs28.yapnplay.appengine.ui.components.profile.ProfileButtonKind
+import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatPickerDialog
 
-/** "END THE GAME?" at any table: keep playing or end, the votes so far and the time left. Only players still in can vote. */
+/**
+ * "END THE GAME?" at any table, in the same dialog as Leave the match:
+ * keep playing or end, the votes so far and the time left. Only players
+ * still in can vote.
+ */
 @Composable
 fun EndVoteCard(vote: EndVoteUi, onVote: (agree: Boolean) -> Unit, modifier: Modifier = Modifier) {
-    val colors = YapNPlayTheme.colors
-    val typography = YapNPlayTheme.typography
-    ModalCard(
+    SeatPickerDialog(
         title = TableStrings.endVoteTitle,
-        subtitle = vote.body,
+        message = vote.body,
+        options = emptyList(),
+        selectedIndex = null,
+        onSelect = {},
+        secondaryLabel = TableStrings.endVoteKeep,
+        onSecondary = { onVote(false) },
+        primaryLabel = TableStrings.endVoteEnd,
+        onPrimary = { onVote(true) },
         modifier = modifier,
-        actions = {
-            if (vote.canVote) {
-                ProfileActionButton(text = TableStrings.endVoteKeep, kind = ProfileButtonKind.CONFIRM, onClick = { onVote(false) }, leadingIcon = Icons.Rounded.Check)
-                ProfileActionButton(text = TableStrings.endVoteEnd, kind = ProfileButtonKind.DANGER, onClick = { onVote(true) }, leadingIcon = Icons.Rounded.Flag)
-            }
-        },
-    ) {
-        BasicText(text = vote.tally, style = typography.label.copy(color = colors.Cyan))
-        vote.status?.let { BasicText(text = it, style = typography.label.copy(color = colors.TextSecondary)) }
-        StableDigitsText(text = vote.countdown, style = typography.label.copy(color = colors.Gold))
-    }
+        countdown = vote.countdown,
+        footer = listOfNotNull(vote.tally, vote.status),
+        showActions = vote.canVote,
+    )
 }

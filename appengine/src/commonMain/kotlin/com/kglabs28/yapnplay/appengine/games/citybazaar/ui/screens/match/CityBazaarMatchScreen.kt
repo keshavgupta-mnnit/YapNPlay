@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.components.table.tableCardMuteRoom
+import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -27,6 +29,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -186,6 +190,7 @@ fun CityBazaarMatchScreen(
                         onVoteExtension = { send(CityBazaarMatchIntent.VoteExtension(it)) },
                         onVoteEnd = { send(CityBazaarMatchIntent.VoteEnd(it)) },
                         onProposeEnd = { send(CityBazaarMatchIntent.ProposeEnd) },
+                        onConfirmEnd = { send(CityBazaarMatchIntent.ConfirmEnd) },
                         onStayInJail = { send(CityBazaarMatchIntent.StayInJail) },
                         onToggleSale = { send(CityBazaarMatchIntent.ToggleSale(it)) },
                         onConfirmSale = { send(CityBazaarMatchIntent.ConfirmSale) },
@@ -276,7 +281,12 @@ fun CityBazaarMatchContent(
             val density = LocalDensity.current
             // The 3D diamond's corners where the board draws it (it sits a little below the top).
             val drop = with(density) { YapNPlayTheme.dimens.cb3dBoardDrop.toPx() }
-            val tips = CityBazaarIsoProjection.tips(Size(constraints.maxWidth.toFloat(), constraints.maxHeight - drop))
+            // On a tablet the 3D board is drawn smaller (in its centre), so the side cards and the info panel have room beside it.
+            val shrink = 1f - AdaptiveScale.forTablet(phone = 1f, tablet = TABLET_BOARD_SCALE)
+            val boardInset = DpSize(maxWidth * shrink / 2, (maxHeight - YapNPlayTheme.dimens.cb3dBoardDrop) * shrink / 2)
+            val insetX = with(density) { boardInset.width.toPx() }
+            val insetY = with(density) { boardInset.height.toPx() }
+            val tips = CityBazaarIsoProjection.tips(Size(constraints.maxWidth - insetX * 2, constraints.maxHeight - drop - insetY * 2)).map { it + Offset(insetX, insetY) }
             // In 3D the info panel reaches to just short of the board's left corner; in 2D it is the side column.
             val panelWidth = if (state.threeD) {
                 with(density) { (tips[0].x.toDp() - YapNPlayTheme.dimens.cb3dPanelGap).coerceAtLeast(side) }
@@ -301,8 +311,11 @@ fun CityBazaarMatchContent(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .fillMaxHeight()
-                    .width(if (state.threeD) maxWidth else maxWidth - side * 2)
-                    .padding(top = if (state.threeD) YapNPlayTheme.dimens.cb3dBoardDrop else YapNPlayTheme.dimens.zero),
+                    .width(if (state.threeD) maxWidth - boardInset.width * 2 else maxWidth - side * 2)
+                    .padding(
+                        top = if (state.threeD) YapNPlayTheme.dimens.cb3dBoardDrop + boardInset.height else YapNPlayTheme.dimens.zero,
+                        bottom = if (state.threeD) boardInset.height else YapNPlayTheme.dimens.zero,
+                    ),
             ) { left, right ->
                 // Tap the dice to roll (no press highlight), when it's the user's roll.
                 val tap = if (state.canRoll) Modifier.clickable(interactionSource = null, indication = null) { send(CityBazaarMatchIntent.Roll) } else Modifier
@@ -310,7 +323,7 @@ fun CityBazaarMatchContent(
                 GlassDice(state = die2, palette = palette, grounded = false, modifier = right.then(tap))
             }
             if (state.threeD) {
-                CityRoyale3dSeats(state = state, send = send, micGranted = micGranted, anchors = anchors)
+                CityRoyale3dSeats(state = state, send = send, micGranted = micGranted, anchors = anchors, boardInset = boardInset)
             } else {
                 // Every other player on the left (hidden while the info panel takes their place).
                 if (state.panel == null) {
@@ -449,6 +462,7 @@ private fun BoxScope.CityRoyale3dSeats(
     send: (CityBazaarMatchIntent) -> Unit,
     micGranted: () -> Boolean,
     anchors: MutableMap<Int, Offset>,
+    boardInset: DpSize,
 ) {
     val dimens = YapNPlayTheme.dimens
     val colors = YapNPlayTheme.colors
@@ -463,6 +477,7 @@ private fun BoxScope.CityRoyale3dSeats(
         // The snackbar shows at the top centre: seats there keep below it.
         topReserve = dimens.cb3dSnackReserve,
         watching = state.spectating,
+        boardInset = boardInset,
     ) { card ->
         TablePlayerCard(
             card = card,
@@ -475,7 +490,8 @@ private fun BoxScope.CityRoyale3dSeats(
             onToggleHear = { send(CityBazaarMatchIntent.ToggleHear(card.seat)) },
             onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
             onLongPress = { send(CityBazaarMatchIntent.PlayerLongPressed(card.seat)) },
-            modifier = Modifier.onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center }.monoScaled(seatScale).width(dimens.cb3dSeatWidth),
+            modifier = Modifier.onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center }// A seat with a mute button is wider: the button sits outside its name pill.
+                .monoScaled(seatScale).width(dimens.cb3dSeatWidth + if (!card.isMe && card.canSpeak) tableCardMuteRoom(dimens.cb3dSeatAvatar) else dimens.zero),
         )
     }
 
@@ -549,3 +565,6 @@ private const val STACK_LAYERS = 3
 
 /** The bank's key among the card positions. */
 private const val BANK_ANCHOR = -1
+
+/** On a tablet, the 3D board's size × what it would fill. */
+private const val TABLET_BOARD_SCALE = 0.9f

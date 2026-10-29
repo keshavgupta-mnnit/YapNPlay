@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.graphics.Brush
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
@@ -31,6 +33,8 @@ import com.kglabs28.yapnplay.appengine.ui.screens.profile.FriendsTab
 @Composable
 fun AllFriendsCard(
     friends: List<Friend>,
+    /** Every friend, whatever the tab: the list always keeps the All tab's height. */
+    everyone: List<Friend>,
     tab: FriendsTab,
     allCount: Int,
     onlineCount: Int,
@@ -54,17 +58,28 @@ fun AllFriendsCard(
             onSelect = onSelectTab,
         )
         Column(modifier = Modifier.fillMaxWidth().heightIn(max = dimens.friendsGridMaxHeight).glassScrollbar(listScroll).verticalScroll(listScroll).padding(end = YapNPlayTheme.dimens.scrollbarWidth * 2)) {
-            if (friends.isEmpty()) {
-                EmptyStateText(text = if (tab == FriendsTab.ONLINE) ProfileStrings.profileNoneOnline else ProfileStrings.profileNoneOffline, modifier = Modifier.fillMaxWidth())
-            } else {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.Md, Alignment.Start),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
-                ) {
-                    friends.forEach { friend -> FriendAvatarItem(friend = friend, onClick = { onFriendClick(friend.userId) }, size = dimens.profileFriendAvatar) }
+            Box {
+                // Invisible All list: holds the height, so Online / Offline (even empty) never shrink the dialog.
+                FriendsFlow(friends = everyone, onFriendClick = null, modifier = Modifier.alpha(0f))
+                if (friends.isEmpty()) {
+                    EmptyStateText(text = if (tab == FriendsTab.ONLINE) ProfileStrings.profileNoneOnline else ProfileStrings.profileNoneOffline, modifier = Modifier.fillMaxWidth())
+                } else {
+                    FriendsFlow(friends = friends, onFriendClick = onFriendClick)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FriendsFlow(friends: List<Friend>, onFriendClick: ((userId: String) -> Unit)?, modifier: Modifier = Modifier) {
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Md, Alignment.Start),
+        verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
+    ) {
+        friends.forEach { friend ->
+            FriendAvatarItem(friend = friend, onClick = onFriendClick?.let { open -> { open(friend.userId) } }, size = YapNPlayTheme.dimens.profileFriendAvatar)
         }
     }
 }

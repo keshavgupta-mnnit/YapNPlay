@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
+import com.kglabs28.yapnplay.appengine.ui.components.table.tableCardMuteRoom
 import com.kglabs28.yapnplay.appengine.ui.components.table.monoScaled
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableSeatPlan
 import androidx.compose.foundation.layout.BoxScope
@@ -45,6 +47,8 @@ fun BoxScope.LudoCornerCards(
     areaSize: IntSize,
     /** The board's own box (the area less the strip kept free under it), which its tips come from. */
     boardSize: IntSize,
+    /** How far the board's box starts from the area's left edge (px): room kept at its sides on a tablet. */
+    boardLeft: Int = 0,
     rotation: Int,
     onToggleHear: (seat: Int) -> Unit,
     onLongPress: (seat: Int) -> Unit,
@@ -57,17 +61,21 @@ fun BoxScope.LudoCornerCards(
     val top = tips[1]
     val right = tips[2]
     val bottom = tips[3]
-    val centre = Offset((left.x + right.x) / 2, (top.y + bottom.y) / 2)
+    val centre = Offset((left.x + right.x) / 2 + boardLeft, (top.y + bottom.y) / 2)
     val halfW = (right.x - left.x) / 2
     val halfH = (bottom.y - top.y) / 2
     // Fewer players, bigger cards (the board stays the same size).
     val scale = TableSeatPlan.scale(cards.count { !it.isMe })
     val avatarPx = with(density) { YapNPlayTheme.dimens.monoSeatAvatar.toPx() } * scale
-    val cardPx = with(density) { cardWidth.toPx() } * scale
+    // A card with a mute button is wider: the button sits outside its name pill.
+    val muteRoom = tableCardMuteRoom(YapNPlayTheme.dimens.ludoCardAvatar)
+    fun widthOf(card: LudoPlayerCardUi) = if (!card.isMe && card.canSpeak) cardWidth + muteRoom else cardWidth
     // Measured card heights, so a card is kept inside the area.
     val heights = remember { mutableStateMapOf<Int, Int>() }
     cards.forEach { card ->
-        val spot = SPOTS.getValue(card.corner)
+        val cardPx = with(density) { widthOf(card).toPx() } * scale
+        // On a tablet the bigger board would put the bottom base's card out by Roll Dice: closer in, by its start square.
+        val spot = if (card.corner == BoardCorner.BOTTOM_LEFT && AdaptiveScale.tabletShare > HALF) TABLET_BOTTOM_SPOT else SPOTS.getValue(card.corner)
         val spotX = centre.x + spot.x * halfW
         // On a right edge the avatar sits on the spot and the card runs right; on a left edge the card ends there.
         val startX = if (spot.x >= 0f) spotX - avatarPx / 2 else spotX + avatarPx / 2 - cardPx
@@ -77,7 +85,7 @@ fun BoxScope.LudoCornerCards(
         val place = Modifier
             .offset { IntOffset(x.roundToInt(), y.roundToInt()) }
             .monoScaled(scale)
-            .width(cardWidth)
+            .width(widthOf(card))
             .onSizeChanged { heights[card.seat] = it.height }
         if (card.isMe) {
             own(card, place)
@@ -108,3 +116,7 @@ private val SPOTS = mapOf(
     BoardCorner.BOTTOM_RIGHT to Offset(0.79f, -0.48f),
     BoardCorner.BOTTOM_LEFT to Offset(0.70f, 0.80f),
 )
+
+/** The bottom base's card on a tablet: just outside the lower-right edge by its start square, clear of Roll Dice. */
+private val TABLET_BOTTOM_SPOT = Offset(0.5f, 0.65f)
+private const val HALF = 0.5f

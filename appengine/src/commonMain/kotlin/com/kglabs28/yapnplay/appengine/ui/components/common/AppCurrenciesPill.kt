@@ -55,6 +55,8 @@ fun AppCurrenciesPill(
     val coinPill = Modifier
         .height(dimens.homeBarControl)
         .glassPill(glowColor = colors.TopBarIcon, surface = colors.TopBarButtonFrost)
+        // The whole pill takes the tap, so its highlight fills the pill (not a box round the number).
+        .clickable(role = Role.Button, onClick = onAddCoins)
         .padding(horizontal = Spacing.Xs)
     val xpPill = Modifier
         .height(dimens.homeBarControl)
@@ -68,7 +70,6 @@ fun AppCurrenciesPill(
                 iconTint = colors.Gold,
                 balance = coinBalance,
                 visible = balancesVisible,
-                onAdd = onAddCoins,
             )
         }
         Row(
@@ -101,14 +102,13 @@ private fun CurrencyBalance(
     iconTint: Color,
     balance: String,
     visible: Boolean,
-    onAdd: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
 
     Row(
-        modifier = modifier.clickable(role = Role.Button, onClick = onAdd),
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxxs),
     ) {

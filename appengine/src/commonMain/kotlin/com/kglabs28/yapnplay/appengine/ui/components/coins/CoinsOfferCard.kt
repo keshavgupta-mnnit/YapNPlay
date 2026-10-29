@@ -21,6 +21,7 @@ import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.MonetizationOn
 import androidx.compose.material.icons.rounded.OndemandVideo
 import androidx.compose.material.icons.rounded.SportsEsports
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -69,7 +70,8 @@ fun CoinsOfferCard(
             if (offer.offerFree) {
                 GlassPillButton(text = CoinsStrings.playFree, onClick = onPlayFree, leadingIcon = Icons.Rounded.SportsEsports, height = YapNPlayTheme.dimens.ctaHeight)
             }
-            if (offer.adReady) PillButton(
+            // Always there; greyed out (not tappable) while no ad can load.
+            PillButton(
                 text = when {
                     offer.watchingAd -> CoinsStrings.watchingAd
                     next != null -> CoinsStrings.watchAdFor(TextUtils.groupedThousands(next))
@@ -80,7 +82,7 @@ fun CoinsOfferCard(
                     onWatchAd()
                 },
                 // Off while an ad plays, and during the cooldown or past today's limit (the note under it says which).
-                enabled = !offer.watchingAd && offer.canWatch,
+                enabled = offer.adReady && !offer.watchingAd && offer.canWatch,
                 gradient = listOf(colors.CoinsWatchStart, colors.CoinsWatchEnd),
                 contentColor = colors.CoinsWatchContent,
                 leadingIcon = Icons.Rounded.OndemandVideo,
@@ -89,9 +91,13 @@ fun CoinsOfferCard(
             )
         },
     ) {
-        if (offer.adReady && offer.rewards.isNotEmpty()) {
-            CoinsAdProgress(watched = offer.adsWatched, total = offer.rewards.size)
-            CoinsAdLadder(rewards = offer.rewards, watched = offer.adsWatched)
+        // No ad can load (an ad blocker or Private DNS): the ad parts grey out, and a short note says why.
+        if (!offer.adReady) NoAdsNote()
+        Column(modifier = Modifier.alpha(if (offer.adReady) 1f else NO_AD_ALPHA), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+            if (offer.rewards.isNotEmpty()) {
+                CoinsAdProgress(watched = offer.adsWatched, total = offer.rewards.size)
+                CoinsAdLadder(rewards = offer.rewards, watched = offer.adsWatched)
+            }
         }
         offer.message?.let {
             BasicText(text = it, style = YapNPlayTheme.typography.label.copy(color = colors.Gold, fontWeight = FontWeight.SemiBold))
@@ -204,3 +210,24 @@ private fun ladderColours(): List<Color> {
 
 private const val DONE_ALPHA = 0.55f
 private const val DIVIDER_ALPHA = 0.85f
+
+/** "No ads available. Check Private DNS or ad blockers.", in a warning pill. */
+@Composable
+private fun NoAdsNote() {
+    val colors = YapNPlayTheme.colors
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(YapNPlayTheme.dimens.rowRadius))
+            .background(colors.Warning.copy(alpha = NOTE_FILL_ALPHA))
+            .padding(horizontal = Spacing.Sm, vertical = Spacing.Xs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+    ) {
+        AppIcon(imageVector = Icons.Rounded.WarningAmber, tint = colors.Warning, size = YapNPlayTheme.dimens.iconSmall)
+        BasicText(text = CoinsStrings.noAdsAvailable, style = YapNPlayTheme.typography.label.copy(color = colors.Warning, fontWeight = FontWeight.Bold))
+    }
+}
+
+private const val NO_AD_ALPHA = 0.4f
+private const val NOTE_FILL_ALPHA = 0.16f

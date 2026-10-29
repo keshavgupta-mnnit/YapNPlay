@@ -14,7 +14,9 @@ object AppManagerKeys {
     /** App-wide switches and addresses. */
     object App {
         val SERVER_BASE_URL = ConfigKey("server_base_url", "", "Backend address (https://…, no trailing slash); empty = built-in.")
-        val UPDATE_CONFIG = ConfigKey("update_config", "", "Force/optional update rule as JSON (see UpdateRule); empty = none.")
+        val UPDATE_PROMPT_ENABLED = ConfigKey("update_prompt_enabled", true, "Show 'New version available' (Update / Later) when Google Play has a newer build.")
+        val UPDATE_MIN_VERSION = ConfigKey("update_min_version", "", "Force update: builds below this version (e.g. 1.0.4) must update before they can be used; empty = none.")
+        val UPDATE_MESSAGE = ConfigKey("update_message", "", "Optional extra text on the update card; empty = the built-in text.")
         val VOICE_ENABLED = ConfigKey("voice_enabled", true, "Live voice in rooms and tables.")
         val PARTY_CHAT_ENABLED = ConfigKey("party_chat_enabled", true, "Party chat in rooms.")
         val MAX_ROOMS_PER_USER = ConfigKey("max_rooms_per_user", 5, "Groups one user may belong to (the server enforces the same).")
@@ -62,7 +64,7 @@ object AppManagerKeys {
 
     /** Every key with its default, for Remote Config's in-app defaults. */
     val all: List<ConfigKey<*>> = listOf(
-        App.SERVER_BASE_URL, App.UPDATE_CONFIG, App.VOICE_ENABLED, App.PARTY_CHAT_ENABLED, App.MAX_ROOMS_PER_USER, App.PLAY_STORE_URL, App.INVITE_LINKS_ENABLED,
+        App.SERVER_BASE_URL, App.UPDATE_PROMPT_ENABLED, App.UPDATE_MIN_VERSION, App.UPDATE_MESSAGE, App.VOICE_ENABLED, App.PARTY_CHAT_ENABLED, App.MAX_ROOMS_PER_USER, App.PLAY_STORE_URL, App.INVITE_LINKS_ENABLED,
         Games.ROYAL_LUDO_ENABLED, Games.CITY_BAZAAR_ENABLED, Games.TURN_HURRY_SECONDS,
         CityBazaar.EVENT_BREATH_MS, CityBazaar.EVENT_BREATH_MAX_MS, CityBazaar.POPUP_MS, CityBazaar.SNACKBAR_MS,
         Ads.ENABLED, Ads.LAUNCH_OFFER, Ads.REWARDED_UNIT_ID,

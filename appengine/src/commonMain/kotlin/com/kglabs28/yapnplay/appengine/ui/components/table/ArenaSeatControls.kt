@@ -29,7 +29,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.SportsEsports
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.MicOff
 import androidx.compose.runtime.Composable
@@ -78,7 +78,7 @@ fun ArenaSeatSwitches(
             size = size,
         )
         ArenaRoundSwitch(
-            icon = Icons.Rounded.Bolt,
+            icon = Icons.Rounded.SportsEsports,
             description = MonoStrings.monoAutoplay,
             on = autoplay,
             fill = colors.ArenaAutoOn,

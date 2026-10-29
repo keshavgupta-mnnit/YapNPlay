@@ -76,6 +76,8 @@ data class MatchMonoState(
     val sheet: TableSheetUi? = null,
     /** Exit was tapped: "Leave the match?" waits for an answer (and who takes the seat). */
     val leaveDialog: LeaveDialogUi? = null,
+    /** "End game" was tapped in the settings: "END THE GAME?" waits for an answer before the vote starts. */
+    val confirmEnd: Boolean = false,
     /** The final board, once the match is over (after the winner's banner has shown). */
     val leaderboard: LeaderboardUi? = null,
     /** "🏆 Riya finishes 1st!" for a few seconds after someone empties their hand. */
@@ -133,8 +135,11 @@ sealed interface MatchMonoIntent : UiIntent {
     data object SubmitReport : MatchMonoIntent
     data class Vote(val agree: Boolean) : MatchMonoIntent
     data object CloseSheet : MatchMonoIntent
-    /** "End game (vote)" in the settings. */
+    /** "End game (vote)" in the settings: asks first. */
     data object ProposeEnd : MatchMonoIntent
+    /** "END THE GAME?" answered: start the vote, or not. */
+    data object ConfirmEnd : MatchMonoIntent
+    data object CancelEnd : MatchMonoIntent
     data class VoteEnd(val agree: Boolean) : MatchMonoIntent
     data object ExitClicked : MatchMonoIntent
     /** "Leave the match?" answered: leave, or stay. */

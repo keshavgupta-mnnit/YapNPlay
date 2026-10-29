@@ -153,8 +153,13 @@ class MatchMonoChaosViewModel(
             MatchMonoChaosIntent.OpenSettings -> sheets.openSettings(canEndGame())
             MatchMonoChaosIntent.ProposeEnd -> {
                 sheets.close()
+                setState { copy(confirmEnd = true) }
+            }
+            MatchMonoChaosIntent.ConfirmEnd -> {
+                setState { copy(confirmEnd = false) }
                 send(MonoChaosCommand.ProposeEnd)
             }
+            MatchMonoChaosIntent.CancelEnd -> setState { copy(confirmEnd = false) }
             is MatchMonoChaosIntent.VoteEnd -> send(MonoChaosCommand.VoteEnd(intent.agree))
             MatchMonoChaosIntent.ToggleEffects -> sheets.toggleEffects()
             MatchMonoChaosIntent.ToggleMusic -> sheets.toggleMusic()
@@ -234,6 +239,8 @@ class MatchMonoChaosViewModel(
             banner = text to clock.now()
         }
         if (update.events.none { it is MonoChaosEvent.SeatFinished }) MonoTableNotes.chaos(update.events, update.match)?.let { banner = it to clock.now() }
+        // Ended by vote (at once, with only bots to vote): say so before the board comes up.
+        update.endVote?.takeIf { it.ended }?.let { banner = TableStrings.endVoted(it.yes, it.voters) to clock.now() }
         MonoPenaltySnack.chaos(update.events, update.match, snackId + 1)?.let { snackId++; snack = it to clock.now() }
         val flights = director.direct(cues(update.events, previous, update.match), update.match.me?.seat)
         if (flights.isNotEmpty()) emitEffect(MatchMonoChaosEffect.Fly(flights))

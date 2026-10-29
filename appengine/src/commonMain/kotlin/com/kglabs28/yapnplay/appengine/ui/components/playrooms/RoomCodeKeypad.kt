@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.ui.components.keyboard.keyBackdrop
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -147,6 +148,7 @@ private fun RowScope.KeyTile(
                 glowColor = glow,
                 surface = YapNPlayTheme.colors.RoomsSmallButton,
                 shape = RoundedCornerShape(YapNPlayTheme.dimens.rowRadius),
+                backdrop = keyBackdrop(),
             )
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,

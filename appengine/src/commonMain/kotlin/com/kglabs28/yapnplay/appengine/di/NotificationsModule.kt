@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.notifications.usecase.ObservePushSignalsUseCase
+import com.kglabs28.yapnplay.appengine.features.notifications.domain.PushSignals
 import com.kglabs28.yapnplay.appengine.features.notifications.data.DevicesRepositoryImpl
 import com.kglabs28.yapnplay.appengine.features.notifications.data.remote.DevicesApi
 import com.kglabs28.yapnplay.appengine.features.notifications.data.remote.DevicesApiClient
@@ -26,6 +28,8 @@ val notificationsModule = module {
     single { NotificationsLocalManager(get()) }
     single<NotificationsRepository> { NotificationsRepositoryImpl(get()) }
     factory { ObserveNotificationsUseCase(get()) }
-    factory { SaveNotificationUseCase(get(), get()) }
+    single { PushSignals() }
+    factory { SaveNotificationUseCase(get(), get(), get()) }
+    factory { ObservePushSignalsUseCase(get()) }
     factory { MarkNotificationsReadUseCase(get()) }
 }

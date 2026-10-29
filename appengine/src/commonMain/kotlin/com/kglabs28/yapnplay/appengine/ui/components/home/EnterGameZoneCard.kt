@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.home
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Brush
@@ -84,8 +85,9 @@ private fun GameZoneContent(onEnterGameZone: () -> Unit, slant: Dp) {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                // Halfway down the card is narrower by half the lean.
-                .padding(end = slant / 2),
+                // Halfway down the card is narrower by half the lean; on a tablet the taller
+                // art reaches the card's top, so it keeps clear of the whole lean.
+                .padding(end = slant * AdaptiveScale.forTablet(phone = 0.5f, tablet = 1f)),
             contentAlignment = Alignment.Center,
         ) {
             GameZoneGraphic()

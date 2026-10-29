@@ -48,6 +48,10 @@ fun SeatPickerDialog(
     modifier: Modifier = Modifier,
     countdown: String? = null,
     primaryEnabled: Boolean = true,
+    /** Short lines under the message (a vote's tally, who it waits for). */
+    footer: List<String> = emptyList(),
+    /** False hides the two buttons (a vote the user can't take part in). */
+    showActions: Boolean = true,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -100,7 +104,8 @@ fun SeatPickerDialog(
                 }
             }
         }
-        Row(
+        footer.forEach { line -> BasicText(text = line, style = typography.label.copy(color = colors.Cyan, textAlign = TextAlign.Center)) }
+        if (showActions) Row(
             horizontalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {

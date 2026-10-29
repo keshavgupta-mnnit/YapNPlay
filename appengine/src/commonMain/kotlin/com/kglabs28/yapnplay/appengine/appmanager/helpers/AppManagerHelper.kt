@@ -3,6 +3,7 @@ package com.kglabs28.yapnplay.appengine.appmanager.helpers
 import com.kglabs28.yapnplay.appengine.core.common.BuildInfo
 import com.kglabs28.yapnplay.appengine.appmanager.AppManager
 import com.kglabs28.yapnplay.appengine.appmanager.AppManagerKeys
+import com.kglabs28.yapnplay.appengine.appmanager.UpdateRule
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 
 /** App-wide remote values: backend address, update rule, voice / party chat switches, room limit, share link. */
@@ -14,7 +15,11 @@ class AppManagerHelper(private val appManager: AppManager) {
             .takeIf { it.startsWith(HTTPS) || it.startsWith(HTTP) }
             ?: AppConstants.SERVER_BASE_URL
 
-    fun updateConfig(): String = appManager.get(AppManagerKeys.App.UPDATE_CONFIG)
+    fun updateRule(): UpdateRule = UpdateRule(
+        promptEnabled = appManager.get(AppManagerKeys.App.UPDATE_PROMPT_ENABLED),
+        minVersion = appManager.get(AppManagerKeys.App.UPDATE_MIN_VERSION),
+        message = appManager.get(AppManagerKeys.App.UPDATE_MESSAGE),
+    )
     fun isVoiceEnabled(): Boolean = appManager.get(AppManagerKeys.App.VOICE_ENABLED)
     fun isPartyChatEnabled(): Boolean = appManager.get(AppManagerKeys.App.PARTY_CHAT_ENABLED)
     fun maxRoomsPerUser(): Int = appManager.get(AppManagerKeys.App.MAX_ROOMS_PER_USER)

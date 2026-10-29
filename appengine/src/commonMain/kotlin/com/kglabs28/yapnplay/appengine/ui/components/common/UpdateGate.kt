@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,18 +21,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import com.kglabs28.yapnplay.appengine.appmanager.AppManager
 import com.kglabs28.yapnplay.appengine.appmanager.UpdateNeed
-import com.kglabs28.yapnplay.appengine.appmanager.UpdateRule
 import com.kglabs28.yapnplay.appengine.appmanager.rememberAppUpdater
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import org.koin.compose.koinInject
 
 /**
- * Force update from Remote Config (`update_config`, see [UpdateRule]).
- * Below the minimum version the app is covered by "Update required" with
- * no way past it; below the latest version a dismissable "New version"
- * card shows once per launch. Both buttons open Google Play's update.
- * Works offline too: the last fetched rule is kept by [AppManager].
+ * Updates, from AppManager (see UpdateRule). Below `update_min_version`
+ * the app is covered by "Update required" with no way past it; when
+ * Google Play has a newer build (and `update_prompt_enabled`, on by
+ * default) a dismissable "New version" card shows once per launch. Both
+ * buttons open Google Play's update. The force rule works offline too:
+ * the last fetched values are kept by [AppManager].
  */
 @Composable
 fun UpdateGate(
@@ -43,8 +44,11 @@ fun UpdateGate(
     val updater = rememberAppUpdater()
     // Re-read the rule whenever Remote Config values arrive.
     val revision by appManager.revision.collectAsState()
-    val rule = remember(revision) { UpdateRule.parse(appConfig.updateConfig()) }
-    val need = rule.need(updater.versionName)
+    val rule = remember(revision) { appConfig.updateRule() }
+    // Asked once per launch: does Google Play hold a newer build?
+    var storeHasUpdate by remember { mutableStateOf(false) }
+    LaunchedEffect(updater) { storeHasUpdate = updater.isUpdateAvailable() }
+    val need = rule.need(updater.versionName, storeHasUpdate)
     var optionalDismissed by rememberSaveable { mutableStateOf(false) }
 
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

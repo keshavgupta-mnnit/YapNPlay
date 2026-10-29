@@ -11,4 +11,6 @@ data class LeaderboardUi(
     val myExp: String = "",
     /** "+100 coins": the user's own finishing bonus; empty when they got none. */
     val myBonus: String = "",
+    /** "500 COINS LEAGUE" / "FREE LEAGUE", so the coins below make sense; empty until the result is in. */
+    val league: String = "",
 )

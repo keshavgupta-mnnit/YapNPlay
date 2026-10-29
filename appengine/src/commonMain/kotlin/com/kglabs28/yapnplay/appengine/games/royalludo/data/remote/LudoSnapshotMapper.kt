@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.data.remote
 
+import com.kglabs28.yapnplay.appengine.games.base.data.endVoteResult
+import com.kglabs28.yapnplay.appengine.games.base.data.isTableWideEvent
 import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.features.seathandover.data.toDomain
@@ -74,12 +76,13 @@ class LudoSnapshotMapper(private val json: Json) {
             roomId = snapshot.roomId,
             viewerUserId = myUserId,
         )
-        val events = snapshot.events.mapNotNull { event ->
+        // The end-vote result is read on its own (below), not as one of this game's events.
+        val events = snapshot.events.filterNot { it.isTableWideEvent() }.mapNotNull { event ->
             runCatching { json.decodeFromJsonElement(RoyalLudoWireEvent.serializer(), event).toDomain() }
                 .onFailure { CrashReporter.record(it, "LudoSnapshotMapper.event") }
                 .getOrNull()
         }
-        return LudoUpdate(match, events)
+        return LudoUpdate(match, events, snapshot.events.endVoteResult())
     }
 
     private fun RoyalLudoWireEvent.toDomain(): LudoEvent = when (this) {

@@ -29,5 +29,6 @@ class CityBazaarModalActions(
     val onVoteExtension: (keepPlaying: Boolean) -> Unit,
     val onVoteEnd: (agree: Boolean) -> Unit,
     val onProposeEnd: () -> Unit,
+    val onConfirmEnd: () -> Unit,
     val onWatchAd: () -> Unit,
 )

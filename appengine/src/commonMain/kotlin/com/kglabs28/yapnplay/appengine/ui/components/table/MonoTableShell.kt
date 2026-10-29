@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Arrangement
@@ -76,13 +79,27 @@ fun MonoTableShell(
     // Every opponent's seat, shrunk together as the table fills.
     val seatScale = TableSeatPlan.scale(leftPods.size + topPods.size + rightPods.size)
     // The bands the layers keep clear of each other.
-    val side = dimens.monoPodWidthCompact + Spacing.Sm
+    // A seat with a mute button is that much wider: the button sits outside its name pill.
+    val muteRoom = dimens.ludoMuteButton + Spacing.Xxs
+    fun roomFor(pod: MonoPlayerPodUi) = if (onToggleHear != null && pod.canSpeak) muteRoom else dimens.zero
+    val sideColumn = dimens.monoPodWidthCompact + ((leftPods + rightPods).maxOfOrNull { roomFor(it) } ?: dimens.zero)
+    val side = sideColumn + Spacing.Sm
     val topBand = if (topPods.isEmpty()) Spacing.Xs else dimens.monoTopBandHeight
     // The hand's own band: a card's height plus its lift, so it never reaches the piles.
     val handBand = dimens.monoHandCardWidth / CARD_W_PER_H + dimens.monoCardLift + Spacing.Xs
 
     Box(modifier = modifier.fillMaxSize()) {
-        GameTableArenaArtwork(modifier = Modifier.fillMaxSize())
+        // On a tablet the seats keep their phone places while the picture grows with the height:
+        // zoomed a little from the top (its bottom stays put), the table sits up among them as on a phone.
+        val lift = AdaptiveScale.forTablet(phone = 0f, tablet = TABLET_TABLE_LIFT)
+        GameTableArenaArtwork(
+            modifier = Modifier.fillMaxSize().graphicsLayer {
+                transformOrigin = TransformOrigin(0.5f, 0f)
+                scaleX = 1f + lift
+                scaleY = 1f + lift
+                translationY = -size.height * lift
+            },
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -132,7 +149,7 @@ fun MonoTableShell(
                             modifier = Modifier
                                 .monoAnchor(anchors, MonoSpot.Seat(pod.seat))
                                 .monoScaled(seatScale)
-                                .width(dimens.monoPodWidth + dimens.monoSideFanWidth),
+                                .width(dimens.monoPodWidth + dimens.monoSideFanWidth + roomFor(pod)),
                         )
                     }
                 }
@@ -141,7 +158,7 @@ fun MonoTableShell(
                 Column(
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .width(dimens.monoPodWidthCompact)
+                        .width(sideColumn)
                         .fillMaxHeight()
                         .padding(bottom = if (watching) Spacing.Sm else dimens.monoLocalCornerHeight),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterVertically),
@@ -154,7 +171,7 @@ fun MonoTableShell(
                             modifier = Modifier
                                 .monoAnchor(anchors, MonoSpot.Seat(pod.seat))
                                 .monoScaled(seatScale)
-                                .width(dimens.monoPodWidthCompact),
+                                .width(dimens.monoPodWidthCompact + roomFor(pod)),
                         )
                     }
                 }
@@ -163,7 +180,7 @@ fun MonoTableShell(
                 Column(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .width(dimens.monoPodWidthCompact)
+                        .width(sideColumn)
                         .fillMaxHeight()
                         .padding(bottom = if (watching) Spacing.Sm else dimens.arenaActionHeight + Spacing.Sm),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterVertically),
@@ -177,7 +194,7 @@ fun MonoTableShell(
                             modifier = Modifier
                                 .monoAnchor(anchors, MonoSpot.Seat(pod.seat))
                                 .monoScaled(seatScale)
-                                .width(dimens.monoPodWidthCompact),
+                                .width(dimens.monoPodWidthCompact + roomFor(pod)),
                         )
                     }
                 }
@@ -224,9 +241,13 @@ private fun muteButtonFor(pod: MonoPlayerPodUi, onToggleHear: ((Int) -> Unit)?):
                 muted = pod.mutedForMe,
                 description = LudoStrings.ludoMuteFor(pod.name),
                 onToggle = { onToggleHear(pod.seat) },
+                micOn = pod.micOn,
             )
         }
     }
 
 /** Same as a card: width ÷ height. */
 private const val CARD_W_PER_H = 0.68f
+
+/** On a tablet, how much the table picture is zoomed from its top (it rises by the same share). */
+private const val TABLET_TABLE_LIFT = 0.1f

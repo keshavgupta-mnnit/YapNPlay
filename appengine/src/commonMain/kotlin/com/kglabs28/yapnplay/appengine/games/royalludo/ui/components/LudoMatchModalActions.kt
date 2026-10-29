@@ -22,5 +22,6 @@ class LudoMatchModalActions(
     val onSpectate: () -> Unit,
     val onStillHere: () -> Unit,
     val onProposeEnd: () -> Unit,
+    val onConfirmEnd: () -> Unit,
     val onEndVote: (agree: Boolean) -> Unit,
 )

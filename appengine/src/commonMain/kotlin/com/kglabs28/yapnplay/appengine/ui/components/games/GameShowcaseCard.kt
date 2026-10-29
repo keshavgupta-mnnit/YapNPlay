@@ -4,6 +4,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -31,6 +32,8 @@ fun GameShowcaseCard(
     nameStyle: TextStyle = YapNPlayTheme.typography.heroWord,
     /** The "Match · Play · Win" line under the name; the grid leaves it out. */
     showTagline: Boolean = true,
+    /** The art's share of the card's width (smaller keeps a tall card's art at the phone's proportions). */
+    artWidthShare: Float = 1f,
 ) {
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
@@ -46,7 +49,8 @@ fun GameShowcaseCard(
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
-            GameArt(artKey = game.artKey)
+            // Narrowed art stays square (the art is cropped to its box).
+            GameArt(artKey = game.artKey, modifier = if (artWidthShare < 1f) Modifier.fillMaxWidth(artWidthShare).aspectRatio(1f) else Modifier)
         }
         ShrinkText(
             text = game.name,

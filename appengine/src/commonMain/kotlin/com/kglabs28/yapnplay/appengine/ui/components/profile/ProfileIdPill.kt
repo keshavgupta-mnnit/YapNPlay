@@ -4,7 +4,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.rounded.Share
 import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -41,12 +40,13 @@ fun ProfileIdPill(
             .clickable(onClick = onCopy)
             .padding(horizontal = Spacing.Xxs),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+        // Centred when the pill is given a width (as wide as the buttons on a friend's card).
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterHorizontally),
     ) {
         BasicText(
             text = ProfileStrings.profileYapId,
             style = typography.micro.copy(color = colors.TextSecondary),
-            modifier = Modifier.clip(YapNPlayTheme.shapes.pill).background(colors.RoomsSmallButton).padding(horizontal = Spacing.Xs, vertical = Spacing.Xxxs),
+            modifier = Modifier.padding(start = Spacing.Xs),
         )
         BasicText(text = code, style = typography.sectionTitle.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
         if (copied) {

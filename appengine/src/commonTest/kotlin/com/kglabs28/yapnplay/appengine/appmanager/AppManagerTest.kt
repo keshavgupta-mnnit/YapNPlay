@@ -29,7 +29,7 @@ class AppManagerTest {
         assertTrue(manager.get(AppManagerKeys.App.VOICE_ENABLED))
         assertTrue(manager.get(AppManagerKeys.Games.ROYAL_LUDO_ENABLED))
         assertTrue(manager.get(AppManagerKeys.App.PARTY_CHAT_ENABLED))
-        assertEquals("", manager.get(AppManagerKeys.App.UPDATE_CONFIG))
+        assertEquals("", manager.get(AppManagerKeys.App.UPDATE_MIN_VERSION))
     }
 
     @Test

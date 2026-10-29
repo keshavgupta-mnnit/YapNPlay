@@ -109,6 +109,10 @@ class RoyalLudoMatchViewModel(
     private var penalty: Penalty? = null
     private var foreground = true
     private var leaderboard: LeaderboardUi? = null
+    /** "The game was ended by vote": shown before the board, for a moment. */
+    private var endNotice: String? = null
+    /** The final board is waiting out the end notice (one wait only). */
+    private var boardPending = false
     /** The coins and XP MatchEnded paid (it arrives just after the last snapshot). */
     private var seatResults: List<SeatResult> = emptyList()
     private val turnAlarm = TurnAlarm(hurrySeconds = { gamesConfig.turnHurrySeconds() }) { if (foreground) audio.play(it) }
@@ -184,7 +188,9 @@ class RoyalLudoMatchViewModel(
             }
             RoyalLudoMatchIntent.DismissModal -> if (matchGone) emitEffect(RoyalLudoMatchEffect.Close) else showModal(null)
             RoyalLudoMatchIntent.OpenSettings -> showSettings()
-            RoyalLudoMatchIntent.ProposeEnd -> {
+            // Asks first, as at every table; the vote starts on End game.
+            RoyalLudoMatchIntent.ProposeEnd -> showModal(LudoMatchModal.ConfirmEnd)
+            RoyalLudoMatchIntent.ConfirmEnd -> {
                 showModal(null)
                 send(LudoCommand.ProposeEnd)
             }
@@ -271,6 +277,7 @@ class RoyalLudoMatchViewModel(
 
     /** Animates [update]'s events in order with sound, then shows the new turn. */
     private suspend fun play(update: LudoUpdate) {
+        update.endVote?.takeIf { it.ended }?.let { endNotice = TableStrings.endVoted(it.yes, it.voters) }
         // First snapshot, or in the background: no animation, straight to the latest board.
         if (match == null || !foreground) {
             reset(update.match)
@@ -402,8 +409,20 @@ class RoyalLudoMatchViewModel(
         // automatic move, or a six's move); back for the next roll.
         diceVisible = newMatch.phase == LudoPhase.ROLL
         if (newlyFinished) sound(GameSound.WIN)
-        if (newMatch.phase == LudoPhase.FINISHED && leaderboard == null) {
-            leaderboard = LudoMatchUiMapper.leaderboard(newMatch, LudoMatchUiMapper.elapsed(clock.now() - newMatch.startedAt)).let { LeaderboardResult.withResult(it, seatResults) }
+        if (newMatch.phase == LudoPhase.FINISHED && leaderboard == null && !boardPending) {
+            val board = LudoMatchUiMapper.leaderboard(newMatch, LudoMatchUiMapper.elapsed(clock.now() - newMatch.startedAt)).let { LeaderboardResult.withResult(it, seatResults) }
+            // Ended by vote: the reason shows first (the top banner), then the board.
+            if (endNotice != null) {
+                boardPending = true
+                scope.launch {
+                    delay(END_NOTICE_MS)
+                    endNotice = null
+                    leaderboard = board.let { LeaderboardResult.withResult(it, seatResults) }
+                    render()
+                }
+            } else {
+                leaderboard = board
+            }
         }
         render()
     }
@@ -503,7 +522,7 @@ class RoyalLudoMatchViewModel(
                 elapsed = if (m.phase == LudoPhase.FINISHED && elapsed.isNotEmpty()) elapsed else LudoMatchUiMapper.elapsed(clock.now() - m.startedAt),
                 dice = LudoDiceUi(diceValue, rollId, m.players.firstOrNull { it.seat == diceSeat }?.colour, diceVisible),
                 canRoll = myTurn && m.phase == LudoPhase.ROLL,
-                seatBanner = LudoMatchUiMapper.seatBanner(m, clock.now()),
+                seatBanner = endNotice ?: LudoMatchUiMapper.seatBanner(m, clock.now()),
                 roomMatch = m.isRoomMatch,
                 moveHint = m.lastRoll?.takeIf { myTurn && m.phase == LudoPhase.MOVE }?.let { LudoStrings.ludoMove(it) },
                 // On when the bot holds the seat too; turning it off takes the seat back.
@@ -568,3 +587,6 @@ class RoyalLudoMatchViewModel(
         send(next)
     }
 }
+
+/** How long "ended by vote" shows before the final board. */
+private const val END_NOTICE_MS = 2_500L

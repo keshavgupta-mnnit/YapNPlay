@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.home
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.Dp
@@ -82,7 +83,8 @@ fun PlayWithFriendsCard(
                     .weight(1f)
                     .fillMaxWidth()
                     // Clear of the leaning edge, but with most of the card's width.
-                    .padding(start = slant / FRIENDS_ART_INSET),
+                    // On a tablet the art is wide and sits mid-card, where the lean is about half: room for it to grow.
+                    .padding(start = slant * AdaptiveScale.forTablet(phone = 1f / FRIENDS_ART_INSET, tablet = TABLET_ART_INSET)),
                 contentAlignment = Alignment.Center,
             ) {
                 SocialNetworkOrbitGraphic()
@@ -97,3 +99,6 @@ fun PlayWithFriendsCard(
 
 /** The friends art keeps clear of the leaning edge by the lean over this. */
 private const val FRIENDS_ART_INSET = 3
+
+/** On a tablet, the share of the lean kept clear on the art's left. */
+private const val TABLET_ART_INSET = 0.5f

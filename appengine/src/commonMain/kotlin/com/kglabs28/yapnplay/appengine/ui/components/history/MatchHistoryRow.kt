@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
@@ -26,6 +27,8 @@ fun MatchHistoryRow(row: MatchHistoryRowUi, onClick: () -> Unit, modifier: Modif
     Row(
         modifier = modifier
             .fillMaxWidth()
+            // An abandoned match opens nothing: dimmed, so it doesn't look tappable.
+            .alpha(if (row.opensBoard) 1f else ABANDONED_ALPHA)
             .arenaGlass(YapNPlayTheme.shapes.panel)
             .then(if (row.opensBoard) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
             .padding(horizontal = Spacing.Md, vertical = Spacing.Sm),
@@ -42,3 +45,5 @@ fun MatchHistoryRow(row: MatchHistoryRowUi, onClick: () -> Unit, modifier: Modif
         }
     }
 }
+
+private const val ABANDONED_ALPHA = 0.45f

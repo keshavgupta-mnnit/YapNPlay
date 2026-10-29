@@ -152,6 +152,8 @@ class CityBazaarMatchViewModel(
     private var startAnnounced = false
     private var waitAnnounced = false
     private var leaderboard: LeaderboardUi? = null
+    /** The match was just ended by vote: its feed line shows a moment before the board. */
+    private var endedByVote = false
     /** The coins and XP MatchEnded paid (it arrives just after the last snapshot). */
     private var seatResults: List<SeatResult> = emptyList()
     /** The deck of the last card drawn (its money event names it). */
@@ -253,7 +255,9 @@ class CityBazaarMatchViewModel(
             CityBazaarMatchIntent.DismissFriendAction -> setState { copy(friendAction = null) }
             CityBazaarMatchIntent.OpenBank -> showPanel(bank = true)
             is CityBazaarMatchIntent.VoteExtension -> send(CityBazaarCommand.VoteExtension(intent.keepPlaying))
-            CityBazaarMatchIntent.ProposeEnd -> {
+            // Asks first, as at every table; the vote starts on End game.
+            CityBazaarMatchIntent.ProposeEnd -> showModal(CbModal.ConfirmEnd)
+            CityBazaarMatchIntent.ConfirmEnd -> {
                 showModal(null)
                 send(CityBazaarCommand.ProposeEnd)
             }
@@ -358,6 +362,7 @@ class CityBazaarMatchViewModel(
 
     /** Plays [update]'s events in order with sound, then shows the new turn. */
     private suspend fun play(update: CityBazaarUpdate) {
+        if (update.events.any { it is CityBazaarEvent.EndVoted && it.ended }) endedByVote = true
         // First snapshot, or in the background: straight to the latest table.
         if (match == null || !foreground) {
             reset(update.match)
@@ -635,7 +640,17 @@ class CityBazaarMatchViewModel(
         }
         if (justFinished) {
             sound(GameSound.WIN)
-            leaderboard = CbResultMapper.leaderboard(newMatch, CbFormat.elapsed(clock.now() - newMatch.startedAt)).let { LeaderboardResult.withResult(it, seatResults) }
+            // Ended by vote: the feed's "ended by vote" line shows first, then the board.
+            val board = CbResultMapper.leaderboard(newMatch, CbFormat.elapsed(clock.now() - newMatch.startedAt)).let { LeaderboardResult.withResult(it, seatResults) }
+            if (endedByVote) {
+                scope.launch {
+                    delay(END_NOTICE_MS)
+                    leaderboard = board.let { LeaderboardResult.withResult(it, seatResults) }
+                    render()
+                }
+            } else {
+                leaderboard = board
+            }
         }
         render()
     }
@@ -968,3 +983,6 @@ class CityBazaarMatchViewModel(
         pendingDice = null
     }
 }
+
+/** How long "ended by vote" shows before the final board. */
+private const val END_NOTICE_MS = 2_500L

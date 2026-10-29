@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * AdMob rewarded ads. The unit id comes from AppManager (Google's test
@@ -50,6 +51,8 @@ class AdMobRewardedAds(
             readyFlow.value = value != null
         }
     private var loading = false
+    /** Failed loads in a row; each retry waits longer, and a load that works starts over. */
+    private var failures = 0
     /** The launch load has started (screens coming back later don't load again). */
     private var launched = false
     private val main = Handler(Looper.getMainLooper())
@@ -90,17 +93,24 @@ class AdMobRewardedAds(
         }
         initialize()
         loading = true
+        // AdMob starts before its first load: loading before it is up can fail ("Unable to obtain a JavascriptEngine").
+        initialize()
         AppLog.d(TAG, "preload started (unit=${config.rewardedUnitId()})")
         RewardedAd.load(application, config.rewardedUnitId(), AdRequest.Builder().build(), object : RewardedAdLoadCallback() {
             override fun onAdLoaded(ad: RewardedAd) {
                 AppLog.d(TAG, "preload: ad loaded")
                 loading = false
+                failures = 0
                 ready = ad
             }
             override fun onAdFailedToLoad(error: LoadAdError) {
-                AppLog.d(TAG, "preload failed: code=${error.code} message=${error.message} domain=${error.domain} response=${error.responseInfo}; not retried")
                 CrashReporter.record(IllegalStateException(error.message), "AdMobRewardedAds.preload:" + error.code)
                 loading = false
+                // "No fill" often clears up: try again a few times, waiting longer each time (a coins tap also retries).
+                failures++
+                val retry = failures <= RETRY_DELAYS_MS.size
+                AppLog.d(TAG, "preload failed: code=${error.code} message=${error.message} domain=${error.domain} response=${error.responseInfo}; retry=$retry")
+                if (retry) main.postDelayed({ preload() }, RETRY_DELAYS_MS[failures - 1])
             }
         })
     }
@@ -111,7 +121,8 @@ class AdMobRewardedAds(
         val activity = resumed.get() ?: return@withContext false.also { AppLog.d(TAG, "show: no visible activity") }
         AppLog.d(TAG, "show: on ${activity::class.simpleName} (finishing=${activity.isFinishing})")
         initialize()
-        val ad = ready ?: load(activity) ?: return@withContext false.also { AppLog.d(TAG, "show: no ad could be loaded") }
+        // Only loading has a time limit: an ad that is playing is never cut short (that lost the reward).
+        val ad = ready ?: withTimeoutOrNull(LOAD_TIMEOUT_MS) { load(activity) } ?: return@withContext false.also { AppLog.d(TAG, "show: no ad could be loaded") }
         ready = null
         AppLog.d(TAG, "show: playing the ad")
         play(activity, ad).also {
@@ -169,3 +180,8 @@ class AdMobRewardedAds(
 
 private const val TAG = AppConstants.LOG_TAG_ADS
 
+/** Waits before each retry of a failed load. */
+private val RETRY_DELAYS_MS = longArrayOf(30_000L, 60_000L, 120_000L)
+
+/** How long an ad that wasn't ready may take to load when Watch Ad is tapped. */
+private const val LOAD_TIMEOUT_MS = 30_000L

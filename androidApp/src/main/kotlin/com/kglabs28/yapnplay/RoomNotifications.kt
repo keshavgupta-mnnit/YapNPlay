@@ -49,9 +49,16 @@ object RoomNotifications {
             else -> return
         }.hashCode()
 
+        // A tap opens what the push is about: the room's lobby, the invites to answer, or the friend requests.
         val roomId = data[PushKeys.ROOM_ID]
-        val open = if (type == PushKeys.TYPE_ROOM_ACTIVITY && roomId != null) {
-            Intent(Intent.ACTION_VIEW, Uri.parse(DeepLinks.roomUri(roomId)), context, MainActivity::class.java)
+        val link = when {
+            type == PushKeys.TYPE_ROOM_ACTIVITY && roomId != null -> DeepLinks.roomUri(roomId)
+            type == PushKeys.TYPE_ROOM_INVITE -> DeepLinks.invitesUri()
+            type == PushKeys.TYPE_FRIEND_REQUEST -> DeepLinks.friendRequestsUri()
+            else -> null
+        }
+        val open = if (link != null) {
+            Intent(Intent.ACTION_VIEW, Uri.parse(link), context, MainActivity::class.java)
         } else {
             Intent(context, MainActivity::class.java)
         }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.profile
 
+import com.kglabs28.yapnplay.appengine.features.notifications.usecase.ObservePushSignalsUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.FriendInvites
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.AppSettingsController
 import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
@@ -41,8 +42,14 @@ class ProfileViewModel(
     private val inviteFriendsToGroup: InviteFriendsToGroupUseCase,
     private val settingsController: AppSettingsController,
     private val friendInvites: FriendInvites,
+    private val observePushes: ObservePushSignalsUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<ProfileState, ProfileIntent, ProfileEffect>(ProfileState(), dispatchers) {
+
+    init {
+        // A friend request (or acceptance) push while the profile is open: show it now, not on the next visit.
+        scope.launch { observePushes.friends().collect { reload() } }
+    }
 
     private var data: ProfileScreenData? = null
     private var copiedJob: Job? = null
@@ -102,6 +109,11 @@ class ProfileViewModel(
             ProfileIntent.ClearCode -> setState { copy(addCode = "", addMessage = null, addError = false) }
             ProfileIntent.SendRequest -> send()
             ProfileIntent.ViewRequests -> if (state.value.requests.isNotEmpty()) showModal(ProfileModal.Requests)
+            // From a friend request push: the newest requests first, then the list (the one tapped may be new).
+            ProfileIntent.ShowRequestsFromPush -> {
+                reload()
+                if (state.value.requests.isNotEmpty()) showModal(ProfileModal.Requests)
+            }
             is ProfileIntent.OpenRequest -> state.value.requests.firstOrNull { it.requestId == intent.requestId }?.let { showModal(ProfileModal.RequestProfile(it)) }
             is ProfileIntent.AcceptRequest -> accept(intent.requestId)
             is ProfileIntent.DeclineRequest -> decline(intent.requestId)

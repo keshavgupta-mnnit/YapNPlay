@@ -65,6 +65,6 @@ val profileModule = module {
     factory { AnswerDeviceAccountOfferUseCase(get()) }
     factory { TogglePlayerFriendUseCase(get()) }
     factory { PlayerFriendUseCases(get(), get()) }
-    factory { ProfileViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { ProfileViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { FriendInvites(get()) }
 }

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.leaderboard.podium
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
@@ -23,7 +24,8 @@ fun Podium(podium: List<LeaderboardEntryUi>, modifier: Modifier = Modifier) {
     // The tallest place (1st): crown, the avatar above the card, the card (over the box's top face), the box.
     val height = dimens.podiumCrown + dimens.podiumAvatarAbove + dimens.podiumCardHeight - dimens.podiumCardOverTop + dimens.podiumBoxFirst
     BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.BottomCenter) {
-        val fit = minOf(1f, maxWidth / width, maxHeight / height)
+        // Never bigger than drawn on a phone; a tablet's taller screen lets it grow, still fitting its space.
+        val fit = minOf(AdaptiveScale.forTablet(phone = 1f, tablet = TABLET_MAX_GROWTH), maxWidth / width, maxHeight / height)
         Row(
             modifier = Modifier.shrinkToFit(fit, width, height),
             verticalAlignment = Alignment.Bottom,
@@ -37,3 +39,6 @@ fun Podium(podium: List<LeaderboardEntryUi>, modifier: Modifier = Modifier) {
 }
 
 private const val PLACES = 3
+
+/** How much bigger than on a phone the podium may grow on a tablet. */
+private const val TABLET_MAX_GROWTH = 1.5f

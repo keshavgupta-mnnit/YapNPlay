@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
+import com.kglabs28.yapnplay.appengine.ui.components.coins.LeagueUi
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
@@ -27,6 +28,9 @@ data class PlayRoomLobbyState(
     val viewMode: GamePickerViewMode = GamePickerViewMode.CAROUSEL,
     val selectedGame: GameCatalogItem? = null,
     val houseRules: List<HouseRuleUi> = emptyList(),
+    /** The leagues the room can play in, cheapest first (locked: someone here can't pay), and the room's own. */
+    val leagues: List<LeagueUi> = emptyList(),
+    val entryCoins: Int = 0,
     val fixedRules: List<String> = emptyList(),
     val primary: LobbyPrimaryButtonUi = LobbyPrimaryButtonUi(),
     val micOn: Boolean = false,
@@ -120,6 +124,8 @@ sealed interface PlayRoomLobbyIntent : UiIntent {
     data class SelectGame(val index: Int) : PlayRoomLobbyIntent
     data object ChangeGame : PlayRoomLobbyIntent
     data class ToggleHouseRule(val key: String) : PlayRoomLobbyIntent
+    /** The leader picks the room's league (each player's entry, coins). */
+    data class SelectLeague(val entryCoins: Int) : PlayRoomLobbyIntent
     data object PrimaryAction : PlayRoomLobbyIntent
     /** [permissionGranted]: whether the OS mic permission is granted right now. */
     data class ToggleMic(val permissionGranted: Boolean) : PlayRoomLobbyIntent

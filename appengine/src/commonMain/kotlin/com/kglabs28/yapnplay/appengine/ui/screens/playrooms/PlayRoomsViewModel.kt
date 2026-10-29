@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playrooms
 
+import kotlinx.coroutines.launch
+import com.kglabs28.yapnplay.appengine.features.notifications.usecase.ObservePushSignalsUseCase
 import com.kglabs28.yapnplay.appengine.features.playrooms.usecase.RoomInvites
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
@@ -35,8 +37,14 @@ class PlayRoomsViewModel(
     private val getFriends: GetFriendsUseCase,
     private val observeMyProfile: ObserveMyProfileUseCase,
     private val roomInvites: RoomInvites,
+    private val observePushes: ObservePushSignalsUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<PlayRoomsState, PlayRoomsIntent, PlayRoomsEffect>(PlayRoomsState(), dispatchers) {
+
+    init {
+        // A Game Room invite push while the app is open: the invites (and their count) update at once.
+        scope.launch { observePushes.invites().collect { refreshInvites() } }
+    }
 
     override suspend fun handleIntent(intent: PlayRoomsIntent) {
         when (intent) {

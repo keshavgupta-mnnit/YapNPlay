@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.ui.components.coins.LeagueUi
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -44,6 +45,10 @@ fun HouseRulesPanel(
     /** Rule whose description is sliding (tapped); null = none. */
     slidingRuleKey: String? = null,
     onSlideRule: (String) -> Unit = {},
+    /** The room's league, shown first (above Fill with bots); empty hides it. */
+    leagues: List<LeagueUi> = emptyList(),
+    entryCoins: Int = 0,
+    onPickLeague: (entryCoins: Int) -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -71,6 +76,9 @@ fun HouseRulesPanel(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
+            if (leagues.isNotEmpty()) item(key = LEAGUE_ITEM_KEY) {
+                RoomLeaguePicker(leagues = leagues, selectedEntry = entryCoins, editable = editable, onPick = onPickLeague)
+            }
             items(rules, key = { it.key }) { rule ->
                 HouseRuleRow(
                     rule = rule,
@@ -121,3 +129,5 @@ private fun HouseRuleRow(
         OnOffSwitch(on = rule.enabled, onToggle = onToggle, enabled = editable)
     }
 }
+
+private const val LEAGUE_ITEM_KEY = "league"

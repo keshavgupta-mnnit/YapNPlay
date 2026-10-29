@@ -20,7 +20,6 @@ import com.kglabs28.yapnplay.appengine.core.common.StartupGate
 import com.kglabs28.yapnplay.appengine.ui.components.common.SlidingTextHost
 import com.kglabs28.yapnplay.appengine.ui.components.common.UpdateGate
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +32,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.keyboard.AppKeyboardHost
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.common.DeepLink
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import androidx.compose.foundation.layout.Box
 import com.kglabs28.yapnplay.appengine.core.designsystem.layoutTierFor
 import com.kglabs28.yapnplay.appengine.navigation.YapNPlayNavHost
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlayHost

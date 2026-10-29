@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -177,8 +178,9 @@ private fun MonoSeatLabel(card: MonoPlayerPodUi, avatar: Dp) {
 /**
  * A seat at any arena table (design): a round avatar ringed in the
  * player's [tint] with their [level] under it, joined to a glass pill
- * holding the name, any [details] (a balance) and [trailing] controls
- * (speaker, mute). The turn timer runs round the outside of the whole
+ * holding the name and any [details] (a balance); [trailing] controls
+ * (speaker, mute) sit just outside the pill's right end, centred on its
+ * height, so they never cover the name. The turn timer runs round the outside of the whole
  * outline, never over the avatar; while [talking], a blue-pink light glows
  * behind it. Shared by MONO, Royal Ludo and City Royale.
  */
@@ -203,43 +205,51 @@ fun ArenaSeatHeader(
     val pillShape = RoundedCornerShape(percent = 50)
     val glow = if (talking) talkPulse() else 0f
 
-    Box(
+    // The speaker / mute button sits outside the pill, at its right end, so the name keeps the pill's whole width.
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(avatar)
-            .seatTalkGlow(glow, pillHeight)
-            .seatTimer(
-                active = isTurn,
-                fraction = timerFraction,
-                tint = tint,
-                pillHeight = pillHeight,
-                width = dimens.monoSeatTimer,
-            ),
+            .height(avatar),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
-        // The pill starts under the avatar's centre, so the avatar sits on its left end.
-        Row(
+        Box(
             modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = avatar / 2)
-                .fillMaxWidth()
-                .height(pillHeight)
-                .clip(pillShape)
-                .background(Brush.verticalGradient(listOf(colors.ArenaGlassTop, colors.ArenaGlassBottom)))
-                .border(dimens.hairline, colors.ArenaGlassRim, pillShape)
-                .padding(start = avatar / 2 + Spacing.Xs, end = Spacing.Sm),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
+                .weight(1f)
+                .fillMaxHeight()
+                .seatTalkGlow(glow, pillHeight)
+                .seatTimer(
+                    active = isTurn,
+                    fraction = timerFraction,
+                    tint = tint,
+                    pillHeight = pillHeight,
+                    width = dimens.monoSeatTimer,
+                ),
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                ShrinkText(
-                    text = name,
-                    style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold),
-                )
-                details?.invoke(this)
+            // The pill starts under the avatar's centre, so the avatar sits on its left end.
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = avatar / 2)
+                    .fillMaxWidth()
+                    .height(pillHeight)
+                    .clip(pillShape)
+                    .background(Brush.verticalGradient(listOf(colors.ArenaGlassTop, colors.ArenaGlassBottom)))
+                    .border(dimens.hairline, colors.ArenaGlassRim, pillShape)
+                    .padding(start = avatar / 2 + Spacing.Xs, end = Spacing.Sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    ShrinkText(
+                        text = name,
+                        style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold),
+                    )
+                    details?.invoke(this)
+                }
             }
-            trailing?.invoke(this)
+            ArenaSeatAvatar(tint = tint, level = level, avatarId = avatarId, size = avatar)
         }
-        ArenaSeatAvatar(tint = tint, level = level, avatarId = avatarId, size = avatar)
+        trailing?.invoke(this)
     }
 }
 

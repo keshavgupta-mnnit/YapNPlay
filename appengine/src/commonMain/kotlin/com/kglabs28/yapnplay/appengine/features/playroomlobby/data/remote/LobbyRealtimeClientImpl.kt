@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.playroomlobby.data.remote
 
+import com.kglabs28.yapnplay.appengine.protocol.SetLeague
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.core.network.RealtimeGateway
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.LobbyCommand
@@ -77,6 +78,7 @@ class LobbyRealtimeClientImpl(
     override suspend fun send(roomId: String, command: LobbyCommand) {
         when (command) {
             is LobbyCommand.SelectGame -> room(MessageType.SELECT_GAME, SelectGame.serializer(), SelectGame(command.gameId))
+            is LobbyCommand.SetLeague -> room(MessageType.SET_LEAGUE, SetLeague.serializer(), SetLeague(command.entryCoins))
             is LobbyCommand.SetHouseRule -> room(MessageType.SET_HOUSE_RULE, SetHouseRule.serializer(), SetHouseRule(command.key, command.enabled))
             is LobbyCommand.SetBotFill -> room(MessageType.SET_BOT_FILL, SetBotFill.serializer(), SetBotFill(command.enabled))
             is LobbyCommand.SetReady -> room(MessageType.SET_READY, SetReady.serializer(), SetReady(command.ready))

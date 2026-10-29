@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeOff
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,23 +29,44 @@ fun TableMuteButton(
     description: String,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Their mic is on. Off (and not muted) there is nothing to mute: the button is greyed out. */
+    micOn: Boolean = true,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
+    // Three looks: muted (red, tap to hear them again), speaking (lit, tap to mute), mic off (grey, nothing to do).
+    val enabled = muted || micOn
+    val fill = when {
+        muted -> colors.Error
+        micOn -> colors.Cyan.copy(alpha = LIVE_FILL_ALPHA)
+        else -> colors.RoomsSmallButton.copy(alpha = OFF_ALPHA)
+    }
+    val rim = when {
+        muted -> colors.Error
+        micOn -> colors.Cyan
+        else -> colors.IconMuted.copy(alpha = OFF_ALPHA)
+    }
     Box(
         modifier = modifier
             .size(dimens.ludoMuteButton)
             .clip(CircleShape)
-            .background(if (muted) colors.Error else colors.RoomsSmallButton)
-            .border(dimens.hairline, if (muted) colors.Error else colors.IconMuted, CircleShape)
-            .clickable(role = Role.Switch, onClick = onToggle)
+            .background(fill)
+            .border(dimens.hairline, rim, CircleShape)
+            .clickable(enabled = enabled, role = Role.Switch, onClick = onToggle)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
         AppIcon(
-            imageVector = Icons.AutoMirrored.Rounded.VolumeOff,
-            tint = if (muted) colors.TextPrimary else colors.IconMuted,
+            imageVector = if (muted || !micOn) Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,
+            tint = when {
+                muted -> colors.TextPrimary
+                micOn -> colors.Cyan
+                else -> colors.IconMuted.copy(alpha = OFF_ALPHA)
+            },
             size = dimens.ludoMuteIcon,
         )
     }
 }
+
+private const val LIVE_FILL_ALPHA = 0.18f
+private const val OFF_ALPHA = 0.5f

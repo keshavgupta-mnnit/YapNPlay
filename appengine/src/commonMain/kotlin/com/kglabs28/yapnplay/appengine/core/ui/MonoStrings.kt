@@ -121,12 +121,6 @@ object MonoStrings {
     /** The banner when a player empties their hand. */
     fun monoFinishBanner(name: String, place: String) = "🏆 $name finishes $place!"
     fun monoYouFinishBanner(place: String) = "🏆 You finish $place!"
-    const val monoVoteTitle = "Keep playing?"
-    fun monoVoteBody(seconds: Long) = "Winners are in. Play on for the next places? ${seconds}s"
-    fun monoVoteCount(yes: Int, no: Int, voters: Int) = "$yes keep · $no end · $voters voting"
-    const val monoVoteKeep = "KEEP PLAYING"
-    const val monoVoteEnd = "END GAME"
-    const val monoVoteWaiting = "Waiting for the others…"
     const val monoFinished = "Finished"
     fun monoCardsLeft(cards: Int) = if (cards == 1) "1 card left" else "$cards cards left"
     const val monoKnockedOutScore = "Knocked out"

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import androidx.compose.foundation.Canvas
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
@@ -46,11 +47,13 @@ fun MonoTurnRing(
         label = "turn-ring-wave",
     )
     val base = hue.ring
+    // A tablet's taller table would make them chunky: keep the phone's thickness for the width.
+    val thickness = AdaptiveScale.forTablet(phone = 1f, tablet = 1f / AdaptiveScale.tallness)
     Canvas(modifier = modifier) {
         val inset = size.minDimension * (OVAL_INSET + ARROW_INSET)
         val rx = size.width / 2 - inset
         val ry = size.height / 2 - inset
-        val stroke = size.minDimension * ARROW_STROKE
+        val stroke = size.minDimension * ARROW_STROKE * thickness
         // Right side, then left side: each sweeps through its own half.
         listOf(RIGHT_START, RIGHT_START + HALF_TURN).forEach { start ->
             drawWaveArc(center, rx, ry, start, ARC_SWEEP, clockwise, stroke, base, phase)

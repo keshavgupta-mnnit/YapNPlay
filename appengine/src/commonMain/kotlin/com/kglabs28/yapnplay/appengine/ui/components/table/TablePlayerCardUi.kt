@@ -17,4 +17,6 @@ interface TablePlayerCardUi {
     val mutedForMe: Boolean
     /** False for a CPU: no voice wave, no mute button, no friend long-press. */
     val canSpeak: Boolean
+    /** Their mic is on: muting them would change something (off, the mute button is disabled). */
+    val micOn: Boolean
 }

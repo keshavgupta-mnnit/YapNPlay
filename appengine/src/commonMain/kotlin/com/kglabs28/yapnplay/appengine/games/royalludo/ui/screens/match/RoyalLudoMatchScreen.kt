@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import com.kglabs28.yapnplay.appengine.ui.placeholders.RoyalLudoArtwork
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberShareSheet
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.MatchLeaderboard
@@ -152,6 +153,7 @@ fun RoyalLudoMatchScreen(
                         onSpectate = { send(RoyalLudoMatchIntent.Spectate) },
                         onStillHere = { send(RoyalLudoMatchIntent.StillHere) },
                         onProposeEnd = { send(RoyalLudoMatchIntent.ProposeEnd) },
+                        onConfirmEnd = { send(RoyalLudoMatchIntent.ConfirmEnd) },
                         onEndVote = { send(RoyalLudoMatchIntent.VoteEnd(it)) },
                     ),
                 )
@@ -193,6 +195,10 @@ fun RoyalLudoTable(
                 .fillMaxWidth(),
         ) {
             val boardBottomStrip = YapNPlayTheme.dimens.ludoBoardBottomStrip
+            // On a tablet the board would grow with the height until it fills the width;
+            // room at its sides keeps every card beside its own base, as on a phone.
+            val boardSide = maxWidth * AdaptiveScale.forTablet(phone = 0f, tablet = TABLET_BOARD_SIDE_SHARE)
+            val boardSidePx = with(LocalDensity.current) { boardSide.roundToPx() }
             // The board in the middle; every player's card beside their own base.
             LudoBoard(
                 pieces = state.pieces,
@@ -200,7 +206,7 @@ fun RoyalLudoTable(
                 onPieceClick = { send(RoyalLudoMatchIntent.PieceClicked(it.seat, it.piece)) },
                 places = state.basePlaces,
                 // The whole area but a strip at the bottom (room for the user's switches under their card).
-                modifier = Modifier.fillMaxSize().padding(bottom = boardBottomStrip),
+                modifier = Modifier.fillMaxSize().padding(start = boardSide, end = boardSide, bottom = boardBottomStrip),
             ) { slot ->
                 // Hidden while a piece is chosen and moved (so taps reach the
                 // pieces); takes taps only when the user can roll, with no
@@ -225,7 +231,8 @@ fun RoyalLudoTable(
                 cards = everyone,
                 cardWidth = YapNPlayTheme.dimens.monoPodWidth,
                 areaSize = IntSize(constraints.maxWidth, constraints.maxHeight),
-                boardSize = IntSize(constraints.maxWidth, constraints.maxHeight - with(LocalDensity.current) { boardBottomStrip.roundToPx() }),
+                boardSize = IntSize(constraints.maxWidth - boardSidePx * 2, constraints.maxHeight - with(LocalDensity.current) { boardBottomStrip.roundToPx() }),
+                boardLeft = boardSidePx,
                 rotation = state.rotation,
                 onToggleHear = { send(RoyalLudoMatchIntent.ToggleHear(it)) },
                 onLongPress = { send(RoyalLudoMatchIntent.PlayerLongPressed(it)) },
@@ -260,3 +267,6 @@ fun RoyalLudoTable(
     
     }
 }
+
+/** On a tablet, the room kept free at each side of the board (× the table's width). */
+private const val TABLET_BOARD_SIDE_SHARE = 0.1f

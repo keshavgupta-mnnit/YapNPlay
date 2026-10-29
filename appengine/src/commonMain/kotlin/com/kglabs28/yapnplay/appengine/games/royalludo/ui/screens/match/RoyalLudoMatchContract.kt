@@ -103,6 +103,8 @@ data class LudoPlayerCardUi(
     override val mutedForMe: Boolean,
     /** False for a CPU: no voice wave and no mute button (it never talks). */
     override val canSpeak: Boolean = true,
+    /** Their mic is on (the mute button is live only then). */
+    override val micOn: Boolean = false,
     /** "Offered" while their seat changes hands, "Away" or "Bot" while the server plays for them; null otherwise. */
     val statusLabel: String? = null,
 ) : TablePlayerCardUi
@@ -117,6 +119,8 @@ data class LudoPlayerCardUi(
 data class LudoDiceUi(val value: Int = 1, val rollId: Int = 0, val colour: LudoColour? = null, val visible: Boolean = true)
 
 sealed interface LudoMatchModal {
+    /** "End game" was tapped: asked first, the vote starts only on End game. */
+    data object ConfirmEnd : LudoMatchModal
     /** Leave? In a room match, also who gets the seat ([seatOptions]: the bot first, then spectators). */
     data class LeaveConfirm(val body: String, val seatOptions: List<SeatPickOptionUi>, val selectedIndex: Int, val countdown: String = "") : LudoMatchModal
     data class Result(val rows: List<LudoResultRowUi>) : LudoMatchModal
@@ -174,6 +178,8 @@ sealed interface RoyalLudoMatchIntent : UiIntent {
     data object OpenSettings : RoyalLudoMatchIntent
     /** "End game (vote)" in the settings. */
     data object ProposeEnd : RoyalLudoMatchIntent
+    /** "END THE GAME?" answered End game: the vote starts. */
+    data object ConfirmEnd : RoyalLudoMatchIntent
     data class VoteEnd(val agree: Boolean) : RoyalLudoMatchIntent
     data object ToggleEffects : RoyalLudoMatchIntent
     data object ToggleMusic : RoyalLudoMatchIntent

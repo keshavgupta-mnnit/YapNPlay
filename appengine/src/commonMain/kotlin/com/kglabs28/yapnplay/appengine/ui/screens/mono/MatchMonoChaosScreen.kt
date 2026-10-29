@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.KeepPlayingVoteDialog
+import com.kglabs28.yapnplay.appengine.ui.components.seat.EndGameConfirmDialog
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
 import androidx.compose.runtime.SideEffect
@@ -159,7 +161,7 @@ fun MatchMonoChaosContent(
                 state.awaitingColorChoice -> ({ MonoTablePrompt(MonoStrings.monoChooseColour) { MonoColourChoice(MonoChaosConstants.Color.entries.map { MonoStrings.monoColourName(it.name) to it.hue().fill }, { send(MatchMonoChaosIntent.ChooseColor(MonoChaosConstants.Color.entries[it])) }) } })
                 state.awaitingRouletteChoice -> ({ MonoTablePrompt(MonoStrings.monoChooseRouletteColour, subtitle = MonoStrings.monoChooseRouletteColourHint) { MonoColourChoice(MonoChaosConstants.Color.entries.map { MonoStrings.monoColourName(it.name) to it.hue().fill }, { send(MatchMonoChaosIntent.ChooseRouletteColor(MonoChaosConstants.Color.entries[it])) }) } })
                 state.awaitingSwapChoice -> ({ MonoTablePrompt(MonoStrings.monoSwapTitle) { MonoSwapChoice(state.swapTargets, { send(MatchMonoChaosIntent.ChooseSwapTarget(it)) }) } })
-                state.vote != null -> ({ MonoTablePrompt(MonoStrings.monoVoteTitle) { MonoVotePrompt(state.vote) { send(MatchMonoChaosIntent.VoteContinue(it)) } } })
+                state.vote != null -> ({ state.vote.let { v -> KeepPlayingVoteDialog(v.secondsLeft, v.yes, v.no, v.voters, v.canVote) { send(MatchMonoChaosIntent.VoteContinue(it)) } } })
                 else -> null
             },
             arena = { MonoChaosArena(state = state, anchors = anchors, flights = flights, send = send) },
@@ -243,6 +245,11 @@ fun MatchMonoChaosContent(
                     onSelect = { send(MatchMonoChaosIntent.PickSeatTaker(it)) },
                     countdown = dialog.countdown,
                 )
+            }
+        }
+        if (state.confirmEnd) {
+            BlockingOverlay(visible = true, onDismiss = { send(MatchMonoChaosIntent.CancelEnd) }) {
+                EndGameConfirmDialog(onCancel = { send(MatchMonoChaosIntent.CancelEnd) }, onEnd = { send(MatchMonoChaosIntent.ConfirmEnd) })
             }
         }
         state.leaderboard?.let { board ->
@@ -357,38 +364,6 @@ private fun MonoChaosDrawControls(state: MatchMonoChaosState, send: (MatchMonoCh
 }
 
 /** The keep-playing vote: keep or end, with the tally and the countdown. */
-@Composable
-private fun MonoVotePrompt(vote: MonoVoteUi, onVote: (Boolean) -> Unit) {
-    val colors = YapNPlayTheme.colors
-    val typography = YapNPlayTheme.typography
-    BasicText(
-        text = MonoStrings.monoVoteBody(vote.secondsLeft),
-        style = typography.caption.copy(color = colors.TextSecondary, textAlign = TextAlign.Center),
-    )
-    BasicText(
-        text = MonoStrings.monoVoteCount(vote.yes, vote.no, vote.voters),
-        style = typography.label.copy(color = colors.TextPrimary),
-    )
-    if (vote.canVote) {
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-            TableGlassButton(
-                text = MonoStrings.monoVoteEnd,
-                onClick = { onVote(false) },
-                fill = listOf(colors.Panel, colors.GlassSurface),
-                textColor = colors.TextPrimary,
-            )
-            TableGlassButton(
-                text = MonoStrings.monoVoteKeep,
-                onClick = { onVote(true) },
-                fill = listOf(colors.CtaGreenStart, colors.CtaGreenEnd),
-                textColor = colors.CtaGreenContent,
-            )
-        }
-    } else {
-        BasicText(text = MonoStrings.monoVoteWaiting, style = typography.caption.copy(color = colors.TextSecondary))
-    }
-}
-
 /** Covers the table when the match could not be opened. */
 @Composable
 private fun MonoChaosErrorOverlay(message: String) {

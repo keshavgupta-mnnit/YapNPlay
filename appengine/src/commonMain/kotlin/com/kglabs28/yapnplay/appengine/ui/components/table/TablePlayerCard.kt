@@ -89,6 +89,7 @@ fun TablePlayerCard(
                             description = LudoStrings.ludoMuteFor(card.name),
                             onToggle = onToggleHear,
                             modifier = Modifier.size(avatar * MUTE_SHARE),
+                            micOn = card.micOn,
                         )
                     }
                 } else {
@@ -113,3 +114,9 @@ fun TablePlayerCard(
 
 private const val FADED_ALPHA = 0.4f
 private const val MUTE_SHARE = 0.55f
+
+/**
+ * How much wider a card with a mute button is drawn ([avatar] its avatar):
+ * the button sits outside the name pill, so callers add this to the card's width.
+ */
+fun tableCardMuteRoom(avatar: Dp): Dp = avatar * MUTE_SHARE + Spacing.Xxs

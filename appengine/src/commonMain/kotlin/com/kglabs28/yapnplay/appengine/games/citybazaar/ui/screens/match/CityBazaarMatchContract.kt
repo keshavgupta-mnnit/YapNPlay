@@ -101,6 +101,8 @@ data class CbPlayerCardUi(
     override val mutedForMe: Boolean,
     /** False for a CPU: no voice wave and no mute button (it never talks). */
     override val canSpeak: Boolean = true,
+    /** Their mic is on (the mute button is live only then). */
+    override val micOn: Boolean = false,
     val out: Boolean,
 ) : TablePlayerCardUi
 
@@ -195,6 +197,8 @@ data class CbAssetUi(val id: String, val tile: Int, val name: String, val group:
 data class CbResultRowUi(val place: String, val name: String, val colour: CityBazaarColour, val worth: String)
 
 sealed interface CbModal {
+    /** "End game" was tapped: asked first, the vote starts only on End game. */
+    data object ConfirmEnd : CbModal
     /** Turn decisions, an auction, a vote and the final ranking need an answer: a tap outside doesn't close them. */
     val needsAnswer: Boolean
         get() = when (this) {
@@ -324,6 +328,8 @@ sealed interface CityBazaarMatchIntent : UiIntent {
     data class PickSeatTaker(val index: Int) : CityBazaarMatchIntent
     /** Settings: ask everyone to end the game. */
     data object ProposeEnd : CityBazaarMatchIntent
+    /** "END THE GAME?" answered End game: the vote starts. */
+    data object ConfirmEnd : CityBazaarMatchIntent
     data class VoteEnd(val agree: Boolean) : CityBazaarMatchIntent
     data object DismissHistory : CityBazaarMatchIntent
     data class OpenDeck(val deck: CardDeck) : CityBazaarMatchIntent

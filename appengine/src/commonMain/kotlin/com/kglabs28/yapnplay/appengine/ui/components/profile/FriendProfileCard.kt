@@ -33,8 +33,9 @@ fun FriendProfileCard(
     ModalCard(
         surfaceBrush = AppBrushes.dialogGeneric,title = ProfileStrings.profileFriendCardTitle, onClose = onClose, modifier = modifier) {
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-            PersonHeader(person = person, onCopyCode = onCopyCode)
+            // The ID pill as wide as the buttons under it.
             val buttonWidth = Modifier.width(YapNPlayTheme.dimens.profileCardButtonWidth)
+            PersonHeader(person = person, onCopyCode = onCopyCode, idPillModifier = buttonWidth)
             ProfileActionButton(text = ProfileStrings.profileInviteToGroup, kind = ProfileButtonKind.CONFIRM, onClick = onInviteToGroup, leadingIcon = Icons.Rounded.GroupAdd, modifier = buttonWidth)
             ProfileActionButton(text = ProfileStrings.profileRemoveFriend, kind = ProfileButtonKind.DANGER, onClick = onRemove, leadingIcon = Icons.Rounded.PersonRemove, modifier = buttonWidth)
             ProfileActionButton(text = ProfileStrings.profileBlockUser, kind = ProfileButtonKind.NEUTRAL, onClick = onBlock, leadingIcon = Icons.Rounded.Block, modifier = buttonWidth)

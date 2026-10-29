@@ -119,6 +119,7 @@ fun MatchLeaderboard(
                         verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
                     ) {
                         BasicText(text = TableStrings.leaderboardTitle, style = typography.title.copy(color = Color.White, fontWeight = FontWeight.Black))
+                        if (board.league.isNotEmpty()) BasicText(text = board.league, style = typography.label.copy(color = colors.Gold, fontWeight = FontWeight.Bold))
                         val scroll = rememberScrollState()
                         Column(
                             modifier = Modifier.weight(1f).fillMaxWidth().glassScrollbar(scroll).verticalScroll(scroll).padding(end = dimens.scrollbarWidth * 2),

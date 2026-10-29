@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.monochaos.data.remote
 
+import com.kglabs28.yapnplay.appengine.games.base.data.endVoteResult
+import com.kglabs28.yapnplay.appengine.games.base.data.isTableWideEvent
 import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoContinueVote
@@ -89,12 +91,13 @@ class MonoChaosSnapshotMapper(private val json: Json) {
             roomId = snapshot.roomId,
             viewerUserId = myUserId,
         )
-        val events = snapshot.events.mapNotNull { event ->
+        // The end-vote result is read on its own (below), not as one of this game's events.
+        val events = snapshot.events.filterNot { it.isTableWideEvent() }.mapNotNull { event ->
             runCatching { json.decodeFromJsonElement(MonoChaosWireEvent.serializer(), event).toDomain() }
                 .onFailure { CrashReporter.record(it, "MonoChaosSnapshotMapper.event") }
                 .getOrNull()
         }
-        return MonoChaosUpdate(match, events)
+        return MonoChaosUpdate(match, events, snapshot.events.endVoteResult())
     }
 
     private fun String?.toColor(): MonoChaosConstants.Color? =

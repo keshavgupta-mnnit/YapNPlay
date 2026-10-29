@@ -10,19 +10,29 @@ sealed interface DeepLink {
 
     /** A shared YapNPlay ID: send its owner a friend request. */
     data class AddFriend(val userCode: String) : DeepLink
+
+    /** Game Room invite push tap: the Rooms tab with the pending invites to accept or decline. */
+    data object OpenInvites : DeepLink
+
+    /** Friend request push tap: the profile with the friend requests to accept or decline. */
+    data object OpenFriendRequests : DeepLink
 }
 
 /**
  * Builds and reads the app links (the app registers `yapnplay://`):
  * `yapnplay://join/<code>` (a room invite), `yapnplay://friend/<code>`
- * (a shared YapNPlay ID: a friend request) and `yapnplay://room/<roomId>`
- * (notifications). `https://<INVITE_HOST>/join/<code>` is read too, for
+ * (a shared YapNPlay ID: a friend request), `yapnplay://room/<roomId>`,
+ * `yapnplay://invites` and `yapnplay://friend-requests` (notifications). `https://<INVITE_HOST>/join/<code>` is read too, for
  * when that web host is live.
  */
 object DeepLinks {
 
     fun roomUri(roomId: String): String =
         "${AppConstants.APP_SCHEME}://$ROOM_PATH/$roomId"
+
+    fun invitesUri(): String = "${AppConstants.APP_SCHEME}://$INVITES_PATH"
+
+    fun friendRequestsUri(): String = "${AppConstants.APP_SCHEME}://$REQUESTS_PATH"
 
     /**
      * The shared room invite: an https page on the backend ([serverUrl])
@@ -47,6 +57,8 @@ object DeepLinks {
             JOIN_PATH -> path.getOrNull(1)?.let { DeepLink.JoinRoom(it.substringBefore('?')) }
             ROOM_PATH -> path.getOrNull(1)?.let { DeepLink.OpenRoom(it.substringBefore('?')) }
             FRIEND_PATH -> path.getOrNull(1)?.let { DeepLink.AddFriend(it.substringBefore('?')) }
+            INVITES_PATH -> DeepLink.OpenInvites
+            REQUESTS_PATH -> DeepLink.OpenFriendRequests
             else -> null
         }
     }
@@ -55,4 +67,6 @@ object DeepLinks {
     private const val JOIN_PATH = "join"
     private const val ROOM_PATH = "room"
     private const val FRIEND_PATH = "friend"
+    private const val INVITES_PATH = "invites"
+    private const val REQUESTS_PATH = "friend-requests"
 }

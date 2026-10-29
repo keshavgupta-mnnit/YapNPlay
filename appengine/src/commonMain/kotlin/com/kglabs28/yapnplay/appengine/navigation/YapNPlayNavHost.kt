@@ -48,6 +48,10 @@ fun YapNPlayNavHost(
     var pendingFriendCode by remember { mutableStateOf<String?>(null) }
     // A friend picked on Profile for Create New Group on the Rooms tab.
     var pendingCreateGroupWith by remember { mutableStateOf<String?>(null) }
+    // A Game Room invite push was tapped: Rooms opens the pending invites.
+    var pendingShowInvites by remember { mutableStateOf(false) }
+    // A friend request push was tapped: Profile opens the requests.
+    var pendingShowRequests by remember { mutableStateOf(false) }
     LaunchedEffect(deepLink) {
         when (deepLink) {
             // Notification tap: straight to that room lobby.
@@ -64,6 +68,17 @@ fun YapNPlayNavHost(
             is DeepLink.JoinRoom -> {
                 navController.popBackStack<Main>(inclusive = false)
                 pendingInviteCode = deepLink.code
+            }
+            DeepLink.OpenInvites -> {
+                navController.popBackStack<Main>(inclusive = false)
+                pendingShowInvites = true
+            }
+            DeepLink.OpenFriendRequests -> {
+                pendingShowRequests = true
+                navController.navigate(Profile) {
+                    popUpTo<Main>()
+                    launchSingleTop = true
+                }
             }
             null -> return@LaunchedEffect
         }
@@ -104,6 +119,8 @@ fun YapNPlayNavHost(
                 onFriendCodeConsumed = { pendingFriendCode = null },
                 pendingCreateGroupWith = pendingCreateGroupWith,
                 onCreateGroupConsumed = { pendingCreateGroupWith = null },
+                showInvites = pendingShowInvites,
+                onInvitesShown = { pendingShowInvites = false },
                 viewModel = mainViewModel,
                 gameZoneViewModel = gameZoneViewModel,
                 playRoomsViewModel = playRoomsViewModel,
@@ -119,6 +136,8 @@ fun YapNPlayNavHost(
                     pendingCreateGroupWith = userId
                     navController.popBackStack(Main, inclusive = false)
                 },
+                showRequests = pendingShowRequests,
+                onRequestsShown = { pendingShowRequests = false },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }

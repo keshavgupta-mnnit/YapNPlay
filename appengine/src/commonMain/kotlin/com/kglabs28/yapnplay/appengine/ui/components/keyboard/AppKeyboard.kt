@@ -195,7 +195,7 @@ private fun RowScope.KeyTile(
             .weight(weight)
             .fillMaxHeight()
             .graphicsLayer { alpha = if (enabled) 1f else DISABLED_ALPHA }
-            .glassPill(glowColor = glow, surface = YapNPlayTheme.colors.RoomsSmallButton, shape = RoundedCornerShape(YapNPlayTheme.dimens.rowRadius))
+            .glassPill(glowColor = glow, surface = YapNPlayTheme.colors.RoomsSmallButton, shape = RoundedCornerShape(YapNPlayTheme.dimens.rowRadius), backdrop = keyBackdrop())
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -223,3 +223,7 @@ private fun startsSentence(value: String): Boolean {
 }
 
 private val SENTENCE_ENDS = setOf('.', '!', '?')
+
+/** Keys are drawn solid over the keyboard's panel, so the glow under them can't show through as a box. */
+@Composable
+internal fun keyBackdrop(): Color = YapNPlayTheme.colors.RoomsPanel.copy(alpha = 1f)

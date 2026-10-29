@@ -31,7 +31,8 @@ fun OnlineCountPill(
     Row(
         modifier = modifier
             .height(dimens.smallButtonHeight)
-            .glassPill(glowColor = colors.IconMuted, surface = colors.RoomsSmallButton)
+            // The same purple-rimmed glass as the Grid View button beside it.
+            .glassPill(glowColor = colors.SocialZoneAccent, surface = colors.RoomsPanel)
             .padding(horizontal = Spacing.Sm),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),

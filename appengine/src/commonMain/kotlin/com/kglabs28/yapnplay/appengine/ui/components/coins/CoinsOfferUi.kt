@@ -19,7 +19,7 @@ data class CoinsOfferUi(
     val adsWatched: Int = 0,
     /** What each of today's ads pays, in order; empty hides the progress and ladder. */
     val rewards: List<Int> = emptyList(),
-    /** An ad can play now; false hides Watch Ad and the ad progress. */
+    /** An ad can play now; false greys out Watch Ad and the ad progress, with a note on why (DNS or ad blockers). */
     val adReady: Boolean = true,
 ) {
     /** The coins the next ad pays; null when today's ads are used up. */

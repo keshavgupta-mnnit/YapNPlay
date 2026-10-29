@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.mono.data.remote
 
+import com.kglabs28.yapnplay.appengine.games.base.data.endVoteResult
+import com.kglabs28.yapnplay.appengine.games.base.data.isTableWideEvent
 import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.games.base.identity.SeatNumber
@@ -92,12 +94,13 @@ class MonoSnapshotMapper(private val json: Json) {
             roomId = snapshot.roomId,
             viewerUserId = myUserId,
         )
-        val events = snapshot.events.mapNotNull { event ->
+        // The end-vote result is read on its own (below), not as one of this game's events.
+        val events = snapshot.events.filterNot { it.isTableWideEvent() }.mapNotNull { event ->
             runCatching { json.decodeFromJsonElement(MonoWireEvent.serializer(), event).toDomain() }
                 .onFailure { CrashReporter.record(it, "MonoSnapshotMapper.event") }
                 .getOrNull()
         }
-        return MonoUpdate(match, events)
+        return MonoUpdate(match, events, snapshot.events.endVoteResult())
     }
 
     private fun String?.toColor(): MonoConstants.Color? =

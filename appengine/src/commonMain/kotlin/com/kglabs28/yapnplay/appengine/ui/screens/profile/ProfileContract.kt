@@ -142,6 +142,8 @@ sealed interface ProfileIntent : UiIntent {
     data object ClearCode : ProfileIntent
     data object SendRequest : ProfileIntent
     data object ViewRequests : ProfileIntent
+    /** A friend request push was tapped: reload, then show the requests. */
+    data object ShowRequestsFromPush : ProfileIntent
     data class OpenRequest(val requestId: String) : ProfileIntent
     data class AcceptRequest(val requestId: String) : ProfileIntent
     data class DeclineRequest(val requestId: String) : ProfileIntent

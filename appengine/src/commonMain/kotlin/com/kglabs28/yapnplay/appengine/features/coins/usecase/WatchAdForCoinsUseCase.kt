@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.coins.usecase
 
+import kotlinx.coroutines.delay
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import com.kglabs28.yapnplay.appengine.core.ads.RewardedAds
@@ -7,8 +8,6 @@ import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
 import com.kglabs28.yapnplay.appengine.features.coins.domain.AdCoinsReward
 import com.kglabs28.yapnplay.appengine.features.coins.domain.CoinsRepository
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -23,14 +22,24 @@ class WatchAdForCoinsUseCase(
 ) {
     @OptIn(ExperimentalUuidApi::class)
     suspend operator fun invoke(): AppResult<AdCoinsReward> {
-        val watched = withTimeoutOrNull(AD_TIMEOUT) { ads.show() }
-        AppLog.d(AppConstants.LOG_TAG_ADS, "watch: ad result=${watched ?: "timed out"}")
-        if (watched != true) return AppResult.Failure(YapNPlayError.Unknown("ad not watched"))
-        return repository.claimAdReward(Uuid.random().toString()).also {
-            AppLog.d(AppConstants.LOG_TAG_ADS, "watch: reward claim=${if (it is AppResult.Success) "paid" else "failed: ${(it as? AppResult.Failure)?.error}"}")
+        // No overall time limit: the ad decides how long it plays (loading has its own limit).
+        val watched = ads.show()
+        AppLog.d(AppConstants.LOG_TAG_ADS, "watch: ad result=$watched")
+        if (!watched) return AppResult.Failure(YapNPlayError.Unknown("ad not watched"))
+        // The ad was watched: the coins must arrive. One id for every try, so the server pays it once.
+        val adId = Uuid.random().toString()
+        var result = repository.claimAdReward(adId)
+        var tries = 1
+        while (result is AppResult.Failure && result.error !is YapNPlayError.LimitReached && tries < CLAIM_TRIES) {
+            delay(CLAIM_RETRY_MS * tries)
+            tries++
+            result = repository.claimAdReward(adId)
         }
+        AppLog.d(AppConstants.LOG_TAG_ADS, "watch: reward claim=${if (result is AppResult.Success) "paid" else "failed: ${(result as? AppResult.Failure)?.error}"} after $tries tries")
+        return result
     }
 }
 
-/** How long to wait for an ad to load and play before telling the user there's none. */
-private val AD_TIMEOUT = 90.seconds
+/** Tries to claim a watched ad's coins, and the wait before each retry (× the try). */
+private const val CLAIM_TRIES = 3
+private const val CLAIM_RETRY_MS = 1_500L

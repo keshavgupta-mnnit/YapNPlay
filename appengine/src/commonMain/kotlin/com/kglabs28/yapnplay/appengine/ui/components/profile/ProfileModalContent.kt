@@ -38,6 +38,7 @@ fun ProfileModalContent(
         )
         ProfileModal.AllFriends -> AllFriendsCard(
             friends = state.allTabFriends,
+            everyone = state.friends,
             tab = state.allFriendsTab,
             allCount = state.friends.size,
             onlineCount = state.onlineCount,

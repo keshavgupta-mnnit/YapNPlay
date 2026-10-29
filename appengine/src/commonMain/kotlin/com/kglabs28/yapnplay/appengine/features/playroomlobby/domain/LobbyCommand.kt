@@ -7,6 +7,7 @@ package com.kglabs28.yapnplay.appengine.features.playroomlobby.domain
 sealed interface LobbyCommand {
     /** Leader: pick a game, or null to go back to choosing. */
     data class SelectGame(val gameId: String?) : LobbyCommand
+    data class SetLeague(val entryCoins: Int) : LobbyCommand
     data class SetHouseRule(val key: String, val enabled: Boolean) : LobbyCommand
     data class SetBotFill(val enabled: Boolean) : LobbyCommand
     data class SetReady(val ready: Boolean) : LobbyCommand

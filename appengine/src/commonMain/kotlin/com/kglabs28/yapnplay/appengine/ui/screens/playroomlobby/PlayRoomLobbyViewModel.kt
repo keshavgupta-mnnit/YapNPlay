@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
+import com.kglabs28.yapnplay.appengine.core.common.TextUtils
+import com.kglabs28.yapnplay.appengine.core.ui.CoinsStrings
+import com.kglabs28.yapnplay.appengine.ui.components.coins.LeagueUi
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetVoiceWantedUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.domain.VoiceNeed
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.usecase.GetRoomPendingInvitesUseCase
@@ -86,6 +89,7 @@ class PlayRoomLobbyViewModel(
             }
             PlayRoomLobbyIntent.ChangeGame -> send(LobbyCommand.SelectGame(null))
             is PlayRoomLobbyIntent.ToggleHouseRule -> toggleHouseRule(intent.key)
+            is PlayRoomLobbyIntent.SelectLeague -> selectLeague(intent.entryCoins)
             PlayRoomLobbyIntent.PrimaryAction -> primaryAction()
             // The mic switch is the user's, everywhere: the room follows it.
             is PlayRoomLobbyIntent.ToggleMic -> when {
@@ -196,6 +200,13 @@ class PlayRoomLobbyViewModel(
     }
 
     private fun me(): LobbyMember? = data?.let { d -> d.room.members.firstOrNull { it.userId == d.myUserId } }
+
+    /** Only the leader, and never a league someone in the lobby can't pay (the server checks too). */
+    private suspend fun selectLeague(entryCoins: Int) {
+        val room = data?.room ?: return
+        if (me()?.isLeader != true || entryCoins == room.entryCoins || entryCoins > room.affordableEntry) return
+        send(LobbyCommand.SetLeague(entryCoins))
+    }
 
     private suspend fun toggleHouseRule(key: String) {
         val d = data ?: return
@@ -319,6 +330,8 @@ class PlayRoomLobbyViewModel(
                 focusedIndex = focusedIndex.coerceIn(0, (d.games.size - 1).coerceAtLeast(0)),
                 selectedGame = game,
                 houseRules = game?.let { houseRulesFor(room, it) }.orEmpty(),
+                leagues = leaguesFor(room),
+                entryCoins = room.entryCoins,
                 fixedRules = game?.fixedRules.orEmpty(),
                 primary = me?.let { primaryFor(room, it, game) } ?: LobbyPrimaryButtonUi(),
                 micOn = me?.micOn == true,
@@ -350,6 +363,19 @@ class PlayRoomLobbyViewModel(
                 else -> LobbyMemberStatus.NOT_READY
             },
         )
+    }
+
+    /** Every league, cheapest first; the ones someone in the lobby can't pay are locked. */
+    private fun leaguesFor(room: LobbyRoom): List<LeagueUi> {
+        val fees = room.leagueFees.sorted()
+        return fees.mapIndexed { rank, fee ->
+            LeagueUi(
+                entryCoins = fee,
+                name = CoinsStrings.leagueName(rank, fees.size),
+                feeLabel = if (fee == 0) CoinsStrings.leagueFree else CoinsStrings.leagueFee(TextUtils.groupedThousands(fee)),
+                canEnter = fee <= room.affordableEntry,
+            )
+        }
     }
 
     /** "Fill with bots" first, then the game own toggles. */

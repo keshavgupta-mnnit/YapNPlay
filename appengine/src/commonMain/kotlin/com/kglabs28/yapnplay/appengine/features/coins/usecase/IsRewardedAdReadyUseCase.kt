@@ -16,6 +16,8 @@ class IsRewardedAdReadyUseCase(private val ads: RewardedAds) {
 
     suspend fun await(timeout: Duration): Boolean {
         if (invoke()) return true
+        // Starts a fresh load if none is on its way (an earlier one may have failed).
+        ads.preload()
         return withTimeoutOrNull(timeout) { ads.readiness.first { it } } == true
     }
 }

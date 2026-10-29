@@ -38,14 +38,16 @@ fun AppUserProfile(
     val dimens = YapNPlayTheme.dimens
     val shape = YapNPlayTheme.shapes.avatar
 
+    // The tap (and its highlight) is the round avatar itself, not the square around it.
     Box(
-        modifier = modifier.size(dimens.topBarAvatar).clickable(onClick = onClick),
+        modifier = modifier.size(dimens.topBarAvatar),
         contentAlignment = Alignment.BottomEnd,
     ) {
         Box(
             modifier = Modifier
                 .size(dimens.topBarAvatar)
                 .clip(shape)
+                .clickable(onClick = onClick)
                 .background(colors.Panel)
                 .border(dimens.avatarRing * RING_SHARE, colors.GameZoneAccent, shape)
                 .padding(dimens.avatarRing * RING_SHARE),

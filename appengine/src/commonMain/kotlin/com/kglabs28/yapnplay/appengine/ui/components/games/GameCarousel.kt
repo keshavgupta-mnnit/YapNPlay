@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.games
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -91,6 +92,8 @@ fun GameCarousel(
                     .coerceIn(0f, 1f)
                 GameShowcaseCard(
                     game = games[index],
+                    // On a tablet the taller card keeps the art at the phone's share of the screen.
+                    artWidthShare = AdaptiveScale.forTablet(phone = 1f, tablet = TABLET_ART_SHARE),
                     modifier = Modifier
                         .fillMaxSize()
                         .graphicsLayer {
@@ -119,3 +122,6 @@ fun GameCarousel(
         CarouselDots(count = games.size, selectedIndex = focusedIndex)
     }
 }
+
+/** The carousel art's share of its card on a tablet (about the phone's share of the screen). */
+private const val TABLET_ART_SHARE = 0.68f

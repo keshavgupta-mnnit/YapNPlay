@@ -1,5 +1,15 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.MotionTokens
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.AnimatedContent
 import com.kglabs28.yapnplay.appengine.ui.components.profile.WelcomeCard
 import com.kglabs28.yapnplay.appengine.ui.screens.welcome.WelcomeIntent
 import com.kglabs28.yapnplay.appengine.ui.screens.welcome.WelcomeViewModel
@@ -63,6 +73,9 @@ fun MainScreen(
     onFriendCodeConsumed: () -> Unit = {},
     pendingCreateGroupWith: String? = null,
     onCreateGroupConsumed: () -> Unit = {},
+    /** A Game Room invite push was tapped: show the Rooms tab with the pending invites. */
+    showInvites: Boolean = false,
+    onInvitesShown: () -> Unit = {},
     viewModel: MainViewModel? = null,
     gameZoneViewModel: GameZoneViewModel? = null,
     playRoomsViewModel: PlayRoomsViewModel? = null,
@@ -132,7 +145,9 @@ fun MainScreen(
     }
 
     val bonus = state.dailyBonus
-    val coinsOffer = state.coinsOffer
+    // The coins card waits while the Game Room invites are open (e.g. from an invite push), then shows.
+    val invitesOpen = playRoomsViewModel?.state?.collectAsState()?.value?.invitesOpen == true
+    val coinsOffer = state.coinsOffer?.takeIf { !invitesOpen }
     BlockingOverlay(visible = coinsOffer != null, onDismiss = { viewModel?.onIntent(MainIntent.CloseGetCoins) }) {
         if (coinsOffer != null) CoinsOfferCard(
             offer = coinsOffer,
@@ -157,6 +172,13 @@ fun MainScreen(
         if (bonus != null) DailyBonusDialog(amount = bonus, onCollect = { viewModel?.onIntent(MainIntent.CollectDailyBonus) })
     }
 
+    LaunchedEffect(showInvites, viewModel, playRoomsViewModel) {
+        if (showInvites && viewModel != null && playRoomsViewModel != null) {
+            viewModel.onIntent(MainIntent.SelectTab(AppNavTab.ROOMS))
+            playRoomsViewModel.onIntent(PlayRoomsIntent.OpenInvites)
+            onInvitesShown()
+        }
+    }
     CozyHomeBackground(
         modifier = modifier,
         frosted = state.selectedTab.frostedBackground,
@@ -208,9 +230,24 @@ fun MainScreen(
                     .weight(1f)
                     .fillMaxWidth()
                     .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
-                    .padding(horizontal = Spacing.Md),
+                    .padding(horizontal = Spacing.Md)
+                    // The sliding tabs stay inside the frame.
+                    .clipToBounds(),
             ) {
-                when (state.selectedTab) {
+                // Home, Games and Rooms sit side by side: the new tab slides in from its side of the bar.
+                AnimatedContent(
+                    targetState = state.selectedTab,
+                    transitionSpec = {
+                        val forward = targetState.ordinal > initialState.ordinal
+                        val motion = tween<IntOffset>(MotionTokens.STANDARD_MS, easing = MotionTokens.EasingStandard)
+                        val fade = tween<Float>(MotionTokens.STANDARD_MS)
+                        (slideInHorizontally(motion) { width -> if (forward) width else -width } + fadeIn(fade)) togetherWith
+                            (slideOutHorizontally(motion) { width -> if (forward) -width else width } + fadeOut(fade))
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                    label = "tab",
+                ) { tab ->
+                when (tab) {
                     AppNavTab.HOME -> HomeCards(
                         onEnterGameZone = { viewModel?.onIntent(MainIntent.SelectTab(AppNavTab.GAMES)) },
                         // The whole card opens Create New Group (on the Rooms tab).
@@ -235,6 +272,7 @@ fun MainScreen(
                         createGroupWith = pendingCreateGroupWith,
                         onCreateGroupConsumed = onCreateGroupConsumed,
                     )
+                }
                 }
             }
         }

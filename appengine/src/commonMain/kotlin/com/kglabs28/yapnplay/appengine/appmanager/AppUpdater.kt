@@ -6,6 +6,9 @@ import androidx.compose.runtime.Composable
 interface AppUpdater {
     val versionName: String
 
+    /** True when the store has a newer build for this install; false when it can't tell. */
+    suspend fun isUpdateAvailable(): Boolean
+
     /** Opens Google Play's update screen, or the store page when Play cannot update in place. */
     fun startUpdate()
 }

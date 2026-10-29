@@ -88,6 +88,7 @@ object LudoMatchUiMapper {
                 placeLabel = if (place >= 0) LudoStrings.ludoPlace(place + 1) else null,
                 mutedForMe = muted,
                 canSpeak = !cpuPlays,
+                micOn = player.micOn,
                 statusLabel = if (match.seatOffer?.seat == player.seat) seatStatus(match.seatOffer.stage) else when (player.presence) {
                     LudoPresence.AWAY -> LudoStrings.ludoAway
                     LudoPresence.BOT -> null

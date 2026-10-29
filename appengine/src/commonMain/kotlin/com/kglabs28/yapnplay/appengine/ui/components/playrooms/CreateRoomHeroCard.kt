@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +34,8 @@ fun CreateRoomHeroCard(
 ) {
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
+    // A tablet's taller card gets bigger words (the phone keeps its sizes).
+    val textScale = AdaptiveScale.forTablet(phone = 1f, tablet = TABLET_TEXT_SCALE)
 
     Row(
         modifier = modifier
@@ -60,16 +63,16 @@ fun CreateRoomHeroCard(
         ) {
             BasicText(
                 text = RoomStrings.roomsCreateTitle,
-                style = typography.cardTitle.copy(color = colors.TextPrimary),
+                style = typography.cardTitle.copy(color = colors.TextPrimary, fontSize = typography.cardTitle.fontSize * textScale),
             )
             BasicText(
                 text = RoomStrings.roomsCreateHero,
-                style = typography.heroWord.copy(color = colors.GameZoneAccent),
+                style = typography.heroWord.copy(color = colors.GameZoneAccent, fontSize = typography.heroWord.fontSize * textScale),
             )
             Spacer(Modifier.padding(top = Spacing.Xxs))
             BasicText(
                 text = RoomStrings.roomsCreateSubtitle,
-                style = typography.micro.copy(color = colors.RoomsSubtitle),
+                style = typography.micro.copy(color = colors.RoomsSubtitle, fontSize = typography.micro.fontSize * textScale),
             )
             Spacer(Modifier.padding(top = Spacing.Sm))
             PillButton(
@@ -83,9 +86,14 @@ fun CreateRoomHeroCard(
             )
         }
         // The art fills the card's free side, whole (never cropped).
-        CreateRoomGraphic(modifier = Modifier.weight(HERO_ART_WEIGHT).fillMaxHeight())
+        // A tablet gives the art a bigger share, so it grows with the taller card.
+        CreateRoomGraphic(modifier = Modifier.weight(AdaptiveScale.forTablet(phone = HERO_ART_WEIGHT, tablet = TABLET_HERO_ART_WEIGHT)).fillMaxHeight())
     }
 }
 
 /** The art's share of the card beside the text (text 1). */
 private const val HERO_ART_WEIGHT = 1.7f
+private const val TABLET_HERO_ART_WEIGHT = 2f
+
+/** Text size on a tablet × the phone's. */
+private const val TABLET_TEXT_SCALE = 1.25f

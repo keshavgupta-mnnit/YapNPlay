@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.KeepPlayingVoteDialog
+import com.kglabs28.yapnplay.appengine.ui.components.seat.EndGameConfirmDialog
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
 import androidx.compose.runtime.SideEffect
@@ -159,7 +161,7 @@ fun MatchMonoContent(
             prompt = when {
                 state.awaitingColorChoice -> ({ MonoTablePrompt(MonoStrings.monoChooseColour) { MonoColourChoice(MonoConstants.Color.entries.map { MonoStrings.monoColourName(it.name) to it.hue().fill }, { send(MatchMonoIntent.ChooseColor(MonoConstants.Color.entries[it])) }) } })
                 state.awaitingSwapChoice -> ({ MonoTablePrompt(MonoStrings.monoSwapTitle) { MonoSwapChoice(state.swapTargets, { send(MatchMonoIntent.ChooseSwapTarget(it)) }) } })
-                state.vote != null -> ({ MonoTablePrompt(MonoStrings.monoVoteTitle) { MonoVotePrompt(state.vote) { send(MatchMonoIntent.VoteContinue(it)) } } })
+                state.vote != null -> ({ state.vote.let { v -> KeepPlayingVoteDialog(v.secondsLeft, v.yes, v.no, v.voters, v.canVote) { send(MatchMonoIntent.VoteContinue(it)) } } })
                 else -> null
             },
             arena = { MonoArena(state = state, anchors = anchors, flights = flights, send = send) },
@@ -242,6 +244,11 @@ fun MatchMonoContent(
                     onSelect = { send(MatchMonoIntent.PickSeatTaker(it)) },
                     countdown = dialog.countdown,
                 )
+            }
+        }
+        if (state.confirmEnd) {
+            BlockingOverlay(visible = true, onDismiss = { send(MatchMonoIntent.CancelEnd) }) {
+                EndGameConfirmDialog(onCancel = { send(MatchMonoIntent.CancelEnd) }, onEnd = { send(MatchMonoIntent.ConfirmEnd) })
             }
         }
         state.leaderboard?.let { board ->
@@ -355,38 +362,6 @@ private fun MonoDrawControls(state: MatchMonoState, send: (MatchMonoIntent) -> U
 }
 
 /** The keep-playing vote: keep or end, with the tally and the countdown. */
-@Composable
-private fun MonoVotePrompt(vote: MonoVoteUi, onVote: (Boolean) -> Unit) {
-    val colors = YapNPlayTheme.colors
-    val typography = YapNPlayTheme.typography
-    BasicText(
-        text = MonoStrings.monoVoteBody(vote.secondsLeft),
-        style = typography.caption.copy(color = colors.TextSecondary, textAlign = TextAlign.Center),
-    )
-    BasicText(
-        text = MonoStrings.monoVoteCount(vote.yes, vote.no, vote.voters),
-        style = typography.label.copy(color = colors.TextPrimary),
-    )
-    if (vote.canVote) {
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-            TableGlassButton(
-                text = MonoStrings.monoVoteEnd,
-                onClick = { onVote(false) },
-                fill = listOf(colors.Panel, colors.GlassSurface),
-                textColor = colors.TextPrimary,
-            )
-            TableGlassButton(
-                text = MonoStrings.monoVoteKeep,
-                onClick = { onVote(true) },
-                fill = listOf(colors.CtaGreenStart, colors.CtaGreenEnd),
-                textColor = colors.CtaGreenContent,
-            )
-        }
-    } else {
-        BasicText(text = MonoStrings.monoVoteWaiting, style = typography.caption.copy(color = colors.TextSecondary))
-    }
-}
-
 /** Covers the table when the match could not be opened. */
 @Composable
 private fun MonoErrorOverlay(message: String) {

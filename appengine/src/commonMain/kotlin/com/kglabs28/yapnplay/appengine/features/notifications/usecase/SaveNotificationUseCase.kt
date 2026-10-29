@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.notifications.usecase
 
+import com.kglabs28.yapnplay.appengine.features.notifications.domain.PushSignals
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
 import com.kglabs28.yapnplay.appengine.features.notifications.domain.AppNotification
 import com.kglabs28.yapnplay.appengine.features.notifications.repository.NotificationsRepository
@@ -12,8 +13,11 @@ import com.kglabs28.yapnplay.appengine.protocol.PushKeys
 class SaveNotificationUseCase(
     private val repository: NotificationsRepository,
     private val clock: AppClock,
+    private val signals: PushSignals,
 ) {
     operator fun invoke(data: Map<String, String>) {
+        // Open screens refresh what a friend or invite push is about.
+        signals.received(data[PushKeys.TYPE])
         if (data[PushKeys.TYPE] != PushKeys.TYPE_ROOM_ACTIVITY) return
         val roomId = data[PushKeys.ROOM_ID] ?: return
         val now = clock.now()

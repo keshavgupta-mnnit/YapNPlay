@@ -7,5 +7,6 @@ import androidx.compose.runtime.Composable
 actual fun rememberAppUpdater(): AppUpdater = object : AppUpdater {
     // Blank: never older than any rule.
     override val versionName: String = ""
+    override suspend fun isUpdateAvailable(): Boolean = false
     override fun startUpdate() = Unit
 }

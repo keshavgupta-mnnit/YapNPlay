@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.core.ads.LaunchOfferStore
+import com.kglabs28.yapnplay.appengine.core.ads.AndroidLaunchOfferStore
 import com.kglabs28.yapnplay.appengine.core.common.AndroidKeyboardPreference
 import com.kglabs28.yapnplay.appengine.core.common.KeyboardPreference
 import com.kglabs28.yapnplay.appengine.core.network.AndroidDeviceIdentity
@@ -30,6 +32,7 @@ import org.koin.dsl.module
 val platformAppManagerModule = module {
     single<AppConfigStore> { AndroidConfigStore(androidContext()) }
     single<NotificationHistoryStore> { AndroidNotificationHistoryStore(androidContext()) }
+    single<LaunchOfferStore> { AndroidLaunchOfferStore(androidContext()) }
     single<CredentialStore> { AndroidCredentialStore(androidContext()) }
     single<DeviceIdentity> { AndroidDeviceIdentity(androidContext()) }
     single<KeyboardPreference> { AndroidKeyboardPreference(androidContext()) }

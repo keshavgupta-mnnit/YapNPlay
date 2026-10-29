@@ -13,6 +13,7 @@ import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
+import com.google.android.play.core.ktx.requestAppUpdateInfo
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 
 @Composable
@@ -31,6 +32,13 @@ private class PlayAppUpdater(private val context: Context) : AppUpdater {
     override val versionName: String = runCatching {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName
     }.getOrNull().orEmpty()
+
+    override suspend fun isUpdateAvailable(): Boolean = runCatching {
+        AppUpdateManagerFactory.create(context).requestAppUpdateInfo().updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+    }.getOrElse {
+        // Not installed from Play (a debug APK) or Play unreachable: nothing to offer.
+        false
+    }
 
     override fun startUpdate() {
         val activity = context.findActivity() ?: return openStore()

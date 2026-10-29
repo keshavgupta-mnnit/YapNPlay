@@ -8,8 +8,8 @@ import com.kglabs28.yapnplay.appengine.features.matchresult.domain.SeatResult
  * Puts what the server actually paid (MatchEnded) on the leaderboard: each
  * seat's XP as its points (it grows with match length; CPUs get none, so
  * their line is left out) and coins — CPUs' place shares included (shown,
- * never credited), and a stake lost when nothing was won — and the user's
- * own in the bottom bar.
+ * never credited), and a stake lost when nothing was won. The finishing
+ * bonus is left out of the coins: only the user's own shows, by their EXP.
  */
 object LeaderboardResult {
     fun withResult(board: LeaderboardUi, results: List<SeatResult>): LeaderboardUi {
@@ -20,12 +20,12 @@ object LeaderboardResult {
             e.copy(
                 score = if (r.xp > 0) TableStrings.leaderboardPts(r.xp) else "",
                 exp = if (r.xp > 0) TableStrings.leaderboardExp(r.xp) else "",
-                // A paid match shows the net (won and bonus, less the entry); a free one what was won.
+                // A paid match shows the prize less the entry; a free one what was won.
                 coins = when {
-                    r.stake > 0 && r.net < 0 -> TableStrings.leaderboardLost(TextUtils.groupedThousands(-r.net))
-                    r.stake > 0 && r.net == 0 -> TableStrings.leaderboardNoCoins
-                    r.stake > 0 -> TableStrings.leaderboardCoins(TextUtils.groupedThousands(r.net))
-                    r.coins > 0 -> TableStrings.leaderboardCoins(TextUtils.groupedThousands(r.coins))
+                    r.stake > 0 && r.prizeNet < 0 -> TableStrings.leaderboardLost(TextUtils.groupedThousands(-r.prizeNet))
+                    r.stake > 0 && r.prizeNet == 0 -> TableStrings.leaderboardNoCoins
+                    r.stake > 0 -> TableStrings.leaderboardCoins(TextUtils.groupedThousands(r.prizeNet))
+                    r.won > 0 -> TableStrings.leaderboardCoins(TextUtils.groupedThousands(r.won))
                     else -> TableStrings.leaderboardNoCoins
                 },
             )
@@ -34,7 +34,7 @@ object LeaderboardResult {
         return board.copy(
             entries = entries,
             myExp = mine?.let { if (it.xp > 0) TableStrings.leaderboardGain(TextUtils.groupedThousands(it.xp)) else "" } ?: board.myExp,
-            myCoins = mine?.let { if (it.coins > 0) TableStrings.leaderboardGain(TextUtils.groupedThousands(it.coins)) else "" } ?: board.myCoins,
+            myBonus = mine?.let { if (it.completion > 0) TableStrings.leaderboardCoins(TextUtils.groupedThousands(it.completion)) else "" } ?: board.myBonus,
         )
     }
 }

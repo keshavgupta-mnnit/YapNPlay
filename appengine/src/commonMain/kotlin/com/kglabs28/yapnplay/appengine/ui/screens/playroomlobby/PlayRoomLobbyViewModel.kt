@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetVoiceWantedUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.domain.VoiceNeed
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.usecase.GetRoomPendingInvitesUseCase
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.RoomMemberRecord
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.usecase.GetRoomLeaderboardUseCase
@@ -52,10 +54,13 @@ class PlayRoomLobbyViewModel(
     private val roomInvites: RoomInvites,
     private val getRoomLeaderboard: GetRoomLeaderboardUseCase,
     private val getPendingInvites: GetRoomPendingInvitesUseCase,
+    private val setVoiceWanted: SetVoiceWantedUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<PlayRoomLobbyState, PlayRoomLobbyIntent, PlayRoomLobbyEffect>(PlayRoomLobbyState(), dispatchers) {
 
     private var roomId: String? = null
+    /** Voice only while another member is here and someone's mic is on. */
+    private val voiceNeed = VoiceNeed { wanted -> roomId?.let { setVoiceWanted.room(it, wanted) } }
     private var data: LobbyData? = null
     private var userModal: LobbyModal? = null
     /** The members' records behind the open leaderboard (both tabs rank these). */
@@ -187,6 +192,7 @@ class PlayRoomLobbyViewModel(
 
     override fun onCleared() {
         if (micOpen) setMicOpen(false)
+        voiceNeed.clear()
     }
 
     private fun me(): LobbyMember? = data?.let { d -> d.room.members.firstOrNull { it.userId == d.myUserId } }
@@ -298,6 +304,7 @@ class PlayRoomLobbyViewModel(
             micOpen = wantMic
             setMicOpen(wantMic)
         }
+        voiceNeed.update(micOpen, me?.speakerOn != false, room.members.filter { it.userId != d.myUserId && it.online }.map { it.micOn })
         val game = d.selectedGame
         manageCountdownTicker(room)
         setState {

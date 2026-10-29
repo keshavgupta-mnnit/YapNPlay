@@ -7,7 +7,6 @@ import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveD
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
-import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoCard
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoMatch
 import com.kglabs28.yapnplay.appengine.games.mono.identity.MonoConstants
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
@@ -85,9 +84,9 @@ data class MatchMonoState(
     val penaltySnack: TableFeedLineUi? = null,
 ) : UiState {
     val hand get() = match?.me?.hand.orEmpty()
-    /** The hand sorted by colour, power cards last (indexes into [hand]). */
+    /** The hand grouped by colour (numbers, then that colour's power cards), wilds last (indexes into [hand]). */
     val handOrder: List<Int>
-        get() = MonoUiMapper.handOrder(hand, { it.playColor()?.ordinal }, { it.isPower() }, { (it as? MonoCard.NumberCard)?.number ?: 0 })
+        get() = MonoHandOrder.mono(hand)
     /** Everyone else, clockwise from the user's seat (the order turns go round the table). */
     /** Whom the Rule of 7 can trade hands with. */
     val swapTargets get() = opponents.map { MonoSwapTargetUi(it.seat, it.name, it.avatarId.orEmpty(), it.cardCount) }
@@ -116,7 +115,10 @@ sealed interface MatchMonoIntent : UiIntent {
     /** The Rule of 7: the seat whose hand to trade with. */
     data class ChooseSwapTarget(val seat: Int) : MatchMonoIntent
     data class SetAutoplay(val enabled: Boolean) : MatchMonoIntent
-    data class SetMic(val on: Boolean) : MatchMonoIntent
+    /** The mic button: the user's mic switch, the same in every game (turning it on asks for the mic first). */
+    data object ToggleMic : MatchMonoIntent
+    /** The phone's answer to the mic permission. */
+    data class MicPermissionResult(val granted: Boolean) : MatchMonoIntent
     /** The user's speaker on or off (for them only). */
     data object ToggleSpeaker : MatchMonoIntent
     /** Mute or unmute a player (by seat) for the user only. */
@@ -150,4 +152,6 @@ sealed interface MatchMonoEffect : UiEffect {
     data object LeaveMatch : MatchMonoEffect
     /** Cards to fly across the table (plays, draws, penalties). */
     data class Fly(val flights: List<MonoFlight>) : MatchMonoEffect
+    /** Turning the mic on: ask the phone for the mic (answers at once when already allowed). */
+    data object RequestMicPermission : MatchMonoEffect
 }

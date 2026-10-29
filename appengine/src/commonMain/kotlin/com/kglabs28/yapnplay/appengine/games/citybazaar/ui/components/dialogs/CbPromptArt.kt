@@ -28,6 +28,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
@@ -35,10 +39,11 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 /**
  * The prompts' picture zone (as in the designs): a tilted name card in the
  * city's colour group, a glowing picture for that city, and for an upgrade
- * a glowing house.
+ * a glowing house. With [oldPrice] (an auction) the list price shows
+ * crossed out before [price].
  */
 @Composable
-fun CbPromptArt(tile: Int, name: String, price: String, tint: Color, withHouse: Boolean, modifier: Modifier = Modifier) {
+fun CbPromptArt(tile: Int, name: String, price: String, tint: Color, withHouse: Boolean, modifier: Modifier = Modifier, oldPrice: String? = null) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
@@ -65,7 +70,13 @@ fun CbPromptArt(tile: Int, name: String, price: String, tint: Color, withHouse: 
                 style = typography.label.copy(color = Color.White, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, shadow = Shadow(color = Color.Black, blurRadius = TEXT_SHADOW)),
                 maxLines = 2,
             )
-            BasicText(text = CityBazaarStrings.cbPriceTag(price), style = typography.micro.copy(color = Color.White.copy(alpha = SUB_ALPHA)))
+            BasicText(
+                text = buildAnnotatedString {
+                    oldPrice?.let { withStyle(SpanStyle(textDecoration = TextDecoration.LineThrough)) { append(it) }; append(" ") }
+                    append(CityBazaarStrings.cbPriceTag(price))
+                },
+                style = typography.micro.copy(color = Color.White.copy(alpha = SUB_ALPHA), textAlign = TextAlign.Center),
+            )
         }
         // The city's picture in a glowing disc (with a house when building).
         Box(contentAlignment = Alignment.Center) {

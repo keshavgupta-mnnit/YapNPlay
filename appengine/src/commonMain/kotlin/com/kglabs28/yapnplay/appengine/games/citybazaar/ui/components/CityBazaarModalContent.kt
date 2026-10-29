@@ -7,6 +7,7 @@ import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbExtensionVotePrompt
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbBuildPrompt
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbAuctionPrompt
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbBuyPrompt
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -39,11 +40,9 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tile
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbAssetCard
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbGlassAction
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbPropertyCard
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbDialogFrame
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbDialogNote
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbRateTable
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbSheetTable
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbModal
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TileKind
 
@@ -115,29 +114,7 @@ fun CityBazaarModalContent(
             }
             BasicText(text = modal.tracker, style = typography.label.copy(color = if (modal.enough) colors.CbGain else colors.CbLoss))
         }
-        is CbModal.Auction -> CbDialogFrame(
-            title = modal.title,
-            accent = colors.CbCash,
-            chip = tileHeaderTint(modal.card.group, modal.card.kind),
-            countdown = modal.countdown,
-            modifier = modifier,
-            buttons = {
-                if (!modal.isSeller) {
-                    CbGlassAction(text = CityBazaarStrings.cbPass, onClick = actions.onPassAuction, primary = false, modifier = Modifier.weight(1f))
-                    CbGlassAction(text = modal.bidLabel, onClick = actions.onBid, enabled = modal.canBid, modifier = Modifier.weight(1f))
-                }
-            },
-        ) {
-            CbDialogNote(text = modal.body)
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-                CbPropertyCard(card = modal.card)
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-                    modal.colourLines.forEach { BasicText(text = it, style = typography.label.copy(color = colors.TextSecondary)) }
-                    BasicText(text = modal.leader, style = typography.label.copy(color = colors.CbCash))
-                    if (!modal.isSeller) CbSheetTable(rows = modal.sheet)
-                }
-            }
-        }
+        is CbModal.Auction -> CbAuctionPrompt(modal = modal, onPass = actions.onPassAuction, onBid = actions.onBid, modifier = modifier)
         is CbModal.Result -> CbDialogFrame(
             title = LudoStrings.ludoResultTitle,
             accent = colors.Gold,

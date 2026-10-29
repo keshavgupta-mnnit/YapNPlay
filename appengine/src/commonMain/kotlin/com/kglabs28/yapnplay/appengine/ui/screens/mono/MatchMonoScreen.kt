@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
+import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
 import androidx.compose.runtime.SideEffect
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorVoiceButtons
 import com.kglabs28.yapnplay.appengine.ui.components.table.flightsIntoHand
@@ -88,6 +90,8 @@ fun MatchMonoScreen(
     val anchors = rememberMonoAnchors()
     val flights = rememberMonoFlightState()
 
+    val micPermission = rememberPermissionRequester(AppPermission.MICROPHONE)
+
     LaunchedEffect(viewModel, matchId) {
         viewModel?.onIntent(MatchMonoIntent.Load(matchId))
     }
@@ -96,6 +100,7 @@ fun MatchMonoScreen(
             when (effect) {
                 MatchMonoEffect.LeaveMatch -> onClose()
                 is MatchMonoEffect.Fly -> flights.launch(effect.flights)
+                MatchMonoEffect.RequestMicPermission -> micPermission.request { send(MatchMonoIntent.MicPermissionResult(it)) }
             }
         }
     }
@@ -182,7 +187,7 @@ fun MatchMonoContent(
                     ),
                     micOn = state.micOn,
                     autoplay = state.autoplay,
-                    onToggleMic = { send(MatchMonoIntent.SetMic(!state.micOn)) },
+                    onToggleMic = { send(MatchMonoIntent.ToggleMic) },
                     onToggleAutoplay = { send(MatchMonoIntent.SetAutoplay(!state.autoplay)) },
                 )
             },
@@ -200,7 +205,7 @@ fun MatchMonoContent(
                 TableSpectatorVoiceButtons(
                     micOn = state.micOn,
                     speakerOn = state.speakerOn,
-                    onToggleMic = { send(MatchMonoIntent.SetMic(!state.micOn)) },
+                    onToggleMic = { send(MatchMonoIntent.ToggleMic) },
                     onToggleSpeaker = { send(MatchMonoIntent.ToggleSpeaker) },
                 )
             },

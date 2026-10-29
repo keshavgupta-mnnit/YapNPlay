@@ -30,8 +30,11 @@ interface VoiceClient {
     /** Opens (publishes to the voice room) or closes the user's mic. */
     fun setMicOpen(open: Boolean)
 
+    /** Whether [target]'s screen needs its voice room now (someone to talk with, a mic on); the device joins only then. */
+    fun setVoiceWanted(target: VoiceTarget, wanted: Boolean)
+
     /**
-     * While collected, this device is in [target]'s voice room and the
+     * While collected (and wanted, [setVoiceWanted]), this device is in [target]'s voice room and the
      * flow gives who else is speaking there. When the screen stops
      * collecting, the device leaves (back to the screen underneath, if any).
      */

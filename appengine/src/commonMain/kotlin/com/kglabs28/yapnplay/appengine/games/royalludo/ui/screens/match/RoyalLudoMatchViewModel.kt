@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.features.voice.domain.VoiceNeed
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteUiMapper
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.TableVoiceUseCases
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardResult
@@ -84,6 +85,8 @@ class RoyalLudoMatchViewModel(
 ) : MviViewModel<RoyalLudoMatchState, RoyalLudoMatchIntent, RoyalLudoMatchEffect>(RoyalLudoMatchState(), dispatchers) {
 
     private var matchId: String? = null
+    /** Voice only while another person is here and someone's mic is on. */
+    private val voiceNeed = VoiceNeed { wanted -> matchId?.let { voice.setVoiceWanted.match(it, wanted) } }
     private var match: LudoMatch? = null
     private var speaking: Set<String> = emptySet()
     /** The user speaking into their mic, and whether that mic is open (on at the table, app in front). */
@@ -288,8 +291,14 @@ class RoyalLudoMatchViewModel(
                 }
                 is LudoEvent.Moved -> {
                     diceVisible = false
-                    val steps = if (event.from == PROGRESS_IN_BASE) listOf(0) else (event.from + 1)..event.to
-                    for (progress in steps) {
+                    if (event.from == PROGRESS_IN_BASE) {
+                        // Out of the base: a long way for one hop, so it glides out where everyone can see it.
+                        place(event.seat, event.piece, 0, PieceMotion.SLIDE)
+                        sound(GameSound.HOP)
+                        delay(AppConstants.LUDO_SLIDE_MS.toLong())
+                        continue
+                    }
+                    for (progress in (event.from + 1)..event.to) {
                         place(event.seat, event.piece, progress, PieceMotion.HOP)
                         sound(GameSound.HOP)
                         delay(AppConstants.LUDO_HOP_MS.toLong())
@@ -373,6 +382,7 @@ class RoyalLudoMatchViewModel(
 
     override fun onCleared() {
         if (micOpen) setMicOpen(false)
+        voiceNeed.clear()
     }
 
     private fun sound(sound: GameSound) {
@@ -460,6 +470,7 @@ class RoyalLudoMatchViewModel(
             micOpen = wantMic
             setMicOpen(wantMic)
         }
+        voiceNeed.update(micOpen, speakerOn, m.players.filter { !it.isMe && !it.isCpu && !it.removed }.map { it.micOn } + m.spectators.filter { it.userId != m.viewerUserId }.map { it.micOn })
         // Others' talking comes from the server; the user's own from their mic.
         val talkers = if (micOpen && mySpeaking) speaking + m.viewerUserId else speaking
         val rotation = me?.let { LudoBoardGeometry.rotationFor(it.colour.ordinal) } ?: 0

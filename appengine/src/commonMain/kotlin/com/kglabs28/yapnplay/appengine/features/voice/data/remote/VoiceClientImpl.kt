@@ -33,7 +33,10 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  * lobby's room. A lobby and the matches started from it share one voice
  * room, so moving between them doesn't reconnect.
  *
- * The mic is published only while the screen opens it ([setMicOpen]).
+ * The voice room is joined only while the screen wants it
+ * ([setVoiceWanted]): another person is there and someone's mic is on.
+ * Home, other screens and bot-only tables use no voice session. The mic
+ * is published only while the screen opens it ([setMicOpen]).
  * Muting someone stops *this* device playing their audio — they stay
  * audible to everyone else. Without a voice room (backend has no voice
  * configured, or it can't be reached) the mic level is still read so
@@ -111,10 +114,18 @@ class VoiceClientImpl(
         scope.launch { follow() }
     }
 
-    /** Keeps the device in the newest open screen's voice room. */
+    /** Targets whose screen needs voice now (someone to talk with, a mic on). */
+    private val wanted = MutableStateFlow<Set<VoiceTarget>>(emptySet())
+
+    override fun setVoiceWanted(target: VoiceTarget, wanted: Boolean) {
+        this.wanted.update { if (wanted) it + target else it - target }
+    }
+
+    /** Keeps the device in the newest open screen's voice room, only while that screen wants it. */
     private suspend fun follow() {
         var joinedRoom: String? = null
-        open.map { it.lastOrNull()?.target }.distinctUntilChanged().collectLatest { target ->
+        combine(open.map { it.lastOrNull()?.target }, wanted) { target, want -> target?.takeIf { it in want } }
+            .distinctUntilChanged().collectLatest { target ->
             if (target == null) {
                 // A screen handing over to the next one (lobby → match) shouldn't drop the call.
                 delay(LEAVE_GRACE_MS)

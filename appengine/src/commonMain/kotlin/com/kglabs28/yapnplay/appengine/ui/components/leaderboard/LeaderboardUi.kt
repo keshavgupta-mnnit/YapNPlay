@@ -9,6 +9,6 @@ data class LeaderboardUi(
     val myPlace: String,
     /** "+300". */
     val myExp: String = "",
-    /** "+350": the user's coins (pot + finishing); empty until paid. */
-    val myCoins: String = "",
+    /** "+100 coins": the user's own finishing bonus; empty when they got none. */
+    val myBonus: String = "",
 )

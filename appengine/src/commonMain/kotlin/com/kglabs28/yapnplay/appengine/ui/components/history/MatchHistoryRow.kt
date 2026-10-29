@@ -18,7 +18,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.table.arenaGlass
 import com.kglabs28.yapnplay.appengine.ui.screens.history.MatchHistoryRowUi
 
-/** One past match: the game and "Came 2nd · date" on the left, coins and XP on the right; a tap opens its leaderboard. */
+/** One past match: the game and "Came 2nd · date" ("Abandoned" if the user left) on the left, coins and XP on the right; a tap opens its leaderboard, except for an abandoned one. */
 @Composable
 fun MatchHistoryRow(row: MatchHistoryRowUi, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
@@ -27,7 +27,7 @@ fun MatchHistoryRow(row: MatchHistoryRowUi, onClick: () -> Unit, modifier: Modif
         modifier = modifier
             .fillMaxWidth()
             .arenaGlass(YapNPlayTheme.shapes.panel)
-            .clickable(role = Role.Button, onClick = onClick)
+            .then(if (row.opensBoard) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
             .padding(horizontal = Spacing.Md, vertical = Spacing.Sm),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Md),

@@ -18,7 +18,7 @@ data class PastMatch(
     val mine: PastSeat? get() = seats.firstOrNull { it.seat == mySeat }
 }
 
-/** One seat of a past match: who, their place, and what the result paid ([result]). */
+/** One seat of a past match: who, their place, what the result paid ([result]), and whether they [left] before the end. */
 data class PastSeat(
     val seat: Int,
     val name: String,
@@ -26,4 +26,5 @@ data class PastSeat(
     val place: Int,
     val isCpu: Boolean,
     val result: SeatResult,
+    val left: Boolean = false,
 )

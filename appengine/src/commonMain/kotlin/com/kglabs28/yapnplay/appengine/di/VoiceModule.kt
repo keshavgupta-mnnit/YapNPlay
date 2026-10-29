@@ -14,6 +14,7 @@ import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveSpeakerOnUs
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetSpeakerOnUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.TableVoiceUseCases
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOpenUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetVoiceWantedUseCase
 import org.koin.dsl.module
 
 /** Voice controls shared by every game and room: local mute, and the user's own mic. */
@@ -30,5 +31,6 @@ val voiceModule = module {
     factory { SetMicOnUseCase(get()) }
     factory { ObserveSpeakerOnUseCase(get()) }
     factory { SetSpeakerOnUseCase(get()) }
-    factory { TableVoiceUseCases(get(), get(), get(), get()) }
+    factory { SetVoiceWantedUseCase(get()) }
+    factory { TableVoiceUseCases(get(), get(), get(), get(), get()) }
 }

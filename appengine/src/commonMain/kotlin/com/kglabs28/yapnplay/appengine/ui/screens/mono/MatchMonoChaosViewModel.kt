@@ -1,5 +1,11 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMicOnUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOnUseCase
+import com.kglabs28.yapnplay.appengine.core.ui.Strings
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMySpeakingUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOpenUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.domain.VoiceNeed
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetUi
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteUiMapper
@@ -59,14 +65,26 @@ class MatchMonoChaosViewModel(
     private val observeMatchCoins: ObserveMatchCoinsUseCase,
     moderation: ModerationUseCases,
     private val voice: TableVoiceUseCases,
+    private val observeMySpeaking: ObserveMySpeakingUseCase,
+    private val setMicOpen: SetMicOpenUseCase,
+    private val observeMicOn: ObserveMicOnUseCase,
+    private val setMicOn: SetMicOnUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MatchMonoChaosState, MatchMonoChaosIntent, MatchMonoChaosEffect>(
     MatchMonoChaosState(), dispatchers,
 ) {
 
     private var matchId: String = ""
+    /** Voice only while another person is here and someone's mic is on. */
+    private val voiceNeed = VoiceNeed { wanted -> if (matchId.isNotEmpty()) voice.setVoiceWanted.match(matchId, wanted) }
     private var match: MonoChaosMatch? = null
     private var talking: Set<String> = emptySet()
+    /** The user speaking into their mic, whether that mic is open (on at the table, app in front), and whether the table is on screen. */
+    private var mySpeaking = false
+    /** The app-wide mic switch this table follows. */
+    private var micSwitch = false
+    private var micOpen = false
+    private var foreground = true
     private var mutedForMe: Set<String> = emptySet()
     private var speakerOn = true
     /** What MatchEnded paid each seat (CPUs included, display only); it arrives just after the last snapshot. */
@@ -126,7 +144,9 @@ class MatchMonoChaosViewModel(
                 setState { copy(activeStackPenalty = 0) }
             }
             is MatchMonoChaosIntent.SetAutoplay -> send(MonoChaosCommand.SetAutoplay(intent.enabled))
-            is MatchMonoChaosIntent.SetMic -> send(MonoChaosCommand.SetMic(intent.on))
+            // The mic switch is the user's, everywhere: this table follows it.
+            MatchMonoChaosIntent.ToggleMic -> if (micSwitch) setMicOn(false) else emitEffect(MatchMonoChaosEffect.RequestMicPermission)
+            is MatchMonoChaosIntent.MicPermissionResult -> if (intent.granted) setMicOn(true) else note(Strings.micPermissionBody)
             MatchMonoChaosIntent.ToggleSpeaker -> voice.setSpeakerOn(!speakerOn)
             is MatchMonoChaosIntent.ToggleHear -> match?.players?.firstOrNull { it.seat == intent.seat }?.userId?.let { voice.setMuted(it, it !in mutedForMe) }
             is MatchMonoChaosIntent.ToggleHearSpectator -> voice.setMuted(intent.userId, intent.userId !in mutedForMe)
@@ -187,6 +207,8 @@ class MatchMonoChaosViewModel(
                 }
             },
             scope.launch { observeSpeaking(id).collect { talking = it; render() } },
+            scope.launch { observeMySpeaking().collect { mySpeaking = it; render() } },
+            scope.launch { observeMicOn().collect { micSwitch = it; syncMic(); render() } },
             scope.launch { voice.observeMuted().collect { mutedForMe = it; render() } },
             scope.launch { voice.observeSpeakerOn().collect { speakerOn = it; render() } },
             scope.launch { observeMatchCoins().collect { seatResults = it; render() } },
@@ -203,6 +225,7 @@ class MatchMonoChaosViewModel(
     private suspend fun onUpdate(update: MonoChaosUpdate) {
         val previous = match
         match = update.match
+        syncMic()
         if (EndVoteUiMapper.rejected(previous?.endVote, update.match.endVote, update.match.phase == MonoChaosPhase.FINISHED.name)) banner = TableStrings.endVoteRejectedShort to clock.now()
         update.events.filterIsInstance<MonoChaosEvent.SeatFinished>().lastOrNull()?.let { finished ->
             val place = MonoUiMapper.placeLabel(finished.place)
@@ -322,6 +345,9 @@ class MatchMonoChaosViewModel(
 
     /** Background: the server takes the user's turn while they are away. */
     private suspend fun onScreenVisible(visible: Boolean) {
+        foreground = visible
+        syncMic()
+        render()
         director.setForeground(visible)
         send(MonoChaosCommand.SetAway(!visible))
         if (visible) send(MonoChaosCommand.StillHere)
@@ -329,10 +355,21 @@ class MatchMonoChaosViewModel(
 
     override fun onCleared() {
         director.stop()
+        if (micOpen) setMicOpen(false)
+        voiceNeed.clear()
     }
 
     private fun render() {
         val m = match ?: return
+        // The mic listens only while it's on at the table (a spectator's is on their entry) and the app is in front.
+        val wantMic = foreground && (m.me?.micOn ?: m.spectators.firstOrNull { it.userId == m.viewerUserId }?.micOn ?: false)
+        if (wantMic != micOpen) {
+            micOpen = wantMic
+            setMicOpen(wantMic)
+        }
+        // Others' talking comes from the server; the user's own from their mic.
+        val talkers = if (micOpen && mySpeaking) talking + m.viewerUserId else talking
+        voiceNeed.update(myMicOpen = micOpen, mySpeakerOn = speakerOn, othersMicOn = m.players.filter { !it.isMe && !it.isCpu && !it.removed && it.userId != null }.map { it.micOn } + m.spectators.filter { it.userId != m.viewerUserId }.map { it.micOn })
         val now = clock.now()
         val me = m.me
         val waitingOnMe = m.currentSeat == me?.seat
@@ -409,13 +446,13 @@ class MatchMonoChaosViewModel(
                 elapsed = monoElapsed(m.startedAt, now),
                 title = m.title,
                 spectatorCount = m.spectatorCount,
-                audience = MonoUiMapper.chaosAudience(m, talking, mutedForMe),
+                audience = MonoUiMapper.chaosAudience(m, talkers, mutedForMe),
                 // A spectator's mic is on their spectator entry.
-                micOn = (me?.micOn ?: m.spectators.firstOrNull { it.userId == m.viewerUserId }?.micOn) == true,
+                micOn = micSwitch,
                 speakerOn = speakerOn,
                 mutedForMe = mutedForMe,
                 autoplay = me?.autoplay == true,
-                talking = talking,
+                talking = talkers,
                 vote = MonoUiMapper.vote(m.continueVote, me?.seat, now),
                 // The finisher's banner shows first; the board follows once it has had its moment.
                 finishBanner = banner?.takeIf { now - it.second < BANNER_TIME }?.first,
@@ -493,6 +530,14 @@ class MatchMonoChaosViewModel(
         val m = match ?: return false
         val me = m.me ?: return false
         return EndVoteUiMapper.canPropose(me.isCpu, me.presence, m.phase == MonoChaosPhase.FINISHED.name, m.endVote != null || m.continueVote != null)
+    }
+
+    /** Tells the table the user's mic (their switch, while the app is in front) when it differs from what the table shows. */
+    private fun syncMic() {
+        val m = match ?: return
+        val current = (m.me?.micOn ?: m.spectators.firstOrNull { it.userId == m.viewerUserId }?.micOn) ?: return
+        val want = micSwitch && foreground
+        if (current != want) scope.launch { send(MonoChaosCommand.SetMic(want)) }
     }
 
     private suspend fun send(command: MonoChaosCommand) {

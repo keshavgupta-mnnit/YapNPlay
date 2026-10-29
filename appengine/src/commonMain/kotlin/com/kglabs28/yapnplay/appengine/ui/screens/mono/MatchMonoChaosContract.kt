@@ -7,7 +7,6 @@ import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveD
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
-import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosCard
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosMatch
 import com.kglabs28.yapnplay.appengine.games.monochaos.identity.MonoChaosConstants
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
@@ -93,9 +92,9 @@ data class MatchMonoChaosState(
     val penaltySnack: TableFeedLineUi? = null,
 ) : UiState {
     val hand get() = match?.me?.hand.orEmpty()
-    /** The hand sorted by colour, power cards last (indexes into [hand]). */
+    /** The hand grouped by colour (numbers, then that colour's power cards), wilds last (indexes into [hand]). */
     val handOrder: List<Int>
-        get() = MonoUiMapper.handOrder(hand, { it.playColor()?.ordinal }, { it !is MonoChaosCard.NumberCard }, { (it as? MonoChaosCard.NumberCard)?.number ?: 0 })
+        get() = MonoHandOrder.chaos(hand)
     /** Everyone else, clockwise from the user's seat (the order turns go round the table). */
     /** Whom the Rule of 7 can trade hands with. */
     val swapTargets get() = opponents.filter { it.seat !in match?.eliminatedSeats.orEmpty() }.map { MonoSwapTargetUi(it.seat, it.name, it.avatarId.orEmpty(), it.cardCount) }
@@ -128,7 +127,10 @@ sealed interface MatchMonoChaosIntent : UiIntent {
     /** The Rule of 7: the seat whose hand to trade with. */
     data class ChooseSwapTarget(val seat: Int) : MatchMonoChaosIntent
     data class SetAutoplay(val enabled: Boolean) : MatchMonoChaosIntent
-    data class SetMic(val on: Boolean) : MatchMonoChaosIntent
+    /** The mic button: the user's mic switch, the same in every game (turning it on asks for the mic first). */
+    data object ToggleMic : MatchMonoChaosIntent
+    /** The phone's answer to the mic permission. */
+    data class MicPermissionResult(val granted: Boolean) : MatchMonoChaosIntent
     /** The user's speaker on or off (for them only). */
     data object ToggleSpeaker : MatchMonoChaosIntent
     /** Mute or unmute a player (by seat) for the user only. */
@@ -162,4 +164,6 @@ sealed interface MatchMonoChaosEffect : UiEffect {
     data object LeaveMatch : MatchMonoChaosEffect
     /** Cards to fly across the table (plays, draws, penalties). */
     data class Fly(val flights: List<MonoFlight>) : MatchMonoChaosEffect
+    /** Turning the mic on: ask the phone for the mic (answers at once when already allowed). */
+    data object RequestMicPermission : MatchMonoChaosEffect
 }

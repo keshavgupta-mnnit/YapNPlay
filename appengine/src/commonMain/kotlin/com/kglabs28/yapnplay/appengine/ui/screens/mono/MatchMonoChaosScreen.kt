@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
+import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
 import androidx.compose.runtime.SideEffect
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorVoiceButtons
 import com.kglabs28.yapnplay.appengine.ui.components.table.flightsIntoHand
@@ -87,6 +89,8 @@ fun MatchMonoChaosScreen(
     val anchors = rememberMonoAnchors()
     val flights = rememberMonoFlightState()
 
+    val micPermission = rememberPermissionRequester(AppPermission.MICROPHONE)
+
     LaunchedEffect(viewModel, matchId) {
         viewModel?.onIntent(MatchMonoChaosIntent.Load(matchId))
     }
@@ -95,6 +99,7 @@ fun MatchMonoChaosScreen(
             when (effect) {
                 MatchMonoChaosEffect.LeaveMatch -> onClose()
                 is MatchMonoChaosEffect.Fly -> flights.launch(effect.flights)
+                MatchMonoChaosEffect.RequestMicPermission -> micPermission.request { send(MatchMonoChaosIntent.MicPermissionResult(it)) }
             }
         }
     }
@@ -183,7 +188,7 @@ fun MatchMonoChaosContent(
                     ),
                     micOn = state.micOn,
                     autoplay = state.autoplay,
-                    onToggleMic = { send(MatchMonoChaosIntent.SetMic(!state.micOn)) },
+                    onToggleMic = { send(MatchMonoChaosIntent.ToggleMic) },
                     onToggleAutoplay = { send(MatchMonoChaosIntent.SetAutoplay(!state.autoplay)) },
                 )
             },
@@ -201,7 +206,7 @@ fun MatchMonoChaosContent(
                 TableSpectatorVoiceButtons(
                     micOn = state.micOn,
                     speakerOn = state.speakerOn,
-                    onToggleMic = { send(MatchMonoChaosIntent.SetMic(!state.micOn)) },
+                    onToggleMic = { send(MatchMonoChaosIntent.ToggleMic) },
                     onToggleSpeaker = { send(MatchMonoChaosIntent.ToggleSpeaker) },
                 )
             },

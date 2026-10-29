@@ -106,16 +106,6 @@ object MonoUiMapper {
         return after + before
     }
 
-    /**
-     * The order the hand is shown in, as indexes into it: number cards by
-     * colour (red, green, blue, gold) then number, and every power card at
-     * the end (by colour, prisms last). Taps still send the real index.
-     */
-    fun <C> handOrder(hand: List<C>, colour: (C) -> Int?, isPower: (C) -> Boolean, number: (C) -> Int): List<Int> =
-        hand.indices.sortedWith(
-            compareBy<Int>({ isPower(hand[it]) }, { colour(hand[it]) ?: Int.MAX_VALUE }, { number(hand[it]) }),
-        )
-
     /** The keep-playing vote as the prompt shows it; null when none is open. */
     fun vote(vote: MonoContinueVote?, mySeat: Int?, now: Instant): MonoVoteUi? = vote?.let {
         MonoVoteUi(

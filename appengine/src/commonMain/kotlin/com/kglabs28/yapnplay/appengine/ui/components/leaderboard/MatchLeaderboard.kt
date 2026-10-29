@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.leaderboard
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
 import org.koin.compose.koinInject
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.AppManagerHelper
 import androidx.compose.ui.zIndex
@@ -77,6 +78,8 @@ fun MatchLeaderboard(
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
     val podium = board.entries.take(PODIUM)
+    // System Back does what PLAY AGAIN does, in every game and in the history.
+    BlockBackPress(enabled = true, onBack = onPlayAgain)
     val rest = board.entries.drop(PODIUM)
     val layer = rememberGraphicsLayer()
     val scope = rememberCoroutineScope()
@@ -180,6 +183,16 @@ fun MatchLeaderboard(
                                 text = buildAnnotatedString {
                                     append(TableStrings.leaderboardExpGained)
                                     withStyle(SpanStyle(color = colors.LiveGreen, fontWeight = FontWeight.Bold)) { append(board.myExp) }
+                                },
+                                style = typography.label.copy(color = colors.TextSecondary),
+                            )
+                        }
+                        // The user's own finishing bonus (on top of the coins shown in the rows).
+                        if (board.myBonus.isNotEmpty()) {
+                            BasicText(
+                                text = buildAnnotatedString {
+                                    append(TableStrings.leaderboardFinishBonus)
+                                    withStyle(SpanStyle(color = colors.LiveGreen, fontWeight = FontWeight.Bold)) { append(board.myBonus) }
                                 },
                                 style = typography.label.copy(color = colors.TextSecondary),
                             )

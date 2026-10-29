@@ -257,18 +257,28 @@ sealed interface CbModal {
         val countdown: String,
     ) : CbModal
 
-    /** A city up for auction: its card, who holds its colour, the bid sheet; [canBid] false for the seller. */
+    /**
+     * A city up for auction, shown like the buy prompt: its rents and costs,
+     * the list [oldPrice] crossed out before the current [price] (the bid),
+     * its [owner] (the seller), the [leader] line, the user's balance after
+     * bidding, and the question ([body]). Only shown to players who can bid higher.
+     */
     data class Auction(
         val tile: Int,
-        val title: String,
+        val name: String,
+        val group: CityGroup?,
+        val kind: TileKind,
         val body: String,
-        val card: CbPropertyCardUi,
-        val colourLines: List<String>,
+        val price: String,
+        val oldPrice: String,
+        val rates: List<CbRateRowUi>,
+        val costs: List<CbSheetRowUi>,
+        val owner: String,
         val leader: String,
-        val sheet: List<CbSheetRowUi>,
+        val cash: String,
+        val cost: String,
+        val remaining: String,
         val bidLabel: String,
-        val isSeller: Boolean,
-        val canBid: Boolean,
         val countdown: String,
     ) : CbModal
 

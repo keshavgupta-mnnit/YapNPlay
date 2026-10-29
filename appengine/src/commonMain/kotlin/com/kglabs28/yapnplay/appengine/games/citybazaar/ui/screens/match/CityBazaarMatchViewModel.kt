@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarAuctionInfo
+import com.kglabs28.yapnplay.appengine.features.voice.domain.VoiceNeed
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.TableVoiceUseCases
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogState
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardResult
@@ -98,6 +100,8 @@ class CityBazaarMatchViewModel(
 ) : MviViewModel<CityBazaarMatchState, CityBazaarMatchIntent, CityBazaarMatchEffect>(CityBazaarMatchState(), dispatchers) {
 
     private var matchId: String? = null
+    /** Voice only while another person is here and someone's mic is on. */
+    private val voiceNeed = VoiceNeed { wanted -> matchId?.let { voice.setVoiceWanted.match(it, wanted) } }
     private var match: CityBazaarMatch? = null
     private var speaking: Set<String> = emptySet()
     /** The user speaking into their mic, and whether that mic is open (on at the table, app in front). */
@@ -130,8 +134,8 @@ class CityBazaarMatchViewModel(
     private var vote: ReportVoteRequest? = null
     private var penalty: Penalty? = null
     private var saleSelection: Set<String> = emptySet()
-    /** The auction (tile) the user passed on: no more prompts for it. */
-    private var passedAuction: Int? = null
+    /** The auction as it stood when the user passed: hidden until someone bids again. */
+    private var passedAuction: CityBazaarAuctionInfo? = null
     private var toast: CbToastUi? = null
     private var toastId = 0L
     private var toastJob: Job? = null
@@ -194,7 +198,7 @@ class CityBazaarMatchViewModel(
             }
             CityBazaarMatchIntent.Bid -> send(CityBazaarCommand.Bid)
             CityBazaarMatchIntent.PassAuction -> {
-                passedAuction = match?.auction?.tile
+                passedAuction = match?.auction
                 render()
             }
             CityBazaarMatchIntent.DeclareBankruptcy -> send(CityBazaarCommand.DeclareBankruptcy)
@@ -646,6 +650,7 @@ class CityBazaarMatchViewModel(
             micOpen = wantMic
             setMicOpen(wantMic)
         }
+        voiceNeed.update(micOpen, speakerOn, m.players.filter { !it.isMe && !it.isCpu && !it.removed }.map { it.micOn } + m.spectators.filter { it.userId != m.viewerUserId }.map { it.micOn })
         // Others' talking comes from the server; the user's own from their mic.
         val talkers = if (micOpen && mySpeaking) speaking + m.viewerUserId else speaking
         val now = clock.now()
@@ -673,8 +678,9 @@ class CityBazaarMatchViewModel(
         } else {
             null
         }
-        // A running auction shows to every player (not to watchers, nor after passing it).
-        val auction = m.auction?.takeIf { !playing && shownMe != null && !shownMe.bankrupt && it.tile != passedAuction }?.let { a ->
+        // A running auction asks every player who can bid higher (not the owner, the highest bidder, anyone short
+        // of the next bid, or watchers); a pass hides it only until the next bid.
+        val auction = m.auction?.takeIf { !playing && shownMe != null && !shownMe.bankrupt && !passedOn(it) }?.let { a ->
             CbPromptMapper.auction(m, a, shownMe!!, CbFormat.countdown((a.endsAt - now).inWholeSeconds))
         }
         // Rounds are over: everyone sees the continue-or-end vote (only players still in can vote).
@@ -869,7 +875,12 @@ class CityBazaarMatchViewModel(
 
     override fun onCleared() {
         if (micOpen) setMicOpen(false)
+        voiceNeed.clear()
     }
+
+    /** The user passed on [auction] and nobody has bid since (same city, same highest bid and bidder). */
+    private fun passedOn(auction: CityBazaarAuctionInfo): Boolean =
+        passedAuction?.let { it.tile == auction.tile && it.bid == auction.bid && it.leaderSeat == auction.leaderSeat } == true
 
     private fun sound(sound: GameSound) {
         if (foreground) audio.play(sound)

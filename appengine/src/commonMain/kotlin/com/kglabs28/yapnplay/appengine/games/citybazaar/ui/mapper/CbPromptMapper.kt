@@ -33,7 +33,6 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.HOTEL_LEVEL
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.JAIL_FINE
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.RESALE_DIVISOR
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.RupeeFormat
-import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.SET_FOR_DOUBLE
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.TileKind
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbAssetUi
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbDeckRowUi
@@ -196,43 +195,35 @@ object CbPromptMapper {
         )
     }
 
-    /** The auction prompt: the card, who holds this colour, and the bid sheet for [viewer]. */
-    fun auction(match: CityBazaarMatch, auction: CityBazaarAuctionInfo, viewer: CityBazaarPlayer, countdown: String): CbModal.Auction {
+    /**
+     * The auction prompt for [viewer], like the buy prompt: the city's rents
+     * and costs, its price crossed out before the bid, owner, highest bidder
+     * and balance after bidding. Only for someone who can bid higher: null
+     * for the owner, the highest bidder and anyone who can't afford the next bid.
+     */
+    fun auction(match: CityBazaarMatch, auction: CityBazaarAuctionInfo, viewer: CityBazaarPlayer, countdown: String): CbModal.Auction? {
+        if (viewer.seat == auction.sellerSeat || viewer.seat == auction.leaderSeat || viewer.cash < auction.nextBid) return null
         val spec = CityBazaarBoard.tile(auction.tile)
         val seller = match.player(auction.sellerSeat)?.name.orEmpty()
-        val isSeller = viewer.seat == auction.sellerSeat
-        val pairLine = spec.partner?.let { p -> listOf(CityBazaarStrings.cbPairLine(CityBazaarBoard.tile(p).name, match.owners[p]?.let { match.player(it)?.name })) }
-        val colourLines = pairLine ?: spec.group?.takeIf { it.isColourSet }?.let { group ->
-            val others = CityBazaarBoard.groupTiles(group).filter { it != auction.tile }
-            val byOwner = others.mapNotNull { t -> match.owners[t]?.let { it to t } }.groupBy({ it.first }, { it.second })
-            buildList {
-                add(CityBazaarStrings.cbYouOwnColour(byOwner[viewer.seat]?.size ?: 0))
-                byOwner.filterKeys { it != viewer.seat }.forEach { (seat, tiles) ->
-                    val name = match.player(seat)?.name.orEmpty()
-                    add(CityBazaarStrings.cbOwnsColour(name, tiles.joinToString { CityBazaarBoard.tile(it).name }))
-                    if (tiles.size + 1 >= SET_FOR_DOUBLE) add(CityBazaarStrings.cbColourRisk(name))
-                }
-            }
-        }.orEmpty()
         val leader = auction.leaderSeat?.let { match.player(it)?.name }
-        val step = auction.nextBid - auction.bid
-        val sheet = listOf(
-            CbSheetRowUi(if (leader == null) CityBazaarStrings.cbOpeningBid else CityBazaarStrings.cbCurrentBid, CbFormat.rupees(auction.bid), CbRowKind.NORMAL),
-            CbSheetRowUi(CityBazaarStrings.cbBidStep, if (leader == null) CbFormat.plus(0) else CbFormat.plus(step), CbRowKind.NORMAL),
-            CbSheetRowUi(CityBazaarStrings.cbYourBid, CbFormat.rupees(auction.nextBid), CbRowKind.MINUS),
-            CbSheetRowUi(CityBazaarStrings.cbBalanceAfter, CbFormat.rupees(viewer.cash - auction.nextBid), CbRowKind.TOTAL),
-        )
+        val bid = CbFormat.rupees(auction.bid)
         return CbModal.Auction(
             tile = auction.tile,
-            title = CityBazaarStrings.cbAuctionTitle(spec.name),
-            body = if (isSeller) CityBazaarStrings.cbAuctionYours else CityBazaarStrings.cbAuctionBody(seller),
-            card = CbPropertyMapper.propertyCard(match, auction.tile),
-            colourLines = colourLines,
-            leader = leader?.let { CityBazaarStrings.cbHighestBid(it, CbFormat.rupees(auction.bid)) } ?: CityBazaarStrings.cbNoBidsYet,
-            sheet = sheet,
+            name = spec.name,
+            group = spec.group,
+            kind = spec.kind,
+            body = leader?.let { CityBazaarStrings.cbAuctionOutbid(it, bid) } ?: CityBazaarStrings.cbAuctionBody(seller, spec.name, bid),
+            price = bid,
+            oldPrice = CbFormat.rupees(spec.price),
+            // Auctioned cities are bare: the rent it earns right after buying is lit.
+            rates = CbPropertyMapper.rates(auction.tile, 0),
+            costs = costRows(auction.tile),
+            owner = CityBazaarStrings.cbOwnerLine(seller),
+            leader = leader?.let { CityBazaarStrings.cbHighestBid(it, bid) } ?: CityBazaarStrings.cbNoBidsYet,
+            cash = CbFormat.rupees(viewer.cash),
+            cost = CbFormat.minus(auction.nextBid),
+            remaining = CbFormat.rupees(viewer.cash - auction.nextBid),
             bidLabel = CityBazaarStrings.cbBid(CbFormat.rupees(auction.nextBid)),
-            isSeller = isSeller,
-            canBid = !isSeller && auction.leaderSeat != viewer.seat && viewer.cash >= auction.nextBid,
             countdown = countdown,
         )
     }

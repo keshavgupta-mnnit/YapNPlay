@@ -12,4 +12,6 @@ data class SeatResult(
     val coins: Int get() = won + completion
     /** What the match came to for this seat: prize and bonus, less the entry. */
     val net: Int get() = coins - stake
+    /** The place's prize less the entry, without the finishing bonus (the leaderboard's coin column). */
+    val prizeNet: Int get() = won - stake
 }

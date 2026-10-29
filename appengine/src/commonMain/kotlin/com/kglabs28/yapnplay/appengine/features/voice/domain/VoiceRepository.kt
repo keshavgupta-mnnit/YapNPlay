@@ -12,4 +12,6 @@ interface VoiceRepository {
     fun setMicOn(on: Boolean)
     val mySpeaking: StateFlow<Boolean>
     fun setMicOpen(open: Boolean)
+    fun setRoomVoiceWanted(roomId: String, wanted: Boolean)
+    fun setMatchVoiceWanted(matchId: String, wanted: Boolean)
 }

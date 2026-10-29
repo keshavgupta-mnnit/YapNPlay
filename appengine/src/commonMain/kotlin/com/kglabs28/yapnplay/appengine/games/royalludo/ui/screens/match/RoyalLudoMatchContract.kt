@@ -61,8 +61,8 @@ data class RoyalLudoMatchState(
 ) : UiState
 
 /**
- * How a piece reaches its new spot: a hop per square, a glide home
- * (capture, undone turn), or a small flat shift (making room on a
+ * How a piece reaches its new spot: a hop per square, a glide out of or
+ * back to base (a six, capture, undone turn), or a small flat shift (making room on a
  * shared square).
  */
 enum class PieceMotion { HOP, SLIDE, SHIFT }

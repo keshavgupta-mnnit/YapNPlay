@@ -142,11 +142,14 @@ class BackendSession(
         return BackendCredentials(created.userId, created.secret).also {
             store.save(it)
             store.savePending(null)
-            if (brandNew) {
-                store.setWelcomeNeeded(true)
-                welcome.value = true
-            }
+            if (brandNew) flagWelcome()
         }
+    }
+
+    /** A brand-new account: the welcome (name and avatar) shows, now and on the next launch until answered. */
+    private fun flagWelcome() {
+        store.setWelcomeNeeded(true)
+        welcome.value = true
     }
 
     /**
@@ -167,6 +170,8 @@ class BackendSession(
         }
         val reply = response.body<PlayGamesSignedIn>()
         store.save(BackendCredentials(reply.userId, reply.secret))
+        // No account here yet and none brought back: the server made a new one for this player, so welcome them.
+        if (before == null && !reply.restored) flagWelcome()
         // Only a switch from one saved account to another reloads the app; a first sign-in just goes on.
         val switched = before != null && reply.userId != before.userId
         AppLog.d(AppConstants.LOG_TAG_AUTH, "server: ${if (switched) "restored the linked account (app reloads)" else "signed in with Play Games"}")

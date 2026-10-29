@@ -30,7 +30,7 @@ data class PlayRoomLobbyState(
     val fixedRules: List<String> = emptyList(),
     val primary: LobbyPrimaryButtonUi = LobbyPrimaryButtonUi(),
     val micOn: Boolean = false,
-    val speakerOn: Boolean = false,
+    val speakerOn: Boolean = true,
     /** People asking to join (admin only). */
     val waitingList: List<WaitingRequestUi> = emptyList(),
     /** At most one modal at a time; null when none. */

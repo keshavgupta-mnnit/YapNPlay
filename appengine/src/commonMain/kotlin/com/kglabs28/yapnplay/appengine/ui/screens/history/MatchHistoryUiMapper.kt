@@ -34,7 +34,8 @@ object MatchHistoryUiMapper {
             gameId = match.gameId,
             game = gameName(match.gameId),
             line = listOfNotNull(
-                mine?.let { HistoryStrings.historyPlace(TableStrings.placeLabel(it.place)) },
+                // Left before the end: abandoned, not a place.
+                mine?.let { if (it.left) HistoryStrings.historyAbandoned else HistoryStrings.historyPlace(TableStrings.placeLabel(it.place)) },
                 if (match.roomMatch) match.roomName.ifBlank { HistoryStrings.historyRoom } else HistoryStrings.historyQuickPlay,
                 Strings.shortDateTime(date.dayOfMonth, date.monthNumber, date.year, ended.hour, ended.minute),
             ).joinToString(SEPARATOR),
@@ -45,6 +46,7 @@ object MatchHistoryUiMapper {
             },
             lost = net < 0,
             xp = HistoryStrings.historyXp(TextUtils.groupedThousands(result?.xp ?: 0)),
+            opensBoard = mine?.left != true,
         )
     }
 

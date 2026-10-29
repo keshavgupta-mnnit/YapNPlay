@@ -25,6 +25,8 @@ data class MatchHistoryRowUi(
     /** The coins line is a loss (shown red). */
     val lost: Boolean,
     val xp: String,
+    /** A tap opens the match's leaderboard (not for a match the user abandoned). */
+    val opensBoard: Boolean = true,
 )
 
 sealed interface MatchHistoryIntent : UiIntent {

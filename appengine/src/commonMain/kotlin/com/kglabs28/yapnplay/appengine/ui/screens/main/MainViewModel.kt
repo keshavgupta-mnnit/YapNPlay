@@ -183,7 +183,8 @@ class MainViewModel(
     /**
      * Once per app launch, after the daily bonus (if any) is collected: offer
      * free coins for a rewarded ad, only if one is ready (or comes in within
-     * [LAUNCH_AD_WAIT]). Missed then, it is not offered later in this launch;
+     * [LAUNCH_AD_WAIT]) and the server says it can pay now (not waiting out
+     * the gap between ads). Missed then, it is not offered later in this launch;
      * the coins "+" offers the same any time an ad is ready.
      */
     private suspend fun offerCoinsOnLaunch() {
@@ -192,10 +193,12 @@ class MainViewModel(
         if (!isAdReady.await(LAUNCH_AD_WAIT) || state.value.coinsOffer != null) {
             return AppLog.d(AppConstants.LOG_TAG_ADS, "home: launch offer skipped, no ad ready")
         }
-        AppLog.d(AppConstants.LOG_TAG_ADS, "home: launch offer shown")
-        // Only when an ad can pay now (no cooldown, ads left today); an older server without limits: always.
+        // Only when the server says an ad can pay now (no cooldown, ads left today); unsure, it waits for a tap on the coins.
         val status = (getAdLimitStatus() as? AppResult.Success)?.data
-        if (status != null && !status.canWatch(clock.now())) return
+        if (status == null || !status.canWatch(clock.now())) {
+            return AppLog.d(AppConstants.LOG_TAG_ADS, "home: launch offer skipped, no ad can pay now")
+        }
+        AppLog.d(AppConstants.LOG_TAG_ADS, "home: launch offer shown")
         setState { copy(coinsOffer = CoinsUiMapper.withLimits(CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody), status, clock.now())) }
     }
 

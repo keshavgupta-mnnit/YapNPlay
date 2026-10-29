@@ -372,6 +372,8 @@ data class MatchHistorySeat(
     val completionCoins: Int = 0,
     val stake: Int = 0,
     val xp: Int = 0,
+    /** They left before the match ended. */
+    val left: Boolean = false,
 )
 
 /** One member's record in a room (`GET /rooms/{roomId}/leaderboard`). */

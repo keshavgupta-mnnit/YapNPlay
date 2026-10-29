@@ -7,6 +7,7 @@ object HistoryStrings {
     const val historyFailed = "Could not load your matches. Pull back and try again."
     const val historyBack = "Back"
     fun historyPlace(place: String) = "Came $place"
+    const val historyAbandoned = "Abandoned"
     const val historyQuickPlay = "Quick Play"
     const val historyRoom = "Room"
     fun historyXp(xp: String) = "+$xp XP"

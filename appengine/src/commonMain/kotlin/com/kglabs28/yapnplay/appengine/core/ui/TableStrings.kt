@@ -49,6 +49,7 @@ object TableStrings {
     const val leaderboardShare = "SHARE THIS"
     const val leaderboardMatchDuration = "MATCH DURATION: "
     const val leaderboardExpGained = "EXP GAINED: "
+    const val leaderboardFinishBonus = "FINISHING BONUS: "
     fun leaderboardPts(points: Int) = "+$points PTS"
     fun leaderboardCoins(coins: String) = "+$coins coins"
     const val leaderboardNoCoins = "0 coins"

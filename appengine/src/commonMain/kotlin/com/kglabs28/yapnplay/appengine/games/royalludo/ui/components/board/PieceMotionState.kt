@@ -21,7 +21,7 @@ import kotlin.math.sin
 /**
  * Where one piece is drawn (canonical grid units) while it moves: a
  * quick arc per square for a [PieceMotion.HOP], a smooth higher glide
- * for a [PieceMotion.SLIDE] (back to base), and a small flat move for a
+ * for a [PieceMotion.SLIDE] (out of or back to base), and a small flat move for a
  * [PieceMotion.SHIFT] (making room when pieces share a square).
  */
 @Stable

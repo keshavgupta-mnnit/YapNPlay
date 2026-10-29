@@ -34,7 +34,7 @@ class MatchHistoryRepositoryImpl(
                         endedAt = m.endedAt,
                         mySeat = m.mySeat,
                         seats = m.seats.sortedBy { it.place }.map { s ->
-                            PastSeat(s.seat, s.name, s.avatarId, s.place, s.userId == null, SeatResult(s.seat, s.coinsWon, s.completionCoins, s.xp, s.stake))
+                            PastSeat(s.seat, s.name, s.avatarId, s.place, s.userId == null, SeatResult(s.seat, s.coinsWon, s.completionCoins, s.xp, s.stake), left = s.left)
                         },
                     )
                 },

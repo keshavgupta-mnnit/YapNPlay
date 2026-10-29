@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.voice.data
 
 import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceClient
+import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceTarget
 import com.kglabs28.yapnplay.appengine.features.voice.domain.VoiceRepository
 import kotlinx.coroutines.flow.StateFlow
 
@@ -13,4 +14,6 @@ class VoiceRepositoryImpl(private val client: VoiceClient) : VoiceRepository {
     override fun setMicOn(on: Boolean) = client.setMicOn(on)
     override val mySpeaking: StateFlow<Boolean> get() = client.mySpeaking
     override fun setMicOpen(open: Boolean) = client.setMicOpen(open)
+    override fun setRoomVoiceWanted(roomId: String, wanted: Boolean) = client.setVoiceWanted(VoiceTarget.Room(roomId), wanted)
+    override fun setMatchVoiceWanted(matchId: String, wanted: Boolean) = client.setVoiceWanted(VoiceTarget.Match(matchId), wanted)
 }

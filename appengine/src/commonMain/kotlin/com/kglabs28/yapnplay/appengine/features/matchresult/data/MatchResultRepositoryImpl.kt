@@ -8,5 +8,5 @@ import kotlinx.coroutines.flow.map
 
 class MatchResultRepositoryImpl(private val match: MatchChannel) : MatchResultRepository {
     override fun coins(): Flow<List<SeatResult>> =
-        match.endings().map { ended -> ended.ranking.map { SeatResult(it.seat, it.coinsWon, it.completionCoins, it.xpGained, it.stake) } }
+        match.endings().map { ended -> ended.ranking.map { SeatResult(it.seat, it.coinsWon, it.completionCoins, it.xpGained, it.stake, it.displayName, it.avatarId.orEmpty(), it.place) } }
 }

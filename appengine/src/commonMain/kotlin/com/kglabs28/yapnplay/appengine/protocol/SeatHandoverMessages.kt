@@ -26,6 +26,10 @@ data class AnswerSeatOffer(val matchId: String, val accept: Boolean)
 @Serializable
 data class ChooseSeatTaker(val matchId: String, val giveToUserId: String?)
 
+/** The room's leader or admin offers a seat the bot plays to a spectator (who still accepts). */
+@Serializable
+data class OfferBotSeat(val matchId: String, val seat: Int, val toUserId: String)
+
 /** A spectator takes a seat open to all (its owner went away). */
 @Serializable
 data class TakeSeat(val matchId: String, val seat: Int)

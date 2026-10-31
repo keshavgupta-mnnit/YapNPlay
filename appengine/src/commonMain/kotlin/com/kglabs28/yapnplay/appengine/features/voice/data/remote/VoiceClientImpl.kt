@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.voice.data.remote
 
+import com.kglabs28.yapnplay.appengine.features.voice.domain.MySpeech
 import com.kglabs28.yapnplay.appengine.core.audio.MicLevelMonitor
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import kotlinx.coroutines.CancellationException
@@ -40,7 +41,8 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  * Muting someone stops *this* device playing their audio — they stay
  * audible to everyone else. Without a voice room (backend has no voice
  * configured, or it can't be reached) the mic level is still read so
- * the user's own talking wave works.
+ * the user's own talking wave works. With the mic off (app in front) the
+ * level is read too, only to tell the user they're talking on mute.
  */
 class VoiceClientImpl(
     private val mic: MicLevelMonitor,
@@ -74,19 +76,28 @@ class VoiceClientImpl(
     }
 
     private val micOpen = MutableStateFlow(false)
+    private val listenMuted = MutableStateFlow(false)
 
-    override val mySpeaking: StateFlow<Boolean> =
-        combine(engine.connected, engine.localSpeaking, mic.speaking) { connected, voice, level -> if (connected) voice else level }
-            .stateIn(scope, SharingStarted.Eagerly, false)
+    override val mySpeech: StateFlow<MySpeech> =
+        combine(engine.connected, engine.localSpeaking, mic.speaking, micOpen) { connected, voice, level, open ->
+            when {
+                open && (if (connected) voice else level) -> MySpeech.SPEAKING
+                !open && level -> MySpeech.SPEAKING_MUTED
+                else -> MySpeech.SILENT
+            }
+        }.stateIn(scope, SharingStarted.Eagerly, MySpeech.SILENT)
 
-    override fun setMicOpen(open: Boolean) {
+    override fun setMicOpen(open: Boolean, listenMuted: Boolean) {
         micOpen.value = open
+        this.listenMuted.value = listenMuted
     }
 
     /** Screens currently wanting voice, oldest first. */
     private val open = MutableStateFlow<List<Entry>>(emptyList())
 
     private class Entry(val target: VoiceTarget)
+
+    override val activeTarget: Flow<VoiceTarget?> get() = open.map { it.lastOrNull()?.target }.distinctUntilChanged()
 
     /** Targets whose screen needs voice now (someone to talk with, a mic on). Declared before init, which reads it. */
     private val wanted = MutableStateFlow<Set<VoiceTarget>>(emptySet())
@@ -102,15 +113,16 @@ class VoiceClientImpl(
     }
 
     init {
-        // The mic goes to the voice room when there is one, else only its level is read.
+        // The open mic goes to the voice room when there is one, else only its level is read.
+        // Closed, its level is still read (never sent) while the screen asks, to catch talking on mute.
         scope.launch {
-            combine(micOpen, engine.connected) { o, c -> o to c }.collect { (o, connected) ->
-                if (connected) {
+            combine(micOpen, listenMuted, engine.connected) { o, l, c -> Triple(o, l, c) }.collect { (o, listen, connected) ->
+                if (o && connected) {
                     mic.stop()
-                    engine.setMicEnabled(o)
+                    engine.setMicEnabled(true)
                 } else {
                     engine.setMicEnabled(false)
-                    if (o) mic.start() else mic.stop()
+                    if (o || listen) mic.start() else mic.stop()
                 }
             }
         }

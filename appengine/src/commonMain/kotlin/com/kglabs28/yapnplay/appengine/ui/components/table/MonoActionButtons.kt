@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Style
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,67 +31,71 @@ import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /**
- * The two callout buttons, side by side in the callout's place: CAUGHT
- * (red) catches whoever is down to one card without calling, MONO (orange
- * glass) calls it for the user. Both are always pressable and never light
- * up: remembering when to press is part of the game.
+ * CAUGHT (red), at the hand's left: catches whoever is down to one card
+ * without calling. Always pressable and never lit: remembering when to
+ * press is part of the game.
  */
 @Composable
-fun MonoCallButtons(
-    onCaught: () -> Unit,
-    onMono: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun MonoCaughtButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
-    val dimens = YapNPlayTheme.dimens
-    val each = (dimens.arenaCallWidth - Spacing.Xs) / 2
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-        ArenaPillButton(
-            text = MonoStrings.monoCaughtButton,
-            icon = null,
-            fill = listOf(colors.ArenaCallFillTop, colors.ArenaCallFillBottom),
-            rim = colors.ArenaCallNeon,
-            glow = 0f,
-            enabled = true,
-            onClick = onCaught,
-            width = each,
-        )
-        ArenaPillButton(
-            text = MonoStrings.monoMonoButton,
-            icon = null,
-            fill = listOf(colors.StartButtonTop.copy(alpha = ORANGE_GLASS), colors.StartButtonBottom.copy(alpha = ORANGE_GLASS)),
-            rim = colors.StartButtonRim,
-            glow = 0f,
-            enabled = true,
-            onClick = onMono,
-            width = each,
-        )
-    }
+    ArenaPillButton(
+        text = MonoStrings.monoCaughtButton,
+        icon = null,
+        fill = listOf(colors.ArenaCallFillTop, colors.ArenaCallFillBottom),
+        rim = colors.ArenaCallNeon,
+        glow = 0f,
+        enabled = true,
+        onClick = onClick,
+        width = YapNPlayTheme.dimens.arenaCallWidth,
+        modifier = modifier,
+    )
+}
+
+/** MONO (orange glass), at the hand's right: calls it for the user. Always pressable, never lit. */
+@Composable
+fun MonoCallButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = YapNPlayTheme.colors
+    ArenaPillButton(
+        text = MonoStrings.monoMonoButton,
+        icon = null,
+        fill = listOf(colors.StartButtonTop.copy(alpha = ORANGE_GLASS), colors.StartButtonBottom.copy(alpha = ORANGE_GLASS)),
+        rim = colors.StartButtonRim,
+        glow = 0f,
+        enabled = true,
+        onClick = onClick,
+        width = YapNPlayTheme.dimens.arenaCallWidth,
+        modifier = modifier,
+    )
 }
 
 /**
- * The Draw button (design): a violet glass pill with a card icon. Under a
- * stack it reads "Take +N" and takes the penalty instead. Always
- * pressable — the player may draw even holding a playable card.
+ * A small violet glass button under the deck, on the user's turn only:
+ * Draw (or "Take +N" under a stack, which takes the penalty), and Pass
+ * after a draw. Always pressable: the player may draw holding a playable card.
  */
 @Composable
-fun MonoDrawButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun MonoDeckButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
+    val dimens = YapNPlayTheme.dimens
     ArenaPillButton(
         text = text,
-        icon = Icons.Rounded.Style,
+        icon = null,
         fill = listOf(colors.ArenaDrawFillTop, colors.ArenaDrawFillBottom),
         rim = colors.ArenaDrawRim,
         glow = 0f,
         enabled = true,
         onClick = onClick,
-        width = YapNPlayTheme.dimens.arenaDrawWidth,
+        width = dimens.monoDeckButtonWidth,
+        height = dimens.monoDeckButtonHeight,
         modifier = modifier,
     )
+}
+
+/** The deck's buttons on the user's turn: Pass (after a draw), then Draw, or "Take +N" under a stack. */
+@Composable
+fun MonoDeckButtons(stacked: Boolean, canPass: Boolean, penalty: Int, onDraw: () -> Unit, onPass: () -> Unit) {
+    if (canPass) MonoDeckButton(text = MonoStrings.monoPass, onClick = onPass)
+    MonoDeckButton(text = if (stacked) MonoStrings.monoTakeButton(penalty) else MonoStrings.monoDrawButton, onClick = onDraw)
 }
 
 /** The shared look of the table's big buttons: a glowing glass pill, icon then label. */
@@ -108,6 +110,7 @@ private fun ArenaPillButton(
     onClick: () -> Unit,
     width: Dp,
     modifier: Modifier = Modifier,
+    height: Dp = YapNPlayTheme.dimens.arenaActionHeight,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -115,7 +118,7 @@ private fun ArenaPillButton(
     Row(
         modifier = modifier
             .width(width)
-            .height(dimens.arenaActionHeight)
+            .height(height)
             .alpha(if (enabled) 1f else DISABLED_ALPHA)
             .drawBehind {
                 if (glow <= 0f) return@drawBehind

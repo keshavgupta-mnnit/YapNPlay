@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.mapper
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatTable
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.ui.graphics.Color
@@ -13,13 +14,11 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.domain.LudoPresence
 import com.kglabs28.yapnplay.appengine.ui.components.table.AvatarRing
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.BoardCorner
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableAvatarUi
-import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoMatchModal
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoPieceUi
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoPlayerCardUi
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoResultRowUi
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.PieceMotion
 import com.kglabs28.yapnplay.appengine.games.royalludo.utils.LudoBoardGeometry
-import com.kglabs28.yapnplay.appengine.features.seathandover.domain.SeatHandoverRules
 import com.kglabs28.yapnplay.appengine.features.seathandover.domain.SeatOfferStage
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverUiMapper
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatPickOptionUi
@@ -59,6 +58,8 @@ object LudoMatchUiMapper {
         val mutedForMe: Set<String>,
         val remainingMs: Long?,
         val turnSeconds: Long,
+        /** Who is talking with their mic off (the user included): a grey glow. */
+        val mutedTalkers: Set<String> = emptySet(),
     )
 
     /** Every player's card, the user's first, then the others clockwise from the user. */
@@ -83,6 +84,7 @@ object LudoMatchUiMapper {
                 isMe = player.isMe,
                 isTurn = isTurn,
                 talking = player.userId in inputs.speaking && player.micOn && !muted,
+                talkingMuted = player.userId in inputs.mutedTalkers && !player.micOn,
                 timerFraction = if (isTurn) left.toFloat() / totalMs else 0f,
                 left = player.removed,
                 placeLabel = if (place >= 0) LudoStrings.ludoPlace(place + 1) else null,
@@ -132,58 +134,20 @@ object LudoMatchUiMapper {
     fun leaveOptions(match: LudoMatch): List<SeatPickOptionUi> =
         if (match.isRoomMatch && match.me != null) SeatHandoverUiMapper.options(match.spectators.map { it.name }, withBot = true) else emptyList()
 
-    /**
-     * The dialog this viewer owes a handover: accept/decline when offered the
-     * seat by name, the pick when they are the deciding leader, or (as a
-     * spectator) the open seat they have not turned down; "still here?" after
-     * idle turns.
-     */
-    fun seatModal(match: LudoMatch, now: Instant, declinedSeat: Int?, pick: Int?): LudoMatchModal? {
-        val offer = match.seatOffer ?: return null
-        val seconds = SeatHandoverUiMapper.secondsLeft(offer, now)
-        val countdown = SeatHandoverUiMapper.countdown(offer, now)
-        val spectatorNames = match.spectators.map { it.name }
-        return when (val stage = offer.stage) {
-            is SeatOfferStage.ConfirmingAbsence -> if (stage.userId != match.viewerUserId) {
-                null
-            } else {
-                LudoMatchModal.AbsenceCheck(
-                    title = TableStrings.seatInactiveTitle,
-                    body = TableStrings.seatAbsenceBody(SeatHandoverRules.IDLE_TURNS_BEFORE_CHECK, match.isRoomMatch),
-                    countdown = countdown,
-                    // The bot first and picked by default; spectators only in a room match.
-                    options = SeatHandoverUiMapper.options(if (match.isRoomMatch) spectatorNames else emptyList(), withBot = true),
-                    selectedIndex = pick ?: 0,
-                )
-            }
-            is SeatOfferStage.ToSpectator -> if (stage.userId != match.viewerUserId) {
-                null
-            } else {
-                LudoMatchModal.SeatOfferPrompt(TableStrings.seatPromptTitle(offer.leaverName), TableStrings.seatPromptBody(offer.leaverName), TableStrings.seatTake(seconds))
-            }
-            is SeatOfferStage.LeaderChoosing -> if (stage.leaderUserId != match.viewerUserId) {
-                null
-            } else {
-                LudoMatchModal.LeaderSeatChoice(
-                    title = TableStrings.seatOpenTitle,
-                    body = TableStrings.seatLeaderBody(offer.leaverName),
-                    countdown = countdown,
-                    // The bot is a button here, not a tile.
-                    options = SeatHandoverUiMapper.options(spectatorNames, withBot = false),
-                    selectedIndex = pick,
-                )
-            }
-            SeatOfferStage.OpenToAll -> if (match.me != null || offer.seat == declinedSeat) {
-                null
-            } else {
-                LudoMatchModal.SeatInvite(offer.seat, TableStrings.seatInviteTitle(offer.leaverName), TableStrings.seatInviteBody, TableStrings.seatTake(seconds))
-            }
-        }
-    }
+    /** What the shared seat dialogs need from this match. */
+    fun seatTable(match: LudoMatch) = SeatTable(
+        offer = match.seatOffer,
+        viewerUserId = match.viewerUserId,
+        seated = match.me != null,
+        roomMatch = match.isRoomMatch,
+        spectators = match.spectators.map { it.userId to it.name },
+        canOfferSeats = match.canOfferSeats,
+        botSeats = match.players.filter { !it.removed && (it.isCpu || it.presence == LudoPresence.BOT) }.associate { it.seat to it.name },
+    )
 
     /** Top bar avatars: the spectators (not the players), ringed by voice state. */
-    fun audience(match: LudoMatch, speaking: Set<String>, mutedForMe: Set<String>): List<TableAvatarUi> =
-        match.spectators.map { TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in speaking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe, it.avatarId) }
+    fun audience(match: LudoMatch, speaking: Set<String>, mutedForMe: Set<String>, mutedTalkers: Set<String> = emptySet()): List<TableAvatarUi> =
+        match.spectators.map { TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in speaking && it.userId !in mutedForMe, it.micOn, it.userId in mutedTalkers), it.userId in mutedForMe, it.avatarId) }
 
     /** The end-of-match leaderboard: finishing order, a title, points and EXP for each place. */
     fun leaderboard(match: LudoMatch, duration: String): LeaderboardUi {

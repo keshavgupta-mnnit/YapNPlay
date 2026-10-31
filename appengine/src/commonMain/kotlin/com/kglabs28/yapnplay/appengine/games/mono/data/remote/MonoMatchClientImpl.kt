@@ -41,9 +41,6 @@ class MonoMatchClientImpl(
             is MonoCommand.SetAway -> match.setAway(matchId, command.away)
             is MonoCommand.Leave -> match.leave(matchId, command.giveToUserId)
             is MonoCommand.StillHere -> match.stillHere(matchId)
-            is MonoCommand.AnswerSeatOffer -> match.answerSeatOffer(matchId, command.accept)
-            is MonoCommand.ChooseSeatTaker -> match.chooseSeatTaker(matchId, command.giveToUserId)
-            is MonoCommand.TakeSeat -> match.takeSeat(matchId, command.seat)
             else -> play(matchId, command.toWire())
         }
     }
@@ -70,9 +67,6 @@ class MonoMatchClientImpl(
         is MonoCommand.SetAway,
         is MonoCommand.Leave,
         MonoCommand.StillHere,
-        is MonoCommand.AnswerSeatOffer,
-        is MonoCommand.ChooseSeatTaker,
-        is MonoCommand.TakeSeat,
         MonoCommand.Roll,
         -> error("not a game move: $this")
     }

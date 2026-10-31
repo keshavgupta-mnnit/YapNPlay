@@ -11,6 +11,8 @@ interface TablePlayerCardUi {
     val isMe: Boolean
     val isTurn: Boolean
     val talking: Boolean
+    /** The user talking with their mic off: a grey glow, so they notice. */
+    val talkingMuted: Boolean
     /** 1 → 0 while it is this player's turn. */
     val timerFraction: Float
     /** The user muted this player for themselves only. */

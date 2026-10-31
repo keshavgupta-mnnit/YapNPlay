@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.monochaos.domain
 
+import kotlinx.serialization.Transient
+import com.kglabs28.yapnplay.appengine.features.seathandover.domain.SeatOffer
 import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoContinueVote
 import com.kglabs28.yapnplay.appengine.games.monochaos.identity.MonoChaosConstants
@@ -47,7 +49,8 @@ data class MonoChaosMatch(
     val startedAt: Instant = Instant.fromEpochMilliseconds(0),
     val finishedSeats: List<Int> = emptyList(),
     val ranking: List<MonoChaosRankedSeat> = emptyList(),
-    val seatOffer: MonoChaosSeatOffer? = null,
+    /** A seat changing hands (room matches only); null when none. */
+    @Transient val seatOffer: SeatOffer? = null,
     /** The seat CAUGHT is open on (just went down to one card); null when shut. */
     val catchSeat: Int? = null,
     /** Seats that already paid a false catch in this window. */
@@ -60,6 +63,8 @@ data class MonoChaosMatch(
     val falseCatchPenaltyCards: Int = 0,
     val roomId: String? = null,
     val viewerUserId: String,
+    /** The viewer leads the room (or is its admin): they may offer a bot's seat. */
+    val canOfferSeats: Boolean = false,
 ) {
     val me: MonoChaosPlayer? get() = players.firstOrNull { it.isMe }
 
@@ -102,9 +107,3 @@ data class MonoChaosRankedSeat(
     val place: Int,
 )
 
-@Serializable
-data class MonoChaosSeatOffer(
-    val offeredBy: Int,
-    val offeredTo: String?,
-    val expiresAt: Instant?,
-)

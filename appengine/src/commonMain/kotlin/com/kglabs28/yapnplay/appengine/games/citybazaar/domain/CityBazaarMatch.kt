@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.domain
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.domain.SeatOffer
 import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import kotlinx.datetime.Instant
 
@@ -49,6 +50,10 @@ data class CityBazaarMatch(
     /** The end-game vote while it runs. */
     val endVote: MatchEndVote? = null,
     val bank: CityBazaarBankInfo? = null,
+    /** A seat changing hands (room matches only); null when none. */
+    val seatOffer: SeatOffer? = null,
+    /** The viewer leads the room (or is its admin): they may offer a bot's seat. */
+    val canOfferSeats: Boolean = false,
 ) {
     val me: CityBazaarPlayer? get() = players.firstOrNull { it.isMe }
     val current: CityBazaarPlayer? get() = players.firstOrNull { it.seat == currentSeat }

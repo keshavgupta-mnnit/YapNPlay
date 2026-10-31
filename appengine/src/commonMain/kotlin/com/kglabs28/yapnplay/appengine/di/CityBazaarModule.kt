@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbHistoryCache
 import com.kglabs28.yapnplay.appengine.games.citybazaar.data.CityBazaarMatchRepositoryImpl
 import com.kglabs28.yapnplay.appengine.games.citybazaar.data.remote.CityBazaarMatchClient
 import com.kglabs28.yapnplay.appengine.games.citybazaar.data.remote.CityBazaarMatchClientImpl
@@ -19,5 +20,6 @@ val cityBazaarModule = module {
     factory { ObserveCityBazaarMatchUseCase(get()) }
     factory { ObserveCityBazaarSpeakingUseCase(get()) }
     factory { SendCityBazaarCommandUseCase(get()) }
-    factory { CityBazaarMatchViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single { CbHistoryCache() }
+    factory { CityBazaarMatchViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

@@ -27,14 +27,15 @@ object CoinsUiMapper {
 
     /** [offer] with today's limits on it: how many ads are left, or how long to wait (button off). */
     fun withLimits(offer: CoinsOfferUi, status: AdLimitStatus?, now: Instant): CoinsOfferUi {
-        if (status == null) return offer
+        // No answer: the card shows without the limits rather than spinning on.
+        if (status == null) return offer.copy(limitsLoaded = true)
         val wait = status.nextAdAt?.takeIf { it > now }?.let { it - now }
         val note = when {
             status.adsLeftToday <= 0 -> CoinsStrings.adDailyDone(status.dailyLimit)
             wait != null -> CoinsStrings.adNextIn(CoinsStrings.adWait(wait.inWholeHours, wait.inWholeMinutes % MINUTES_PER_HOUR), status.adsLeftToday)
             else -> CoinsStrings.adsLeftToday(status.adsLeftToday, status.dailyLimit)
         }
-        return offer.copy(canWatch = status.canWatch(now), note = note, adsWatched = status.watchedToday, rewards = status.rewards)
+        return offer.copy(canWatch = status.canWatch(now), note = note, adsWatched = status.watchedToday, rewards = status.rewards, limitsLoaded = true)
     }
 
     /** The line shown after an ad: coins added, today's limit used, or no ad. */

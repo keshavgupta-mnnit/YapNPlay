@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoDeckButtons
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCallButton
+import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCaughtButton
+import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatHandoverDialog
 import com.kglabs28.yapnplay.appengine.ui.components.seat.KeepPlayingVoteDialog
 import com.kglabs28.yapnplay.appengine.ui.components.seat.EndGameConfirmDialog
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
@@ -55,9 +59,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.MatchLeaderboard
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoAnchors
-import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCallButtons
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCardFace
-import com.kglabs28.yapnplay.appengine.ui.components.table.MonoDrawButton
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoFlightState
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoEmptyPile
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoHandRow
@@ -136,6 +138,7 @@ fun MatchMonoChaosContent(
                 calledSeat = match?.monoCalledSeat,
                 talking = state.talking,
                 mutedForMe = state.mutedForMe,
+                mutedTalkers = state.mutedTalkers,
             )
         }
         val me = match?.me
@@ -146,7 +149,7 @@ fun MatchMonoChaosContent(
             subtitle = state.title,
             audience = state.audience,
             showAudience = state.audience.isNotEmpty(),
-            spectatorLabel = MonoStrings.monoSpectatorCount(state.spectatorCount),
+            spectatorCount = state.spectatorCount.toString(),
             elapsed = state.elapsed,
             onSettings = { send(MatchMonoChaosIntent.OpenSettings) },
             onExit = { send(MatchMonoChaosIntent.ExitClicked) },
@@ -161,7 +164,6 @@ fun MatchMonoChaosContent(
                 state.awaitingColorChoice -> ({ MonoTablePrompt(MonoStrings.monoChooseColour) { MonoColourChoice(MonoChaosConstants.Color.entries.map { MonoStrings.monoColourName(it.name) to it.hue().fill }, { send(MatchMonoChaosIntent.ChooseColor(MonoChaosConstants.Color.entries[it])) }) } })
                 state.awaitingRouletteChoice -> ({ MonoTablePrompt(MonoStrings.monoChooseRouletteColour, subtitle = MonoStrings.monoChooseRouletteColourHint) { MonoColourChoice(MonoChaosConstants.Color.entries.map { MonoStrings.monoColourName(it.name) to it.hue().fill }, { send(MatchMonoChaosIntent.ChooseRouletteColor(MonoChaosConstants.Color.entries[it])) }) } })
                 state.awaitingSwapChoice -> ({ MonoTablePrompt(MonoStrings.monoSwapTitle) { MonoSwapChoice(state.swapTargets, { send(MatchMonoChaosIntent.ChooseSwapTarget(it)) }) } })
-                state.vote != null -> ({ state.vote.let { v -> KeepPlayingVoteDialog(v.secondsLeft, v.yes, v.no, v.voters, v.canVote) { send(MatchMonoChaosIntent.VoteContinue(it)) } } })
                 else -> null
             },
             arena = { MonoChaosArena(state = state, anchors = anchors, flights = flights, send = send) },
@@ -177,6 +179,7 @@ fun MatchMonoChaosContent(
                             calledSeat = match.monoCalledSeat,
                             talking = state.talking,
                             mutedForMe = state.mutedForMe,
+                            mutedTalkers = state.mutedTalkers,
                         )
                     } ?: MonoPlayerPodUi(
                         seat = 1,
@@ -194,15 +197,10 @@ fun MatchMonoChaosContent(
                     onToggleAutoplay = { send(MatchMonoChaosIntent.SetAutoplay(!state.autoplay)) },
                 )
             },
-            callButton = {
-                // CAUGHT first, then MONO, then the hand and Draw along the bottom (gone once the user is out).
-                if (!state.outOfPlay) MonoCallButtons(
-                    onCaught = { send(MatchMonoChaosIntent.Caught) },
-                    onMono = { send(MatchMonoChaosIntent.CallMono) },
-                )
-            },
+            // CAUGHT, the hand, MONO along the bottom (gone once the user is out).
+            caughtButton = { if (!state.outOfPlay) MonoCaughtButton(onClick = { send(MatchMonoChaosIntent.Caught) }) },
             hand = { MonoChaosHand(state = state, send = send, anchors = anchors, flights = flights) },
-            drawButton = { if (!state.outOfPlay) MonoChaosDrawControls(state = state, send = send) },
+            monoButton = { if (!state.outOfPlay) MonoCallButton(onClick = { send(MatchMonoChaosIntent.CallMono) }) },
             watching = me == null,
             watcherControls = {
                 TableSpectatorVoiceButtons(
@@ -213,9 +211,22 @@ fun MatchMonoChaosContent(
                 )
             },
             onToggleHear = { send(MatchMonoChaosIntent.ToggleHear(it)) },
+            onPodLongPress = { send(MatchMonoChaosIntent.PlayerLongPressed(it)) },
             onToggleHearSpectator = { send(MatchMonoChaosIntent.ToggleHearSpectator(it)) },
         )
 
+        // A seat dialog (offered a seat, idle check, the leader's pick), the same in every game.
+        state.seatModal?.let { modal ->
+            BlockingOverlay(visible = true, onDismiss = null) { SeatHandoverDialog(modal, { send(MatchMonoChaosIntent.Seat(it)) }) }
+        }
+        // The keep-playing vote over the dimmed table, like every game's votes (a sheet, if open, comes first).
+        if (state.sheet == null) {
+            state.vote?.let { v ->
+                BlockingOverlay(visible = true, onDismiss = null) {
+                    KeepPlayingVoteDialog(v.secondsLeft, v.yes, v.no, v.voters, v.canVote) { send(MatchMonoChaosIntent.VoteContinue(it)) }
+                }
+            }
+        }
         state.sheet?.let { sheet ->
             // A report to vote on needs an answer; the rest close on a tap outside.
             BlockingOverlay(visible = true, onDismiss = if (sheet is TableSheetUi.Vote || sheet is TableSheetUi.EndVote) null else ({ send(MatchMonoChaosIntent.CloseSheet) })) {
@@ -279,6 +290,8 @@ private fun MonoChaosArena(state: MatchMonoChaosState, anchors: MonoAnchors, fli
         chaos = true,
         // The deck draws too (or takes the stack, like the Draw button).
         onDeckClick = { send(if (state.canStack) MatchMonoChaosIntent.AcceptStack else MatchMonoChaosIntent.DrawUntilPlayable) },
+        // On the user's turn only: draw (or take the stack), and pass after a draw.
+        deckButtons = if (state.myTurn && !state.outOfPlay) ({ MonoDeckButtons(state.canStack, state.canPass, state.activeStackPenalty, { send(if (state.canStack) MatchMonoChaosIntent.AcceptStack else MatchMonoChaosIntent.DrawUntilPlayable) }, { send(MatchMonoChaosIntent.Pass) }) }) else null,
         modifier = Modifier
             .fillMaxSize()
             .padding(vertical = Spacing.Xs),
@@ -338,27 +351,6 @@ private fun MonoChaosHand(state: MatchMonoChaosState, send: (MatchMonoChaosInten
                     spots[index] = rect
                     arriving[index]?.let { anchors.mark(MonoSpot.HandSlot(it), rect) }
                 },
-        )
-    }
-}
-
-/**
- * The Draw button: it draws until something can be played. Under a stack
- * it takes the penalty instead ("Take +6"); after a draw the player may
- * also pass on the card they drew.
- */
-@Composable
-private fun MonoChaosDrawControls(state: MatchMonoChaosState, send: (MatchMonoChaosIntent) -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
-    ) {
-        if (state.canPass) {
-            MonoDrawButton(text = MonoStrings.monoPass, onClick = { send(MatchMonoChaosIntent.Pass) })
-        }
-        MonoDrawButton(
-            text = if (state.canStack) MonoStrings.monoTakeButton(state.activeStackPenalty) else MonoStrings.monoDrawButton,
-            onClick = { send(if (state.canStack) MatchMonoChaosIntent.AcceptStack else MatchMonoChaosIntent.DrawUntilPlayable) },
         )
     }
 }

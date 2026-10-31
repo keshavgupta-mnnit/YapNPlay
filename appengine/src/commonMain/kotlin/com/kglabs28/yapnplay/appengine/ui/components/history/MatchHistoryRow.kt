@@ -1,25 +1,40 @@
 package com.kglabs28.yapnplay.appengine.ui.components.history
 
-import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
+import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.podium.podiumMedal
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.ui.components.table.arenaGlass
 import com.kglabs28.yapnplay.appengine.ui.screens.history.MatchHistoryRowUi
 
-/** One past match: the game and "Came 2nd · date" ("Abandoned" if the user left) on the left, coins and XP on the right; a tap opens its leaderboard, except for an abandoned one. */
+/**
+ * One past match, in one line: the game, its place (1st gold, 2nd silver,
+ * 3rd bronze) and "group · league · date"; then the XP; then the coins,
+ * each behind a thin divider, in columns of the same width on every row. A tap opens its leaderboard, except for an abandoned one.
+ */
 @Composable
 fun MatchHistoryRow(row: MatchHistoryRowUi, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
@@ -27,6 +42,7 @@ fun MatchHistoryRow(row: MatchHistoryRowUi, onClick: () -> Unit, modifier: Modif
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .height(IntrinsicSize.Min)
             // An abandoned match opens nothing: dimmed, so it doesn't look tappable.
             .alpha(if (row.opensBoard) 1f else ABANDONED_ALPHA)
             .arenaGlass(YapNPlayTheme.shapes.panel)
@@ -37,13 +53,65 @@ fun MatchHistoryRow(row: MatchHistoryRowUi, onClick: () -> Unit, modifier: Modif
     ) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
             ShrinkText(text = row.game, style = typography.sectionTitle.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
-            ShrinkText(text = row.line, style = typography.label.copy(color = colors.TextSecondary))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+                row.place?.let { PlacePill(text = it, tint = placeTint(row)) }
+                ShrinkText(text = row.line, style = typography.label.copy(color = colors.TextSecondary), modifier = Modifier.weight(1f))
+            }
         }
-        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
-            BasicText(text = row.coins, style = typography.label.copy(color = if (row.lost) colors.PlayerRed else colors.LiveGreen, fontWeight = FontWeight.Bold), maxLines = 1)
-            BasicText(text = row.xp, style = typography.label.copy(color = colors.Gold, fontWeight = FontWeight.Bold), maxLines = 1)
-        }
+        // Fixed widths, so every row's columns line up whatever the amounts.
+        RowDivider()
+        ShrinkText(
+            text = row.xp,
+            style = typography.label.copy(color = colors.Gold, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
+            modifier = Modifier.width(YapNPlayTheme.dimens.historyXpWidth),
+        )
+        RowDivider()
+        ShrinkText(
+            text = row.coins,
+            style = typography.label.copy(color = if (row.lost) colors.PlayerRed else colors.LiveGreen, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
+            modifier = Modifier.width(YapNPlayTheme.dimens.historyCoinsWidth),
+        )
     }
 }
 
+/** 1st gold, 2nd silver, 3rd bronze, later places cyan; an abandoned match red. */
+@Composable
+private fun placeTint(row: MatchHistoryRowUi): Color = when (val place = row.placeNumber) {
+    null -> YapNPlayTheme.colors.PlayerRed
+    in 1..PODIUM_PLACES -> podiumMedal(place)
+    else -> YapNPlayTheme.colors.Cyan
+}
+
+/** The place ("2nd", "Abandoned"), bold in a tinted pill so it stands out. */
+@Composable
+private fun PlacePill(text: String, tint: Color) {
+    val shape = YapNPlayTheme.shapes.pill
+    BasicText(
+        text = text,
+        style = YapNPlayTheme.typography.label.copy(color = tint, fontWeight = FontWeight.Black),
+        maxLines = 1,
+        modifier = Modifier
+            .clip(shape)
+            .background(tint.copy(alpha = PILL_FILL_ALPHA))
+            .border(YapNPlayTheme.dimens.hairline, tint.copy(alpha = PILL_RIM_ALPHA), shape)
+            .padding(horizontal = Spacing.Xs, vertical = Spacing.Xxxs),
+    )
+}
+
+/** A thin upright line between the row's groups. */
+@Composable
+private fun RowDivider() {
+    Box(
+        modifier = Modifier
+            .width(YapNPlayTheme.dimens.hairline)
+            .fillMaxHeight()
+            .padding(vertical = Spacing.Xxs)
+            .background(YapNPlayTheme.colors.TextSecondary.copy(alpha = DIVIDER_ALPHA)),
+    )
+}
+
 private const val ABANDONED_ALPHA = 0.45f
+private const val PODIUM_PLACES = 3
+private const val PILL_FILL_ALPHA = 0.16f
+private const val PILL_RIM_ALPHA = 0.6f
+private const val DIVIDER_ALPHA = 0.3f

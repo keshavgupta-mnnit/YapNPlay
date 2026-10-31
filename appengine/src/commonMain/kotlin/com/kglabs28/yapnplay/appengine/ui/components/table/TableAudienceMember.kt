@@ -46,7 +46,7 @@ fun TableAudienceMember(
                 ring = person.ring.tint(),
                 size = dimens.ludoAudienceAvatar,
                 ringWidth = dimens.ludoAudienceRing,
-                glow = person.ring == AvatarRing.TALKING && !person.mutedForMe,
+                glow = (person.ring == AvatarRing.TALKING || person.ring == AvatarRing.TALKING_MUTED) && !person.mutedForMe,
                 avatarId = person.avatarId,
             )
             if (menuOpen && onToggleHear != null) {

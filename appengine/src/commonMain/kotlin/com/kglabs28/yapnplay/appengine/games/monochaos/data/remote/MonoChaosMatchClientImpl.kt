@@ -41,9 +41,6 @@ class MonoChaosMatchClientImpl(
             is MonoChaosCommand.SetAway -> match.setAway(matchId, command.away)
             is MonoChaosCommand.Leave -> match.leave(matchId, command.giveToUserId)
             is MonoChaosCommand.StillHere -> match.stillHere(matchId)
-            is MonoChaosCommand.AnswerSeatOffer -> match.answerSeatOffer(matchId, command.accept)
-            is MonoChaosCommand.ChooseSeatTaker -> match.chooseSeatTaker(matchId, command.giveToUserId)
-            is MonoChaosCommand.TakeSeat -> match.takeSeat(matchId, command.seat)
             else -> play(matchId, command.toWire())
         }
     }
@@ -72,9 +69,6 @@ class MonoChaosMatchClientImpl(
         is MonoChaosCommand.SetAway,
         is MonoChaosCommand.Leave,
         MonoChaosCommand.StillHere,
-        is MonoChaosCommand.AnswerSeatOffer,
-        is MonoChaosCommand.ChooseSeatTaker,
-        is MonoChaosCommand.TakeSeat,
         MonoChaosCommand.Roll,
         -> error("not a game move: $this")
     }

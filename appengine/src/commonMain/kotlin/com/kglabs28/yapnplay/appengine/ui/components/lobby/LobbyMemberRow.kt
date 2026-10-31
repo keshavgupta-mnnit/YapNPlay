@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayColors
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
@@ -113,9 +114,14 @@ fun LobbyMemberRow(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
-                // Talking: live colour wave. Silent or muted: the same wave, still and dark grey.
+                // Talking: live colour wave. Talking on mute: it moves, in grey. Silent or muted: still and dark grey.
                 if (member.talking) {
                     VoiceWave(modifier = Modifier.weight(1f))
+                } else if (member.talkingMuted) {
+                    VoiceWave(
+                        modifier = Modifier.weight(1f),
+                        colors = listOf(YapNPlayColors.ArenaTalkMutedLight, YapNPlayColors.ArenaTalkMutedDark),
+                    )
                 } else {
                     VoiceWave(
                         modifier = Modifier.weight(1f),

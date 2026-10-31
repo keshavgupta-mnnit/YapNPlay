@@ -188,7 +188,7 @@ class GameZoneViewModel(
 
     /** Puts today's ad limits on the open offer (and greys the button out when none can pay). */
     private suspend fun refreshAdLimits() {
-        val status = (getAdLimitStatus() as? AppResult.Success)?.data ?: return
+        val status = (getAdLimitStatus() as? AppResult.Success)?.data
         setState { copy(coinsOffer = coinsOffer?.let { CoinsUiMapper.withLimits(it, status, clock.now()) }) }
     }
 

@@ -37,10 +37,24 @@ abstract class MviViewModel<S : UiState, I : UiIntent, E : UiEffect>(
     private val _effects = Channel<E>(Channel.BUFFERED)
     val effects: Flow<E> = _effects.receiveAsFlow()
 
-    /** Single entry point for every user action. */
+    /** Actions still being handled: the same one again is ignored until it is done (no repeat taps). */
+    private val running = mutableSetOf<I>()
+
+    /**
+     * Single entry point for every user action. A tap that repeats an
+     * action still running (a dialog opening, an ad loading) is dropped,
+     * so mashing a button can't queue opens and closes.
+     */
     fun onIntent(intent: I) {
         AppLog.d(AppConstants.LOG_TAG_INTENTS, "${this::class.simpleName} <- ${intent::class.simpleName} (scope active=${scope.isActive})")
-        scope.launch { handleIntent(intent) }
+        if (!running.add(intent)) return AppLog.d(AppConstants.LOG_TAG_INTENTS, "${intent::class.simpleName} already running: ignored")
+        scope.launch {
+            try {
+                handleIntent(intent)
+            } finally {
+                running.remove(intent)
+            }
+        }
     }
 
     /** Subclasses interpret intents here. */

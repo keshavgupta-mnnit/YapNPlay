@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.data.remote
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.data.toDomain
 import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.protocol.MatchSeatStatus
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarBankInfo
@@ -95,6 +96,8 @@ class CityBazaarSnapshotMapper(private val json: Json) {
             endVote = snapshot.endVote?.let { MatchEndVote(it.proposerSeat, toLocal(it.endsAt), it.voters, it.yes, it.no) },
             extensionVote = snapshot.extensionVote?.let { CityBazaarExtensionVoteInfo(toLocal(it.endsAt), it.extraRounds, it.extraMinutes, it.voters, it.yes, it.no) },
             bank = state.bank?.let { CityBazaarBankInfo(it.cash, it.received, it.paid) },
+            seatOffer = snapshot.seatOffer?.toDomain(toLocal),
+            canOfferSeats = snapshot.canOfferSeats,
         )
         val events = snapshot.events.mapNotNull { event ->
             runCatching { json.decodeFromJsonElement(CityBazaarWireEvent.serializer(), event).toDomain() }

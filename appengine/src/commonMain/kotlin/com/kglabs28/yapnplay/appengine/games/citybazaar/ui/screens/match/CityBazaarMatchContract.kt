@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverModal
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogUi
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedLineUi
@@ -24,7 +26,6 @@ data class CityBazaarMatchState(
     val audience: List<TableAvatarUi> = emptyList(),
     val roomMatch: Boolean = false,
     val spectatorCount: String = "",
-    val spectatorLabel: String = "",
     val elapsed: String = "",
     val tiles: List<CbTileUi> = emptyList(),
     val tokens: List<CbTokenUi> = emptyList(),
@@ -96,6 +97,7 @@ data class CbPlayerCardUi(
     override val isMe: Boolean,
     override val isTurn: Boolean,
     override val talking: Boolean,
+    override val talkingMuted: Boolean = false,
     override val timerFraction: Float,
     val status: String?,
     override val mutedForMe: Boolean,
@@ -202,7 +204,7 @@ sealed interface CbModal {
     /** Turn decisions, an auction, a vote and the final ranking need an answer: a tap outside doesn't close them. */
     val needsAnswer: Boolean
         get() = when (this) {
-            is Buy, is Build, is JailRoll, is JailChoice, is Debt, is Auction, is Vote, is Result, is ExtensionVote, is EndVote -> true
+            is Buy, is Build, is JailRoll, is JailChoice, is Debt, is Auction, is Vote, is Result, is ExtensionVote, is EndVote, is Seat -> true
             else -> false
         }
 
@@ -293,6 +295,8 @@ sealed interface CbModal {
     data class EndVote(val body: String, val tally: String, val status: String?, val canVote: Boolean, val countdown: String) : CbModal
     /** The shared exit dialog. */
     data class LeaveConfirm(val dialog: LeaveDialogUi) : CbModal
+    /** A seat dialog, the same in every game. */
+    data class Seat(val modal: SeatHandoverModal) : CbModal
     data object MicPermissionNeeded : CbModal
     data class Settings(val effectsOn: Boolean, val musicOn: Boolean, val canProposeEnd: Boolean = false) : CbModal
     data class Report(val people: List<ReportPersonUi>, val selectedUserId: String?, val warning: String, val error: String?) : CbModal
@@ -326,6 +330,8 @@ sealed interface CityBazaarMatchIntent : UiIntent {
     data class VoteExtension(val keepPlaying: Boolean) : CityBazaarMatchIntent
     /** The exit dialog's pick of who takes the seat (a CPU first, then each spectator). */
     data class PickSeatTaker(val index: Int) : CityBazaarMatchIntent
+    /** An answer in a seat dialog, or a long press on a bot's seat. */
+    data class Seat(val action: SeatHandoverAction) : CityBazaarMatchIntent
     /** Settings: ask everyone to end the game. */
     data object ProposeEnd : CityBazaarMatchIntent
     /** "END THE GAME?" answered End game: the vote starts. */

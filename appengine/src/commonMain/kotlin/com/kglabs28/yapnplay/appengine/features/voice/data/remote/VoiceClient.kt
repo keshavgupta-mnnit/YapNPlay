@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.voice.data.remote
 
+import com.kglabs28.yapnplay.appengine.features.voice.domain.MySpeech
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -24,11 +25,17 @@ interface VoiceClient {
 
     fun setMicOn(on: Boolean)
 
-    /** True while the user is speaking into their open mic. */
-    val mySpeaking: StateFlow<Boolean>
+    /** The lobby or table on screen now (the newest one talking), or null. */
+    val activeTarget: Flow<VoiceTarget?>
 
-    /** Opens (publishes to the voice room) or closes the user's mic. */
-    fun setMicOpen(open: Boolean)
+    /** Whether the user is speaking, into their open mic or with it off. */
+    val mySpeech: StateFlow<MySpeech>
+
+    /**
+     * Opens (publishes to the voice room) or closes the user's mic; closed with
+     * [listenMuted], only its level is read, to tell them they're talking on mute.
+     */
+    fun setMicOpen(open: Boolean, listenMuted: Boolean)
 
     /** Whether [target]'s screen needs its voice room now (someone to talk with, a mic on); the device joins only then. */
     fun setVoiceWanted(target: VoiceTarget, wanted: Boolean)

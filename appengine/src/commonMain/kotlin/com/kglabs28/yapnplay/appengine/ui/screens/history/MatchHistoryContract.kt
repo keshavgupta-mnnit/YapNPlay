@@ -20,6 +20,11 @@ data class MatchHistoryRowUi(
     val matchId: String,
     val gameId: String,
     val game: String,
+    /** "2nd", or "Abandoned" if the user left; null when unknown. Highlighted in a pill. */
+    val place: String?,
+    /** The user's place (1 gold, 2 silver, 3 bronze); null when they abandoned or it's unknown. */
+    val placeNumber: Int? = null,
+    /** The group (or Quick Play), the league and the date, after the place. */
     val line: String,
     val coins: String,
     /** The coins line is a loss (shown red). */

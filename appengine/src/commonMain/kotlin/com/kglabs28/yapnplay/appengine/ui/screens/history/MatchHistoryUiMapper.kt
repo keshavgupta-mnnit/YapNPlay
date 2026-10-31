@@ -33,22 +33,30 @@ object MatchHistoryUiMapper {
             matchId = match.matchId,
             gameId = match.gameId,
             game = gameName(match.gameId),
+            // Left before the end: abandoned, not a place.
+            place = mine?.let { if (it.left) HistoryStrings.historyAbandoned else TableStrings.placeLabel(it.place) },
+            placeNumber = mine?.takeUnless { it.left }?.place,
             line = listOfNotNull(
-                // Left before the end: abandoned, not a place.
-                mine?.let { if (it.left) HistoryStrings.historyAbandoned else HistoryStrings.historyPlace(TableStrings.placeLabel(it.place)) },
                 if (match.roomMatch) match.roomName.ifBlank { HistoryStrings.historyRoom } else HistoryStrings.historyQuickPlay,
+                league(match),
                 Strings.shortDateTime(date.dayOfMonth, date.monthNumber, date.year, ended.hour, ended.minute),
             ).joinToString(SEPARATOR),
+            // "Net": unlike the leaderboard's "Won" (the prize alone), this is after the entry and with the finishing bonus.
             coins = when {
-                net < 0 -> TableStrings.leaderboardLost(TextUtils.groupedThousands(-net))
-                net > 0 -> TableStrings.leaderboardCoins(TextUtils.groupedThousands(net))
-                else -> TableStrings.leaderboardNoCoins
+                net < 0 -> HistoryStrings.historyNetLoss(TextUtils.groupedThousands(-net))
+                net > 0 -> HistoryStrings.historyNetGain(TextUtils.groupedThousands(net))
+                else -> HistoryStrings.historyNetEven
             },
             lost = net < 0,
             xp = HistoryStrings.historyXp(TextUtils.groupedThousands(result?.xp ?: 0)),
             opensBoard = mine?.left != true,
         )
     }
+
+    /** "500 coins league", or "Free league": everyone who paid paid the same entry. */
+    private fun league(match: PastMatch): String =
+        match.seats.maxOfOrNull { it.result.stake }?.takeIf { it > 0 }?.let { HistoryStrings.historyLeague(TextUtils.groupedThousands(it)) }
+            ?: HistoryStrings.historyFreeLeague
 
     /** The match's end-of-game leaderboard, as the table showed it. */
     fun board(match: PastMatch): LeaderboardUi {

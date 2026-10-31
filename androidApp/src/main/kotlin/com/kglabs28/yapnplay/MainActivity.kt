@@ -33,6 +33,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         deepLink = DeepLinks.parse(intent?.dataString)
         enableEdgeToEdge()
+        // The screen stays on while the app is in front (waiting for a turn shouldn't lock the phone); it sleeps normally once the app is left.
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         // Draw under the camera cutout too, so the art fills the screen.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

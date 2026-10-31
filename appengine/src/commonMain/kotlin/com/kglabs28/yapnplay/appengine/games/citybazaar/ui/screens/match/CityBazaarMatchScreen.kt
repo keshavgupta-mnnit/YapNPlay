@@ -200,6 +200,7 @@ fun CityBazaarMatchScreen(
                         onDeclareBankruptcy = { send(CityBazaarMatchIntent.DeclareBankruptcy) },
                         onConfirmLeave = { send(CityBazaarMatchIntent.ConfirmLeave) },
                         onPickSeatTaker = { send(CityBazaarMatchIntent.PickSeatTaker(it)) },
+                        onSeat = { send(CityBazaarMatchIntent.Seat(it)) },
                         onDone = { send(CityBazaarMatchIntent.Done) },
                         onOpenAppSettings = { send(CityBazaarMatchIntent.OpenAppSettings) },
                         onToggleEffects = { send(CityBazaarMatchIntent.ToggleEffects) },
@@ -251,7 +252,7 @@ fun CityBazaarMatchContent(
             subtitle = state.subtitle,
             audience = state.audience,
             showAudience = state.roomMatch,
-            spectatorLabel = "${state.spectatorCount} ${state.spectatorLabel}",
+            spectatorCount = state.spectatorCount,
             elapsed = state.elapsed,
             onSettings = { send(CityBazaarMatchIntent.OpenSettings) },
             onExit = { send(CityBazaarMatchIntent.ExitClicked) },
@@ -497,7 +498,8 @@ private fun BoxScope.CityRoyale3dSeats(
 
     // Bottom left: the bank, My Properties, the cities by colour (a watcher has no bar: the seats use the room).
     if (!state.spectating) Row(
-        modifier = Modifier.align(Alignment.BottomStart),
+        // A little off the bottom edge, so the tag under the user's card (In Jail…) isn't cut.
+        modifier = Modifier.align(Alignment.BottomStart).padding(bottom = Spacing.Xxs),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
     ) {
@@ -526,7 +528,7 @@ private fun BoxScope.CityRoyale3dSeats(
     // Bottom right: the user's card, Mic, Auto, Roll Dice — on the bottom edge, level with the bank's row.
     state.myCard?.let { card ->
         Row(
-            modifier = Modifier.align(Alignment.BottomEnd),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = Spacing.Xxs),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {

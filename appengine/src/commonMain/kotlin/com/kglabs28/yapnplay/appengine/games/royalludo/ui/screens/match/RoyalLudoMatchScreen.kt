@@ -121,8 +121,7 @@ fun RoyalLudoMatchScreen(
             visible = modal != null,
             // The final ranking, a vote and seat decisions need an answer (the
             // timed ones close themselves when their time runs out).
-            onDismiss = if (modal is LudoMatchModal.Result || modal is LudoMatchModal.Vote || modal is LudoMatchModal.EndVote || modal is LudoMatchModal.SeatInvite ||
-                modal is LudoMatchModal.SeatOfferPrompt || modal is LudoMatchModal.LeaderSeatChoice || modal is LudoMatchModal.AbsenceCheck
+            onDismiss = if (modal is LudoMatchModal.Result || modal is LudoMatchModal.Vote || modal is LudoMatchModal.EndVote || modal is LudoMatchModal.Seat
             ) {
                 null
             } else {
@@ -144,14 +143,8 @@ fun RoyalLudoMatchScreen(
                         onSubmitReport = { send(RoyalLudoMatchIntent.SubmitReport) },
                         onVote = { send(RoyalLudoMatchIntent.Vote(it)) },
                         onWatchAd = { send(RoyalLudoMatchIntent.WatchAd) },
-                        onTakeSeat = { send(RoyalLudoMatchIntent.TakeSeat(it)) },
-                        onDeclineSeat = { send(RoyalLudoMatchIntent.DeclineSeat(it)) },
                         onPickSeatTaker = { send(RoyalLudoMatchIntent.PickSeatTaker(it)) },
-                        onAnswerSeatOffer = { send(RoyalLudoMatchIntent.AnswerSeatOffer(it)) },
-                        onInviteToSeat = { send(RoyalLudoMatchIntent.InviteToSeat) },
-                        onOfferSeatToBot = { send(RoyalLudoMatchIntent.OfferSeatToBot) },
-                        onSpectate = { send(RoyalLudoMatchIntent.Spectate) },
-                        onStillHere = { send(RoyalLudoMatchIntent.StillHere) },
+                        onSeat = { send(RoyalLudoMatchIntent.Seat(it)) },
                         onProposeEnd = { send(RoyalLudoMatchIntent.ProposeEnd) },
                         onConfirmEnd = { send(RoyalLudoMatchIntent.ConfirmEnd) },
                         onEndVote = { send(RoyalLudoMatchIntent.VoteEnd(it)) },
@@ -182,7 +175,7 @@ fun RoyalLudoTable(
             subtitle = state.subtitle,
             audience = state.audience,
             showAudience = state.roomMatch,
-            spectatorLabel = "${state.spectatorCount} ${state.spectatorLabel}",
+            spectatorCount = state.spectatorCount,
             elapsed = state.elapsed,
             onSettings = { send(RoyalLudoMatchIntent.OpenSettings) },
             onExit = { send(RoyalLudoMatchIntent.ExitClicked) },

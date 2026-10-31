@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatTable
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
@@ -64,6 +65,19 @@ object CbTableMapper {
         val remainingMs: Long?,
         val turnSeconds: Long,
         val cash: Map<Int, Int>,
+        /** Who is talking with their mic off (the user included): a grey glow. */
+        val mutedTalkers: Set<String> = emptySet(),
+    )
+
+    /** What the shared seat dialogs need from this match. */
+    fun seatTable(match: CityBazaarMatch) = SeatTable(
+        offer = match.seatOffer,
+        viewerUserId = match.viewerUserId,
+        seated = match.me != null,
+        roomMatch = match.isRoomMatch,
+        spectators = match.spectators.map { it.userId to it.name },
+        canOfferSeats = match.canOfferSeats,
+        botSeats = match.players.filter { !it.removed && !it.bankrupt && (it.isCpu || it.presence == CityBazaarPresence.BOT) }.associate { it.seat to it.name },
     )
 
     fun cards(match: CityBazaarMatch, inputs: CardInputs): List<CbPlayerCardUi> {
@@ -88,6 +102,7 @@ object CbTableMapper {
                 isMe = p.isMe,
                 isTurn = isTurn,
                 talking = p.userId in inputs.speaking && p.micOn && !muted,
+                talkingMuted = p.userId in inputs.mutedTalkers && !p.micOn,
                 timerFraction = if (isTurn) left.toFloat() / totalMs else 0f,
                 status = when {
                     finished && place >= 0 -> LudoStrings.ludoPlace(place + 1)
@@ -116,8 +131,8 @@ object CbTableMapper {
         return Triple(null, others.drop(rightCount), others.take(rightCount))
     }
 
-    fun audience(match: CityBazaarMatch, speaking: Set<String>, mutedForMe: Set<String>): List<TableAvatarUi> =
-        match.spectators.map { TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in speaking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe, it.avatarId) }
+    fun audience(match: CityBazaarMatch, speaking: Set<String>, mutedForMe: Set<String>, mutedTalkers: Set<String> = emptySet()): List<TableAvatarUi> =
+        match.spectators.map { TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in speaking && it.userId !in mutedForMe, it.micOn, it.userId in mutedTalkers), it.userId in mutedForMe, it.avatarId) }
 
     /** The user's cities stacked by colour, in board colour order. */
     fun stacks(match: CityBazaarMatch): List<CbStackUi> {

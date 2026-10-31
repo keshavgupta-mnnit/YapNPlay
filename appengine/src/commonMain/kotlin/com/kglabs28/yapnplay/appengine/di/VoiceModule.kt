@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMutedTalkersUseCase
+import com.kglabs28.yapnplay.appengine.features.voice.data.MutedTalkReporter
 import com.kglabs28.yapnplay.appengine.features.voice.data.VoiceRepositoryImpl
 import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceClient
 import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceClientImpl
@@ -23,6 +25,9 @@ val voiceModule = module {
     // VoiceEngine (LiveKit on Android) comes from platformAppManagerModule.
     single<VoiceClient> { VoiceClientImpl(get(), get(), get(), get(), get(APP_SCOPE)) }
     single<VoiceRepository> { VoiceRepositoryImpl(get()) }
+    // Tells the lobby or table on screen when the user talks with the mic off (others see a grey glow).
+    single(createdAtStart = true) { MutedTalkReporter(get(), get(), get(), get(APP_SCOPE)) }
+    factory { ObserveMutedTalkersUseCase(get()) }
     factory { ObserveLocallyMutedUseCase(get()) }
     factory { SetLocallyMutedUseCase(get()) }
     factory { ObserveMySpeakingUseCase(get()) }
@@ -32,5 +37,5 @@ val voiceModule = module {
     factory { ObserveSpeakerOnUseCase(get()) }
     factory { SetSpeakerOnUseCase(get()) }
     factory { SetVoiceWantedUseCase(get()) }
-    factory { TableVoiceUseCases(get(), get(), get(), get(), get()) }
+    factory { TableVoiceUseCases(get(), get(), get(), get(), get(), get()) }
 }

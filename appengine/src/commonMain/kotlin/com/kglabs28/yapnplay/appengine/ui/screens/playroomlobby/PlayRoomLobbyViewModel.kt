@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
+import com.kglabs28.yapnplay.appengine.features.voice.domain.MySpeech
+import com.kglabs28.yapnplay.appengine.features.voice.domain.MicGate
 import com.kglabs28.yapnplay.appengine.core.common.TextUtils
 import com.kglabs28.yapnplay.appengine.core.ui.CoinsStrings
 import com.kglabs28.yapnplay.appengine.ui.components.coins.LeagueUi
@@ -71,8 +73,8 @@ class PlayRoomLobbyViewModel(
     /** The app-wide mic switch the room follows. */
     private var micSwitch = false
     /** The user speaking into their mic, whether it's listening, and whether the room is on screen. */
-    private var mySpeaking = false
-    private var micOpen = false
+    private var mySpeech = MySpeech.SILENT
+    private val micGate = MicGate { open, listenMuted -> setMicOpen(open, listenMuted) }
     private var foreground = true
     private var tickJob: Job? = null
 
@@ -176,7 +178,7 @@ class PlayRoomLobbyViewModel(
             }
         }
         scope.launch { observeMicOn().collect { micSwitch = it; syncMic() } }
-        scope.launch { observeMySpeaking().collect { mySpeaking = it; render() } }
+        scope.launch { observeMySpeaking().collect { mySpeech = it; render() } }
         scope.launch {
             observeMatchStarting(id).collect { emitEffect(PlayRoomLobbyEffect.OpenMatch(selectedGameId(), it)) }
         }
@@ -195,7 +197,7 @@ class PlayRoomLobbyViewModel(
     }
 
     override fun onCleared() {
-        if (micOpen) setMicOpen(false)
+        micGate.clear()
         voiceNeed.clear()
     }
 
@@ -310,12 +312,8 @@ class PlayRoomLobbyViewModel(
         val room = d.room
         val me = me()
         // The mic listens only while it's on in the room and the room is on screen.
-        val wantMic = foreground && me?.micOn == true
-        if (wantMic != micOpen) {
-            micOpen = wantMic
-            setMicOpen(wantMic)
-        }
-        voiceNeed.update(micOpen, me?.speakerOn != false, room.members.filter { it.userId != d.myUserId && it.online }.map { it.micOn })
+        micGate.update(micOn = me?.micOn == true, inFront = foreground)
+        voiceNeed.update(micGate.open, me?.speakerOn != false, room.members.filter { it.userId != d.myUserId && it.online }.map { it.micOn })
         val game = d.selectedGame
         manageCountdownTicker(room)
         setState {
@@ -344,7 +342,7 @@ class PlayRoomLobbyViewModel(
 
     private fun LobbyMember.toUi(d: LobbyData): LobbyMemberUi {
         // Others' talking comes from the server; the user's own from their mic.
-        val talking = online && micOn && if (userId == d.myUserId) micOpen && mySpeaking else userId in d.speakingUserIds
+        val talking = online && micOn && if (userId == d.myUserId) mySpeech == MySpeech.SPEAKING else userId in d.speakingUserIds
         return LobbyMemberUi(
             userId = userId,
             avatarId = avatarId,
@@ -354,6 +352,8 @@ class PlayRoomLobbyViewModel(
             isLeader = isLeader,
             isAdmin = isAdmin,
             talking = talking,
+            // Others' from the room, the user's own from their mic at once.
+            talkingMuted = online && !micOn && if (userId == d.myUserId) mySpeech == MySpeech.SPEAKING_MUTED else talkingMuted,
             micOff = online && !micOn,
             status = when {
                 !online -> LobbyMemberStatus.OFFLINE

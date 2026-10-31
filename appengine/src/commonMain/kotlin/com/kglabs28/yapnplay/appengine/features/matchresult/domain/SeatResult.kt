@@ -8,6 +8,10 @@ data class SeatResult(
     val xp: Int,
     /** The entry put in; lost when nothing was won. */
     val stake: Int = 0,
+    /** Set for someone whose seat another person took over: they rank last, at [place]. */
+    val leaverName: String? = null,
+    val leaverAvatarId: String = "",
+    val place: Int = 0,
 ) {
     val coins: Int get() = won + completion
     /** What the match came to for this seat: prize and bonus, less the entry. */

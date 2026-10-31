@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.layout.layout
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -77,6 +79,8 @@ fun MonoTableArena(
     note: String? = null,
     /** A penalty that concerns the user, as a snackbar under the note; null shows nothing. */
     snack: TableFeedLineUi? = null,
+    /** Small buttons hanging under the deck (Draw / Take, Pass) on the user's turn; null shows none. */
+    deckButtons: (@Composable () -> Unit)? = null,
     faceCard: @Composable () -> Unit,
 ) {
     val colors = YapNPlayTheme.colors
@@ -101,6 +105,7 @@ fun MonoTableArena(
             horizontalArrangement = Arrangement.spacedBy(Spacing.Xl),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Box {
             MonoTiltedPile(
                 count = drawPileCount,
                 cardWidth = cardWidth,
@@ -124,6 +129,13 @@ fun MonoTableArena(
                     MonoEmptyPile(modifier = tilt)
                 }
             }
+            // Hung under the deck, taking no room, so the piles never move.
+            deckButtons?.let { buttons ->
+                Box(modifier = Modifier.align(Alignment.BottomCenter).hangBelow(Spacing.Xs)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) { buttons() }
+                }
+            }
+            }
             MonoTiltedPile(
                 count = discardPileCount,
                 cardWidth = cardWidth,
@@ -144,7 +156,8 @@ fun MonoTableArena(
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = maxHeight / 2 + pileHalf + Spacing.Lg)
+                // Below the deck's buttons when they show.
+                .offset(y = maxHeight / 2 + pileHalf + Spacing.Lg + if (deckButtons != null) YapNPlayTheme.dimens.monoDeckButtonHeight + Spacing.Xs else YapNPlayTheme.dimens.zero)
                 .wrapContentHeight(align = Alignment.Top, unbounded = true)
                 .zIndex(1f),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -279,6 +292,7 @@ fun MonoHandRow(
 ) {
     if (handSize == 0) return
     val density = LocalDensity.current
+    val liftRoom = YapNPlayTheme.dimens.monoCardLift
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         // Room inside the scroller at both ends, so the tilted outer cards are never clipped.
@@ -299,14 +313,18 @@ fun MonoHandRow(
             val rowWidth = maxOf(handWidth, this@BoxWithConstraints.constraints.maxWidth)
             val start = (rowWidth - handWidth) / 2
             val cardHeight = placeables.maxOfOrNull { it.height } ?: 0
-            // Fanned like a held hand: each card tilts out from the middle and the ends dip.
+            // Fanned like a held hand: each card tilts out from the middle and the ends dip. A hand too big
+            // to fit scrolls flat instead, so every card reads straight while swiping through it.
+            val scrolls = handWidth > this@BoxWithConstraints.constraints.maxWidth
             val middle = (placeables.size - 1) / 2f
-            val spread = (FAN_DEGREES / placeables.size.coerceAtLeast(1)).coerceAtMost(FAN_STEP_MAX)
-            val dipPx = (cardHeight * FAN_DIP).roundToInt()
-            layout(rowWidth, cardHeight + dipPx) {
+            val spread = if (scrolls) 0f else (FAN_DEGREES / placeables.size.coerceAtLeast(1)).coerceAtMost(FAN_STEP_MAX)
+            val dipPx = if (scrolls) 0 else (cardHeight * FAN_DIP).roundToInt()
+            // Room above for a playable card standing up, so the scroller never cuts its top off.
+            val liftPx = with(density) { liftRoom.roundToPx() }
+            layout(rowWidth, liftPx + cardHeight + dipPx) {
                 placeables.forEachIndexed { index, placeable ->
                     val offCentre = (index - middle) / middle.coerceAtLeast(1f)
-                    placeable.placeWithLayer(start + marginPx + stepPx * index, (dipPx * offCentre * offCentre).roundToInt()) {
+                    placeable.placeWithLayer(start + marginPx + stepPx * index, liftPx + (dipPx * offCentre * offCentre).roundToInt()) {
                         rotationZ = (index - middle) * spread
                         transformOrigin = TransformOrigin(0.5f, 1f)
                     }
@@ -359,3 +377,9 @@ private const val GLOW_REACH = 0.9f
 private const val GLOW_SPREAD = 0.35f
 /** The tightest a fanned hand may get before it scrolls instead. */
 private const val MIN_STEP = 0.45f
+
+/** Lays the content out centred just under where it's placed ([gap] below), taking no room itself. */
+private fun Modifier.hangBelow(gap: Dp): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints.copy(minWidth = 0, minHeight = 0, maxHeight = Constraints.Infinity))
+    layout(0, 0) { placeable.place(-placeable.width / 2, gap.roundToPx()) }
+}

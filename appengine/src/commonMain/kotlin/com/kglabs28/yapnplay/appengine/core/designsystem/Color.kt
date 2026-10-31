@@ -316,6 +316,9 @@ object YapNPlayColors {
     /** The talking glow behind a seat: blue into pink. */
     val ArenaTalkBlue = Color(0xFF3FA2FF)
     val ArenaTalkPink = Color(0xFFFF4FD8)
+    /** The same glow in grey: the user is talking with their mic off (nobody hears them). */
+    val ArenaTalkMutedLight = Color(0xFFC9CDD8)
+    val ArenaTalkMutedDark = Color(0xFF6E7383)
     /** A seat switch (Mic / Auto) while it's on: the app's dark pink. */
     val ArenaSwitchOn = Color(0xFFA0216A)
     val ArenaSwitchOnRim = Color(0xFFFF4FB8)

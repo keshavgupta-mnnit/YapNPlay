@@ -221,6 +221,8 @@ data class RoomMember(
     /** No seat free and opted in to watch the match. */
     val watching: Boolean = false,
     val micOn: Boolean = false,
+    /** Talking with their mic off (a grey voice line). */
+    val talkingMuted: Boolean = false,
     val speakerOn: Boolean = false,
     /** Relative to the receiving user: is this member their friend. */
     val isFriend: Boolean = false,
@@ -247,3 +249,7 @@ data class JoinApproved(
 data class MatchStarting(
     val matchId: String,
 )
+
+/** You're talking with your mic off: everyone sees your voice line move in grey. */
+@Serializable
+data class SetTalkingMuted(val talking: Boolean)

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverModal
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteUi
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.TablePlayerCardUi
@@ -34,7 +36,6 @@ data class RoyalLudoMatchState(
     /** Top bar: the people watching (players are on the cards). */
     val audience: List<TableAvatarUi> = emptyList(),
     val spectatorCount: String = "",
-    val spectatorLabel: String = "",
     /** Time since the match began, "m:ss", for the top bar. */
     val elapsed: String = "",
     val dice: LudoDiceUi = LudoDiceUi(),
@@ -94,6 +95,7 @@ data class LudoPlayerCardUi(
     override val isMe: Boolean,
     override val isTurn: Boolean,
     override val talking: Boolean,
+    override val talkingMuted: Boolean = false,
     /** 1 → 0 while it is this player's turn. */
     override val timerFraction: Float,
     val left: Boolean,
@@ -140,13 +142,8 @@ sealed interface LudoMatchModal {
     /** [adOffered]: Watch Ad shows (ads on and one ready). */
     data class Penalty(val title: String, val body: String, val watchingAd: Boolean, val adOffered: Boolean) : LudoMatchModal
     /** Shown to a spectator: take the seat someone left (button reads [takeLabel] with the time left). */
-    data class SeatInvite(val seat: Int, val title: String, val body: String, val takeLabel: String) : LudoMatchModal
-    /** The bot played the user's last turns: stay, or hand the seat to the pick (bot first) and spectate. */
-    data class AbsenceCheck(val title: String, val body: String, val countdown: String, val options: List<SeatPickOptionUi>, val selectedIndex: Int?) : LudoMatchModal
-    /** The user is offered a leaving player's seat by name; the match waits for the answer. */
-    data class SeatOfferPrompt(val title: String, val body: String, val acceptLabel: String) : LudoMatchModal
-    /** The user, as leader, invites a spectator to the seat or gives it to the bot. */
-    data class LeaderSeatChoice(val title: String, val body: String, val countdown: String, val options: List<SeatPickOptionUi>, val selectedIndex: Int?) : LudoMatchModal
+    /** A seat dialog, the same in every game. */
+    data class Seat(val modal: SeatHandoverModal) : LudoMatchModal
 }
 
 data class LudoResultRowUi(val place: String, val name: String, val colour: LudoColour)
@@ -192,18 +189,10 @@ sealed interface RoyalLudoMatchIntent : UiIntent {
     /** The table came to the front, or went away (another screen, or the app to the background). */
     data class ScreenVisible(val visible: Boolean) : RoyalLudoMatchIntent
     data object Done : RoyalLudoMatchIntent
-    data class TakeSeat(val seat: Int) : RoyalLudoMatchIntent
-    data class DeclineSeat(val seat: Int) : RoyalLudoMatchIntent
-    /** Picked an entry in a seat dropdown (leaving, or choosing as leader). */
+    /** An answer in a seat dialog, or a long press on a bot's seat. */
+    data class Seat(val action: SeatHandoverAction) : RoyalLudoMatchIntent
+    /** Picked who plays on in the exit dialog. */
     data class PickSeatTaker(val index: Int) : RoyalLudoMatchIntent
-    data class AnswerSeatOffer(val accept: Boolean) : RoyalLudoMatchIntent
-    /** Leader: give the seat to the picked spectator. */
-    data object InviteToSeat : RoyalLudoMatchIntent
-    /** Leader: give the seat to the bot. */
-    data object OfferSeatToBot : RoyalLudoMatchIntent
-    /** Idle player: hand the seat to the pick (bot or spectator) and keep watching. */
-    data object Spectate : RoyalLudoMatchIntent
-    data object StillHere : RoyalLudoMatchIntent
 }
 
 sealed interface RoyalLudoMatchEffect : UiEffect {

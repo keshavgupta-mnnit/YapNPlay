@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatHandoverDialog
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteUi
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteCard
 import com.kglabs28.yapnplay.appengine.ui.components.seat.EndGameConfirmDialog
@@ -76,6 +77,7 @@ fun CityBazaarModalContent(
             showActions = modal.canVote,
         )
         is CbModal.EndVote -> EndVoteCard(EndVoteUi(modal.body, modal.tally, modal.status, modal.canVote, modal.countdown), onVote = actions.onVoteEnd, modifier = modifier)
+        is CbModal.Seat -> SeatHandoverDialog(modal.modal, actions.onSeat, modifier)
         CbModal.ConfirmEnd -> EndGameConfirmDialog(onCancel = actions.onDismiss, onEnd = actions.onConfirmEnd, modifier = modifier)
         is CbModal.JailRoll -> CbDialogFrame(
             title = CityBazaarStrings.cbJailTitle,

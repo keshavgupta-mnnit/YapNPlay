@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatHandoverDialog
 import com.kglabs28.yapnplay.appengine.ui.components.seat.EndGameConfirmDialog
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteCard
 import com.kglabs28.yapnplay.appengine.ui.components.seat.LeaveMatchDialog
@@ -13,10 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.EmojiEvents
-import androidx.compose.material.icons.rounded.EventSeat
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,15 +24,12 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players.tint
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoMatchModal
-import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.MatchSettingsCard
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.PenaltyCard
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.ReportPlayerCard
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.ReportVoteCard
-import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatPickerDialog
-import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatOfferPromptCard
 
 /**
  * The table's dialogs: leave confirmation, final ranking, mic
@@ -149,49 +144,7 @@ fun LudoMatchModalContent(
             onClose = onDismiss,
             modifier = modifier,
         )
-        is LudoMatchModal.SeatInvite -> SeatOfferPromptCard(
-            title = modal.title,
-            body = modal.body,
-            acceptLabel = modal.takeLabel,
-            onAccept = { actions.onTakeSeat(modal.seat) },
-            onDecline = { actions.onDeclineSeat(modal.seat) },
-            modifier = modifier,
-        )
-        is LudoMatchModal.AbsenceCheck -> SeatPickerDialog(
-            title = modal.title,
-            message = modal.body,
-            options = modal.options,
-            selectedIndex = modal.selectedIndex,
-            onSelect = actions.onPickSeatTaker,
-            countdown = modal.countdown,
-            secondaryLabel = TableStrings.seatImHere,
-            onSecondary = actions.onStillHere,
-            primaryLabel = TableStrings.seatSpectate,
-            onPrimary = actions.onSpectate,
-            modifier = modifier,
-        )
-        is LudoMatchModal.SeatOfferPrompt -> SeatOfferPromptCard(
-            title = modal.title,
-            body = modal.body,
-            acceptLabel = modal.acceptLabel,
-            onAccept = { actions.onAnswerSeatOffer(true) },
-            onDecline = { actions.onAnswerSeatOffer(false) },
-            modifier = modifier,
-        )
-        is LudoMatchModal.LeaderSeatChoice -> SeatPickerDialog(
-            title = modal.title,
-            message = modal.body,
-            options = modal.options,
-            selectedIndex = modal.selectedIndex,
-            onSelect = actions.onPickSeatTaker,
-            countdown = modal.countdown,
-            secondaryLabel = TableStrings.seatOfferToBot,
-            onSecondary = actions.onOfferSeatToBot,
-            primaryLabel = TableStrings.seatInviteToSeat,
-            onPrimary = actions.onInviteToSeat,
-            primaryEnabled = modal.selectedIndex != null,
-            modifier = modifier,
-        )
+        is LudoMatchModal.Seat -> SeatHandoverDialog(modal.modal, actions.onSeat, modifier)
     }
 }
 

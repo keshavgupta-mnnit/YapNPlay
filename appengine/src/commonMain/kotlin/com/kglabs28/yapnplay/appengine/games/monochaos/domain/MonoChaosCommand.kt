@@ -22,10 +22,7 @@ sealed interface MonoChaosCommand {
     data class SetMic(val on: Boolean) : MonoChaosCommand
     data class Leave(val giveToUserId: String?) : MonoChaosCommand
     data object StillHere : MonoChaosCommand
-    data class AnswerSeatOffer(val accept: Boolean) : MonoChaosCommand
-    data class ChooseSeatTaker(val giveToUserId: String?) : MonoChaosCommand
     data class SetAway(val away: Boolean) : MonoChaosCommand
-    data class TakeSeat(val seat: Int) : MonoChaosCommand
     /** Ask everyone to end the game early (a vote). */
     data object ProposeEnd : MonoChaosCommand
     /** The user's answer to the end-game vote. */

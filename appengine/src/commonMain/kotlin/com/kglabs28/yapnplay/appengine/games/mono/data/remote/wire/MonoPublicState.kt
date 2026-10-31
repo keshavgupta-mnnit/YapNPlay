@@ -65,6 +65,8 @@ data class MonoPublicState(
     val callBeforePlay: Boolean = false,
     /** House rule: a power card (anything but a number) can never be the last card played. */
     val noPowerFinish: Boolean = false,
+    /** A Wild +4 may go down while holding the colour in play (house rule). */
+    val drawFourAnytime: Boolean = false,
 )
 
 /** A keep-playing vote: [voters] decide by [endsAt] (epoch ms); play waits meanwhile. */

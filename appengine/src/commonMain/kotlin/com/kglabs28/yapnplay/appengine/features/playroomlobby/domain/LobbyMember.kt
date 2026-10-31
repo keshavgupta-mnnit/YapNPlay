@@ -11,6 +11,8 @@ data class LobbyMember(
     val ready: Boolean,
     val watching: Boolean,
     val micOn: Boolean,
+    /** Talking with their mic off (a grey voice line). */
+    val talkingMuted: Boolean = false,
     val speakerOn: Boolean,
     val isFriend: Boolean,
     val isLeader: Boolean,

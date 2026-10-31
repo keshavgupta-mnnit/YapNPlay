@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.mono.data.remote
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.data.toDomain
 import com.kglabs28.yapnplay.appengine.games.base.data.endVoteResult
 import com.kglabs28.yapnplay.appengine.games.base.data.isTableWideEvent
 import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
@@ -14,7 +15,6 @@ import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoEvent
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoMatch
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoPlayer
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoRankedSeat
-import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoSeatOffer
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoSpectator
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoUpdate
 import com.kglabs28.yapnplay.appengine.games.mono.identity.MonoConstants
@@ -80,9 +80,8 @@ class MonoSnapshotMapper(private val json: Json) {
             ranking = state.ranking.mapIndexed { index, seat ->
                 MonoRankedSeat(seat = seat, status = if (index == 0) FINISHED else IN_PLAY, place = index + 1)
             },
-            seatOffer = snapshot.seatOffer?.let {
-                MonoSeatOffer(offeredBy = it.seat, offeredTo = it.userId, expiresAt = toLocal(it.endsAt))
-            },
+            seatOffer = snapshot.seatOffer?.toDomain(toLocal),
+            canOfferSeats = snapshot.canOfferSeats,
             catchSeat = state.catchSeat,
             catchClosedFor = state.catchClosedFor,
             continueVote = state.continueVote?.let { MonoContinueVote(toLocal(it.endsAt), it.voters, it.yes, it.no) },
@@ -91,6 +90,7 @@ class MonoSnapshotMapper(private val json: Json) {
             falseCatchPenaltyCards = state.falseCatchPenaltyCards,
             callBeforePlay = state.callBeforePlay,
             noPowerFinish = state.noPowerFinish,
+            drawFourAnytime = state.drawFourAnytime,
             roomId = snapshot.roomId,
             viewerUserId = myUserId,
         )

@@ -30,11 +30,9 @@ object MonoConstants {
      * official rules (every option off); see [FIXED_RULES].
      */
     val HOUSE_RULES = listOf(
-        HouseRuleOption("stacking_allowed", "Stack Upward", "+2 on +2, +4 on +2 or +4 on +4 (never +2 on +4); the total keeps growing", true),
         HouseRuleOption("no_power_finish", "No Power Finish", "Your last card can't be a power card (anything but a number): draw instead", true),
         HouseRuleOption("call_before_play", "Call Before You Play", "Press MONO on your turn before playing your second-last card", true),
-        HouseRuleOption("seven_swap", "Seven Swap", "Playing a 7 swaps hands with an opponent", false),
-        HouseRuleOption("zero_pass", "Zero Pass", "Playing a 0 passes all hands to the next player", false),
+        HouseRuleOption("draw_four_anytime", "+4 Anytime", "Play a Wild +4 even while you hold the colour in play", false),
     )
 
     val FIXED_RULES = listOf(

@@ -18,9 +18,8 @@ data class MonoMandatoryRules(
 
 @Serializable
 data class MonoHouseRules(
-    val stackingAllowed: Boolean = false,
-    val sevenSwap: Boolean = false,
-    val zeroPass: Boolean = false,
+    /** A Wild +4 may go down even while holding the colour in play (classic: only when you have none). */
+    val drawFourAnytime: Boolean = false,
 ) : HouseRules
 
 @Serializable

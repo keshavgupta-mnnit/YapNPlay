@@ -20,6 +20,8 @@ object MessageType {
     const val SET_LEAGUE = "SetLeague"
     const val SET_WATCHING = "SetWatching"
     const val SET_VOICE_STATE = "SetVoiceState"
+    /** Room and match channels: the user is talking with their mic off (others see a grey glow). */
+    const val SET_TALKING_MUTED = "SetTalkingMuted"
     const val TRANSFER_LEADER = "TransferLeader"
     const val TRANSFER_ADMIN = "TransferAdmin"
     const val REMOVE_MEMBER = "RemoveMember"
@@ -29,6 +31,8 @@ object MessageType {
 
     // ── Room channel: server to client ────────────────────────────────────
     const val ACK = "Ack"
+    /** Client to server on any channel: answered with Ack at once (to time the round trip). */
+    const val PING = "Ping"
     const val REJECTED = "Rejected"
     const val ROOM_SNAPSHOT = "RoomSnapshot"
     const val MATCH_STARTING = "MatchStarting"
@@ -53,6 +57,7 @@ object MessageType {
     const val ANSWER_SEAT_OFFER = "AnswerSeatOffer"
     const val CHOOSE_SEAT_TAKER = "ChooseSeatTaker"
     const val TAKE_SEAT = "TakeSeat"
+    const val OFFER_BOT_SEAT = "OfferBotSeat"
 
     // ── Match channel: server to client ───────────────────────────────────
     const val MATCH_SNAPSHOT = "MatchSnapshot"

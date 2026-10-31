@@ -90,7 +90,6 @@ object MonoStrings {
     const val monoCantCallYet = "Call MONO when you're down to your last card"
     const val monoDrawButton = "Draw Card"
     fun monoTakeButton(penalty: Int) = "Take +$penalty"
-    fun monoSpectatorCount(count: Int) = if (count == 1) "1 Spectator" else "$count Spectators"
 
     /** Declines the card just drawn and ends the turn. */
     const val monoPass = "PASS"

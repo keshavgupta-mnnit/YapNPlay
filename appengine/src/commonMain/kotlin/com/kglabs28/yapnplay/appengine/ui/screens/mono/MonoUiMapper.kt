@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatTable
 import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoContinueVote
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardEntryUi
@@ -25,6 +26,28 @@ import com.kglabs28.yapnplay.appengine.ui.components.table.rim
  */
 object MonoUiMapper {
 
+    /** What the shared seat dialogs need from a MONO match. */
+    fun seatTable(match: MonoMatch) = SeatTable(
+        offer = match.seatOffer,
+        viewerUserId = match.viewerUserId,
+        seated = match.me != null,
+        roomMatch = match.roomId != null,
+        spectators = match.spectators.map { it.userId to it.name },
+        canOfferSeats = match.canOfferSeats,
+        botSeats = match.players.filter { !it.removed && (it.isCpu || it.presence == SeatPresence.BOT.name) }.associate { it.seat to it.name },
+    )
+
+    /** What the shared seat dialogs need from a Complete Chaos match. */
+    fun seatTable(match: MonoChaosMatch) = SeatTable(
+        offer = match.seatOffer,
+        viewerUserId = match.viewerUserId,
+        seated = match.me != null,
+        roomMatch = match.roomId != null,
+        spectators = match.spectators.map { it.userId to it.name },
+        canOfferSeats = match.canOfferSeats,
+        botSeats = match.players.filter { !it.removed && (it.isCpu || it.presence == SeatPresence.BOT.name) }.associate { it.seat to it.name },
+    )
+
     /** The colour a seat wears: the four card colours, in seat order. */
     fun seatTint(seat: Int): Color = SEAT_HUES[(seat - 1).mod(SEAT_HUES.size)].rim
 
@@ -37,6 +60,7 @@ object MonoUiMapper {
         calledSeat: Int? = null,
         talking: Set<String> = emptySet(),
         mutedForMe: Set<String> = emptySet(),
+        mutedTalkers: Set<String> = emptySet(),
     ) = MonoPlayerPodUi(
         seat = player.seat,
         name = player.name,
@@ -46,6 +70,7 @@ object MonoUiMapper {
         isMe = player.isMe,
         isTurn = player.seat == currentSeat,
         talking = player.userId != null && player.userId in talking && player.userId !in mutedForMe,
+        talkingMuted = player.userId != null && player.userId in mutedTalkers && !player.micOn,
         micOn = player.micOn,
         cards = player.cardCount,
         timerFraction = timerFraction,
@@ -67,6 +92,7 @@ object MonoUiMapper {
         calledSeat: Int? = null,
         talking: Set<String> = emptySet(),
         mutedForMe: Set<String> = emptySet(),
+        mutedTalkers: Set<String> = emptySet(),
     ) = MonoPlayerPodUi(
         seat = player.seat,
         name = player.name,
@@ -76,6 +102,7 @@ object MonoUiMapper {
         isMe = player.isMe,
         isTurn = player.seat == currentSeat,
         talking = player.userId != null && player.userId in talking && player.userId !in mutedForMe,
+        talkingMuted = player.userId != null && player.userId in mutedTalkers && !player.micOn,
         micOn = player.micOn,
         cards = player.cardCount,
         timerFraction = timerFraction,
@@ -189,13 +216,13 @@ object MonoUiMapper {
 
     /** Spectators and absent players, for the top bar strip. */
     /** The spectators in the top bar: their voice ring (talking only when the user hears them) and whether the user muted them. */
-    fun audience(match: MonoMatch, talking: Set<String>, mutedForMe: Set<String>) = match.spectators.map {
-        TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in talking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe, it.avatarId)
+    fun audience(match: MonoMatch, talking: Set<String>, mutedForMe: Set<String>, mutedTalkers: Set<String> = emptySet()) = match.spectators.map {
+        TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in talking && it.userId !in mutedForMe, it.micOn, it.userId in mutedTalkers), it.userId in mutedForMe, it.avatarId)
     }
 
     /** Spectators and absent players (Complete Chaos). */
-    fun chaosAudience(match: MonoChaosMatch, talking: Set<String>, mutedForMe: Set<String>) = match.spectators.map {
-        TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in talking && it.userId !in mutedForMe, it.micOn), it.userId in mutedForMe, it.avatarId)
+    fun chaosAudience(match: MonoChaosMatch, talking: Set<String>, mutedForMe: Set<String>, mutedTalkers: Set<String> = emptySet()) = match.spectators.map {
+        TableAvatarUi(it.userId, it.name, AvatarRing.of(it.userId in talking && it.userId !in mutedForMe, it.micOn, it.userId in mutedTalkers), it.userId in mutedForMe, it.avatarId)
     }
 
     /** "Away" / "Autoplay" while the server plays for someone (a CPU seat needs no tag). */

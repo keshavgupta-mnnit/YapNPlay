@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,11 +48,12 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 /**
  * The card-table top bar (design), every element a glass pill:
  *  - the game's logo, larger than the bar, then the title pill: the
- *    game's name and the room under it. With no spectators (Quick Play) it
- *    stretches over the free width;
- *  - the spectator pill (room matches), as tall as the title pill: who is
- *    watching and how many; a long press on one mutes them for the user;
- *  - the match clock, then the settings and exit squares.
+ *    game's name and the room under it, stretching over the free width;
+ *  - the spectator pill, only while someone watches (room matches), as
+ *    tall as the title pill and only as wide as its faces: who is watching
+ *    and how many; a long press on one mutes them for the user;
+ *  - the connection (signal bars and ping) and the match clock in one
+ *    pill, then the settings and exit squares.
  *
  * Shared by MONO, Royal Ludo and City Royale (which adds its 2D / 3D
  * switch and history).
@@ -64,7 +64,8 @@ fun ArenaTopBar(
     subtitle: String,
     audience: List<TableAvatarUi>,
     showAudience: Boolean,
-    spectatorLabel: String,
+    /** How many watch, by the group icon (the icon says who they are: no word, less room). */
+    spectatorCount: String,
     elapsed: String,
     onSettings: () -> Unit,
     onExit: () -> Unit,
@@ -83,6 +84,8 @@ fun ArenaTopBar(
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
     val pill = RoundedCornerShape(percent = 50)
+    // Nobody watching: no pill, the title takes the room.
+    val watched = showAudience && audience.isNotEmpty()
 
     Row(
         modifier = modifier
@@ -97,7 +100,8 @@ fun ArenaTopBar(
         Row(
             modifier = Modifier
                 .height(dimens.arenaBarHeight)
-                .then(if (showAudience) Modifier.widthIn(max = dimens.arenaBarHeight * TITLE_MAX) else Modifier.weight(1f))
+                // Weighted, so the clock, the squares and the spectator pill are measured first and never squeezed.
+                .weight(1f)
                 .clip(pill)
                 .background(Brush.verticalGradient(listOf(colors.ArenaTitleTop, colors.ArenaTitleBottom)))
                 .border(dimens.borderThin, colors.ArenaTitleRim.copy(alpha = RIM_ALPHA), pill)
@@ -131,13 +135,16 @@ fun ArenaTopBar(
                     fontSize = typography.label.fontSize * SUBTITLE_GROW,
                     textAlign = TextAlign.End,
                 ),
+                // Shares the bar with the name (never all of it), shrinking to fit: a long "Round 12 / 30" never hides the name.
+                modifier = Modifier.weight(1f, fill = false),
             )
         }
 
         // Who is watching.
-        if (showAudience) {
+        if (watched) {
             Row(
                 modifier = Modifier
+                    // As wide as its faces (up to a few, then they scroll): no empty glass.
                     .height(dimens.arenaBarHeight)
                     .arenaGlass(pill)
                     .padding(horizontal = Spacing.Sm),
@@ -156,9 +163,8 @@ fun ArenaTopBar(
                     }
                 }
                 AppIcon(imageVector = Icons.Rounded.Groups, tint = colors.ArenaDrawRim, size = dimens.iconSmall)
-                ShrinkText(text = spectatorLabel, style = typography.label.copy(color = colors.TextPrimary))
+                BasicText(text = spectatorCount, style = typography.label.copy(color = colors.TextPrimary), maxLines = 1)
             }
-            Spacer(Modifier.weight(1f))
         }
 
         // The match clock.
@@ -170,6 +176,8 @@ fun ArenaTopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
         ) {
+            // The connection first: a lag reads as the network's, not the app's.
+            ConnectionBadge()
             AppIcon(imageVector = Icons.Rounded.Schedule, tint = colors.TextPrimary, size = dimens.iconSmall)
             StableDigitsText(text = elapsed, style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
         }
@@ -227,7 +235,6 @@ fun Modifier.arenaGlass(
         .border(YapNPlayTheme.dimens.hairline, rim, shape)
 }
 
-private const val TITLE_MAX = 6f
 private const val AUDIENCE_MAX = 4f
 private const val SQUARE_RADIUS = 0.28f
 private const val RIM_ALPHA = 0.7f

@@ -24,7 +24,6 @@ object LudoStrings {
 
     const val ludoTitle = "ROYAL LUDO"
     const val ludoRollDice = "Roll Dice"
-    const val ludoSpectators = "spectators"
     const val ludoSettings = "Settings"
     const val ludoExit = "Leave match"
     const val ludoLeaveBody = "If you leave, you're out of this match: your pieces leave the board and your entry is lost."

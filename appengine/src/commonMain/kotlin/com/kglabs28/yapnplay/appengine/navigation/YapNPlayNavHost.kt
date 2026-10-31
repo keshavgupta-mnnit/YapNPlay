@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.navigation
 
+import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.GetMatchRoomUseCase
+import org.koin.compose.koinInject
 import com.kglabs28.yapnplay.appengine.ui.screens.welcome.WelcomeViewModel
 import com.kglabs28.yapnplay.appengine.ui.components.keyboard.LocalAppKeyboard
 import androidx.compose.ui.platform.LocalFocusManager
@@ -94,6 +96,7 @@ fun YapNPlayNavHost(
         appKeyboard.close()
     }
 
+    val matchRooms: GetMatchRoomUseCase = koinInject()
     NavHost(
         navController = navController,
         startDestination = Main,
@@ -168,28 +171,28 @@ fun YapNPlayNavHost(
         composable<CityBazaarMatch> { entry ->
             CityBazaarMatchScreen(
                 matchId = entry.toRoute<CityBazaarMatch>().matchId,
-                onClose = { navController.popIfOnTop(entry) },
+                onClose = { navController.closeMatch(entry, matchRooms(entry.toRoute<CityBazaarMatch>().matchId)) },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<RoyalLudoMatch> { entry ->
             RoyalLudoMatchScreen(
                 matchId = entry.toRoute<RoyalLudoMatch>().matchId,
-                onClose = { navController.popIfOnTop(entry) },
+                onClose = { navController.closeMatch(entry, matchRooms(entry.toRoute<RoyalLudoMatch>().matchId)) },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<MonoMatchRoute> { entry ->
             MatchMonoScreen(
                 matchId = entry.toRoute<MonoMatchRoute>().matchId,
-                onClose = { navController.popIfOnTop(entry) },
+                onClose = { navController.closeMatch(entry, matchRooms(entry.toRoute<MonoMatchRoute>().matchId)) },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<MonoChaosMatchRoute> { entry ->
             MatchMonoChaosScreen(
                 matchId = entry.toRoute<MonoChaosMatchRoute>().matchId,
-                onClose = { navController.popIfOnTop(entry) },
+                onClose = { navController.closeMatch(entry, matchRooms(entry.toRoute<MonoChaosMatchRoute>().matchId)) },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }

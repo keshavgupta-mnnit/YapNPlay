@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
 /** Everything the City Bazaar dialogs can ask for, in one place. */
 class CityBazaarModalActions(
     val onDismiss: () -> Unit,
@@ -18,6 +19,7 @@ class CityBazaarModalActions(
     val onDeclareBankruptcy: () -> Unit,
     val onConfirmLeave: () -> Unit,
     val onPickSeatTaker: (Int) -> Unit = {},
+    val onSeat: (SeatHandoverAction) -> Unit = {},
     val onDone: () -> Unit,
     val onOpenAppSettings: () -> Unit,
     val onToggleEffects: () -> Unit,

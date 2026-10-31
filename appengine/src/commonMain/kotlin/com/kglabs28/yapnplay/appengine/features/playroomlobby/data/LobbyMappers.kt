@@ -27,6 +27,7 @@ fun RoomSnapshot.toLobbyRoom(now: Instant): LobbyRoom = LobbyRoom(
             ready = member.ready,
             watching = member.watching,
             micOn = member.micOn,
+            talkingMuted = member.talkingMuted,
             speakerOn = member.speakerOn,
             isFriend = member.isFriend,
             isLeader = member.userId == room.leaderId,

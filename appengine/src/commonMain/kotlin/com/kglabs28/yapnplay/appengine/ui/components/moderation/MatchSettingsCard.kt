@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
+import androidx.compose.ui.text.style.TextAlign
+import org.koin.compose.koinInject
+import com.kglabs28.yapnplay.appengine.core.common.AppVersionProvider
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import androidx.compose.material.icons.rounded.SupportAgent
 import com.kglabs28.yapnplay.appengine.core.ui.FeedbackStrings
@@ -54,6 +57,7 @@ fun MatchSettingsCard(
     /** The phone's keyboard instead of the app's; null hides the switch (Home and Profile only). */
     systemKeyboard: Boolean? = null,
     onToggleKeyboard: () -> Unit = {},
+    versions: AppVersionProvider = koinInject(),
 ) {
     // Game Rules and Feedback & support show in this card's place; closing them comes back here.
     var showingRules by remember { mutableStateOf(false) }
@@ -132,6 +136,12 @@ fun MatchSettingsCard(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+            // The installed version, centred at the foot of every settings dialog.
+            BasicText(
+                text = Strings.appVersion(versions.versionName()),
+                style = YapNPlayTheme.typography.label.copy(color = YapNPlayTheme.colors.TextSecondary, textAlign = TextAlign.Center),
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }

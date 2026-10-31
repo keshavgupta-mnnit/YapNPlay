@@ -1,5 +1,10 @@
 package com.kglabs28.yapnplay.appengine.core.network
 
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.MutableStateFlow
+import com.kglabs28.yapnplay.appengine.protocol.SetMatchTalkingMuted
+import com.kglabs28.yapnplay.appengine.protocol.OfferBotSeat
 import com.kglabs28.yapnplay.appengine.protocol.CastEndVote
 import com.kglabs28.yapnplay.appengine.protocol.ProposeEndMatch
 import com.kglabs28.yapnplay.appengine.protocol.MatchEnded
@@ -41,13 +46,31 @@ class MatchChannel(private val realtime: RealtimeGateway) {
      * opening and again after every reconnect (presence ends with the socket).
      * Ends with [MatchGoneException] when the backend no longer has the match.
      */
+    /** The room each opened match belongs to (room matches only). */
+    private val rooms = mutableMapOf<String, String>()
+
+    private val mutedTalkers = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
+
+    /** Who at [matchId]'s table is talking with their mic off (from its snapshots). */
+    fun mutedTalkers(matchId: String): Flow<Set<String>> = mutedTalkers.map { it[matchId].orEmpty() }.distinctUntilChanged()
+
+    suspend fun setTalkingMuted(matchId: String, talking: Boolean) =
+        request(MessageType.SET_TALKING_MUTED, SetMatchTalkingMuted.serializer(), SetMatchTalkingMuted(matchId, talking))
+
+    /** [matchId]'s room, once a snapshot of it came in; null for Quick Play or an unseen match. */
+    fun roomOf(matchId: String): String? = rooms[matchId]
+
     fun snapshots(matchId: String): Flow<MatchSnapshot> = channelFlow {
         launch(start = CoroutineStart.UNDISPATCHED) {
             realtime.stream(Channel.MATCH)
                 .filter { it.type == MessageType.MATCH_SNAPSHOT }
                 .map { realtime.decode(it, MatchSnapshot.serializer()) }
                 .filter { it.matchId == matchId }
-                .collect { send(it) }
+                .collect { snapshot ->
+                    snapshot.roomId?.let { rooms[matchId] = it }
+                    mutedTalkers.update { it + (matchId to snapshot.mutedTalkers.toSet()) }
+                    send(snapshot)
+                }
         }
         realtime.connections.collect { count ->
             if (count > 0) {
@@ -113,4 +136,7 @@ class MatchChannel(private val realtime: RealtimeGateway) {
 
     suspend fun takeSeat(matchId: String, seat: Int) =
         request(MessageType.TAKE_SEAT, TakeSeat.serializer(), TakeSeat(matchId, seat))
+
+    suspend fun offerBotSeat(matchId: String, seat: Int, toUserId: String) =
+        request(MessageType.OFFER_BOT_SEAT, OfferBotSeat.serializer(), OfferBotSeat(matchId, seat, toUserId))
 }

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.monochaos.data.remote
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.data.toDomain
 import com.kglabs28.yapnplay.appengine.games.base.data.endVoteResult
 import com.kglabs28.yapnplay.appengine.games.base.data.isTableWideEvent
 import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
@@ -14,7 +15,6 @@ import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosEvent
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosMatch
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosPlayer
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosRankedSeat
-import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosSeatOffer
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosSpectator
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosUpdate
 import com.kglabs28.yapnplay.appengine.games.monochaos.identity.MonoChaosConstants
@@ -79,9 +79,8 @@ class MonoChaosSnapshotMapper(private val json: Json) {
             ranking = state.ranking.mapIndexed { index, seat ->
                 MonoChaosRankedSeat(seat = seat, status = if (index == 0) FINISHED else IN_PLAY, place = index + 1)
             },
-            seatOffer = snapshot.seatOffer?.let {
-                MonoChaosSeatOffer(offeredBy = it.seat, offeredTo = it.userId, expiresAt = toLocal(it.endsAt))
-            },
+            seatOffer = snapshot.seatOffer?.toDomain(toLocal),
+            canOfferSeats = snapshot.canOfferSeats,
             catchSeat = state.catchSeat,
             catchClosedFor = state.catchClosedFor,
             continueVote = state.continueVote?.let { MonoContinueVote(toLocal(it.endsAt), it.voters, it.yes, it.no) },

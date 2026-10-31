@@ -61,7 +61,8 @@ fun TablePlayerCard(
     val avatar = avatarSize.coerceAtLeast(dimens.monoSeatAvatarCompact)
     val gap = if (density == TableCardDensity.ROOMY) Spacing.Sm else Spacing.Xs
     val press = when {
-        !card.isMe && card.canSpeak -> Modifier.combinedClickable(onClick = onClick ?: {}, onLongClick = onLongPress)
+        // Another person (friend), or a bot's seat (the leader may offer it to a spectator).
+        !card.isMe -> Modifier.combinedClickable(onClick = onClick ?: {}, onLongClick = onLongPress)
         onClick != null -> Modifier.clickable(onClick = onClick)
         else -> Modifier
     }
@@ -80,6 +81,7 @@ fun TablePlayerCard(
                 isTurn = card.isTurn,
                 timerFraction = card.timerFraction,
                 talking = card.talking,
+                talkingMuted = card.talkingMuted,
                 avatar = avatar,
                 details = details,
                 trailing = if (!card.isMe && card.canSpeak) {

@@ -62,7 +62,7 @@ fun ConnectionCard(title: String, body: String, onRetry: (() -> Unit)?, modifier
     ) {
         HomeCenterLogo()
         if (onRetry == null) {
-            ConnectingSpinner()
+            GlowSpinner()
         } else {
             AppIcon(imageVector = Icons.Rounded.WifiOff, tint = colors.Error, size = dimens.connectionSpinner)
         }
@@ -74,31 +74,3 @@ fun ConnectionCard(title: String, body: String, onRetry: (() -> Unit)?, modifier
     }
 }
 
-/** A glowing arc going round, cyan into purple. */
-@Composable
-private fun ConnectingSpinner() {
-    val colors = YapNPlayTheme.colors
-    val dimens = YapNPlayTheme.dimens
-    val turn by rememberInfiniteTransition().animateFloat(
-        initialValue = 0f,
-        targetValue = FULL_TURN,
-        animationSpec = infiniteRepeatable(tween(SPIN_MS, easing = LinearEasing), RepeatMode.Restart),
-    )
-    Canvas(modifier = Modifier.size(dimens.connectionSpinner)) {
-        val stroke = dimens.promptRim.toPx() * 2
-        val inset = stroke / 2
-        drawArc(
-            brush = Brush.sweepGradient(listOf(colors.Cyan.copy(alpha = 0f), colors.Cyan, colors.SocialZoneAccent)),
-            startAngle = turn,
-            sweepAngle = SWEEP,
-            useCenter = false,
-            topLeft = Offset(inset, inset),
-            size = Size(size.width - stroke, size.height - stroke),
-            style = Stroke(width = stroke, cap = StrokeCap.Round),
-        )
-    }
-}
-
-private const val FULL_TURN = 360f
-private const val SWEEP = 270f
-private const val SPIN_MS = 1_000

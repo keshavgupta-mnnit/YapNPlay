@@ -31,6 +31,12 @@ object TableStrings {
     const val seatExit = "Exit"
     const val seatOfferToBot = "Give to CPU"
     const val seatInviteToSeat = "Invite to Seat"
+    const val seatOfferSeat = "Offer Seat"
+    const val seatOfferBotTitle = "Offer Seat"
+    fun seatOfferBotBody(name: String) = "Pick a spectator to play $name's seat. They get 30s to accept."
+    const val seatBackTitle = "Take your seat back?"
+    const val seatBackBody = "A CPU kept your seat while you were away. Take it back and play on from where it is."
+    fun seatLeaderOfferBody(leaver: String) = "The leader offered you $leaver's seat. You continue from where it is."
     fun seatCountdown(seconds: Long) = "${seconds / SECONDS_PER_MINUTE}:${(seconds % SECONDS_PER_MINUTE).toString().padStart(2, '0')}"
     fun seatCheckingAbsence(name: String, seconds: Long) = "Checking if $name is still here · ${seconds}s"
     fun seatOpen(name: String, seconds: Long) = "$name left · seat open ${seconds}s"
@@ -54,8 +60,13 @@ object TableStrings {
     const val leaderboardFinishBonus = "FINISHING BONUS: "
     fun leaderboardPts(points: Int) = "+$points PTS"
     fun leaderboardCoins(coins: String) = "+$coins coins"
+    /** A place's prize from the pot (before its entry). */
+    fun leaderboardWon(coins: String) = "Won $coins coins"
     const val leaderboardNoCoins = "0 coins"
-    fun leaderboardLost(coins: String) = "-$coins coins"
+    const val leaderboardLeft = "Left the match"
+    fun connectionPing(ms: Long) = "${ms}ms"
+    const val connectionOffline = "Offline"
+    fun connectionDescription(reading: String) = "Connection: $reading"
     /** "+300": an amount gained, in the leaderboard's bottom bar. */
     fun leaderboardGain(amount: String) = "+$amount"
     /** The table's subtitle: its parts (title, round, pot) joined with a dot. */

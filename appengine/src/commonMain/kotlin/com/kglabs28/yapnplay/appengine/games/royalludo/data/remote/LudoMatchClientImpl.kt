@@ -48,11 +48,7 @@ class LudoMatchClientImpl(
             is LudoCommand.VoteEnd -> match.castEndVote(matchId, command.agree)
             is LudoCommand.SetMic -> match.setMic(matchId, command.on)
             is LudoCommand.Leave -> match.leave(matchId, command.giveToUserId)
-            LudoCommand.StillHere -> match.stillHere(matchId)
-            is LudoCommand.AnswerSeatOffer -> match.answerSeatOffer(matchId, command.accept)
-            is LudoCommand.ChooseSeatTaker -> match.chooseSeatTaker(matchId, command.giveToUserId)
             is LudoCommand.SetAway -> match.setAway(matchId, command.away)
-            is LudoCommand.TakeSeat -> match.takeSeat(matchId, command.seat)
         }
     }
 

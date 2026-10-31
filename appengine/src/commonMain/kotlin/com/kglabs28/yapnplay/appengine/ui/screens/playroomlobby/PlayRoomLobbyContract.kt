@@ -76,6 +76,8 @@ data class LobbyMemberUi(
     val isLeader: Boolean,
     val isAdmin: Boolean,
     val talking: Boolean,
+    /** The user talking with their mic off: the wave moves, in grey, so they notice. */
+    val talkingMuted: Boolean = false,
     /** Small crossed mic on the card when their mic is off. */
     val micOff: Boolean,
     val status: LobbyMemberStatus,

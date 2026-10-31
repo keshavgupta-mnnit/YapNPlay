@@ -1,5 +1,12 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.connection.usecase.ObserveConnectionQualityUseCase
+import com.kglabs28.yapnplay.appengine.core.network.PingProbe
+import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.GetMatchRoomUseCase
+import com.kglabs28.yapnplay.appengine.features.seathandover.usecase.SendSeatCommandUseCase
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverController
+import com.kglabs28.yapnplay.appengine.features.seathandover.domain.SeatHandoverRepository
+import com.kglabs28.yapnplay.appengine.features.seathandover.data.SeatHandoverRepositoryImpl
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.data.GameCatalogRepositoryImpl
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.repository.GameCatalogRepository
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.usecase.GetGameCatalogUseCase
@@ -23,6 +30,14 @@ import org.koin.dsl.module
  * engine to the [GameRegistry] list below — nothing else changes.
  */
 val gamesModule = module {
+    // Seat handover, the same in every game.
+    single<SeatHandoverRepository> { SeatHandoverRepositoryImpl(get(), get()) }
+    factory { SendSeatCommandUseCase(get()) }
+    factory { SeatHandoverController(get()) }
+    factory { GetMatchRoomUseCase(get()) }
+    // The connection badge on every table.
+    single { PingProbe(get()) }
+    factory { ObserveConnectionQualityUseCase(get()) }
     single {
         GameRegistry(
             listOf(

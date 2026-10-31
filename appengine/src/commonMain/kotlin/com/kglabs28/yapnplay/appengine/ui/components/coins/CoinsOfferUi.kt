@@ -21,6 +21,8 @@ data class CoinsOfferUi(
     val rewards: List<Int> = emptyList(),
     /** An ad can play now; false greys out Watch Ad and the ad progress, with a note on why (DNS or ad blockers). */
     val adReady: Boolean = true,
+    /** Today's ad limits have been asked for (in or not): until then a spinner shows, so the card appears whole. */
+    val limitsLoaded: Boolean = false,
 ) {
     /** The coins the next ad pays; null when today's ads are used up. */
     val nextReward: Int? get() = rewards.getOrNull(adsWatched)

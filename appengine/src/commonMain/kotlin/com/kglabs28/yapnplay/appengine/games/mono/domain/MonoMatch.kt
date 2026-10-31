@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.mono.domain
 
+import kotlinx.serialization.Transient
+import com.kglabs28.yapnplay.appengine.features.seathandover.domain.SeatOffer
 import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.games.mono.identity.MonoConstants
 import kotlinx.datetime.Instant
@@ -45,7 +47,8 @@ data class MonoMatch(
     val startedAt: Instant = Instant.fromEpochMilliseconds(0),
     val finishedSeats: List<Int> = emptyList(),
     val ranking: List<MonoRankedSeat> = emptyList(),
-    val seatOffer: MonoSeatOffer? = null,
+    /** A seat changing hands (room matches only); null when none. */
+    @Transient val seatOffer: SeatOffer? = null,
     /** The seat CAUGHT is open on (just went down to one card); null when shut. */
     val catchSeat: Int? = null,
     /** Seats that already paid a false catch in this window. */
@@ -60,8 +63,12 @@ data class MonoMatch(
     val callBeforePlay: Boolean = false,
     /** House rule: a power card can never be the last card played. */
     val noPowerFinish: Boolean = false,
+    /** House rule: a Wild +4 may go down while holding the colour in play. */
+    val drawFourAnytime: Boolean = false,
     val roomId: String? = null,
     val viewerUserId: String,
+    /** The viewer leads the room (or is its admin): they may offer a bot's seat. */
+    val canOfferSeats: Boolean = false,
 ) {
     val me: MonoPlayer? get() = players.firstOrNull { it.isMe }
 
@@ -104,9 +111,3 @@ data class MonoRankedSeat(
     val place: Int,
 )
 
-@Serializable
-data class MonoSeatOffer(
-    val offeredBy: Int,
-    val offeredTo: String?,
-    val expiresAt: Instant?,
-)

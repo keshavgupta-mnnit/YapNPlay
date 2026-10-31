@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
@@ -34,7 +35,7 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.GameTableArenaArtwork
  *    - the arena with the two piles in the middle, always given the room
  *      between the U and the hand's own band (they never overlap);
  *    - bottom left, the user's seat over the MONO · CAUGHT button; bottom
- *      centre, the hand; bottom right, the Draw button. A watcher
+ *      centre, the hand; bottom right, the MONO button. A watcher
  *      ([watching]) has none of these: the U runs down to the bottom.
  *  - A prompt the table waits on (colour, swap, vote) sits over the piles
  *    only, never over the hand or the seats.
@@ -48,7 +49,7 @@ fun MonoTableShell(
     subtitle: String,
     audience: List<TableAvatarUi>,
     showAudience: Boolean,
-    spectatorLabel: String,
+    spectatorCount: String,
     elapsed: String,
     onSettings: () -> Unit,
     onExit: () -> Unit,
@@ -64,9 +65,11 @@ fun MonoTableShell(
     prompt: (@Composable () -> Unit)? = null,
     arena: @Composable () -> Unit,
     localPod: @Composable () -> Unit,
-    callButton: @Composable () -> Unit,
+    /** CAUGHT, at the hand's left. */
+    caughtButton: @Composable () -> Unit,
     hand: @Composable () -> Unit,
-    drawButton: @Composable () -> Unit,
+    /** MONO, at the hand's right. */
+    monoButton: @Composable () -> Unit,
     watching: Boolean = false,
     /** A watcher's mic and speaker, bottom right; shown only while [watching]. */
     watcherControls: (@Composable () -> Unit)? = null,
@@ -74,6 +77,8 @@ fun MonoTableShell(
     onToggleHear: ((Int) -> Unit)? = null,
     /** Mutes or unmutes a spectator (by user id) for the user only, from a long press in the top bar. */
     onToggleHearSpectator: ((String) -> Unit)? = null,
+    /** A long press on an opponent's seat (by seat); null: none. */
+    onPodLongPress: ((Int) -> Unit)? = null,
 ) {
     val dimens = YapNPlayTheme.dimens
     // Every opponent's seat, shrunk together as the table fills.
@@ -111,7 +116,7 @@ fun MonoTableShell(
                 subtitle = subtitle,
                 audience = audience,
                 showAudience = showAudience,
-                spectatorLabel = spectatorLabel,
+                spectatorCount = spectatorCount,
                 elapsed = elapsed,
                 onSettings = onSettings,
                 onExit = onExit,
@@ -148,6 +153,7 @@ fun MonoTableShell(
                             trailing = muteButtonFor(pod, onToggleHear),
                             modifier = Modifier
                                 .monoAnchor(anchors, MonoSpot.Seat(pod.seat))
+                                .podLongPress(pod.seat, onPodLongPress)
                                 .monoScaled(seatScale)
                                 .width(dimens.monoPodWidth + dimens.monoSideFanWidth + roomFor(pod)),
                         )
@@ -170,13 +176,14 @@ fun MonoTableShell(
                             trailing = muteButtonFor(pod, onToggleHear),
                             modifier = Modifier
                                 .monoAnchor(anchors, MonoSpot.Seat(pod.seat))
+                                .podLongPress(pod.seat, onPodLongPress)
                                 .monoScaled(seatScale)
                                 .width(dimens.monoPodWidthCompact + roomFor(pod)),
                         )
                     }
                 }
 
-                // The right column of the U, above the Draw button.
+                // The right column of the U, above the MONO button.
                 Column(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -193,6 +200,7 @@ fun MonoTableShell(
                             trailing = muteButtonFor(pod, onToggleHear),
                             modifier = Modifier
                                 .monoAnchor(anchors, MonoSpot.Seat(pod.seat))
+                                .podLongPress(pod.seat, onPodLongPress)
                                 .monoScaled(seatScale)
                                 .width(dimens.monoPodWidthCompact + roomFor(pod)),
                         )
@@ -206,7 +214,7 @@ fun MonoTableShell(
                 ) {
                     // The user's own seat grows and shrinks with the table like everyone's.
                     Box(modifier = Modifier.monoScaled(seatScale)) { localPod() }
-                    callButton()
+                    caughtButton()
                 }
 
                 // Bottom centre: the hand, over the table's near edge.
@@ -214,13 +222,13 @@ fun MonoTableShell(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .padding(start = dimens.arenaCallWidth + Spacing.Sm, end = dimens.arenaDrawWidth + Spacing.Sm)
+                        .padding(horizontal = dimens.arenaCallWidth + Spacing.Sm)
                         .monoAnchor(anchors, MonoSpot.Hand),
                     contentAlignment = Alignment.BottomCenter,
                 ) { hand() }
 
-                // Bottom right: Draw.
-                if (!watching) Box(modifier = Modifier.align(Alignment.BottomEnd)) { drawButton() }
+                // Bottom right: MONO.
+                if (!watching) Box(modifier = Modifier.align(Alignment.BottomEnd)) { monoButton() }
                 if (watching) watcherControls?.let { Box(modifier = Modifier.align(Alignment.BottomEnd)) { it() } }
 
                 // A choice the table waits on, centred over the whole middle so it always has room.
@@ -251,3 +259,7 @@ private const val CARD_W_PER_H = 0.68f
 
 /** On a tablet, how much the table picture is zoomed from its top (it rises by the same share). */
 private const val TABLET_TABLE_LIFT = 0.1f
+
+/** A long press on a seat goes to [onLongPress] (by seat); null leaves the seat as it is. */
+private fun Modifier.podLongPress(seat: Int, onLongPress: ((Int) -> Unit)?): Modifier =
+    if (onLongPress == null) this else combinedClickable(onClick = {}, onLongClick = { onLongPress(seat) })

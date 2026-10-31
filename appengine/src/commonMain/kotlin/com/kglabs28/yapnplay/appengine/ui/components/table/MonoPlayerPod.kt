@@ -148,7 +148,20 @@ private fun MonoSeatHeaderFor(card: MonoPlayerPodUi, avatar: Dp, trailing: (@Com
         isTurn = card.isTurn,
         timerFraction = card.timerFraction,
         talking = card.talking,
+        talkingMuted = card.talkingMuted,
         avatar = avatar,
+        // The user's own seat says how many cards they hold (their hand lies along the bottom, not by the seat).
+        details = if (card.isMe && card.cards > 0) {
+            {
+                BasicText(
+                    text = MonoStrings.monoCardsLeft(card.cards),
+                    style = YapNPlayTheme.typography.micro.copy(color = YapNPlayTheme.colors.TextSecondary, fontWeight = FontWeight.Bold),
+                    maxLines = 1,
+                )
+            }
+        } else {
+            null
+        },
         trailing = trailing ?: if (card.canSpeak) {
             {
                 AppIcon(
@@ -182,7 +195,7 @@ private fun MonoSeatLabel(card: MonoPlayerPodUi, avatar: Dp) {
  * (speaker, mute) sit just outside the pill's right end, centred on its
  * height, so they never cover the name. The turn timer runs round the outside of the whole
  * outline, never over the avatar; while [talking], a blue-pink light glows
- * behind it. Shared by MONO, Royal Ludo and City Royale.
+ * behind it, and while [talkingMuted] (the user talking with their mic off) a grey one. Shared by MONO, Royal Ludo and City Royale.
  */
 @Composable
 fun ArenaSeatHeader(
@@ -195,6 +208,7 @@ fun ArenaSeatHeader(
     talking: Boolean,
     avatar: Dp,
     modifier: Modifier = Modifier,
+    talkingMuted: Boolean = false,
     details: (@Composable ColumnScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
@@ -203,7 +217,7 @@ fun ArenaSeatHeader(
     val typography = YapNPlayTheme.typography
     val pillHeight = avatar * PILL_SHARE
     val pillShape = RoundedCornerShape(percent = 50)
-    val glow = if (talking) talkPulse() else 0f
+    val glow = if (talking || talkingMuted) talkPulse() else 0f
 
     // The speaker / mute button sits outside the pill, at its right end, so the name keeps the pill's whole width.
     Row(
@@ -217,7 +231,7 @@ fun ArenaSeatHeader(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .seatTalkGlow(glow, pillHeight)
+                .seatTalkGlow(glow, pillHeight, muted = !talking)
                 .seatTimer(
                     active = isTurn,
                     fraction = timerFraction,
@@ -306,6 +320,8 @@ data class MonoPlayerPodUi(
     val isTurn: Boolean,
     val talking: Boolean,
     val cards: Int,
+    /** The user talking with their mic off: a grey glow, so they notice. */
+    val talkingMuted: Boolean = false,
     val timerFraction: Float = 1f,
     val placeLabel: String? = null,
     val statusLabel: String? = null,
@@ -390,11 +406,17 @@ private fun talkPulse(): Float {
     return value
 }
 
-/** The blue-pink light behind the seat while the player talks ([strength] 0 hides it). */
-private fun Modifier.seatTalkGlow(strength: Float, pillHeight: Dp): Modifier = drawBehind {
+/** The blue-pink light behind the seat while the player talks, grey when [muted] ([strength] 0 hides it). */
+private fun Modifier.seatTalkGlow(strength: Float, pillHeight: Dp, muted: Boolean): Modifier = drawBehind {
     if (strength <= 0f) return@drawBehind
     val outline = seatOutline(size, pillHeight.toPx())
-    val brush = Brush.horizontalGradient(listOf(YapNPlayColors.ArenaTalkBlue, YapNPlayColors.ArenaTalkPink))
+    val brush = Brush.horizontalGradient(
+        if (muted) {
+            listOf(YapNPlayColors.ArenaTalkMutedLight, YapNPlayColors.ArenaTalkMutedDark)
+        } else {
+            listOf(YapNPlayColors.ArenaTalkBlue, YapNPlayColors.ArenaTalkPink)
+        },
+    )
     // Soft layers, widest and faintest first: a glow without a blur pass.
     GLOW_LAYERS.forEach { (width, alpha) ->
         drawPath(outline, brush, alpha = alpha * strength, style = Stroke(size.height * width))

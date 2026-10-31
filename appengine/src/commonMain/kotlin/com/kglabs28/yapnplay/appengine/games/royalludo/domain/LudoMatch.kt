@@ -39,6 +39,8 @@ data class LudoMatch(
     val roomId: String? = null,
     /** Who is watching this table on this device (player or spectator). */
     val viewerUserId: String = "",
+    /** The viewer leads the room (or is its admin): they may offer a bot's seat. */
+    val canOfferSeats: Boolean = false,
 ) {
     val me: LudoPlayer? get() = players.firstOrNull { it.isMe }
     val isRoomMatch: Boolean get() = roomId != null

@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverController
+import com.kglabs28.yapnplay.appengine.features.voice.domain.MySpeech
+import com.kglabs28.yapnplay.appengine.features.voice.domain.MicGate
 import com.kglabs28.yapnplay.appengine.games.citybazaar.domain.CityBazaarAuctionInfo
 import com.kglabs28.yapnplay.appengine.features.voice.domain.VoiceNeed
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.TableVoiceUseCases
@@ -96,6 +100,8 @@ class CityBazaarMatchViewModel(
     private val gamesConfig: GamesAppManagerHelper,
     private val observeMatchCoins: ObserveMatchCoinsUseCase,
     private val clock: AppClock,
+    private val historyCache: CbHistoryCache,
+    private val seats: SeatHandoverController,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<CityBazaarMatchState, CityBazaarMatchIntent, CityBazaarMatchEffect>(CityBazaarMatchState(), dispatchers) {
 
@@ -105,10 +111,12 @@ class CityBazaarMatchViewModel(
     private var match: CityBazaarMatch? = null
     private var speaking: Set<String> = emptySet()
     /** The user speaking into their mic, and whether that mic is open (on at the table, app in front). */
-    private var mySpeaking = false
+    private var mySpeech = MySpeech.SILENT
+    /** Who at the table is talking with their mic off (from its snapshots). */
+    private var mutedTalkers: Set<String> = emptySet()
     /** The app-wide mic switch the table follows. */
     private var micSwitch = false
-    private var micOpen = false
+    private val micGate = MicGate { open, listenMuted -> setMicOpen(open, listenMuted) }
     private var mutedForMe: Set<String> = emptySet()
     private var speakerOn = true
     /** What the board and cards show (lags the server while events play). */
@@ -248,9 +256,13 @@ class CityBazaarMatchViewModel(
             is CityBazaarMatchIntent.ToggleHearSpectator -> voice.setMuted(intent.userId, intent.userId !in mutedForMe)
             is CityBazaarMatchIntent.ToggleHear -> match?.player(intent.seat)?.let { voice.setMuted(it.userId, it.userId !in mutedForMe) }
             // Not the user, a CPU or a seat the CPU plays for someone who left.
-            is CityBazaarMatchIntent.PlayerLongPressed -> match?.player(intent.seat)
-                ?.takeIf { !it.isMe && !it.isCpu && it.presence != CityBazaarPresence.BOT }
-                ?.let { openFriendAction(it.userId, it.name, it.avatarId) }
+            // A bot's seat: the leader may offer it to a spectator. Another person: add (or remove) as a friend.
+            is CityBazaarMatchIntent.PlayerLongPressed -> match?.player(intent.seat)?.let { p ->
+                when {
+                    p.isCpu || p.presence == CityBazaarPresence.BOT -> seat(SeatHandoverAction.OpenBotSeatOffer(p.seat))
+                    !p.isMe -> openFriendAction(p.userId, p.name, p.avatarId)
+                }
+            }
             CityBazaarMatchIntent.ConfirmFriendAction -> confirmFriendAction()
             CityBazaarMatchIntent.DismissFriendAction -> setState { copy(friendAction = null) }
             CityBazaarMatchIntent.OpenBank -> showPanel(bank = true)
@@ -274,6 +286,7 @@ class CityBazaarMatchViewModel(
                 leave.open(clock.now())
                 render()
             }
+            is CityBazaarMatchIntent.Seat -> seat(intent.action)
             is CityBazaarMatchIntent.PickSeatTaker -> {
                 leave.pick(intent.index)
                 render()
@@ -322,6 +335,10 @@ class CityBazaarMatchViewModel(
     private fun load(id: String) {
         if (matchId == id) return
         matchId = id
+        // Back at this match (a rejoin): its history so far, not an empty list.
+        history.clear()
+        history.addAll(historyCache.get(id))
+        feedId = history.maxOfOrNull { it.id } ?: feedId
         jobs.forEach { it.cancel() }
         jobs = listOf(
             scope.launch {
@@ -336,7 +353,8 @@ class CityBazaarMatchViewModel(
             scope.launch { for (update in queue) play(update) },
             scope.launch { observeMatchCoins().collect { seatResults = it; leaderboard = leaderboard?.let { b -> LeaderboardResult.withResult(b, it) }; render() } },
             scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
-            scope.launch { observeMySpeaking().collect { mySpeaking = it; render() } },
+            scope.launch { voice.observeMutedTalkers(id).collect { mutedTalkers = it; render() } },
+            scope.launch { observeMySpeaking().collect { mySpeech = it; render() } },
             scope.launch { observeMicOn().collect { micSwitch = it; syncMic() } },
             scope.launch { voice.observeMuted().collect { mutedForMe = it; render() } },
             scope.launch { voice.observeSpeakerOn().collect { speakerOn = it; render() } },
@@ -660,14 +678,12 @@ class CityBazaarMatchViewModel(
         val me = m.me
         if (autoplayWanted != null && autoplayWanted == (me?.let { it.autoplay || it.presence == CityBazaarPresence.BOT } == true)) autoplayWanted = null
         // The mic listens only while it's on at the table and the app is in front.
-        val wantMic = foreground && (me?.micOn == true)
-        if (wantMic != micOpen) {
-            micOpen = wantMic
-            setMicOpen(wantMic)
-        }
-        voiceNeed.update(micOpen, speakerOn, m.players.filter { !it.isMe && !it.isCpu && !it.removed }.map { it.micOn } + m.spectators.filter { it.userId != m.viewerUserId }.map { it.micOn })
+        micGate.update(micOn = me?.micOn == true, inFront = foreground)
+        voiceNeed.update(micGate.open, speakerOn, m.players.filter { !it.isMe && !it.isCpu && !it.removed }.map { it.micOn } + m.spectators.filter { it.userId != m.viewerUserId }.map { it.micOn })
         // Others' talking comes from the server; the user's own from their mic.
-        val talkers = if (micOpen && mySpeaking) speaking + m.viewerUserId else speaking
+        val talkers = if (mySpeech == MySpeech.SPEAKING) speaking + m.viewerUserId else speaking
+        // Talking with the mic off: others' from the table, the user's own from their mic at once.
+        val greyTalkers = if (mySpeech == MySpeech.SPEAKING_MUTED) mutedTalkers + m.viewerUserId else mutedTalkers
         val now = clock.now()
         val myTurn = me != null && !playing && !me.bankrupt && m.currentSeat == me.seat && !me.autoplay && me.presence == CityBazaarPresence.PLAYING
         val remainingMs = m.turnEndsAt?.let { (it - now).inWholeMilliseconds.coerceAtLeast(0) } ?: 0L
@@ -675,7 +691,7 @@ class CityBazaarMatchViewModel(
         turnAlarm.update(myTurn, remainingMs)
         val cards = CbTableMapper.cards(
             m,
-            CbTableMapper.CardInputs(talkers, mutedForMe, if (playing) null else remainingMs, CITY_BAZAAR_TURN_SECONDS, shownCash),
+            CbTableMapper.CardInputs(talkers, mutedForMe, if (playing) null else remainingMs, CITY_BAZAAR_TURN_SECONDS, shownCash, greyTalkers),
         )
         val (myCard, left, right) = CbTableMapper.sides(m, cards)
         val colourOf: (Int) -> CityBazaarColour? = { seat -> m.player(seat)?.colour }
@@ -705,7 +721,8 @@ class CityBazaarMatchViewModel(
         // Someone asked to end the game: everyone sees it while play is paused.
         val endVote = m.endVote?.let { CbPromptMapper.endVote(m, it, now) }
         val leaving = leave.ui(now, m.spectators.map { it.name }, m.me != null, roomMatch = m.isRoomMatch)?.let { CbModal.LeaveConfirm(it) }
-        val modal = vote?.let { CityBazaarModerationUiMapper.vote(it, now) } ?: leaving ?: endVote ?: auction ?: extension ?: decision ?: userModal
+        val modal = vote?.let { CityBazaarModerationUiMapper.vote(it, now) } ?: leaving ?: endVote ?: auction ?: extension ?: decision
+            ?: seats.modal(CbTableMapper.seatTable(m), now)?.let { CbModal.Seat(it) } ?: userModal
         val panel = panelTile?.let { CbPropertyMapper.tileInfo(m, it) }
             ?: panelSeat?.let { CbPropertyMapper.playerPanel(m, it, shownCash[it] ?: 0) }
             ?: panelDeck?.let { CbPropertyMapper.cardTable(it) }
@@ -721,10 +738,9 @@ class CityBazaarMatchViewModel(
                         m.roundLimit?.let { limit -> CityBazaarStrings.cbRoundOf(m.round, limit) },
                     ),
                 ),
-                audience = CbTableMapper.audience(m, talkers, mutedForMe),
+                audience = CbTableMapper.audience(m, talkers, mutedForMe, greyTalkers),
                 roomMatch = m.isRoomMatch,
                 spectatorCount = m.spectatorCount.toString(),
-                spectatorLabel = LudoStrings.ludoSpectators,
                 elapsed = if (m.phase == CityBazaarTurnPhase.FINISHED && elapsed.isNotEmpty()) elapsed else CbFormat.elapsed(now - m.startedAt),
                 tiles = CbTableMapper.tiles(shownOwners, shownLevels, colourOf),
                 tokens = CbTableMapper.tokens(m, shownPositions),
@@ -775,6 +791,7 @@ class CityBazaarMatchViewModel(
         val item = line.copy(id = feedId)
         history.addFirst(item)
         while (history.size > HISTORY_LIMIT) history.removeLast()
+        matchId?.let { historyCache.put(it, history.toList()) }
         if (!item.quiet) {
             feedSnack = item
             feedJob?.cancel()
@@ -889,7 +906,7 @@ class CityBazaarMatchViewModel(
     }
 
     override fun onCleared() {
-        if (micOpen) setMicOpen(false)
+        micGate.clear()
         voiceNeed.clear()
     }
 
@@ -899,6 +916,13 @@ class CityBazaarMatchViewModel(
 
     private fun sound(sound: GameSound) {
         if (foreground) audio.play(sound)
+    }
+
+    /** A seat dialog's answer (or a long press on a bot's seat), handled the same in every game. */
+    private suspend fun seat(action: SeatHandoverAction) {
+        val m = match ?: return
+        val id = matchId ?: return
+        if (seats.handle(id, CbTableMapper.seatTable(m), action)) render()
     }
 
     private suspend fun send(command: CityBazaarCommand) {

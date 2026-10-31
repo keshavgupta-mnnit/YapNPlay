@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverModal
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedLineUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoSwapTargetUi
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetUi
@@ -70,10 +72,14 @@ data class MatchMonoState(
     val autoplay: Boolean = false,
     /** User ids talking right now (the blue-pink glow behind their seat). */
     val talking: Set<String> = emptySet(),
+    /** User ids talking with their mic off (a grey glow behind their seat). */
+    val mutedTalkers: Set<String> = emptySet(),
     /** The keep-playing vote, once two or more have finished. */
     val vote: MonoVoteUi? = null,
     /** Settings (sound, music, report), a report to vote on, or its outcome; null when none is open. */
     val sheet: TableSheetUi? = null,
+    /** A seat dialog the user owes (the same in every game); null when none. */
+    val seatModal: SeatHandoverModal? = null,
     /** Exit was tapped: "Leave the match?" waits for an answer (and who takes the seat). */
     val leaveDialog: LeaveDialogUi? = null,
     /** "End game" was tapped in the settings: "END THE GAME?" waits for an answer before the vote starts. */
@@ -149,6 +155,10 @@ sealed interface MatchMonoIntent : UiIntent {
     data class PickSeatTaker(val index: Int) : MatchMonoIntent
     data class Leave(val giveToUserId: String?) : MatchMonoIntent
     data object StillHere : MatchMonoIntent
+    /** An answer in a seat dialog. */
+    data class Seat(val action: SeatHandoverAction) : MatchMonoIntent
+    /** Long press on a player's seat (a bot's: the leader may offer it to a spectator). */
+    data class PlayerLongPressed(val seat: Int) : MatchMonoIntent
     /** The screen went to the background: tell the server to play for the user. */
     data class ScreenVisible(val visible: Boolean) : MatchMonoIntent
 }

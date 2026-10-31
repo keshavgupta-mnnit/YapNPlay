@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.coins
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.GlowSpinner
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import androidx.compose.animation.core.animateFloatAsState
@@ -58,6 +59,8 @@ fun CoinsOfferCard(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Everything appears together: until today's limits are in, only a spinner.
+    if (!offer.limitsLoaded) return GlowSpinner(modifier)
     val colors = YapNPlayTheme.colors
     val next = offer.nextReward
     ModalCard(

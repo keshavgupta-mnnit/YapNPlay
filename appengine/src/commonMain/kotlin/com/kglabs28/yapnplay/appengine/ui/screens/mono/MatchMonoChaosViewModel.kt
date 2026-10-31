@@ -1,5 +1,10 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.protocol.SeatPresence
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverController
+import com.kglabs28.yapnplay.appengine.features.voice.domain.MySpeech
+import com.kglabs28.yapnplay.appengine.features.voice.domain.MicGate
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMicOnUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.SetMicOnUseCase
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
@@ -69,6 +74,7 @@ class MatchMonoChaosViewModel(
     private val setMicOpen: SetMicOpenUseCase,
     private val observeMicOn: ObserveMicOnUseCase,
     private val setMicOn: SetMicOnUseCase,
+    private val seats: SeatHandoverController,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MatchMonoChaosState, MatchMonoChaosIntent, MatchMonoChaosEffect>(
     MatchMonoChaosState(), dispatchers,
@@ -80,10 +86,12 @@ class MatchMonoChaosViewModel(
     private var match: MonoChaosMatch? = null
     private var talking: Set<String> = emptySet()
     /** The user speaking into their mic, whether that mic is open (on at the table, app in front), and whether the table is on screen. */
-    private var mySpeaking = false
+    private var mySpeech = MySpeech.SILENT
+    /** Who at the table is talking with their mic off (from its snapshots). */
+    private var mutedTalkers: Set<String> = emptySet()
     /** The app-wide mic switch this table follows. */
     private var micSwitch = false
-    private var micOpen = false
+    private val micGate = MicGate { open, listenMuted -> setMicOpen(open, listenMuted) }
     private var foreground = true
     private var mutedForMe: Set<String> = emptySet()
     private var speakerOn = true
@@ -195,6 +203,10 @@ class MatchMonoChaosViewModel(
                 emitEffect(MatchMonoChaosEffect.LeaveMatch)
             }
             MatchMonoChaosIntent.StillHere -> send(MonoChaosCommand.StillHere)
+            is MatchMonoChaosIntent.Seat -> seat(intent.action)
+            is MatchMonoChaosIntent.PlayerLongPressed -> match?.player(intent.seat)
+                ?.takeIf { it.isCpu || it.presence == SeatPresence.BOT.name }
+                ?.let { seat(SeatHandoverAction.OpenBotSeatOffer(it.seat)) }
             is MatchMonoChaosIntent.ScreenVisible -> onScreenVisible(intent.visible)
         }
     }
@@ -212,7 +224,8 @@ class MatchMonoChaosViewModel(
                 }
             },
             scope.launch { observeSpeaking(id).collect { talking = it; render() } },
-            scope.launch { observeMySpeaking().collect { mySpeaking = it; render() } },
+            scope.launch { voice.observeMutedTalkers(id).collect { mutedTalkers = it; render() } },
+            scope.launch { observeMySpeaking().collect { mySpeech = it; render() } },
             scope.launch { observeMicOn().collect { micSwitch = it; syncMic(); render() } },
             scope.launch { voice.observeMuted().collect { mutedForMe = it; render() } },
             scope.launch { voice.observeSpeakerOn().collect { speakerOn = it; render() } },
@@ -362,21 +375,19 @@ class MatchMonoChaosViewModel(
 
     override fun onCleared() {
         director.stop()
-        if (micOpen) setMicOpen(false)
+        micGate.clear()
         voiceNeed.clear()
     }
 
     private fun render() {
         val m = match ?: return
         // The mic listens only while it's on at the table (a spectator's is on their entry) and the app is in front.
-        val wantMic = foreground && (m.me?.micOn ?: m.spectators.firstOrNull { it.userId == m.viewerUserId }?.micOn ?: false)
-        if (wantMic != micOpen) {
-            micOpen = wantMic
-            setMicOpen(wantMic)
-        }
+        micGate.update(micOn = m.me?.micOn ?: m.spectators.firstOrNull { it.userId == m.viewerUserId }?.micOn ?: false, inFront = foreground)
         // Others' talking comes from the server; the user's own from their mic.
-        val talkers = if (micOpen && mySpeaking) talking + m.viewerUserId else talking
-        voiceNeed.update(myMicOpen = micOpen, mySpeakerOn = speakerOn, othersMicOn = m.players.filter { !it.isMe && !it.isCpu && !it.removed && it.userId != null }.map { it.micOn } + m.spectators.filter { it.userId != m.viewerUserId }.map { it.micOn })
+        val talkers = if (mySpeech == MySpeech.SPEAKING) talking + m.viewerUserId else talking
+        // Talking with the mic off: others' from the table, the user's own from their mic at once.
+        val greyTalkers = if (mySpeech == MySpeech.SPEAKING_MUTED) mutedTalkers + m.viewerUserId else mutedTalkers
+        voiceNeed.update(myMicOpen = micGate.open, mySpeakerOn = speakerOn, othersMicOn = m.players.filter { !it.isMe && !it.isCpu && !it.removed && it.userId != null }.map { it.micOn } + m.spectators.filter { it.userId != m.viewerUserId }.map { it.micOn })
         val now = clock.now()
         val me = m.me
         val waitingOnMe = m.currentSeat == me?.seat
@@ -403,6 +414,8 @@ class MatchMonoChaosViewModel(
                 // The end-game vote comes first: play is paused until it is decided.
                 sheet = m.endVote?.let { TableSheetUi.EndVote(EndVoteUiMapper.of(it, m.me?.seat, m.player(it.proposerSeat)?.name.orEmpty(), MonoStrings.monoEndRanking, now)) }
                     ?: sheets.current(now),
+                // A seat dialog waits for the table's own sheets and votes.
+                seatModal = seats.modal(MonoUiMapper.seatTable(m), now).takeIf { m.endVote == null && m.continueVote == null && sheets.current(now) == null },
                 loaded = true,
                 error = null,
                 match = m,
@@ -411,7 +424,8 @@ class MatchMonoChaosViewModel(
                 // move; otherwise it is the usual match rules. After a
                 // draw, only the drawn card is in play.
                 playableIndexes = if (waitingOnMe && !drawing) {
-                    m.drawnCardIndex?.let { setOf(it) }
+                    // Under a stack only draw cards count: a drawn card never hides them.
+                    m.drawnCardIndex?.takeUnless { stacking }?.let { setOf(it) }
                         ?: me.hand.mapIndexedNotNull { index, card ->
                             val legal = if (stacking) {
                                 card.canStackOnto(m.stackTopValue)
@@ -453,13 +467,14 @@ class MatchMonoChaosViewModel(
                 elapsed = monoElapsed(m.startedAt, now),
                 title = m.title,
                 spectatorCount = m.spectatorCount,
-                audience = MonoUiMapper.chaosAudience(m, talkers, mutedForMe),
+                audience = MonoUiMapper.chaosAudience(m, talkers, mutedForMe, greyTalkers),
                 // A spectator's mic is on their spectator entry.
                 micOn = micSwitch,
                 speakerOn = speakerOn,
                 mutedForMe = mutedForMe,
                 autoplay = me?.autoplay == true,
                 talking = talkers,
+                mutedTalkers = greyTalkers,
                 vote = MonoUiMapper.vote(m.continueVote, me?.seat, now),
                 // The finisher's banner shows first; the board follows once it has had its moment.
                 finishBanner = banner?.takeIf { now - it.second < BANNER_TIME }?.first,
@@ -512,6 +527,8 @@ class MatchMonoChaosViewModel(
         val drawing = m.phase == MonoChaosPhase.AWAITING_DRAW_UNTIL_PLAYABLE.name || m.phase == MonoChaosPhase.AWAITING_ROULETTE_DRAW.name
         val playing = m.phase == MonoChaosPhase.AWAITING_PLAY.name || shown.canStack || drawing
         if (!shown.myTurn || !playing || shown.canPass || shown.playableIndexes.isNotEmpty()) return
+        // Holding a draw card under a stack, the user decides (stack, or Take): never taken for them.
+        if (shown.canStack && m.me?.hand?.any { it.penaltyValue() > 0 } == true) return
         // One step per card: the hand's size tells the steps of a turn apart.
         val step = DrawStep(m.currentSeat, m.turnEndsAt, m.me?.hand?.size ?: 0)
         if (autoDrewFor == step) return
@@ -545,6 +562,12 @@ class MatchMonoChaosViewModel(
         val current = (m.me?.micOn ?: m.spectators.firstOrNull { it.userId == m.viewerUserId }?.micOn) ?: return
         val want = micSwitch && foreground
         if (current != want) scope.launch { send(MonoChaosCommand.SetMic(want)) }
+    }
+
+    /** A seat dialog's answer (or a long press on a bot's seat), handled the same in every game. */
+    private suspend fun seat(action: SeatHandoverAction) {
+        val m = match ?: return
+        if (matchId.isNotEmpty() && seats.handle(matchId, MonoUiMapper.seatTable(m), action)) render()
     }
 
     private suspend fun send(command: MonoChaosCommand) {

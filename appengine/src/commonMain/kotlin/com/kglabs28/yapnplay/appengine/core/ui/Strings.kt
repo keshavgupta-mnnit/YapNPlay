@@ -5,6 +5,7 @@ package com.kglabs28.yapnplay.appengine.core.ui
  * never inline a word where the user can see it.
  */
 object Strings {
+    fun appVersion(version: String) = "Version $version"
 
     const val homeTitle = "YapNPlay"
     const val homeLogoTitle = "YapNPlay"
@@ -38,7 +39,6 @@ object Strings {
     const val updateRequiredTitle = "Update required"
     const val updateRequiredBody = "This version of YapNPlay is no longer supported. Update to keep playing."
     const val updateAvailableTitle = "New version available"
-    const val updateAvailableBody = "A newer YapNPlay is ready with fixes and improvements."
     const val updateNow = "Update"
     const val updateLater = "Later"
     const val rejoinTitle = "Your game is still on"

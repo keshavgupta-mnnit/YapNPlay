@@ -82,7 +82,15 @@ data class MatchSnapshot(
     val pot: MatchPot? = null,
     /** The end-game vote while it runs (play is paused). */
     val endVote: EndVoteInfo? = null,
+    /** The viewer is the room's leader or admin: they may offer a seat the bot plays to a spectator. */
+    val canOfferSeats: Boolean = false,
+    /** Players and spectators talking with their mic off (a grey glow on them). */
+    val mutedTalkers: List<String> = emptyList(),
 )
+
+/** The user is talking with their mic off at this table: everyone sees a grey glow on them. */
+@Serializable
+data class SetMatchTalkingMuted(val matchId: String, val talking: Boolean)
 
 /**
  * The end-game vote: [proposerSeat] asked to end; [voters] (humans still
@@ -256,6 +264,9 @@ data class RankedSeat(
     val completionCoins: Int = 0,
     /** XP the server gave this seat (grows with match length; 0 for CPUs and leavers). */
     val xpGained: Int = 0,
+    /** Someone whose seat another person took over (ranked last): their name and avatar; null otherwise. */
+    val displayName: String? = null,
+    val avatarId: String? = null,
 )
 
 // ══════════════════════════════════════════════════════════════════════════

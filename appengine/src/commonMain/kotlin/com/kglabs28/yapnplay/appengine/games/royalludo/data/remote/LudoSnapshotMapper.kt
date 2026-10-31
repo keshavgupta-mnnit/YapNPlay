@@ -73,6 +73,7 @@ class LudoSnapshotMapper(private val json: Json) {
             pot = snapshot.pot?.total ?: 0,
             endVote = snapshot.endVote?.let { MatchEndVote(it.proposerSeat, toLocal(it.endsAt), it.voters, it.yes, it.no) },
             seatOffer = snapshot.seatOffer?.toDomain(toLocal),
+            canOfferSeats = snapshot.canOfferSeats,
             roomId = snapshot.roomId,
             viewerUserId = myUserId,
         )

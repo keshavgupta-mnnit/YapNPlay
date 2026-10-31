@@ -7,4 +7,5 @@ class TableVoiceUseCases(
     val observeSpeakerOn: ObserveSpeakerOnUseCase,
     val setSpeakerOn: SetSpeakerOnUseCase,
     val setVoiceWanted: SetVoiceWantedUseCase,
+    val observeMutedTalkers: ObserveMutedTalkersUseCase,
 )

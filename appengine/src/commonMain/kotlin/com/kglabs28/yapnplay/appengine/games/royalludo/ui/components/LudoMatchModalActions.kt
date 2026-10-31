@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
 /** Everything the table's dialogs can ask for, in one place. */
 class LudoMatchModalActions(
     val onDismiss: () -> Unit,
@@ -13,14 +14,8 @@ class LudoMatchModalActions(
     val onSubmitReport: () -> Unit,
     val onVote: (agree: Boolean) -> Unit,
     val onWatchAd: () -> Unit,
-    val onTakeSeat: (seat: Int) -> Unit,
-    val onDeclineSeat: (seat: Int) -> Unit,
     val onPickSeatTaker: (index: Int) -> Unit,
-    val onAnswerSeatOffer: (accept: Boolean) -> Unit,
-    val onInviteToSeat: () -> Unit,
-    val onOfferSeatToBot: () -> Unit,
-    val onSpectate: () -> Unit,
-    val onStillHere: () -> Unit,
+    val onSeat: (SeatHandoverAction) -> Unit,
     val onProposeEnd: () -> Unit,
     val onConfirmEnd: () -> Unit,
     val onEndVote: (agree: Boolean) -> Unit,

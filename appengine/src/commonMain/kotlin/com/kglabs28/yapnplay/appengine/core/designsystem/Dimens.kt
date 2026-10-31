@@ -254,10 +254,12 @@ class YapNPlayDimens {
     val monoFlightCard: Dp get() = 56.dp.scaled()
     /** The top bar's height, and its square buttons. */
     val arenaBarHeight: Dp get() = 46.dp.scaled()
-    /** The MONO / CAUGHT and Draw buttons. */
+    /** The CAUGHT and MONO buttons, either side of the hand. */
     val arenaActionHeight: Dp get() = 50.dp.scaled()
-    val arenaCallWidth: Dp get() = 176.dp.scaled()
-    val arenaDrawWidth: Dp get() = 150.dp.scaled()
+    val arenaCallWidth: Dp get() = 86.dp.scaled()
+    /** The small Draw / Take / Pass buttons under the deck, on the user's turn. */
+    val monoDeckButtonHeight: Dp get() = 32.dp.scaled()
+    val monoDeckButtonWidth: Dp get() = 92.dp.scaled()
     /** The round mic / autoplay switches under the user's seat. */
     val arenaSwitchSize: Dp get() = 36.dp.scaled()
     /** The most a Mic / Auto button grows to (it fills half the pill's width up to this). */
@@ -391,6 +393,9 @@ class YapNPlayDimens {
     // Game feed.
     val feedSnackMaxWidth: Dp get() = 420.dp.scaled()
     val historyListMaxHeight: Dp get() = 220.dp.scaled()
+    /** A match history row's XP and coins columns: the same width on every row, whatever the amount. */
+    val historyXpWidth: Dp get() = 72.dp.scaled()
+    val historyCoinsWidth: Dp get() = 118.dp.scaled()
     // Groups.
     val groupDialogWidth: Dp get() = 640.dp.scaled()
     val groupIconButton: Dp get() = 40.dp.scaled()

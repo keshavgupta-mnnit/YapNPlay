@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverModal
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedLineUi
@@ -97,6 +98,10 @@ data class MatchMonoChaosState(
     val leaderboard: LeaderboardUi? = null,
     /** "🏆 Riya finishes 1st!" for a few seconds after someone empties their hand. */
     val finishBanner: String? = null,
+    /** [finishBanner] tells of a colour being named: shown in that colour. */
+    val bannerIsColour: Boolean = false,
+    /** A word of [finishBanner] shown in its colour (the Roulette's colour); null: none. */
+    val bannerWord: Pair<String, Color>? = null,
     /** A MONO! penalty that concerns the user (caught, missed, wrong catch), as a snackbar for a moment. */
     val penaltySnack: TableFeedLineUi? = null,
 ) : UiState {

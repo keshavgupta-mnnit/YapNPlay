@@ -89,12 +89,10 @@ object MonoStrings {
     const val monoNoteYouKnockedOut = "You're knocked out"
     const val monoCantCallYet = "Call MONO when you're down to your last card"
     const val monoDrawButton = "Draw"
-    fun monoTakeButton(penalty: Int) = "Take +$penalty"
 
     /** Declines the card just drawn and ends the turn. */
     const val monoPass = "PASS"
-    fun monoStack(penalty: Int) = "STACK: +$penalty CARDS"
-    fun monoStackWithNote(stack: String, note: String) = "$stack · $note"
+    fun monoStack(penalty: Int, colour: String? = null) = "STACK +$penalty" + (colour?.let { " · ${it.uppercase()}" } ?: "")
 
 
     const val monoYourTurn = "YOUR TURN"

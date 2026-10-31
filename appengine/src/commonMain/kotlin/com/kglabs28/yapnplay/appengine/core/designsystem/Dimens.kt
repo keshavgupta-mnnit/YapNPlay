@@ -261,6 +261,8 @@ class YapNPlayDimens {
     val monoDeckButtonHeight: Dp get() = 26.dp.scaled()
     /** The MONO table's one message line under the piles (a stack, a colour, a penalty): always this tall. */
     val monoTableMessageHeight: Dp get() = 26.dp.scaled()
+    /** The gap between the piles and the message under them. */
+    val monoPileGap: Dp get() = 12.dp.scaled()
     /** The room kept under every seat for its tag ("2nd", "Away", "ELIMINATED"), there or not. */
     val seatTagSlot: Dp get() = 14.dp.scaled()
     val monoDeckButtonWidth: Dp get() = 72.dp.scaled()

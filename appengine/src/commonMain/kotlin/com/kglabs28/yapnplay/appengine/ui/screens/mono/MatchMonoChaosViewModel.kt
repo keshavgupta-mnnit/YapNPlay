@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.protocol.SeatPresence
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverController
@@ -100,6 +101,10 @@ class MatchMonoChaosViewModel(
     /** The final board, built once (so its clock stops); the coins go on as they arrive. */
     private var finalBoard: LeaderboardUi? = null
     /** The latest finisher's banner and when it went up; the final board waits for it. */
+    /** The banner tells of a colour being named: the table shows it in that colour. */
+    private var bannerIsColour = false
+    /** A word of the banner shown in its colour (the Roulette's colour). */
+    private var bannerWord: Pair<String, Color>? = null
     private var banner: Pair<String, Instant>? = null
     /** The latest MONO! penalty snackbar for the user and when it went up. */
     private var snack: Pair<TableFeedLineUi, Instant>? = null
@@ -250,8 +255,10 @@ class MatchMonoChaosViewModel(
             val who = update.match.player(finished.seat.value)
             val text = if (who?.isMe == true) MonoStrings.monoYouFinishBanner(place) else MonoStrings.monoFinishBanner(who?.name.orEmpty(), place)
             banner = text to clock.now()
+            bannerIsColour = false
+            bannerWord = null
         }
-        if (update.events.none { it is MonoChaosEvent.SeatFinished }) MonoTableNotes.chaos(update.events, update.match)?.let { banner = it to clock.now() }
+        if (update.events.none { it is MonoChaosEvent.SeatFinished }) MonoTableNotes.chaos(update.events, update.match)?.let { banner = it.text to clock.now(); bannerIsColour = it.colour; bannerWord = it.word?.let { w -> it.wordColour?.let { c -> w to c } } }
         // Ended by vote (at once, with only bots to vote): say so before the board comes up.
         update.endVote?.takeIf { it.ended }?.let { banner = TableStrings.endVoted(it.yes, it.voters) to clock.now() }
         MonoPenaltySnack.chaos(update.events, update.match, snackId + 1)?.let { snackId++; snack = it to clock.now() }
@@ -476,6 +483,8 @@ class MatchMonoChaosViewModel(
                 vote = MonoUiMapper.vote(m.continueVote, me?.seat, now),
                 // The finisher's banner shows first; the board follows once it has had its moment.
                 finishBanner = banner?.takeIf { now - it.second < BANNER_TIME }?.first,
+                bannerIsColour = bannerIsColour,
+                bannerWord = bannerWord,
                 penaltySnack = snack?.takeIf { now - it.second < SNACK_TIME }?.first,
                 // The winner's banner first; then the board, with the coins each seat won.
                 leaderboard = (finalBoard ?: board(m, now)?.takeIf { banner?.let { now - it.second >= BANNER_TIME } ?: true }?.also { finalBoard = it })
@@ -542,6 +551,8 @@ class MatchMonoChaosViewModel(
     /** A short line across the table, in the finish banner's place, for a moment. */
     private fun note(text: String) {
         banner = text to clock.now()
+        bannerIsColour = false
+        bannerWord = null
         render()
     }
 

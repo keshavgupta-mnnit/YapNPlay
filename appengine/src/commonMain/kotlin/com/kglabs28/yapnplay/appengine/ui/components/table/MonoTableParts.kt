@@ -79,6 +79,12 @@ fun MonoTableArena(
     onDeckClick: (() -> Unit)? = null,
     /** What just happened, shown under the piles; null shows nothing. */
     note: String? = null,
+    /** The colour just named: the note shows in it; null: the table's usual dark and gold. */
+    noteColour: Color? = null,
+    /** A word of the note in its colour (the Roulette's colour); null: none. */
+    noteWord: Pair<String, Color>? = null,
+    /** The colour in play, shown with a running stack ("STACK +12 · RED"); null: none. */
+    stackColour: String? = null,
     /** A penalty that concerns the user, as a snackbar under the note; null shows nothing. */
     snack: TableFeedLineUi? = null,
     /** Small buttons hanging under the deck (Draw / Take, Pass) on the user's turn; null shows none. */
@@ -108,7 +114,6 @@ fun MonoTableArena(
             horizontalArrangement = Arrangement.spacedBy(Spacing.Xl),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box {
             MonoTiltedPile(
                 count = drawPileCount,
                 cardWidth = cardWidth,
@@ -132,13 +137,6 @@ fun MonoTableArena(
                     MonoEmptyPile(modifier = tilt)
                 }
             }
-            // Hung under the deck, taking no room, so the piles never move.
-            deckButtons?.let { buttons ->
-                Box(modifier = Modifier.align(Alignment.BottomCenter).hangBelow(Spacing.Xs)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) { buttons() }
-                }
-            }
-            }
             MonoTiltedPile(
                 count = discardPileCount,
                 cardWidth = cardWidth,
@@ -151,30 +149,35 @@ fun MonoTableArena(
                 Box(modifier = tilt) { faceCard() }
             }
         }
-        // Close under the piles, in fixed rows: the Draw button under the deck, then the message, always in the
-        // same place (shown or hidden, nothing else moves).
-        // One message: a penalty for the user first; else the stack's total and what just happened together
-        // ("STACK +16 · CPU 2 named Red"); else either alone.
+        // One slot under the piles, a set gap below them and centred: the Draw / Pass buttons on the user's turn,
+        // else one message. Only one ever shows, always there and as tall, so nothing moves.
+        // One message: a penalty for the user first; else the running stack ("STACK +12 · RED"); else what just happened.
         val pileHalf = cardWidth / CARD_W_PER_H * LYING_HEIGHT / 2
-        val messageTop = maxHeight / 2 + pileHalf + Spacing.Xs + dimens.monoDeckButtonHeight + Spacing.Xs
+        val messageTop = maxHeight / 2 + pileHalf + dimens.monoPileGap
         val shownNote = note?.takeIf { it.isNotBlank() }
-        val stack = activeStackPenalty.takeIf { it > 0 }?.let { MonoStrings.monoStack(it) }
+        // A running stack stays short: its total and the colour in play.
+        val stack = activeStackPenalty.takeIf { it > 0 }?.let { MonoStrings.monoStack(it, stackColour) }
         val message = when {
             snack != null -> snack.text to (snack.tone == TableFeedTone.LOSS)
-            stack != null && shownNote != null -> MonoStrings.monoStackWithNote(stack, shownNote) to true
             stack != null -> stack to true
             shownNote != null -> shownNote to false
             else -> null
         }
-        message?.let { (text, alert) ->
-            MonoTableMessage(
-                text = text,
-                alert = alert,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .offset(y = messageTop)
-                    .widthIn(max = maxWidth)
-                    .zIndex(1f),
+        val slot = Modifier.align(Alignment.TopCenter).offset(y = messageTop).widthIn(max = maxWidth).zIndex(1f)
+        val colourNote = snack == null && stack == null && shownNote != null
+        when {
+            deckButtons != null -> Row(modifier = slot, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) { deckButtons() }
+            message != null -> MonoTableMessage(
+                text = message.first,
+                alert = message.second,
+                // A colour named shows on it; a running stack wears the colour in play.
+                fill = when {
+                    colourNote -> noteColour
+                    snack == null && stack != null && stackColour != null -> hue?.fill
+                    else -> null
+                },
+                word = if (colourNote) noteWord else null,
+                modifier = slot,
             )
         }
     }
@@ -398,8 +401,3 @@ private const val MIN_STEP = 0.12f
 private const val LENS_GROW = 0.12f
 
 
-/** Lays the content out centred just under where it's placed ([gap] below), taking no room itself. */
-private fun Modifier.hangBelow(gap: Dp): Modifier = layout { measurable, constraints ->
-    val placeable = measurable.measure(constraints.copy(minWidth = 0, minHeight = 0, maxHeight = Constraints.Infinity))
-    layout(0, 0) { placeable.place(-placeable.width / 2, gap.roundToPx()) }
-}

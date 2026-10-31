@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.table.fill
+import com.kglabs28.yapnplay.appengine.games.monochaos.ui.components.hue
+import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoEvent
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoMatch
@@ -13,39 +16,47 @@ import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosMatch
  * last such event of an update wins; null when none of them happened.
  */
 object MonoTableNotes {
-    fun mono(events: List<MonoEvent>, m: MonoMatch): String? {
+    /** One line for the table; [colour]: a colour named (shown on that colour); [word]: a word shown in [wordColour]. */
+    data class Note(val text: String, val colour: Boolean = false, val word: String? = null, val wordColour: Color? = null)
+
+    fun mono(events: List<MonoEvent>, m: MonoMatch): Note? {
         val me = m.me?.seat
         fun name(seat: Int) = m.player(seat)?.name.orEmpty()
         return events.mapNotNull { e ->
             when (e) {
-                is MonoEvent.ColorChosen -> colour(e.seat.value == me, name(e.seat.value), e.color.name)
-                is MonoEvent.MonoCaught -> caught(me, e.catcher.value, e.seat.value, e.penaltyCards, ::name)
-                is MonoEvent.FalseCatch -> wrongCatch(e.seat.value == me, name(e.seat.value), e.penaltyCards)
-                is MonoEvent.MonoMissed -> missed(e.seat.value == me, name(e.seat.value), e.penaltyCards)
+                is MonoEvent.ColorChosen -> Note(colour(e.seat.value == me, name(e.seat.value), e.color.name), colour = true)
+                is MonoEvent.MonoCaught -> Note(caught(me, e.catcher.value, e.seat.value, e.penaltyCards, ::name))
+                is MonoEvent.FalseCatch -> Note(wrongCatch(e.seat.value == me, name(e.seat.value), e.penaltyCards))
+                is MonoEvent.MonoMissed -> Note(missed(e.seat.value == me, name(e.seat.value), e.penaltyCards))
                 else -> null
             }
         }.lastOrNull()
     }
 
-    fun chaos(events: List<MonoChaosEvent>, m: MonoChaosMatch): String? {
+    fun chaos(events: List<MonoChaosEvent>, m: MonoChaosMatch): Note? {
         val me = m.me?.seat
         fun name(seat: Int) = m.player(seat)?.name.orEmpty()
         return events.mapNotNull { e ->
             when (e) {
-                is MonoChaosEvent.ColorChosen -> colour(e.seat.value == me, name(e.seat.value), e.color.name)
+                is MonoChaosEvent.ColorChosen -> Note(colour(e.seat.value == me, name(e.seat.value), e.color.name), colour = true)
                 is MonoChaosEvent.RouletteColorChosen -> {
                     val colour = MonoStrings.monoColourName(e.color.name)
-                    if (e.victim.value == me) MonoStrings.monoNoteYouRoulette(colour) else MonoStrings.monoNoteRoulette(name(e.victim.value), colour)
+                    // The Roulette's colour word in its own colour.
+                    Note(
+                        if (e.victim.value == me) MonoStrings.monoNoteYouRoulette(colour) else MonoStrings.monoNoteRoulette(name(e.victim.value), colour),
+                        word = colour,
+                        wordColour = e.color.hue().fill,
+                    )
                 }
-                is MonoChaosEvent.StackDraw -> if (e.seat.value == me) MonoStrings.monoNoteYouStacked(e.newStackTotal) else MonoStrings.monoNoteStacked(name(e.seat.value), e.newStackTotal)
-                is MonoChaosEvent.StackAccepted -> if (e.seat.value == me) MonoStrings.monoNoteYouTookStack(e.penaltyCards) else MonoStrings.monoNoteTookStack(name(e.seat.value), e.penaltyCards)
-                is MonoChaosEvent.CardsDiscarded -> if (e.seat.value == me) MonoStrings.monoNoteYouDumped(e.count) else MonoStrings.monoNoteDumped(name(e.seat.value), e.count)
-                is MonoChaosEvent.MonoCaught -> caught(me, e.catcher.value, e.seat.value, e.penaltyCards, ::name)
-                is MonoChaosEvent.FalseCatch -> wrongCatch(e.seat.value == me, name(e.seat.value), e.penaltyCards)
-                is MonoChaosEvent.MonoMissed -> missed(e.seat.value == me, name(e.seat.value), e.penaltyCards)
-                is MonoChaosEvent.HandSwapped -> MonoStrings.monoNoteSwapped(name(e.from.value), name(e.to.value))
-                is MonoChaosEvent.HandsPassed -> MonoStrings.monoNotePassed
-                is MonoChaosEvent.PlayerEliminated -> if (e.seat.value == me) MonoStrings.monoNoteYouKnockedOut else MonoStrings.monoNoteKnockedOut(name(e.seat.value))
+                is MonoChaosEvent.StackDraw -> Note(if (e.seat.value == me) MonoStrings.monoNoteYouStacked(e.newStackTotal) else MonoStrings.monoNoteStacked(name(e.seat.value), e.newStackTotal))
+                is MonoChaosEvent.StackAccepted -> Note(if (e.seat.value == me) MonoStrings.monoNoteYouTookStack(e.penaltyCards) else MonoStrings.monoNoteTookStack(name(e.seat.value), e.penaltyCards))
+                is MonoChaosEvent.CardsDiscarded -> Note(if (e.seat.value == me) MonoStrings.monoNoteYouDumped(e.count) else MonoStrings.monoNoteDumped(name(e.seat.value), e.count))
+                is MonoChaosEvent.MonoCaught -> Note(caught(me, e.catcher.value, e.seat.value, e.penaltyCards, ::name))
+                is MonoChaosEvent.FalseCatch -> Note(wrongCatch(e.seat.value == me, name(e.seat.value), e.penaltyCards))
+                is MonoChaosEvent.MonoMissed -> Note(missed(e.seat.value == me, name(e.seat.value), e.penaltyCards))
+                is MonoChaosEvent.HandSwapped -> Note(MonoStrings.monoNoteSwapped(name(e.from.value), name(e.to.value)))
+                is MonoChaosEvent.HandsPassed -> Note(MonoStrings.monoNotePassed)
+                is MonoChaosEvent.PlayerEliminated -> Note(if (e.seat.value == me) MonoStrings.monoNoteYouKnockedOut else MonoStrings.monoNoteKnockedOut(name(e.seat.value)))
                 else -> null
             }
         }.lastOrNull()

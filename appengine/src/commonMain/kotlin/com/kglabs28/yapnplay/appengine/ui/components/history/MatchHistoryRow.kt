@@ -57,10 +57,12 @@ fun MatchHistoryRow(row: MatchHistoryRowUi, onClick: () -> Unit, modifier: Modif
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
             ShrinkText(text = row.game, style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-                row.place?.let { PlacePill(text = it, tint = placeTint(row)) }
+                row.place?.let { InfoPill(text = it, tint = placeTint(row)) }
                 // The league, in the same look as the league picker (cheapest plainest, dearest royal).
                 if (row.league.isNotEmpty()) LeaguePill(text = row.league, tier = TierLooks.forLeague(row.leagueRank.coerceAtLeast(0), row.leagueCount))
-                ShrinkText(text = row.line, style = typography.label.copy(color = colors.TextSecondary), modifier = Modifier.weight(1f))
+                // Every detail a pill: where (Quick Play green, a group blue) and when.
+                InfoPill(text = row.mode, tint = if (row.quickPlay) colors.LiveGreen else colors.PlayerBlue, modifier = Modifier.weight(1f, fill = false))
+                InfoPill(text = row.time, tint = colors.Purple, modifier = Modifier.weight(1f, fill = false))
             }
         }
         // Fixed widths, so every row's columns line up whatever the amounts.
@@ -87,15 +89,15 @@ private fun placeTint(row: MatchHistoryRowUi): Color = when (val place = row.pla
     else -> YapNPlayTheme.colors.Cyan
 }
 
-/** The place ("2nd", "Abandoned"), bold in a tinted pill so it stands out. */
+/** A detail of the row (the place, where, when), bold in a pill of [tint]. */
 @Composable
-private fun PlacePill(text: String, tint: Color) {
+private fun InfoPill(text: String, tint: Color, modifier: Modifier = Modifier) {
     val shape = YapNPlayTheme.shapes.pill
-    BasicText(
+    // A long group name or date shrinks to fit rather than being cut.
+    ShrinkText(
         text = text,
         style = YapNPlayTheme.typography.label.copy(color = tint, fontWeight = FontWeight.Black),
-        maxLines = 1,
-        modifier = Modifier
+        modifier = modifier
             .clip(shape)
             .background(tint.copy(alpha = PILL_FILL_ALPHA))
             .border(YapNPlayTheme.dimens.hairline, tint.copy(alpha = PILL_RIM_ALPHA), shape)

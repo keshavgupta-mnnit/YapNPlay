@@ -43,10 +43,9 @@ object MatchHistoryUiMapper {
             league = entry?.let { HistoryStrings.historyLeague(TextUtils.groupedThousands(it)) } ?: HistoryStrings.historyFreeLeague,
             leagueRank = leagueFees.indexOf(entry ?: 0),
             leagueCount = leagueFees.size,
-            line = listOfNotNull(
-                if (match.roomMatch) match.roomName.ifBlank { HistoryStrings.historyRoom } else HistoryStrings.historyQuickPlay,
-                Strings.shortDateTime(date.dayOfMonth, date.monthNumber, date.year, ended.hour, ended.minute),
-            ).joinToString(SEPARATOR),
+            mode = if (match.roomMatch) match.roomName.ifBlank { HistoryStrings.historyRoom } else HistoryStrings.historyQuickPlay,
+            quickPlay = !match.roomMatch,
+            time = Strings.shortDateTime(date.dayOfMonth, date.monthNumber, date.year, ended.hour, ended.minute),
             // "Net": unlike the leaderboard's "Won" (the prize alone), this is after the entry and with the finishing bonus.
             coins = when {
                 net < 0 -> HistoryStrings.historyNetLoss(TextUtils.groupedThousands(-net))
@@ -101,5 +100,4 @@ object MatchHistoryUiMapper {
         else -> MonoStrings.monoPlaceTitles
     }
 
-    private const val SEPARATOR = " · "
 }

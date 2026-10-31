@@ -93,10 +93,10 @@ fun MonoDeckButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
     )
 }
 
-/** The deck's buttons on the user's turn: Draw (or "Take +N" under a stack), then Pass on its right after a draw. */
+/** The deck's buttons on the user's turn to play: Draw, then Pass on its right after a draw. */
 @Composable
-fun MonoDeckButtons(stacked: Boolean, canPass: Boolean, penalty: Int, onDraw: () -> Unit, onPass: () -> Unit) {
-    MonoDeckButton(text = if (stacked) MonoStrings.monoTakeButton(penalty) else MonoStrings.monoDrawButton, onClick = onDraw)
+fun MonoDeckButtons(canPass: Boolean, onDraw: () -> Unit, onPass: () -> Unit) {
+    MonoDeckButton(text = MonoStrings.monoDrawButton, onClick = onDraw)
     if (canPass) MonoDeckButton(text = MonoStrings.monoPass, onClick = onPass)
 }
 

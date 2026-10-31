@@ -31,8 +31,11 @@ data class MatchHistoryRowUi(
     val leagueCount: Int = 0,
     /** A tap opens the match's leaderboard: not for one the user abandoned (left while still playing). */
     val opensBoard: Boolean = true,
-    /** The group (or Quick Play) and the date, after the league. */
-    val line: String,
+    /** Where it was played: the group's name, or Quick Play ([quickPlay]). */
+    val mode: String,
+    val quickPlay: Boolean,
+    /** When it ended ("31 Oct 2026, 11:08 PM"). */
+    val time: String,
     val coins: String,
     /** The coins line is a loss (shown red). */
     val lost: Boolean,

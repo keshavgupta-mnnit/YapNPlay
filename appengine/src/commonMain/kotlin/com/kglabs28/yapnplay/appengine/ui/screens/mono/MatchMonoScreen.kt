@@ -282,15 +282,18 @@ private fun MonoArena(state: MatchMonoState, anchors: MonoAnchors, flights: Mono
         drawPileCount = match?.drawPileCount ?: 0,
         discardPileCount = match?.discardPileCount ?: 0,
         activeStackPenalty = state.activeStackPenalty,
+        stackColour = state.topColour?.let { MonoStrings.monoColourName(it.name) },
         note = state.finishBanner,
+        noteColour = if (state.bannerIsColour) state.topColour?.hue()?.fill else null,
+        noteWord = state.bannerWord,
         snack = state.penaltySnack,
         cardWidth = dimens.monoPileCardWidth,
         anchors = anchors,
         // The deck draws too (or takes the stack, like the Draw button).
         onDeckClick = { send(if (state.canStack) MatchMonoIntent.AcceptStack else MatchMonoIntent.DrawCard) },
-        // On the user's turn only: draw (or take the stack), and pass after a draw. Under a stack with nothing
-        // to stack, the cards are taken for them at once: no button.
-        deckButtons = if (state.myTurn && !state.outOfPlay && !(state.canStack && state.playableIndexes.isEmpty())) ({ MonoDeckButtons(state.canStack, state.canPass, state.activeStackPenalty, { send(if (state.canStack) MatchMonoIntent.AcceptStack else MatchMonoIntent.DrawCard) }, { send(MatchMonoIntent.Pass) }) }) else null,
+        // Only when the user has a real choice (a card they could play, or draw instead): never under a stack, with
+        // no playable card (the table draws for them), or while a colour, roulette or swap choice is open.
+        deckButtons = if (state.myTurn && !state.outOfPlay && !state.canStack && state.playableIndexes.isNotEmpty() && !state.awaitingColorChoice) ({ MonoDeckButtons(state.canPass, { send(MatchMonoIntent.DrawCard) }, { send(MatchMonoIntent.Pass) }) }) else null,
         modifier = Modifier
             .fillMaxSize()
             .padding(vertical = Spacing.Xs),

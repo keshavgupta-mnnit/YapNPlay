@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
@@ -68,7 +66,7 @@ fun DropdownPicker(
             Column(
                 modifier = Modifier
                     .heightIn(max = dimens.reportListMaxHeight)
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScrollWithBar(),
             ) {
                 options.forEachIndexed { index, label ->
                     BasicText(

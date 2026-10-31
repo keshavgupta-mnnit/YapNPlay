@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.history
 
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
 import com.kglabs28.yapnplay.appengine.ui.components.table.arenaGlass
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -71,7 +73,8 @@ fun MatchHistoryScreen(
                 if (message != null) {
                     BasicText(text = message, style = YapNPlayTheme.typography.label.copy(color = colors.TextSecondary))
                 }
-                LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+                val listState = rememberLazyListState()
+                LazyColumn(state = listState, modifier = Modifier.fillMaxWidth().weight(1f).glassScrollbar(listState), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
                     items(state.rows, key = { it.matchId }) { row ->
                         MatchHistoryRow(row = row, onClick = { send(MatchHistoryIntent.Open(row.matchId)) })
                     }

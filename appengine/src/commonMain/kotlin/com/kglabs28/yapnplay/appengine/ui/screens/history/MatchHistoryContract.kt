@@ -24,14 +24,19 @@ data class MatchHistoryRowUi(
     val place: String?,
     /** The user's place (1 gold, 2 silver, 3 bronze); null when they abandoned or it's unknown. */
     val placeNumber: Int? = null,
-    /** The group (or Quick Play), the league and the date, after the place. */
+    /** The league ("500 coins league", "Free league"), after the place, in its tier's look. */
+    val league: String = "",
+    /** The league's rank among the leagues by fee (0 = cheapest) and how many there are: its look; -1: plainest. */
+    val leagueRank: Int = -1,
+    val leagueCount: Int = 0,
+    /** A tap opens the match's leaderboard: not for one the user abandoned (left while still playing). */
+    val opensBoard: Boolean = true,
+    /** The group (or Quick Play) and the date, after the league. */
     val line: String,
     val coins: String,
     /** The coins line is a loss (shown red). */
     val lost: Boolean,
     val xp: String,
-    /** A tap opens the match's leaderboard (not for a match the user abandoned). */
-    val opensBoard: Boolean = true,
 )
 
 sealed interface MatchHistoryIntent : UiIntent {

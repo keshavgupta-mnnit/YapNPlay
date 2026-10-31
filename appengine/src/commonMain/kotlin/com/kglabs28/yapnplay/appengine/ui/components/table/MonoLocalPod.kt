@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,12 +26,13 @@ fun MonoLocalPod(
     modifier: Modifier = Modifier,
 ) {
     val dimens = YapNPlayTheme.dimens
+    val switch = seatSwitchSize(dimens.monoSeatAvatar)
     Column(
-        modifier = modifier.width(dimens.monoLocalPodWidth),
-        // The switches sit right under the pill.
+        // Room for the seat, a tag and the switches, kept up front: the seat stays put; the switches sit
+        // right under it and move down only while a tag shows, never into the CAUGHT button or a seat.
+        modifier = modifier.width(dimens.monoLocalPodWidth).heightIn(min = seatBoxHeight(dimens.monoSeatAvatar, dimens.seatTagSlot, switch)),
     ) {
-        // No speaker on the user's own pill. Under it, the tag's fixed slot, then the switches:
-        // a tag coming or going never moves the seat or pushes the switches into anything.
+        // No speaker on the user's own pill.
         MonoPlayerPod(card = card, showFan = false, trailing = {})
         ArenaSeatSwitches(
             micOn = micOn,
@@ -38,7 +40,9 @@ fun MonoLocalPod(
             onToggleMic = onToggleMic,
             onToggleAutoplay = onToggleAutoplay,
             // Centred under the whole seat, sized to it and clear of the avatar's badge.
-            size = seatSwitchSize(dimens.monoSeatAvatar),
+            size = switch,
+            // Knocked out or finished: no turns left, so no Autoplay.
+            showAutoplay = !card.eliminated && card.placeLabel == null,
             modifier = Modifier.fillMaxWidth(),
         )
     }

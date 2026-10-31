@@ -29,6 +29,8 @@ fun LudoMyCard(
             autoplay = autoplay,
             onToggleMic = onToggleMic,
             onToggleAutoplay = onToggleAutoplay,
+            // Home already: no turns left, so no Autoplay.
+            showAutoplay = card.placeLabel == null,
         )
     }
 }

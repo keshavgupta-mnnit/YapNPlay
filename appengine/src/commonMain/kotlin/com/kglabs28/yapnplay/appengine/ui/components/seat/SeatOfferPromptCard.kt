@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.seat
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.OnModalLayer
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
@@ -14,6 +15,19 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
 /** Asks a spectator to take a seat in any game; [acceptLabel] carries the seconds left. */
 @Composable
 fun SeatOfferPromptCard(
+    title: String,
+    body: String,
+    acceptLabel: String,
+    onAccept: () -> Unit,
+    onDecline: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // Always on the app's blurred modal layer, wherever a game puts it.
+    OnModalLayer { SeatOfferPromptCardContent(title = title, body = body, acceptLabel = acceptLabel, onAccept = onAccept, onDecline = onDecline, modifier = modifier) }
+}
+
+@Composable
+private fun SeatOfferPromptCardContent(
     title: String,
     body: String,
     acceptLabel: String,

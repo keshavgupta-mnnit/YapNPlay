@@ -1,13 +1,12 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.verticalScrollWithBar
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -31,7 +30,7 @@ fun GameRulesCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = YapNPlayTheme.dimens.rulesListMaxHeight)
-                .verticalScroll(rememberScrollState()),
+                .verticalScrollWithBar(),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
         ) {
             rules.forEach { rule ->

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.verticalScrollWithBar
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -56,7 +55,7 @@ fun CbPropertyCard(card: CbPropertyCardUi, modifier: Modifier = Modifier, fillHe
             )
         }
         // Filling a given height: the rows scroll and the owner bar stays at the bottom.
-        val body = if (fillHeight) Modifier.weight(1f).verticalScroll(rememberScrollState()) else Modifier
+        val body = if (fillHeight) Modifier.weight(1f).verticalScrollWithBar() else Modifier
         Column(modifier = body.padding(horizontal = Spacing.Xs).padding(bottom = Spacing.Xs), verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
             CbRateTable(rows = card.rows)
             card.income?.let { ShrinkText(text = it, style = typography.label.copy(color = colors.CbCash, fontWeight = FontWeight.Bold)) }

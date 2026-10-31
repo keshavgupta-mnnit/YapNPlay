@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
@@ -97,7 +98,7 @@ fun MonoPlayerPod(
     Box(modifier = modifier) {
         if (fanBeside) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column(modifier = Modifier.weight(1f).heightIn(min = seatBoxHeight(avatar, dimens.seatTagSlot, dimens.zero))) {
                     MonoSeatHeaderFor(card, avatar, trailing)
                     MonoSeatLabel(card, avatar)
                 }
@@ -108,7 +109,11 @@ fun MonoPlayerPod(
                     }
                 }
             }
-        } else Column {
+        } else Column(
+            // An opponent's seat keeps room for the header, a tag and the fan up front: it never moves, the rest
+            // shifts inside. The user's own seat (no fan) reserves nothing here: its box (MonoLocalPod) does.
+            modifier = if (showFan) Modifier.heightIn(min = seatBoxHeight(avatar, dimens.seatTagSlot, dimens.monoSeatFanCard * FAN_CARD_HEIGHT)) else Modifier,
+        ) {
             MonoSeatHeaderFor(card, avatar, trailing)
             // The status right under the pill; the fan below it.
             MonoSeatLabel(card, avatar)
@@ -116,6 +121,8 @@ fun MonoPlayerPod(
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
+                        // Tucked up under the pill when no tag sits there, so it reads as this seat's hand.
+                        .offset(y = if (card.tagLabel() == null) -avatar * FAN_TUCK else dimens.zero)
                         .padding(start = avatar * FAN_START),
                 ) {
                     MonoCardFan(
@@ -479,6 +486,10 @@ private fun seatOutline(size: Size, pillHeight: Float): Path {
 
 private const val PILL_SHARE = SEAT_PILL_SHARE
 private const val PILL_CAP = 0.95f
+/** A fan card's height for its width (cards are 0.68 as wide as tall). */
+private const val FAN_CARD_HEIGHT = 1.47f
+/** How far the fan tucks up under the pill with no tag there (× the avatar). */
+private const val FAN_TUCK = 0.1f
 private const val FAN_START = 0.75f
 /** How far the fan under a seat tucks up towards the pill (× avatar). */
 private const val CALLED_SHIFT = 0.7f

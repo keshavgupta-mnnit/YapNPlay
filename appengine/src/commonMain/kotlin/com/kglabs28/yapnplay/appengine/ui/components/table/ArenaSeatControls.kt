@@ -65,6 +65,8 @@ fun ArenaSeatSwitches(
     gap: Dp = Spacing.Xs,
     /** Each button's size: under a seat card, sized to that card (see [seatSwitchSize]). */
     size: Dp = LocalSeatSwitchSize.current ?: YapNPlayTheme.dimens.arenaSwitchMax,
+    /** False once the user is out of the game (knocked out, finished, bankrupt): nothing left to play for them. */
+    showAutoplay: Boolean = true,
 ) {
     val colors = YapNPlayTheme.colors
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(gap, Alignment.CenterHorizontally)) {
@@ -77,7 +79,7 @@ fun ArenaSeatSwitches(
             onClick = onToggleMic,
             size = size,
         )
-        ArenaRoundSwitch(
+        if (showAutoplay) ArenaRoundSwitch(
             icon = Icons.Rounded.SportsEsports,
             description = MonoStrings.monoAutoplay,
             on = autoplay,

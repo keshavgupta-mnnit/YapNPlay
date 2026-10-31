@@ -47,6 +47,8 @@ fun AppTopBar(
     onOpenProfile: () -> Unit = {},
     /** The coins "+": free coins for an ad. */
     onAddCoins: () -> Unit = {},
+    /** A tap on the level and XP pill: the match history. */
+    onXp: () -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -72,6 +74,7 @@ fun AppTopBar(
             xpLabel = xpLabel,
             balancesVisible = profileLoaded,
             onAddCoins = onAddCoins,
+            onXp = onXp,
         )
         TopBarDivider()
         NotificationsBell(

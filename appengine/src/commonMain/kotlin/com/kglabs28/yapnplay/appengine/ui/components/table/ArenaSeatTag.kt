@@ -23,14 +23,15 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 /**
  * A seat's status tag ("In Jail", "Knocked out", "2nd", "Away", "ELIMINATED")
  * in [tint], under the seat's header ([ArenaSeatHeader] of an [avatar]-sized
- * avatar), right of the avatar, a hair below the name pill. Its slot is the
- * same height whether a tag shows or not, so a tag coming or going never
- * moves the seat, its switches or the seats around it. Shared by every table.
+ * avatar), right of the avatar, a hair below the name pill. Shared by every table.
  */
 @Composable
 fun ArenaSeatTagSlot(text: String?, tint: Color, avatar: Dp, modifier: Modifier = Modifier) {
+    // No tag: no room taken, so what sits under the seat hugs it. The seat's box keeps this room in reserve
+    // (see [seatBoxHeight]), so the tag showing up never moves the seat or pushes anything into another seat.
+    if (text == null) return
     Box(modifier = modifier.fillMaxWidth().height(YapNPlayTheme.dimens.seatTagSlot)) {
-        text?.let {
+        text.let {
             SeatTagChip(
                 text = it,
                 tint = tint,
@@ -44,6 +45,13 @@ fun ArenaSeatTagSlot(text: String?, tint: Color, avatar: Dp, modifier: Modifier 
         }
     }
 }
+
+/**
+ * The height a seat's box keeps for everything that may show with it at once (the header, its tag,
+ * what sits under it), worked out up front: the seat stays put, and the parts under it shift within
+ * this room as they come and go, never into another seat or off the screen.
+ */
+fun seatBoxHeight(avatar: Dp, tagSlot: Dp, under: Dp): Dp = avatar + tagSlot + under
 
 /** The tag's chip itself, laid out where it is put (beside the user's switches, say). */
 @Composable

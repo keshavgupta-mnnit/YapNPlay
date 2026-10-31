@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.feedback
 
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import androidx.compose.foundation.layout.Arrangement
@@ -78,7 +80,8 @@ fun FeedbackScreen(
                     message?.let {
                         BasicText(text = it, style = typography.label.copy(color = if (it == state.error) colors.Error else colors.Gold))
                     }
-                    LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+                    val listState = rememberLazyListState()
+                    LazyColumn(state = listState, modifier = Modifier.fillMaxWidth().weight(1f).glassScrollbar(listState), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
                         items(state.rows, key = { it.ticketId }) { row ->
                             FeedbackRow(row = row, onClick = { send(FeedbackIntent.Open(row.ticketId)) })
                         }

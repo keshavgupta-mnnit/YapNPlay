@@ -54,6 +54,18 @@ class BlockingOverlayState {
 
 val LocalBlockingOverlay = staticCompositionLocalOf { BlockingOverlayState() }
 
+/** True inside the modal layer (set by [BlockingOverlayHost] around the modal it draws). */
+val LocalOnModalLayer = staticCompositionLocalOf { false }
+
+/**
+ * Shows [content] on the app's blurred, darkened modal layer wherever it is placed: a dialog built on
+ * this can never sit bare on a screen with the table showing through it, in any game.
+ */
+@Composable
+fun OnModalLayer(content: @Composable () -> Unit) {
+    if (LocalOnModalLayer.current) content() else BlockingOverlay(visible = true, onDismiss = null, content = content)
+}
+
 /**
  * App-level host for blocking modals. Wraps the whole app once (in
  * YapNPlayRoot). While a modal is up, everything behind it — top bar,
@@ -109,7 +121,7 @@ fun BlockingOverlayHost(
                             awaitEachGesture { awaitFirstDown(requireUnconsumed = false).consume() }
                         },
                     ) {
-                        modal()
+                        CompositionLocalProvider(LocalOnModalLayer provides true) { modal() }
                     }
                 }
             }

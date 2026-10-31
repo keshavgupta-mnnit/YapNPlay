@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.seat
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.OnModalLayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -53,13 +54,36 @@ fun SeatPickerDialog(
     /** False hides the two buttons (a vote the user can't take part in). */
     showActions: Boolean = true,
 ) {
+    // Always on the app's blurred modal layer, wherever a game puts it.
+    OnModalLayer { SeatPickerDialogContent(title = title, message = message, options = options, selectedIndex = selectedIndex, onSelect = onSelect, secondaryLabel = secondaryLabel, onSecondary = onSecondary, primaryLabel = primaryLabel, onPrimary = onPrimary, modifier = modifier, countdown = countdown, primaryEnabled = primaryEnabled, footer = footer, showActions = showActions) }
+}
+
+@Composable
+private fun SeatPickerDialogContent(
+    title: String,
+    message: String,
+    options: List<SeatPickOptionUi>,
+    selectedIndex: Int?,
+    onSelect: (Int) -> Unit,
+    secondaryLabel: String,
+    onSecondary: () -> Unit,
+    primaryLabel: String,
+    onPrimary: () -> Unit,
+    modifier: Modifier = Modifier,
+    countdown: String? = null,
+    primaryEnabled: Boolean = true,
+    /** Short lines under the message (a vote's tally, who it waits for). */
+    footer: List<String> = emptyList(),
+    /** False hides the two buttons (a vote the user can't take part in). */
+    showActions: Boolean = true,
+) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
     Column(
         modifier = modifier
             .width(dimens.seatDialogWidth)
-            // Frosted like the member cards, over the dimmed table.
+            // Frosted like the member cards, over the blurred, dimmed table.
             .glassPanel(
                 glowColor = colors.Warning,
                 surfaceBrush = Brush.verticalGradient(listOf(colors.MemberCardTop, colors.MemberCardBottom)),

@@ -1,11 +1,11 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.layout.width
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -30,5 +30,6 @@ fun MonoTablePrompt(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // The app's dialog card, as every other choice in the app.
-    ModalCard(title = title, subtitle = subtitle, modifier = modifier.widthIn(max = YapNPlayTheme.dimens.modalWidth), content = content)
+    // One width for every choice (colour, roulette, swap), so they all look the same size.
+    ModalCard(title = title, subtitle = subtitle, modifier = modifier.width(YapNPlayTheme.dimens.modalWidth), content = content)
 }

@@ -15,10 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Notifications
@@ -127,7 +125,7 @@ private fun NotificationsList(
         Column(
             modifier = Modifier
                 .heightIn(max = dimens.notificationsMaxHeight)
-                .verticalScroll(rememberScrollState()),
+                .verticalScrollWithBar(),
         ) {
             notifications.forEachIndexed { index, item ->
                 if (index > 0) {

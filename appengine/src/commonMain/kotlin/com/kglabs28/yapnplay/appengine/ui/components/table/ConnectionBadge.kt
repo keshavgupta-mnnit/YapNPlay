@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.StableDigitsText
+import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.text.BasicText
@@ -48,6 +51,14 @@ fun ConnectionBadge(modifier: Modifier = Modifier, observe: ObserveConnectionQua
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxxs),
     ) {
         AppIcon(imageVector = icon, tint = tint, size = YapNPlayTheme.dimens.iconSmall)
-        BasicText(text = label, style = YapNPlayTheme.typography.micro.copy(color = tint, fontWeight = FontWeight.Bold), maxLines = 1)
+        val style = YapNPlayTheme.typography.title.copy(color = tint, fontWeight = FontWeight.Bold)
+        // As wide as its widest reading ("9999ms", "Offline"), so the pill never changes size as the ping moves.
+        Box(contentAlignment = Alignment.Center) {
+            BasicText(text = WIDEST_PING, style = style, maxLines = 1, modifier = Modifier.alpha(0f))
+            BasicText(text = TableStrings.connectionOffline, style = style, maxLines = 1, modifier = Modifier.alpha(0f))
+            StableDigitsText(text = label, style = style)
+        }
     }
 }
+
+private const val WIDEST_PING = "9999ms"

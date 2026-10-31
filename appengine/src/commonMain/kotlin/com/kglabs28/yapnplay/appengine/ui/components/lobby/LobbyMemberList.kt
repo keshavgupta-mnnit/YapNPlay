@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,8 +41,10 @@ fun LobbyMemberList(
             .padding(Spacing.Xs),
         verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
+        val listState = rememberLazyListState()
         LazyColumn(
-            modifier = Modifier
+            state = listState,
+            modifier = Modifier.glassScrollbar(listState)
                 .weight(1f)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),

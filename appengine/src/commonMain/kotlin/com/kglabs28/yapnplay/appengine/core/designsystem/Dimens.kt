@@ -232,9 +232,9 @@ class YapNPlayDimens {
     val monoLocalPodWidth: Dp get() = 150.dp.scaled()
     /** One colour choice in the Prism picker. */
     /** A player's avatar in the Rule of 7 swap choice. */
-    val monoSwapAvatar: Dp get() = 40.dp.scaled()
+    val monoSwapAvatar: Dp get() = 30.dp.scaled()
     /** How far a selected card rises out of the hand. */
-    val monoCardLift: Dp get() = 24.dp.scaled()
+    val monoCardLift: Dp get() = 14.dp.scaled()
     /** A seat: the round avatar, and the name pill beside it (as tall as this share of the avatar). */
     val monoSeatAvatar: Dp get() = 50.dp.scaled()
     val monoSeatAvatarCompact: Dp get() = 44.dp.scaled()
@@ -259,6 +259,8 @@ class YapNPlayDimens {
     val arenaCallWidth: Dp get() = 86.dp.scaled()
     /** The small Draw / Take / Pass buttons under the deck, on the user's turn. */
     val monoDeckButtonHeight: Dp get() = 26.dp.scaled()
+    /** The MONO table's one message line under the piles (a stack, a colour, a penalty): always this tall. */
+    val monoTableMessageHeight: Dp get() = 26.dp.scaled()
     /** The room kept under every seat for its tag ("2nd", "Away", "ELIMINATED"), there or not. */
     val seatTagSlot: Dp get() = 14.dp.scaled()
     val monoDeckButtonWidth: Dp get() = 72.dp.scaled()

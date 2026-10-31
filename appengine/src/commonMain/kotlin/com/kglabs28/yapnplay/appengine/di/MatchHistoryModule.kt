@@ -10,5 +10,5 @@ import org.koin.dsl.module
 val matchHistoryModule = module {
     single<MatchHistoryRepository> { MatchHistoryRepositoryImpl(get(), get()) }
     factory { GetMatchHistoryUseCase(get()) }
-    factory { MatchHistoryViewModel(get(), get()) }
+    factory { MatchHistoryViewModel(get(), get(), get()) }
 }

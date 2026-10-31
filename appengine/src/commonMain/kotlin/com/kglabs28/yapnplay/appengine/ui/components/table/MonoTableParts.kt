@@ -1,14 +1,16 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
-import androidx.compose.foundation.layout.heightIn
-import com.kglabs28.yapnplay.appengine.ui.components.common.fitToSpace
+import androidx.compose.foundation.layout.widthIn
+import kotlin.math.abs
+import androidx.compose.ui.input.pointer.changedToDown
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.layout.layout
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -22,7 +24,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -52,7 +53,6 @@ import androidx.compose.ui.unit.Dp
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
-import kotlin.math.roundToInt
 
 /**
  * The centre play arena, on the table of the room behind it: the
@@ -97,7 +97,8 @@ fun MonoTableArena(
         val ring = with(density) { innerRingSize(screen).let { Size(it.width.toDp().value, it.height.toDp().value) } }
         // The ring's measured size (already dp values), back into a Dp.
         val byRing = if (ring.width > 0f) Dp(minOf(ring.height * RING_FILL_H * CARD_W_PER_H, (ring.width * RING_FILL_W - Spacing.Xl.value) / 2)) else cardWidth
-        val cardWidth = minOf(cardWidth, byRing, maxHeight * PILE_OF_ARENA * CARD_W_PER_H).coerceAtLeast(YapNPlayTheme.dimens.monoMinPileWidth)
+        val dimens = YapNPlayTheme.dimens
+        val cardWidth = minOf(cardWidth, byRing, maxHeight * PILE_OF_ARENA * CARD_W_PER_H).coerceAtLeast(dimens.monoMinPileWidth)
         MonoTurnRing(
             hue = hue,
             clockwise = clockwise,
@@ -133,7 +134,7 @@ fun MonoTableArena(
             }
             // Hung under the deck, taking no room, so the piles never move.
             deckButtons?.let { buttons ->
-                Box(modifier = Modifier.align(Alignment.BottomCenter).hangBelow(Spacing.Xxxs)) {
+                Box(modifier = Modifier.align(Alignment.BottomCenter).hangBelow(Spacing.Xs)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) { buttons() }
                 }
             }
@@ -150,24 +151,31 @@ fun MonoTableArena(
                 Box(modifier = tilt) { faceCard() }
             }
         }
-        // Under the piles (and the deck's buttons) and centred: the stack's total, then what just happened.
-        // They float over the table and take no room, so the piles never move. They only use the room left
-        // down to the arena's bottom (the hand's edge), shrinking to fit, so they never cover the cards.
+        // Close under the piles, in fixed rows: the Draw button under the deck, then the message, always in the
+        // same place (shown or hidden, nothing else moves).
+        // One message: a penalty for the user first; else the stack's total and what just happened together
+        // ("STACK +16 · CPU 2 named Red"); else either alone.
         val pileHalf = cardWidth / CARD_W_PER_H * LYING_HEIGHT / 2
-        val notesTop = maxHeight / 2 + pileHalf + Spacing.Sm + if (deckButtons != null) YapNPlayTheme.dimens.monoDeckButtonHeight + Spacing.Xxs else YapNPlayTheme.dimens.zero
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = notesTop)
-                .heightIn(max = (maxHeight - notesTop - Spacing.Xxs).coerceAtLeast(YapNPlayTheme.dimens.zero))
-                .fitToSpace()
-                .zIndex(1f),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
-        ) {
-            if (activeStackPenalty > 0) MonoStackCounter(penalty = activeStackPenalty)
-            note?.takeIf { it.isNotBlank() }?.let { MonoTableNote(it) }
-            snack?.let { TableFeedSnackbar(line = it) }
+        val messageTop = maxHeight / 2 + pileHalf + Spacing.Xs + dimens.monoDeckButtonHeight + Spacing.Xs
+        val shownNote = note?.takeIf { it.isNotBlank() }
+        val stack = activeStackPenalty.takeIf { it > 0 }?.let { MonoStrings.monoStack(it) }
+        val message = when {
+            snack != null -> snack.text to (snack.tone == TableFeedTone.LOSS)
+            stack != null && shownNote != null -> MonoStrings.monoStackWithNote(stack, shownNote) to true
+            stack != null -> stack to true
+            shownNote != null -> shownNote to false
+            else -> null
+        }
+        message?.let { (text, alert) ->
+            MonoTableMessage(
+                text = text,
+                alert = alert,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = messageTop)
+                    .widthIn(max = maxWidth)
+                    .zIndex(1f),
+            )
         }
     }
 }
@@ -246,27 +254,6 @@ fun MonoEmptyPile(modifier: Modifier = Modifier) {
 }
 
 /** The penalty counter under the piles. */
-@Composable
-fun MonoStackCounter(
-    penalty: Int,
-    modifier: Modifier = Modifier,
-) {
-    val colors = YapNPlayTheme.colors
-    val dimens = YapNPlayTheme.dimens
-    BasicText(
-        text = MonoStrings.monoStack(penalty),
-        style = YapNPlayTheme.typography.label.copy(
-            color = colors.TextPrimary,
-            fontWeight = FontWeight.Black,
-        ),
-        maxLines = 1,
-        modifier = modifier
-            .clip(YapNPlayTheme.shapes.pill)
-            .background(colors.Error)
-            .border(dimens.hairline, colors.TextPrimary.copy(alpha = STACK_RIM_ALPHA), YapNPlayTheme.shapes.pill)
-            .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxxs),
-    )
-}
 
 /**
  * The table picture's innermost ring on a screen of [screen] px: the
@@ -279,11 +266,13 @@ private fun innerRingSize(screen: IntSize): Size {
 }
 
 /**
- * The local player's hand, in a straight row. Cards overlap as the hand grows so a
- * big hand still shows every corner index; past the point where the
- * overlap stops being readable the row scrolls. A playable card rises
- * well past the fan's own dip, so it never reads as just a middle card. Exactly one card is
- * drawn per hand index, so the screen decides selection and playability.
+ * The local player's hand, fanned like a held hand, always fitting the width.
+ * Cards overlap as the hand grows; resting or sliding a thumb on the hand
+ * (sliding it along) magnifies the cards under it ([HandLens]): they spread out and come
+ * forward so their corners read clearly, while the rest close up. A tap
+ * still plays the card under the finger. A playable card rises above the
+ * row (room is kept for it). Exactly one card is drawn per hand index, so
+ * the screen decides selection and playability.
  */
 @Composable
 fun MonoHandRow(
@@ -295,49 +284,86 @@ fun MonoHandRow(
     if (handSize == 0) return
     val density = LocalDensity.current
     val liftRoom = YapNPlayTheme.dimens.monoCardLift
+    // Where the thumb rests on the hand (px), or null. Read only while laying out: moving the thumb
+    // re-places the cards without recomposing them.
+    val thumb = remember { mutableStateOf<Float?>(null) }
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        // Room inside the scroller at both ends, so the tilted outer cards are never clipped.
         val margin = cardWidth * FAN_MARGIN
         val step = handStep(handSize = handSize, cardWidth = cardWidth, available = maxWidth - margin * 2)
         Layout(
             content = { repeat(handSize) { index -> card(index) } },
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            modifier = Modifier.pointerInput(Unit) {
+                // Watches the thumb without taking its touches. The lens opens only once the thumb slides
+                // along the hand (past the touch slop): a plain tap plays the card under it with nothing moving.
+                awaitPointerEventScope {
+                    var downX = 0f
+                    var sliding = false
+                    while (true) {
+                        val change = awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull() ?: continue
+                        when {
+                            !change.pressed -> sliding = false
+                            change.changedToDown() -> {
+                                downX = change.position.x
+                                sliding = false
+                            }
+                            abs(change.position.x - downX) > viewConfiguration.touchSlop -> sliding = true
+                        }
+                        thumb.value = if (sliding) change.position.x else null
+                    }
+                }
+            },
         ) { measurables, constraints ->
             val widthPx = with(density) { cardWidth.roundToPx() }
-            val stepPx = with(density) { step.roundToPx() }
+            val stepPx = with(density) { step.toPx() }
             val placeables = measurables.map { measurable ->
                 measurable.measure(constraints.copy(minWidth = widthPx, maxWidth = widthPx))
             }
             val marginPx = with(density) { margin.roundToPx() }
-            val handWidth = stepPx * (placeables.size - 1).coerceAtLeast(0) + widthPx + marginPx * 2
-            // A hand narrower than the row sits in its middle; a wider one fills it and scrolls.
+            val handWidth = (stepPx * (placeables.size - 1).coerceAtLeast(0)).toInt() + widthPx + marginPx * 2
+            // The hand sits in the middle of the row.
             val rowWidth = maxOf(handWidth, this@BoxWithConstraints.constraints.maxWidth)
-            val start = (rowWidth - handWidth) / 2
+            val start = (rowWidth - handWidth) / 2 + marginPx
             val cardHeight = placeables.maxOfOrNull { it.height } ?: 0
-            // Straight, every card upright, whatever the hand's size: the same look small or big.
-            // Room above for a playable card standing up, so the scroller never cuts its top off.
+            // Room above for a playable card standing up (a magnified card grows into it too, only while the thumb rests).
             val liftPx = with(density) { liftRoom.roundToPx() }
-            layout(rowWidth, liftPx + cardHeight) {
+            val spots = HandLens.spots(placeables.size, start.toFloat(), stepPx, widthPx.toFloat(), thumb.value)
+            // Fanned like a held hand: each card tilts out from the middle and the ends dip.
+            val middle = (placeables.size - 1) / 2f
+            val spread = (FAN_DEGREES / placeables.size.coerceAtLeast(1)).coerceAtMost(FAN_STEP_MAX)
+            val dipPx = (cardHeight * FAN_DIP).toInt()
+            layout(rowWidth, liftPx + cardHeight + dipPx) {
                 placeables.forEachIndexed { index, placeable ->
-                    placeable.place(start + marginPx + stepPx * index, liftPx)
+                    val spot = spots[index]
+                    val offCentre = (index - middle) / middle.coerceAtLeast(1f)
+                    // In focus: upright, a little bigger and on top, so its corner reads clearly.
+                    val dip = (dipPx * offCentre * offCentre * (1f - spot.focus)).toInt()
+                    placeable.placeWithLayer(spot.x.toInt(), liftPx + dip, zIndex = spot.focus) {
+                        rotationZ = (index - middle) * spread * (1f - spot.focus)
+                        scaleX = 1f + LENS_GROW * spot.focus
+                        scaleY = 1f + LENS_GROW * spot.focus
+                        transformOrigin = TransformOrigin(0.5f, 1f)
+                    }
                 }
             }
         }
     }
 }
 
-/** How far apart the hand's cards sit: no overlap until it will not fit. */
+/** How far apart the hand's cards sit: no overlap until it will not fit, then as close as it takes. */
 private fun handStep(handSize: Int, cardWidth: Dp, available: Dp): Dp {
     if (handSize <= 1) return cardWidth
     val fit = (available - cardWidth) / (handSize - 1).toFloat()
     return fit.coerceIn(cardWidth * MIN_STEP, cardWidth)
 }
 
-private const val STACK_RIM_ALPHA = 0.6f
 /** Same as a card: width ÷ height. */
 private const val EMPTY_PILE_RATIO = 0.68f
 /** The whole hand's tilt, the most one card may tilt from its neighbour, and how far the ends dip (× card height). */
+/** The whole hand's tilt, the most one card may tilt from its neighbour, and how far the ends dip (× card height). */
+private const val FAN_DEGREES = 40f
+private const val FAN_STEP_MAX = 5f
+private const val FAN_DIP = 0.08f
 private const val FAN_MARGIN = 0.6f
 /** A pile may take this much of the arena's height (tilted, it looks shorter); a card is 0.68 as wide as tall. */
 private const val PILE_OF_ARENA = 1f
@@ -366,7 +392,11 @@ private const val GLOW_ALPHA = 0.45f
 private const val GLOW_REACH = 0.9f
 private const val GLOW_SPREAD = 0.35f
 /** The tightest a fanned hand may get before it scrolls instead. */
-private const val MIN_STEP = 0.45f
+/** The closest the cards may sit (× a card's width): the thumb magnifier opens them up to read. */
+private const val MIN_STEP = 0.12f
+/** How much bigger a card under the thumb grows. */
+private const val LENS_GROW = 0.12f
+
 
 /** Lays the content out centred just under where it's placed ([gap] below), taking no room itself. */
 private fun Modifier.hangBelow(gap: Dp): Modifier = layout { measurable, constraints ->

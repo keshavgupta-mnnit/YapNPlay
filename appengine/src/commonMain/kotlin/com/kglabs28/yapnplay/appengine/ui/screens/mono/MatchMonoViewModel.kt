@@ -361,7 +361,7 @@ class MatchMonoViewModel(
         director.turn(myTurn, if (remaining == Long.MAX_VALUE) 0L else remaining)
         setState {
             copy(
-                leaveDialog = leave.ui(now, m.spectators.map { it.name }, m.me != null, roomMatch = m.roomId != null),
+                leaveDialog = leave.ui(now, m.spectators.map { it.name }, m.me != null, roomMatch = m.roomId != null, outOfGame = m.me?.seat?.let { it in m.finishedSeats } == true),
                 // The end-game vote comes first: play is paused until it is decided.
                 sheet = m.endVote?.let { TableSheetUi.EndVote(EndVoteUiMapper.of(it, m.me?.seat, m.player(it.proposerSeat)?.name.orEmpty(), MonoStrings.monoEndRanking, now)) }
                     ?: sheets.current(now),
@@ -471,8 +471,6 @@ class MatchMonoViewModel(
         val shown = state.value
         val playing = m.phase == MonoPhase.AWAITING_PLAY.name || shown.canStack
         if (!shown.myTurn || !playing || shown.canPass || shown.playableIndexes.isNotEmpty()) return
-        // Holding a draw card under a stack, the user decides (stack, or Take): never taken for them.
-        if (shown.canStack && m.me?.hand?.any { it.penaltyValue() > 0 } == true) return
         val turn = m.currentSeat to m.turnEndsAt
         if (autoDrewFor == turn) return
         autoDrewFor = turn
@@ -545,4 +543,4 @@ private const val REPORT_INVOLVED = 2
 /** The beat before the table draws for a user with nothing to play. */
 private val AUTO_DRAW_DELAY = 700.milliseconds
 /** Longer for a stack, so its message can be read before the cards come. */
-private val AUTO_STACK_DELAY = 2_500.milliseconds
+private val AUTO_STACK_DELAY = 800.milliseconds

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.layout.heightIn
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -66,7 +67,9 @@ fun TablePlayerCard(
         onClick != null -> Modifier.clickable(onClick = onClick)
         else -> Modifier
     }
-    Column(modifier = modifier) {
+    // Room for the header, a tag and the user's switches, kept up front: the card stays put, the rest shifts inside.
+    val under = if (controls != null) seatSwitchSize(avatar) + Spacing.Xxs else YapNPlayTheme.dimens.zero
+    Column(modifier = modifier.heightIn(min = seatBoxHeight(avatar, YapNPlayTheme.dimens.seatTagSlot, under))) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,7 +102,7 @@ fun TablePlayerCard(
                     null
                 },
             )
-            // A fixed slot for the tag, so it never collides with the switches below or the seat under it.
+            // The tag (when one shows) right under the header; the switches below it.
             ArenaSeatTagSlot(text = badge, tint = badgeTint, avatar = avatar)
             // The user's switches under the card, centred on it, sized to it and clear of the avatar's badge.
             if (controls != null) {

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.playrooms
 
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -86,8 +88,10 @@ fun YourRoomsPanel(
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {
+                val listState = rememberLazyListState()
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    state = listState,
+                    modifier = Modifier.glassScrollbar(listState).fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
                 ) {
                     items(rooms, key = { it.id }) { room ->

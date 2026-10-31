@@ -67,7 +67,7 @@ class MutedTalkReporter(
     }
 
     private companion object {
-        const val START_MS = 400L
+        const val START_MS = 700L
         const val STOP_MS = 1_500L
     }
 }

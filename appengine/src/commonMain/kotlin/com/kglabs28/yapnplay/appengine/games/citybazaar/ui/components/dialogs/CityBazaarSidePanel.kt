@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.verticalScrollWithBar
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
@@ -9,8 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
@@ -41,7 +40,7 @@ fun CityBazaarSidePanel(
                 modifier = fill
                     .cbGlassBlack(RoundedCornerShape(YapNPlayTheme.dimens.cbRowRadius))
                     .padding(Spacing.Xs)
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScrollWithBar(),
                 verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
                 panel.cities.forEach { CbCityCard(city = it, onClick = { onPropertyClick(it.tile) }) }

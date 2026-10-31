@@ -200,6 +200,7 @@ fun MainScreen(
                 level = state.level,
                 levelProgress = state.levelProgress,
                 xpLabel = state.xpLabel,
+                onXp = { viewModel?.onIntent(MainIntent.OpenHistory) },
                 onAddCoins = { viewModel?.onIntent(MainIntent.OpenGetCoins) },
                 selectedTab = state.selectedTab,
                 onSelectTab = { tab ->

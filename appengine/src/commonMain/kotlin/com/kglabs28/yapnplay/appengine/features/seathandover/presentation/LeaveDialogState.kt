@@ -31,16 +31,19 @@ class LeaveDialogState {
     }
 
     /** The dialog to show now, or null when closed (or its time ran out, which closes it). */
-    fun ui(now: Instant, spectatorNames: List<String>, hasSeat: Boolean, roomMatch: Boolean): LeaveDialogUi? {
+    /** [outOfGame]: the user's game is already over (knocked out, finished, bankrupt): leaving costs nothing. */
+    fun ui(now: Instant, spectatorNames: List<String>, hasSeat: Boolean, roomMatch: Boolean, outOfGame: Boolean = false): LeaveDialogUi? {
         val end = deadline ?: return null
         if (now >= end) {
             close()
             return null
         }
-        val options = if (hasSeat && roomMatch && spectatorNames.isNotEmpty()) SeatHandoverUiMapper.options(spectatorNames, withBot = true) else emptyList()
+        val options = if (hasSeat && !outOfGame && roomMatch && spectatorNames.isNotEmpty()) SeatHandoverUiMapper.options(spectatorNames, withBot = true) else emptyList()
         return LeaveDialogUi(
             message = when {
                 !hasSeat -> TableStrings.seatSpectatorLeaveBody
+                // Already out: no seat to hand on, no penalty; only what they'd miss.
+                outOfGame -> TableStrings.leaveWhenOutBody
                 !roomMatch -> TableStrings.leaveQuickPlayBody
                 options.isNotEmpty() -> TableStrings.seatLeaveBody
                 else -> TableStrings.leaveMatchBody

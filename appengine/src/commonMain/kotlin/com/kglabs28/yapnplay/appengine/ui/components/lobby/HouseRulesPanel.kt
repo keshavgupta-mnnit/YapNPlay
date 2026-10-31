@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
 import com.kglabs28.yapnplay.appengine.ui.components.coins.LeagueUi
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.background
@@ -70,8 +72,10 @@ fun HouseRulesPanel(
                 leadingIcon = Icons.Rounded.Gavel,
             )
         }
+        val listState = rememberLazyListState()
         LazyColumn(
-            modifier = Modifier
+            state = listState,
+            modifier = Modifier.glassScrollbar(listState)
                 .weight(1f)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),

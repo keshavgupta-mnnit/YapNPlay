@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,22 +34,24 @@ fun MonoSwapChoice(
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm, Alignment.CenterHorizontally)) {
+    // Tiles as tall as the colour picker's buttons and sharing the card's width, so every MONO choice looks alike.
+    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.Xs, Alignment.CenterHorizontally)) {
         targets.forEach { target ->
-            Column(
+            Row(
                 modifier = Modifier
+                    .weight(1f)
+                    .height(dimens.ctaHeight)
                     .glassPill(glowColor = colors.SocialZoneAccent, surface = colors.RoomsPanel, shape = RoundedCornerShape(dimens.cardRadius))
                     .clickable(role = Role.Button) { onPick(target.seat) }
-                    .padding(horizontal = Spacing.Sm, vertical = Spacing.Xs),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
+                    .padding(horizontal = Spacing.Xs),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
             ) {
                 PresetAvatar(avatarId = target.avatarId, size = dimens.monoSwapAvatar)
-                ShrinkText(
-                    text = target.name,
-                    style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold),
-                )
-                BasicText(text = MonoStrings.monoSwapCards(target.cards), style = typography.micro.copy(color = colors.TextSecondary), maxLines = 1)
+                Column(modifier = Modifier.weight(1f)) {
+                    ShrinkText(text = target.name, style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
+                    BasicText(text = MonoStrings.monoSwapCards(target.cards), style = typography.micro.copy(color = colors.TextSecondary), maxLines = 1)
+                }
             }
         }
     }

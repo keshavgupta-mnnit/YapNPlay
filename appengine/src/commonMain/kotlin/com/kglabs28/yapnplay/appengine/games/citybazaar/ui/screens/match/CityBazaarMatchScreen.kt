@@ -376,6 +376,7 @@ fun CityBazaarMatchContent(
                                 autoplay = state.autoplay,
                                 onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
                                 onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
+                            showAutoplay = state.myCard?.out != true,
                             )
                         }
                     }
@@ -550,6 +551,7 @@ private fun BoxScope.CityRoyale3dSeats(
                     autoplay = state.autoplay,
                     onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
                     onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
+                    showAutoplay = state.myCard?.out != true,
                     gap = Spacing.Xs,
                 )
             }

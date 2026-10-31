@@ -410,7 +410,7 @@ class MatchMonoChaosViewModel(
         director.turn(myTurn, if (remaining == Long.MAX_VALUE) 0L else remaining)
         setState {
             copy(
-                leaveDialog = leave.ui(now, m.spectators.map { it.name }, m.me != null, roomMatch = m.roomId != null),
+                leaveDialog = leave.ui(now, m.spectators.map { it.name }, m.me != null, roomMatch = m.roomId != null, outOfGame = m.me?.seat?.let { it in eliminated || it in m.finishedSeats } == true),
                 // The end-game vote comes first: play is paused until it is decided.
                 sheet = m.endVote?.let { TableSheetUi.EndVote(EndVoteUiMapper.of(it, m.me?.seat, m.player(it.proposerSeat)?.name.orEmpty(), MonoStrings.monoEndRanking, now)) }
                     ?: sheets.current(now),
@@ -525,8 +525,6 @@ class MatchMonoChaosViewModel(
         val drawing = m.phase == MonoChaosPhase.AWAITING_DRAW_UNTIL_PLAYABLE.name || m.phase == MonoChaosPhase.AWAITING_ROULETTE_DRAW.name
         val playing = m.phase == MonoChaosPhase.AWAITING_PLAY.name || shown.canStack || drawing
         if (!shown.myTurn || !playing || shown.canPass || shown.playableIndexes.isNotEmpty()) return
-        // Holding a draw card under a stack, the user decides (stack, or Take): never taken for them.
-        if (shown.canStack && m.me?.hand?.any { it.penaltyValue() > 0 } == true) return
         // One step per card: the hand's size tells the steps of a turn apart.
         val step = DrawStep(m.currentSeat, m.turnEndsAt, m.me?.hand?.size ?: 0)
         if (autoDrewFor == step) return
@@ -603,4 +601,4 @@ private val AUTO_DRAW_DELAY = 700.milliseconds
 /** Between one card and the next while drawing one at a time. */
 private val AUTO_STEP_DELAY = 900.milliseconds
 /** Longer for a stack, so its message can be read before the cards come. */
-private val AUTO_STACK_DELAY = 2_500.milliseconds
+private val AUTO_STACK_DELAY = 800.milliseconds

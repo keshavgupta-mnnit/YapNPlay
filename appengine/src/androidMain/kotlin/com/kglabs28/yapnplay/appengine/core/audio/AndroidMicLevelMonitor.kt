@@ -72,6 +72,8 @@ class AndroidMicLevelMonitor(private val context: Context) : MicLevelMonitor {
         }
         val frame = ShortArray(FRAME)
         var lastLoud = 0L
+        // Loud frames in a row: speech runs on, a knock, a cough or a passing noise does not.
+        var streak = 0
         var floor = THRESHOLD
         var lastLog = 0L
         try {
@@ -87,7 +89,8 @@ class AndroidMicLevelMonitor(private val context: Context) : MicLevelMonitor {
                 val rms = sqrt(sum / read)
                 val now = SystemClock.elapsedRealtime()
                 floor = if (rms < floor) rms else floor + (rms - floor) * FLOOR_RISE
-                if (rms >= THRESHOLD && rms >= floor * NOISE_MARGIN) lastLoud = now
+                streak = if (rms >= THRESHOLD && rms >= floor * NOISE_MARGIN) streak + 1 else 0
+                if (streak >= MIN_LOUD_FRAMES) lastLoud = now
                 level.value = lastLoud > 0 && now - lastLoud < HOLD_MS
                 if (now - lastLog >= LOG_EVERY_MS) {
                     lastLog = now
@@ -112,11 +115,13 @@ class AndroidMicLevelMonitor(private val context: Context) : MicLevelMonitor {
         const val BUFFER_FRAMES = 4
         const val BYTES_PER_SAMPLE = 2
         const val FULL_SCALE = 32_768.0
-        /** RMS level (0–1) that counts as speech: about −34 dBFS. */
-        const val THRESHOLD = 0.02
+        /** RMS level (0–1) that counts as speech: about −30 dBFS (the plain mic has no noise filter). */
+        const val THRESHOLD = 0.03
         const val HOLD_MS = 400L
         /** Speech must be this many times louder than the background noise. */
-        const val NOISE_MARGIN = 3.0
+        const val NOISE_MARGIN = 4.0
+        /** Loud frames in a row (20 ms each) before it counts as talking: about a quarter of a second. */
+        const val MIN_LOUD_FRAMES = 12
         /** How fast the noise floor follows a louder room (per 20 ms frame). */
         const val FLOOR_RISE = 0.002
         const val LOG_EVERY_MS = 500L

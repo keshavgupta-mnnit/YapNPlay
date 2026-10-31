@@ -94,6 +94,7 @@ object MonoStrings {
     /** Declines the card just drawn and ends the turn. */
     const val monoPass = "PASS"
     fun monoStack(penalty: Int) = "STACK: +$penalty CARDS"
+    fun monoStackWithNote(stack: String, note: String) = "$stack · $note"
 
 
     const val monoYourTurn = "YOUR TURN"
@@ -101,7 +102,7 @@ object MonoStrings {
 
     const val monoChooseColour = "Choose a colour"
     const val monoChooseRouletteColour = "Wild Roulette hit you!"
-    const val monoChooseRouletteColourHint = "Pick a colour: you'll flip cards until one of that colour comes up"
+    const val monoChooseRouletteColourHint = "Pick a colour: you flip cards until it comes up"
 
 
     const val monoAway = "Away"

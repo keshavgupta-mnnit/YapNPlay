@@ -17,6 +17,7 @@ object TableStrings {
     const val seatImHere = "I'm Here"
     const val seatSpectate = "Spectate"
     const val seatSpectatorLeaveBody = "You're watching as a spectator."
+    const val leaveWhenOutBody = "You're out of this game, so leaving costs you nothing. Sure you don't want to stay and see who wins?"
     /** "1st", "2nd", "3rd", "4th"… — every game's place label. */
     fun placeLabel(place: Int) = when (place) {
         1 -> "1st"

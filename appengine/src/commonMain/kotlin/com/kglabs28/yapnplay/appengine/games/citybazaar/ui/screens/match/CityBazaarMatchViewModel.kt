@@ -390,12 +390,12 @@ class CityBazaarMatchViewModel(
         val m = update.match
         var breathed = 0L
         for ((index, event) in update.events.withIndex()) {
-            // Club / Rest House: the lander and every other player, told once as one move.
-            if (event is CityBazaarEvent.Money && clubLander(event) != null) {
-                if (index > 0 && sameClubRun(update.events[index - 1], event)) continue
-                val run = update.events.drop(index).takeWhile { sameClubRun(it, event) }.filterIsInstance<CityBazaarEvent.Money>()
+            // One player and everyone (Club, Rest House, a card paying or collecting from all): told once as one move.
+            if (event is CityBazaarEvent.Money && groupable(event)) {
+                if (index > 0 && sameRun(update.events[index - 1], event)) continue
+                val run = update.events.drop(index).takeWhile { sameRun(it, event) }.filterIsInstance<CityBazaarEvent.Money>()
                 if (run.size > 1) {
-                    clubRun(run, m)
+                    groupRun(run, m)
                     if (breathed < cbConfig.eventBreathMaxMs()) {
                         delay(cbConfig.eventBreathMs())
                         breathed += cbConfig.eventBreathMs()
@@ -535,28 +535,29 @@ class CityBazaarMatchViewModel(
         render()
     }
 
-    /** Club: the lander pays everyone; Rest House: everyone pays the lander. Null for any other money. */
-    private fun clubLander(event: CityBazaarEvent.Money): Int? = when (event.reason) {
-        MoneyReason.CLUB -> event.from?.takeIf { event.to != null }
-        MoneyReason.REST -> event.to?.takeIf { event.from != null }
-        else -> null
-    }
+    /** Money between two players that may be one of many moves from (or to) one player: Club, Rest House, a card. */
+    private fun groupable(event: CityBazaarEvent.Money): Boolean =
+        event.from != null && event.to != null && event.reason in GROUPED_REASONS
 
-    /** [other] is part of the same Club / Rest House move as [first]. */
-    private fun sameClubRun(other: CityBazaarEvent, first: CityBazaarEvent.Money): Boolean =
-        other is CityBazaarEvent.Money && other.reason == first.reason && other.tile == first.tile && clubLander(other) == clubLander(first)
+    /** [other] is part of the same one-and-everyone move as [first]: the same player pays (or is paid) each time. */
+    private fun sameRun(other: CityBazaarEvent, first: CityBazaarEvent.Money): Boolean =
+        other is CityBazaarEvent.Money && groupable(other) && other.reason == first.reason && other.tile == first.tile &&
+            (other.from == first.from || other.to == first.to)
 
     /**
-     * One Club / Rest House move ([run]: one payment per other player) as a
-     * single message: the money moves on every card at once, the history and
-     * snackbar say "X paid all N players" (or "all N paid X") once, and the
-     * user gets one popup — the total when they landed, their own share
-     * otherwise.
+     * One move between one player and everyone ([run]: one payment per other
+     * player: the Club, the Rest House, a card paying or collecting from all)
+     * as a single message: the money moves on every card at once, the history
+     * and snackbar say "X paid all N players" (or "all N paid X") once, and
+     * the user gets one popup — the total when it was their move, their own
+     * share otherwise.
      */
-    private fun clubRun(run: List<CityBazaarEvent.Money>, m: CityBazaarMatch) {
+    private fun groupRun(run: List<CityBazaarEvent.Money>, m: CityBazaarMatch) {
         val first = run.first()
-        val club = first.reason == MoneyReason.CLUB
-        val lander = clubLander(first) ?: return
+        // The player at the centre: the one paying everyone, or the one everyone pays.
+        val centrePays = run.all { it.from == first.from }
+        val lander = (if (centrePays) first.from else first.to) ?: return
+        val deck = lastDeck ?: CityBazaarStrings.cbFeedCardDefault
         val mySeat = m.me?.seat
         val before = mySeat?.let { shownCash[it] } ?: 0
         run.forEach { e ->
@@ -566,19 +567,31 @@ class CityBazaarMatchViewModel(
         val name = m.player(lander)?.name.orEmpty()
         val each = CbFormat.rupees(first.amount)
         val total = run.sumOf { it.amount }
-        var text = if (club) CityBazaarStrings.cbFeedClubAll(name, each, run.size) else CityBazaarStrings.cbFeedRestAll(name, each, run.size)
+        var text = when (first.reason) {
+            MoneyReason.CLUB -> CityBazaarStrings.cbFeedClubAll(name, each, run.size)
+            MoneyReason.REST -> CityBazaarStrings.cbFeedRestAll(name, each, run.size)
+            else -> if (centrePays) CityBazaarStrings.cbFeedCardPaidAll(name, each, run.size, deck) else CityBazaarStrings.cbFeedCardCollectedAll(name, each, run.size, deck)
+        }
         pendingDice?.let { dice -> text += CityBazaarStrings.cbFeedRollSuffix(dice.die1, dice.die2) }
         pendingRoll = null
         pendingDice = null
         val myShare = run.firstOrNull { it.from == mySeat || it.to == mySeat }
         val popup = myShare != null && m.moneyPopups
         if (popup && mySeat == lander) {
-            val gain = !club
+            val gain = !centrePays
             showTransaction(
                 CbTransactionUi(
                     id = 0,
-                    title = if (club) CityBazaarStrings.cbTitleClub else CityBazaarStrings.cbTitleRestHouse,
-                    line = if (club) CityBazaarStrings.cbYouClubAll(each, run.size, CbFormat.rupees(total)) else CityBazaarStrings.cbYouRestAll(each, run.size, CbFormat.rupees(total)),
+                    title = when (first.reason) {
+                        MoneyReason.CLUB -> CityBazaarStrings.cbTitleClub
+                        MoneyReason.REST -> CityBazaarStrings.cbTitleRestHouse
+                        else -> deck
+                    },
+                    line = when (first.reason) {
+                        MoneyReason.CLUB -> CityBazaarStrings.cbYouClubAll(each, run.size, CbFormat.rupees(total))
+                        MoneyReason.REST -> CityBazaarStrings.cbYouRestAll(each, run.size, CbFormat.rupees(total))
+                        else -> if (centrePays) CityBazaarStrings.cbYouCardPaidAll(each, run.size, CbFormat.rupees(total), deck) else CityBazaarStrings.cbYouCardCollectedAll(each, run.size, CbFormat.rupees(total), deck)
+                    },
                     status = if (gain) CityBazaarStrings.cbTxCrediting else CityBazaarStrings.cbTxDeducting,
                     fromAvatarId = if (gain) null else m.player(lander)?.avatarId,
                     toAvatarId = if (gain) m.player(lander)?.avatarId else null,
@@ -720,7 +733,7 @@ class CityBazaarMatchViewModel(
         }
         // Someone asked to end the game: everyone sees it while play is paused.
         val endVote = m.endVote?.let { CbPromptMapper.endVote(m, it, now) }
-        val leaving = leave.ui(now, m.spectators.map { it.name }, m.me != null, roomMatch = m.isRoomMatch)?.let { CbModal.LeaveConfirm(it) }
+        val leaving = leave.ui(now, m.spectators.map { it.name }, m.me != null, roomMatch = m.isRoomMatch, outOfGame = m.me?.bankrupt == true)?.let { CbModal.LeaveConfirm(it) }
         val modal = vote?.let { CityBazaarModerationUiMapper.vote(it, now) } ?: leaving ?: endVote ?: auction ?: extension ?: decision
             ?: seats.modal(CbTableMapper.seatTable(m), now)?.let { CbModal.Seat(it) } ?: userModal
         val panel = panelTile?.let { CbPropertyMapper.tileInfo(m, it) }
@@ -931,6 +944,8 @@ class CityBazaarMatchViewModel(
     }
 
     private companion object {
+        /** Money that may move between one player and everyone at once. */
+        val GROUPED_REASONS = setOf(MoneyReason.CLUB, MoneyReason.REST, MoneyReason.CARD)
         const val MILLIS = 1_000L
         /** Money the dialogs already showed (buying, building, selling). */
         val QUIET = setOf(MoneyReason.BUY, MoneyReason.BUILD, MoneyReason.SELL, MoneyReason.BANKRUPTCY)

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.verticalScrollWithBar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,10 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,7 +47,7 @@ fun CbDeckPanel(panel: CbPanel.Deck, modifier: Modifier = Modifier) {
                 .padding(vertical = Spacing.Xxs),
         )
         Column(
-            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Spacing.Xs).padding(bottom = Spacing.Xs),
+            modifier = Modifier.weight(1f).verticalScrollWithBar().padding(horizontal = Spacing.Xs).padding(bottom = Spacing.Xs),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
             BasicText(text = panel.body, style = typography.micro.copy(color = colors.TextSecondary))

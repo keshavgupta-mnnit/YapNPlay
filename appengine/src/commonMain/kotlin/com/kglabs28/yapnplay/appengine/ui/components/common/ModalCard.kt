@@ -1,7 +1,5 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -56,7 +54,7 @@ fun ModalCard(
                 surface = surface,
                 surfaceBrush = surfaceBrush ?: SolidColor(surface),
             )
-            .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
+            .then(if (scrollable) Modifier.verticalScrollWithBar() else Modifier)
             .padding(Spacing.Lg),
         verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
     ) {

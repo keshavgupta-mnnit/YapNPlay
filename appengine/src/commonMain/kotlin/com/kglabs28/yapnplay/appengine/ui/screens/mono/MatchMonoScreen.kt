@@ -142,7 +142,7 @@ fun MatchMonoContent(
             )
         }
         val me = match?.me
-        val (leftPods, topPods, rightPods) = TableSeatPlan.zones(pods, watching = me == null)
+        val (leftPods, topPods, rightPods) = TableSeatPlan.zones(pods, watching = match != null && me == null)
 
         MonoTableShell(
             title = MonoStrings.monoTitle,
@@ -198,7 +198,8 @@ fun MatchMonoContent(
             caughtButton = { if (!state.outOfPlay) MonoCaughtButton(onClick = { send(MatchMonoIntent.Caught) }) },
             hand = { MonoHand(state = state, send = send, anchors = anchors, flights = flights) },
             monoButton = { if (!state.outOfPlay) MonoCallButton(onClick = { send(MatchMonoIntent.CallMono) }) },
-            watching = me == null,
+            // Only once the match is in: before that the user is not a watcher (no spectator buttons flash up).
+            watching = match != null && me == null,
             watcherControls = {
                 TableSpectatorVoiceButtons(
                     micOn = state.micOn,
@@ -287,8 +288,9 @@ private fun MonoArena(state: MatchMonoState, anchors: MonoAnchors, flights: Mono
         anchors = anchors,
         // The deck draws too (or takes the stack, like the Draw button).
         onDeckClick = { send(if (state.canStack) MatchMonoIntent.AcceptStack else MatchMonoIntent.DrawCard) },
-        // On the user's turn only: draw (or take the stack), and pass after a draw.
-        deckButtons = if (state.myTurn && !state.outOfPlay) ({ MonoDeckButtons(state.canStack, state.canPass, state.activeStackPenalty, { send(if (state.canStack) MatchMonoIntent.AcceptStack else MatchMonoIntent.DrawCard) }, { send(MatchMonoIntent.Pass) }) }) else null,
+        // On the user's turn only: draw (or take the stack), and pass after a draw. Under a stack with nothing
+        // to stack, the cards are taken for them at once: no button.
+        deckButtons = if (state.myTurn && !state.outOfPlay && !(state.canStack && state.playableIndexes.isEmpty())) ({ MonoDeckButtons(state.canStack, state.canPass, state.activeStackPenalty, { send(if (state.canStack) MatchMonoIntent.AcceptStack else MatchMonoIntent.DrawCard) }, { send(MatchMonoIntent.Pass) }) }) else null,
         modifier = Modifier
             .fillMaxSize()
             .padding(vertical = Spacing.Xs),

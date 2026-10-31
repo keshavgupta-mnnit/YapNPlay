@@ -49,6 +49,8 @@ fun AppCurrenciesPill(
     balancesVisible: Boolean,
     modifier: Modifier = Modifier,
     onAddCoins: () -> Unit = {},
+    /** A tap on the level and XP: the match history. */
+    onXp: () -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -61,6 +63,7 @@ fun AppCurrenciesPill(
     val xpPill = Modifier
         .height(dimens.homeBarControl)
         .glassPill(glowColor = colors.TopBarIcon, surface = colors.TopBarCurrencyPill)
+        .clickable(role = Role.Button, onClick = onXp)
         .padding(horizontal = Spacing.Xs)
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {

@@ -142,7 +142,7 @@ fun MatchMonoChaosContent(
             )
         }
         val me = match?.me
-        val (leftPods, topPods, rightPods) = TableSeatPlan.zones(pods, watching = me == null)
+        val (leftPods, topPods, rightPods) = TableSeatPlan.zones(pods, watching = match != null && me == null)
 
         MonoTableShell(
             title = MonoStrings.monoChaosTitle,
@@ -201,7 +201,8 @@ fun MatchMonoChaosContent(
             caughtButton = { if (!state.outOfPlay) MonoCaughtButton(onClick = { send(MatchMonoChaosIntent.Caught) }) },
             hand = { MonoChaosHand(state = state, send = send, anchors = anchors, flights = flights) },
             monoButton = { if (!state.outOfPlay) MonoCallButton(onClick = { send(MatchMonoChaosIntent.CallMono) }) },
-            watching = me == null,
+            // Only once the match is in: before that the user is not a watcher (no spectator buttons flash up).
+            watching = match != null && me == null,
             watcherControls = {
                 TableSpectatorVoiceButtons(
                     micOn = state.micOn,
@@ -290,8 +291,9 @@ private fun MonoChaosArena(state: MatchMonoChaosState, anchors: MonoAnchors, fli
         chaos = true,
         // The deck draws too (or takes the stack, like the Draw button).
         onDeckClick = { send(if (state.canStack) MatchMonoChaosIntent.AcceptStack else MatchMonoChaosIntent.DrawUntilPlayable) },
-        // On the user's turn only: draw (or take the stack), and pass after a draw.
-        deckButtons = if (state.myTurn && !state.outOfPlay) ({ MonoDeckButtons(state.canStack, state.canPass, state.activeStackPenalty, { send(if (state.canStack) MatchMonoChaosIntent.AcceptStack else MatchMonoChaosIntent.DrawUntilPlayable) }, { send(MatchMonoChaosIntent.Pass) }) }) else null,
+        // On the user's turn only: draw (or take the stack), and pass after a draw. Under a stack with nothing
+        // to stack, the cards are taken for them at once: no button.
+        deckButtons = if (state.myTurn && !state.outOfPlay && !(state.canStack && state.playableIndexes.isEmpty())) ({ MonoDeckButtons(state.canStack, state.canPass, state.activeStackPenalty, { send(if (state.canStack) MatchMonoChaosIntent.AcceptStack else MatchMonoChaosIntent.DrawUntilPlayable) }, { send(MatchMonoChaosIntent.Pass) }) }) else null,
         modifier = Modifier
             .fillMaxSize()
             .padding(vertical = Spacing.Xs),

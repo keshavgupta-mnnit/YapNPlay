@@ -118,6 +118,8 @@ object LudoMatchUiMapper {
 
     fun leaveBody(match: LudoMatch): String = when {
         match.me == null -> TableStrings.seatSpectatorLeaveBody
+        // Already home: leaving costs nothing, only the rest of the race.
+        match.me?.seat in match.finishedSeats -> TableStrings.leaveWhenOutBody
         match.isRoomMatch -> TableStrings.seatLeaveBody
         else -> LudoStrings.ludoLeaveBody
     }
@@ -133,7 +135,7 @@ object LudoMatchUiMapper {
 
     /** "Give your seat to" choices: the bot and the spectators in a room match; none in Quick Play or when only watching. */
     fun leaveOptions(match: LudoMatch): List<SeatPickOptionUi> =
-        if (match.isRoomMatch && match.me != null) SeatHandoverUiMapper.options(match.spectators.map { it.name }, withBot = true) else emptyList()
+        if (match.isRoomMatch && match.me != null && match.me?.seat !in match.finishedSeats) SeatHandoverUiMapper.options(match.spectators.map { it.name }, withBot = true) else emptyList()
 
     /** What the shared seat dialogs need from this match. */
     fun seatTable(match: LudoMatch) = SeatTable(

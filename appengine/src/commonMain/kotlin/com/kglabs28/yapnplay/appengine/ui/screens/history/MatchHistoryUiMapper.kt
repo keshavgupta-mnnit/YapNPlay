@@ -22,7 +22,9 @@ import kotlinx.datetime.toLocalDateTime
 
 /** Past matches as history rows, and one of them as its leaderboard again. */
 object MatchHistoryUiMapper {
-    fun row(match: PastMatch): MatchHistoryRowUi {
+    /** [leagueFees]: every league's entry, cheapest first (for the league's look). */
+    fun row(match: PastMatch, leagueFees: List<Int> = emptyList()): MatchHistoryRowUi {
+        val entry = entryOf(match)
         val mine = match.mine
         val result = mine?.result
         val ended = Instant.fromEpochMilliseconds(match.endedAt).toLocalDateTime(TimeZone.currentSystemDefault())
@@ -36,9 +38,13 @@ object MatchHistoryUiMapper {
             // Left before the end: abandoned, not a place.
             place = mine?.let { if (it.left) HistoryStrings.historyAbandoned else TableStrings.placeLabel(it.place) },
             placeNumber = mine?.takeUnless { it.left }?.place,
+            // Left while still in the game: an abandon. (Leaving after being knocked out or finishing keeps the place.)
+            opensBoard = mine?.left != true,
+            league = entry?.let { HistoryStrings.historyLeague(TextUtils.groupedThousands(it)) } ?: HistoryStrings.historyFreeLeague,
+            leagueRank = leagueFees.indexOf(entry ?: 0),
+            leagueCount = leagueFees.size,
             line = listOfNotNull(
                 if (match.roomMatch) match.roomName.ifBlank { HistoryStrings.historyRoom } else HistoryStrings.historyQuickPlay,
-                league(match),
                 Strings.shortDateTime(date.dayOfMonth, date.monthNumber, date.year, ended.hour, ended.minute),
             ).joinToString(SEPARATOR),
             // "Net": unlike the leaderboard's "Won" (the prize alone), this is after the entry and with the finishing bonus.
@@ -49,14 +55,11 @@ object MatchHistoryUiMapper {
             },
             lost = net < 0,
             xp = HistoryStrings.historyXp(TextUtils.groupedThousands(result?.xp ?: 0)),
-            opensBoard = mine?.left != true,
         )
     }
 
-    /** "500 coins league", or "Free league": everyone who paid paid the same entry. */
-    private fun league(match: PastMatch): String =
-        match.seats.maxOfOrNull { it.result.stake }?.takeIf { it > 0 }?.let { HistoryStrings.historyLeague(TextUtils.groupedThousands(it)) }
-            ?: HistoryStrings.historyFreeLeague
+    /** The entry everyone who paid paid; null for a free match. */
+    private fun entryOf(match: PastMatch): Int? = match.seats.maxOfOrNull { it.result.stake }?.takeIf { it > 0 }
 
     /** The match's end-of-game leaderboard, as the table showed it. */
     fun board(match: PastMatch): LeaderboardUi {

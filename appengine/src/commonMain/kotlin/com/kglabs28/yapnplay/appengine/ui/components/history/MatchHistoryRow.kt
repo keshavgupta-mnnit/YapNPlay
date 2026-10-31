@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.ui.components.history
 
+import androidx.compose.ui.draw.alpha
+import com.kglabs28.yapnplay.appengine.ui.components.common.TierLooks
+import com.kglabs28.yapnplay.appengine.ui.components.common.TierLook
+import androidx.compose.ui.graphics.Brush
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.podium.podiumMedal
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.background
@@ -19,7 +23,6 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
@@ -32,7 +35,7 @@ import com.kglabs28.yapnplay.appengine.ui.screens.history.MatchHistoryRowUi
 
 /**
  * One past match, in one line: the game, its place (1st gold, 2nd silver,
- * 3rd bronze) and "group · league · date"; then the XP; then the coins,
+ * 3rd bronze), its league (in the league picker's look) and "group · date"; then the XP; then the coins,
  * each behind a thin divider, in columns of the same width on every row. A tap opens its leaderboard, except for an abandoned one.
  */
 @Composable
@@ -52,9 +55,11 @@ fun MatchHistoryRow(row: MatchHistoryRowUi, onClick: () -> Unit, modifier: Modif
         horizontalArrangement = Arrangement.spacedBy(Spacing.Md),
     ) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
-            ShrinkText(text = row.game, style = typography.sectionTitle.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
+            ShrinkText(text = row.game, style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
                 row.place?.let { PlacePill(text = it, tint = placeTint(row)) }
+                // The league, in the same look as the league picker (cheapest plainest, dearest royal).
+                if (row.league.isNotEmpty()) LeaguePill(text = row.league, tier = TierLooks.forLeague(row.leagueRank.coerceAtLeast(0), row.leagueCount))
                 ShrinkText(text = row.line, style = typography.label.copy(color = colors.TextSecondary), modifier = Modifier.weight(1f))
             }
         }
@@ -98,6 +103,22 @@ private fun PlacePill(text: String, tint: Color) {
     )
 }
 
+/** The match's league in its tier's glass and rim. */
+@Composable
+private fun LeaguePill(text: String, tier: TierLook) {
+    val shape = YapNPlayTheme.shapes.pill
+    BasicText(
+        text = text,
+        style = YapNPlayTheme.typography.label.copy(color = tier.rim, fontWeight = FontWeight.Black),
+        maxLines = 1,
+        modifier = Modifier
+            .clip(shape)
+            .background(Brush.verticalGradient(tier.fill))
+            .border(YapNPlayTheme.dimens.hairline, tier.rim, shape)
+            .padding(horizontal = Spacing.Xs, vertical = Spacing.Xxxs),
+    )
+}
+
 /** A thin upright line between the row's groups. */
 @Composable
 private fun RowDivider() {
@@ -110,8 +131,8 @@ private fun RowDivider() {
     )
 }
 
-private const val ABANDONED_ALPHA = 0.45f
 private const val PODIUM_PLACES = 3
+private const val ABANDONED_ALPHA = 0.45f
 private const val PILL_FILL_ALPHA = 0.16f
 private const val PILL_RIM_ALPHA = 0.6f
 private const val DIVIDER_ALPHA = 0.3f

@@ -27,4 +27,6 @@ data class LobbyRoom(
     val matchInProgress: String? = null,
     /** People asking to join; the server fills it only for the admin. */
     val waitingList: List<JoinRequest> = emptyList(),
+    /** Why the last start countdown stopped, and who stopped it; null since one started. */
+    val countdownStop: CountdownStopInfo? = null,
 )

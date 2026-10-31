@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.core.mvi.playTableUpdate
 import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.games.mono.domain.heldBackByColour
 import com.kglabs28.yapnplay.appengine.protocol.SeatPresence
@@ -214,7 +215,13 @@ class MatchMonoViewModel(
         jobs = sheets.start() + listOf(
             scope.launch {
                 try {
-                    observeMatch(id).collect { onUpdate(it) }
+                    // A failing update never stops the table: the latest match still shows and play goes on.
+                    observeMatch(id).collect { update ->
+                        playTableUpdate(update, "MatchMono.update", ::onUpdate) {
+                            match = it.match
+                            render()
+                        }
+                    }
                 } catch (e: Exception) {
                     setState { copy(loaded = true, error = e.message ?: MonoStrings.monoOpenFailed) }
                 }

@@ -112,6 +112,8 @@ sealed interface LobbyModal {
     data object WaitingList : LobbyModal
     data object LeaveConfirm : LobbyModal
     data class Countdown(val title: String, val canCancel: Boolean) : LobbyModal
+    /** The countdown stopped without a match: why and who ("Ravi cancelled the start."). */
+    data class CountdownStopped(val message: String) : LobbyModal
     /** Mic permission was refused: explain and offer Settings. */
     data object MicPermissionNeeded : LobbyModal
     /** The room's leaderboard (wins or coins). */

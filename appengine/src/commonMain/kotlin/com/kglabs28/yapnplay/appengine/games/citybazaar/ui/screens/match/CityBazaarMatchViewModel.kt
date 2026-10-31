@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.core.mvi.playTableUpdate
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverController
 import com.kglabs28.yapnplay.appengine.features.voice.domain.MySpeech
@@ -350,7 +351,15 @@ class CityBazaarMatchViewModel(
                     showModal(CbModal.ReportOutcome(TableStrings.matchGoneTitle, TableStrings.matchGoneBody))
                 }
             },
-            scope.launch { for (update in queue) play(update) },
+            // A failing update never stops the table: it jumps to that update's board and plays on.
+            scope.launch {
+                for (update in queue) {
+                    playTableUpdate(update, "CityBazaarMatch.play", ::play) {
+                        playing = false
+                        reset(it.match)
+                    }
+                }
+            },
             scope.launch { observeMatchCoins().collect { seatResults = it; leaderboard = leaderboard?.let { b -> LeaderboardResult.withResult(b, it) }; render() } },
             scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
             scope.launch { voice.observeMutedTalkers(id).collect { mutedTalkers = it; render() } },
@@ -690,8 +699,8 @@ class CityBazaarMatchViewModel(
         val m = match ?: return
         val me = m.me
         if (autoplayWanted != null && autoplayWanted == (me?.let { it.autoplay || it.presence == CityBazaarPresence.BOT } == true)) autoplayWanted = null
-        // The mic listens only while it's on at the table and the app is in front.
-        micGate.update(micOn = me?.micOn == true, inFront = foreground)
+        // The mic listens only while it's on at the table (a spectator's on their spectator entry) and the app is in front.
+        micGate.update(micOn = me?.micOn ?: m.spectators.firstOrNull { it.userId == m.viewerUserId }?.micOn ?: false, inFront = foreground)
         voiceNeed.update(micGate.open, speakerOn, m.players.filter { !it.isMe && !it.isCpu && !it.removed }.map { it.micOn } + m.spectators.filter { it.userId != m.viewerUserId }.map { it.micOn })
         // Others' talking comes from the server; the user's own from their mic.
         val talkers = if (mySpeech == MySpeech.SPEAKING) speaking + m.viewerUserId else speaking

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.playroomlobby.data
 
+import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.CountdownStopInfo
+import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.CountdownStopCause
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.JoinRequest
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.LobbyMember
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.LobbyRoom
@@ -44,4 +46,7 @@ fun RoomSnapshot.toLobbyRoom(now: Instant): LobbyRoom = LobbyRoom(
     countdownEndsAt = room.countdownDeadline?.let { now + (it - serverTime).milliseconds },
     matchInProgress = room.matchInProgress,
     waitingList = room.waitingList.map { JoinRequest(it.userId, it.displayName, it.requestedAt) },
+    countdownStop = room.countdownStop?.let {
+        CountdownStopInfo(CountdownStopCause.valueOf(it.reason.name), it.byUserId, it.byName, now + (it.at - serverTime).milliseconds)
+    },
 )

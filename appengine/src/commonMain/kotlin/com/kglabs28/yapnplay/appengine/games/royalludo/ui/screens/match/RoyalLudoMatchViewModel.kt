@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.core.mvi.playTableUpdate
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverController
 import com.kglabs28.yapnplay.appengine.features.voice.domain.MySpeech
@@ -228,7 +229,15 @@ class RoyalLudoMatchViewModel(
                     showModal(LudoMatchModal.ReportOutcome(TableStrings.matchGoneTitle, TableStrings.matchGoneBody))
                 }
             },
-            scope.launch { for (update in queue) play(update) },
+            // A failing update never stops the table: it jumps to that update's board and plays on.
+            scope.launch {
+                for (update in queue) {
+                    playTableUpdate(update, "RoyalLudoMatch.play", ::play) {
+                        playing = false
+                        reset(it.match)
+                    }
+                }
+            },
             scope.launch { observeMatchCoins().collect { seatResults = it; leaderboard = leaderboard?.let { b -> LeaderboardResult.withResult(b, it) }; render() } },
             scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
             scope.launch { voice.observeMutedTalkers(id).collect { mutedTalkers = it; render() } },

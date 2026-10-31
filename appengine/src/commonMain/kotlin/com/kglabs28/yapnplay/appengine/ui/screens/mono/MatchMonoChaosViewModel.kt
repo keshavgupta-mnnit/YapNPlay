@@ -456,11 +456,9 @@ class MatchMonoChaosViewModel(
                 eliminated = eliminated,
                 winnerSeat = MonoUiMapper.chaosWinner(m),
                 finished = m.phase == MonoChaosPhase.FINISHED.name,
-                timerFraction = if (remaining == Long.MAX_VALUE) {
-                    1f
-                } else {
-                    (remaining.toFloat() / turnMillis).coerceIn(0f, 1f)
-                },
+                // The ring runs down by itself to this deadline: the table isn't rebuilt for it.
+                turnEndsAtMillis = m.turnEndsAt?.toEpochMilliseconds(),
+                turnTotalMs = turnMillis.toLong(),
                 turnClock = turnClock,
                 topColour = m.topCardColor,
                 reversed = m.reversed,

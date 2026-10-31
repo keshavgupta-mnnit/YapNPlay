@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.leaderboard.podium
 
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -28,7 +29,8 @@ fun PodiumCrown(modifier: Modifier = Modifier) {
     BasicText(
         text = CROWN,
         style = YapNPlayTheme.typography.headline.copy(fontSize = fontSize, lineHeight = fontSize),
-        modifier = modifier.offset(y = -dimens.podiumCrown + dimens.boardRing * bob).zIndex(2f),
+        // Moved in the layout step only (the lambda offset): the crown isn't recomposed every frame.
+        modifier = modifier.offset { IntOffset(0, (-dimens.podiumCrown + dimens.boardRing * bob).roundToPx()) }.zIndex(2f),
     )
 }
 

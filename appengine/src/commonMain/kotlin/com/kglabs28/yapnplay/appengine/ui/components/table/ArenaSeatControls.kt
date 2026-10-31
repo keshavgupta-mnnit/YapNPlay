@@ -136,11 +136,12 @@ fun ArenaDiceButton(
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
+    // Read while drawing only (in graphicsLayer): the button isn't recomposed every frame.
     val bob = if (enabled) {
         val wobble = rememberInfiniteTransition(label = "dice-bob")
-        wobble.animateFloat(-1f, 1f, infiniteRepeatable(tween(BOB_MS), RepeatMode.Reverse), label = "dice-bob-value").value
+        wobble.animateFloat(-1f, 1f, infiniteRepeatable(tween(BOB_MS), RepeatMode.Reverse), label = "dice-bob-value")
     } else {
-        0f
+        null
     }
     val pill = RoundedCornerShape(percent = 50)
     val press = modifier
@@ -155,8 +156,9 @@ fun ArenaDiceButton(
             modifier = Modifier
                 .size(dimens.arenaDiceIcon)
                 .graphicsLayer {
-                    rotationZ = DICE_TURN + bob * DICE_SWING
-                    translationY = -bob * dimens.arenaDiceIcon.toPx() * DICE_HOP
+                    val b = bob?.value ?: 0f
+                    rotationZ = DICE_TURN + b * DICE_SWING
+                    translationY = -b * dimens.arenaDiceIcon.toPx() * DICE_HOP
                 },
         ) { drawFunDice(colors.ArenaDrawFillTop) }
     }

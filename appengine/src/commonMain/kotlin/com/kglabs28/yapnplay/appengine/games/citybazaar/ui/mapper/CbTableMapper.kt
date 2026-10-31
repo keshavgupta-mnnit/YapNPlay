@@ -58,11 +58,12 @@ object CbTableMapper {
     fun tokens(match: CityBazaarMatch, positions: Map<Int, Int>): List<CbTokenUi> =
         match.players.filter { !it.bankrupt }.map { CbTokenUi(it.seat, it.colour, positions[it.seat] ?: it.position) }
 
-    /** What every card needs: [remainingMs] null while a move animates; [cash] as shown so far. */
+    /** What every card needs: [turnEndsAtMillis] null while a move animates; [cash] as shown so far. */
     data class CardInputs(
         val speaking: Set<String>,
         val mutedForMe: Set<String>,
-        val remainingMs: Long?,
+        /** When the current turn ends (this device's clock); null while a move animates (the ring stays full). */
+        val turnEndsAtMillis: Long?,
         val turnSeconds: Long,
         val cash: Map<Int, Int>,
         /** Who is talking with their mic off (the user included): a grey glow. */
@@ -82,7 +83,6 @@ object CbTableMapper {
 
     fun cards(match: CityBazaarMatch, inputs: CardInputs): List<CbPlayerCardUi> {
         val totalMs = inputs.turnSeconds * MILLIS
-        val left = inputs.remainingMs?.coerceAtMost(totalMs) ?: totalMs
         val finished = match.phase == CityBazaarTurnPhase.FINISHED
         return match.players.map { p ->
             val isTurn = p.seat == match.currentSeat && !finished && !p.bankrupt
@@ -103,7 +103,8 @@ object CbTableMapper {
                 isTurn = isTurn,
                 talking = p.userId in inputs.speaking && p.micOn && !muted,
                 talkingMuted = p.userId in inputs.mutedTalkers && !p.micOn,
-                timerFraction = if (isTurn) left.toFloat() / totalMs else 0f,
+                turnEndsAtMillis = if (isTurn) inputs.turnEndsAtMillis else null,
+                turnTotalMs = totalMs,
                 status = when {
                     finished && place >= 0 -> LudoStrings.ludoPlace(place + 1)
                     p.bankrupt -> CityBazaarStrings.cbStatusBankrupt

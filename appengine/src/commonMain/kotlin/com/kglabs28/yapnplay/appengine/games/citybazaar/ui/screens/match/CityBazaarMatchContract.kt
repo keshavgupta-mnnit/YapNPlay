@@ -98,7 +98,8 @@ data class CbPlayerCardUi(
     override val isTurn: Boolean,
     override val talking: Boolean,
     override val talkingMuted: Boolean = false,
-    override val timerFraction: Float,
+    override val turnEndsAtMillis: Long?,
+    override val turnTotalMs: Long,
     val status: String?,
     override val mutedForMe: Boolean,
     /** False for a CPU: no voice wave and no mute button (it never talks). */

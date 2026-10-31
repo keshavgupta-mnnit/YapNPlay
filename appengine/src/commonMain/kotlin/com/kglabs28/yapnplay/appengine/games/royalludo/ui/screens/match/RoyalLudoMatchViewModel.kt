@@ -483,7 +483,7 @@ class RoyalLudoMatchViewModel(
         turnAlarm.update(myTurn, remainingMs)
         val cards = LudoMatchUiMapper.cards(
             m,
-            LudoMatchUiMapper.CardInputs(rotation, talkers, mutedForMe, if (playing || m.onHold) null else remainingMs, ROYAL_LUDO_TURN_SECONDS, greyTalkers),
+            LudoMatchUiMapper.CardInputs(rotation, talkers, mutedForMe, if (playing || m.onHold) null else m.turnEndsAt?.toEpochMilliseconds(), ROYAL_LUDO_TURN_SECONDS, greyTalkers),
         )
         setState {
             copy(

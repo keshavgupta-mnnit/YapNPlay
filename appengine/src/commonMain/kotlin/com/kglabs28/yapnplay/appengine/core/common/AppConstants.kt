@@ -187,6 +187,6 @@ object AppConstants {
     /** How long "Copied" shows after copying the user's ID. */
     const val PROFILE_COPIED_MS = 1_500L
 
-    /** Remote Config re-fetch gap: changed values reach players within an hour. */
-    const val REMOTE_CONFIG_FETCH_SECONDS = 3_600L
+    /** Remote Config is fetched at most once every 12 hours (each fetch is a billed request). */
+    const val REMOTE_CONFIG_FETCH_SECONDS = 43_200L
 }

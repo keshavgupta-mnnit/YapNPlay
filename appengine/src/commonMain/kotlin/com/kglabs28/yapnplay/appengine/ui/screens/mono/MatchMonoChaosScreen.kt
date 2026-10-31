@@ -132,7 +132,7 @@ fun MatchMonoChaosContent(
             MonoUiMapper.chaosCard(
                 player = opponent,
                 currentSeat = currentSeat,
-                timerFraction = state.timerFraction,
+                turnEndsAtMillis = state.turnEndsAtMillis,                turnTotalMs = state.turnTotalMs,
                 places = state.places,
                 eliminated = state.eliminated,
                 calledSeat = match?.monoCalledSeat,
@@ -173,7 +173,7 @@ fun MatchMonoChaosContent(
                         MonoUiMapper.chaosCard(
                             player = it,
                             currentSeat = currentSeat,
-                            timerFraction = state.timerFraction,
+                            turnEndsAtMillis = state.turnEndsAtMillis,                            turnTotalMs = state.turnTotalMs,
                             places = state.places,
                             eliminated = state.eliminated,
                             calledSeat = match.monoCalledSeat,

@@ -6,6 +6,12 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
 }
 
+// Lists, maps and dates the screens draw are never changed in place: Compose may skip a part whose
+// inputs are equal to last time instead of redrawing it (see compose_stability.conf).
+composeCompiler {
+    stabilityConfigurationFiles.add(rootProject.layout.projectDirectory.file("compose_stability.conf"))
+}
+
 // Single appengine library. Everything below is a plain source folder,
 // not a Gradle module: core/, games/base/, games/common/, games/*,
 // protocol/, ui/, di/, navigation/.

@@ -10,7 +10,7 @@ import kotlinx.coroutines.tasks.await
 class FirebaseRemoteConfigSource : RemoteConfigSource {
     override suspend fun fetch(defaults: Map<String, Any>): Map<String, String> = try {
         val remote = FirebaseRemoteConfig.getInstance()
-        // Firebase's default re-fetch gap is 12 hours: new values (e.g. the ad unit) would wait that long.
+        // At most one fetch every 12 hours (each is a billed request); in between the saved values are used.
         remote.setConfigSettingsAsync(FirebaseRemoteConfigSettings.Builder().setMinimumFetchIntervalInSeconds(AppConstants.REMOTE_CONFIG_FETCH_SECONDS).build()).await()
         remote.setDefaultsAsync(defaults).await()
         remote.fetchAndActivate().await()

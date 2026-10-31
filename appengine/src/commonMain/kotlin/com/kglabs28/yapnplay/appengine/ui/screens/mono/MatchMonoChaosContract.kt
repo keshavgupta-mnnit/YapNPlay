@@ -57,8 +57,9 @@ data class MatchMonoChaosState(
     val places: Map<Int, String> = emptyMap(),
     /** Seats knocked out at the 25-card threshold. */
     val eliminated: Set<Int> = emptySet(),
-    /** 1 → 0 across the current turn, for the active card's border. */
-    val timerFraction: Float = 1f,
+    /** When the current turn ends (this device's clock); null: not running. */
+    val turnEndsAtMillis: Long? = null,
+    val turnTotalMs: Long = 0,
     /** The turn countdown, "0:15". */
     val turnClock: String = "",
     /** The colour in force, which lights the table's ring. */

@@ -5,6 +5,12 @@ plugins {
     alias(libs.plugins.crashlytics)
 }
 
+// Lists, maps and dates the screens draw are never changed in place: Compose may skip a part whose
+// inputs are equal to last time instead of redrawing it (see compose_stability.conf).
+composeCompiler {
+    stabilityConfigurationFiles.add(rootProject.layout.projectDirectory.file("compose_stability.conf"))
+}
+
 android {
     // BuildConfig.DEBUG turns the app's debug logs on (debug builds only).
     buildFeatures {

@@ -382,11 +382,9 @@ class MatchMonoViewModel(
                 winnerSeat = MonoUiMapper.winner(m),
                 finished = m.phase == MonoPhase.FINISHED.name,
                 // Only the active seat's outline runs down.
-                timerFraction = if (remaining == Long.MAX_VALUE) {
-                    1f
-                } else {
-                    (remaining.toFloat() / turnSeconds).coerceIn(0f, 1f)
-                },
+                // The ring runs down by itself to this deadline: the table isn't rebuilt for it.
+                turnEndsAtMillis = m.turnEndsAt?.toEpochMilliseconds(),
+                turnTotalMs = turnSeconds.toLong(),
                 turnClock = turnClock,
                 topColour = m.topCardColor,
                 reversed = m.reversed,

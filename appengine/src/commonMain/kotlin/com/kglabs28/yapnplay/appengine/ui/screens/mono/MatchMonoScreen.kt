@@ -133,7 +133,7 @@ fun MatchMonoContent(
             MonoUiMapper.card(
                 player = opponent,
                 currentSeat = currentSeat,
-                timerFraction = state.timerFraction,
+                turnEndsAtMillis = state.turnEndsAtMillis,                turnTotalMs = state.turnTotalMs,
                 places = state.places,
                 calledSeat = match?.monoCalledSeat,
                 talking = state.talking,
@@ -171,7 +171,7 @@ fun MatchMonoContent(
                         MonoUiMapper.card(
                             player = it,
                             currentSeat = currentSeat,
-                            timerFraction = state.timerFraction,
+                            turnEndsAtMillis = state.turnEndsAtMillis,                            turnTotalMs = state.turnTotalMs,
                             places = state.places,
                             calledSeat = match.monoCalledSeat,
                             talking = state.talking,

@@ -96,8 +96,8 @@ data class LudoPlayerCardUi(
     override val isTurn: Boolean,
     override val talking: Boolean,
     override val talkingMuted: Boolean = false,
-    /** 1 → 0 while it is this player's turn. */
-    override val timerFraction: Float,
+    override val turnEndsAtMillis: Long?,
+    override val turnTotalMs: Long,
     val left: Boolean,
     /** "1st", "2nd"… once they have finished; null while playing. */
     val placeLabel: String?,

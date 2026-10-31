@@ -1,11 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
-import com.kglabs28.yapnplay.appengine.core.common.AppConstants
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.State
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.Animatable
+import androidx.compose.runtime.remember
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -151,7 +147,8 @@ private fun MonoSeatHeaderFor(card: MonoPlayerPodUi, avatar: Dp, trailing: (@Com
         avatarId = card.avatarId,
         tint = card.tint,
         isTurn = card.isTurn,
-        timerFraction = card.timerFraction,
+        turnEndsAtMillis = card.turnEndsAtMillis,
+        turnTotalMs = card.turnTotalMs,
         talking = card.talking,
         talkingMuted = card.talkingMuted,
         avatar = avatar,
@@ -210,7 +207,9 @@ fun ArenaSeatHeader(
     avatarId: String,
     tint: Color,
     isTurn: Boolean,
-    timerFraction: Float,
+    /** When the turn ends (this device's clock); null holds the ring full. */
+    turnEndsAtMillis: Long?,
+    turnTotalMs: Long,
     talking: Boolean,
     avatar: Dp,
     modifier: Modifier = Modifier,
@@ -223,8 +222,9 @@ fun ArenaSeatHeader(
     val typography = YapNPlayTheme.typography
     val pillHeight = avatar * PILL_SHARE
     val pillShape = RoundedCornerShape(percent = 50)
-    val glow = if (talking || talkingMuted) talkPulse() else 0f
-    val shownTime = glidingFraction(timerFraction)
+    // The breathing is read while drawing only: the seat isn't recomposed every frame.
+    val glow = if (talking || talkingMuted) talkPulse() else null
+    val shownTime = rememberTurnFraction(turnEndsAtMillis, turnTotalMs)
 
     // The speaker / mute button sits outside the pill, at its right end, so the name keeps the pill's whole width.
     Row(
@@ -238,7 +238,7 @@ fun ArenaSeatHeader(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .seatTalkGlow(glow, pillHeight, muted = !talking)
+                .seatTalkGlow({ glow?.value ?: 0f }, pillHeight, muted = !talking)
                 .seatTimer(
                     active = isTurn,
                     fraction = { shownTime.value },
@@ -329,7 +329,9 @@ data class MonoPlayerPodUi(
     val cards: Int,
     /** The user talking with their mic off: a grey glow, so they notice. */
     val talkingMuted: Boolean = false,
-    val timerFraction: Float = 1f,
+    /** When this seat's turn ends (this device's clock); null: not running. */
+    val turnEndsAtMillis: Long? = null,
+    val turnTotalMs: Long = 0,
     val placeLabel: String? = null,
     val statusLabel: String? = null,
     val canSpeak: Boolean = true,
@@ -382,7 +384,7 @@ fun MonoCalledBadge(modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val pulse = rememberInfiniteTransition(label = "mono-call")
-    val alpha by pulse.animateFloat(
+    val shown by pulse.animateFloat(
         initialValue = PULSE_MIN,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(animation = tween(PULSE_MS), repeatMode = RepeatMode.Reverse),
@@ -392,7 +394,8 @@ fun MonoCalledBadge(modifier: Modifier = Modifier) {
         text = MonoStrings.monoCalled,
         style = YapNPlayTheme.typography.micro.copy(color = colors.TextPrimary, fontWeight = FontWeight.Black),
         modifier = modifier
-            .alpha(alpha)
+            // Faded in the draw step only: the badge isn't recomposed every frame.
+            .graphicsLayer { alpha = shown }
             .clip(YapNPlayTheme.shapes.pill)
             .background(colors.ArenaCallFillTop)
             .border(dimens.hairline, colors.ArenaCallNeon, YapNPlayTheme.shapes.pill)
@@ -400,34 +403,21 @@ fun MonoCalledBadge(modifier: Modifier = Modifier) {
     )
 }
 
-/**
- * The turn clock as drawn: it glides down between the table's updates (a few a second), so the ring moves
- * smoothly while only the ring redraws; a new turn (the clock going back up) jumps straight to full.
- */
-@Composable
-private fun glidingFraction(target: Float): State<Float> {
-    val shown = remember { Animatable(target) }
-    LaunchedEffect(target) {
-        if (target >= shown.value) shown.snapTo(target) else shown.animateTo(target, tween(AppConstants.LUDO_TIMER_TICK_MS.toInt(), easing = LinearEasing))
-    }
-    return shown.asState()
-}
-
 /** 0 → 1 → 0, slowly: the talking glow breathing. */
 @Composable
-private fun talkPulse(): Float {
+private fun talkPulse(): State<Float> {
     val pulse = rememberInfiniteTransition(label = "seat-talk")
-    val value by pulse.animateFloat(
+    return pulse.animateFloat(
         initialValue = TALK_MIN,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(animation = tween(TALK_MS), repeatMode = RepeatMode.Reverse),
         label = "seat-talk-glow",
     )
-    return value
 }
 
 /** The blue-pink light behind the seat while the player talks, grey when [muted] ([strength] 0 hides it). */
-private fun Modifier.seatTalkGlow(strength: Float, pillHeight: Dp, muted: Boolean): Modifier = drawBehind {
+private fun Modifier.seatTalkGlow(strength: () -> Float, pillHeight: Dp, muted: Boolean): Modifier = drawBehind {
+    val strength = strength()
     if (strength <= 0f) return@drawBehind
     val outline = seatOutline(size, pillHeight.toPx())
     val brush = Brush.horizontalGradient(

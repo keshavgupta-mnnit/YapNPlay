@@ -691,7 +691,7 @@ class CityBazaarMatchViewModel(
         turnAlarm.update(myTurn, remainingMs)
         val cards = CbTableMapper.cards(
             m,
-            CbTableMapper.CardInputs(talkers, mutedForMe, if (playing) null else remainingMs, CITY_BAZAAR_TURN_SECONDS, shownCash, greyTalkers),
+            CbTableMapper.CardInputs(talkers, mutedForMe, if (playing) null else m.turnEndsAt?.toEpochMilliseconds(), CITY_BAZAAR_TURN_SECONDS, shownCash, greyTalkers),
         )
         val (myCard, left, right) = CbTableMapper.sides(m, cards)
         val colourOf: (Int) -> CityBazaarColour? = { seat -> m.player(seat)?.colour }

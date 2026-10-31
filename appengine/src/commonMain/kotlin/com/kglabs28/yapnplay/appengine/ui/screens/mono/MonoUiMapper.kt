@@ -55,7 +55,9 @@ object MonoUiMapper {
     fun card(
         player: MonoPlayer,
         currentSeat: Int,
-        timerFraction: Float,
+        /** When the current turn ends (this device's clock); null: not running. */
+        turnEndsAtMillis: Long?,
+        turnTotalMs: Long,
         places: Map<Int, String>,
         calledSeat: Int? = null,
         talking: Set<String> = emptySet(),
@@ -73,7 +75,8 @@ object MonoUiMapper {
         talkingMuted = player.userId != null && player.userId in mutedTalkers && !player.micOn,
         micOn = player.micOn,
         cards = player.cardCount,
-        timerFraction = timerFraction,
+        turnEndsAtMillis = if (player.seat == currentSeat) turnEndsAtMillis else null,
+        turnTotalMs = turnTotalMs,
         placeLabel = places[player.seat],
         mutedForMe = player.userId != null && player.userId in mutedForMe,
         // The user's own lit Autoplay switch says it already; others get the tag.
@@ -86,7 +89,9 @@ object MonoUiMapper {
     fun chaosCard(
         player: MonoChaosPlayer,
         currentSeat: Int,
-        timerFraction: Float,
+        /** When the current turn ends (this device's clock); null: not running. */
+        turnEndsAtMillis: Long?,
+        turnTotalMs: Long,
         places: Map<Int, String>,
         eliminated: Set<Int>,
         calledSeat: Int? = null,
@@ -105,7 +110,8 @@ object MonoUiMapper {
         talkingMuted = player.userId != null && player.userId in mutedTalkers && !player.micOn,
         micOn = player.micOn,
         cards = player.cardCount,
-        timerFraction = timerFraction,
+        turnEndsAtMillis = if (player.seat == currentSeat) turnEndsAtMillis else null,
+        turnTotalMs = turnTotalMs,
         placeLabel = places[player.seat],
         mutedForMe = player.userId != null && player.userId in mutedForMe,
         // Knocked out at 25 cards: their name stays, their count does not.

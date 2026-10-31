@@ -51,12 +51,13 @@ object LudoMatchUiMapper {
         }
     }
 
-    /** What every player's card needs; [remainingMs] is null while a move animates. */
+    /** What every player's card needs; [CardInputs.turnEndsAtMillis] is null while a move animates. */
     data class CardInputs(
         val rotation: Int,
         val speaking: Set<String>,
         val mutedForMe: Set<String>,
-        val remainingMs: Long?,
+        /** When the current turn ends (this device's clock); null while a move animates (the ring stays full). */
+        val turnEndsAtMillis: Long?,
         val turnSeconds: Long,
         /** Who is talking with their mic off (the user included): a grey glow. */
         val mutedTalkers: Set<String> = emptySet(),
@@ -65,7 +66,6 @@ object LudoMatchUiMapper {
     /** Every player's card, the user's first, then the others clockwise from the user. */
     fun cards(match: LudoMatch, inputs: CardInputs): List<LudoPlayerCardUi> {
         val totalMs = inputs.turnSeconds * MILLIS
-        val left = inputs.remainingMs?.coerceAtMost(totalMs) ?: totalMs
         val all = match.players.map { player ->
             val isTurn = player.seat == match.currentSeat && match.phase != LudoPhase.FINISHED && !player.removed
             val muted = player.userId in inputs.mutedForMe
@@ -85,7 +85,8 @@ object LudoMatchUiMapper {
                 isTurn = isTurn,
                 talking = player.userId in inputs.speaking && player.micOn && !muted,
                 talkingMuted = player.userId in inputs.mutedTalkers && !player.micOn,
-                timerFraction = if (isTurn) left.toFloat() / totalMs else 0f,
+                turnEndsAtMillis = if (isTurn) inputs.turnEndsAtMillis else null,
+                turnTotalMs = totalMs,
                 left = player.removed,
                 placeLabel = if (place >= 0) LudoStrings.ludoPlace(place + 1) else null,
                 mutedForMe = muted,

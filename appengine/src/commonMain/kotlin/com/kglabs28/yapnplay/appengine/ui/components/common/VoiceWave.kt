@@ -35,8 +35,9 @@ fun VoiceWave(
     colors: List<Color> = listOf(YapNPlayTheme.colors.VoiceWaveStart, YapNPlayTheme.colors.VoiceWaveEnd),
 ) {
     val dimens = YapNPlayTheme.dimens
-    val phase = if (animated) {
-        val moving by rememberInfiniteTransition().animateFloat(
+    // Read while drawing only (inside the Canvas): the wave isn't recomposed every frame.
+    val moving = if (animated) {
+        rememberInfiniteTransition().animateFloat(
             initialValue = 0f,
             targetValue = 1f,
             animationSpec = infiniteRepeatable(
@@ -44,12 +45,12 @@ fun VoiceWave(
                 repeatMode = RepeatMode.Restart,
             ),
         )
-        moving
     } else {
-        0f
+        null
     }
 
     Canvas(modifier = modifier.height(dimens.voiceWaveHeight)) {
+        val phase = moving?.value ?: 0f
         val spacing = dimens.voiceWaveSpacing.toPx()
         val bars = (size.width / spacing).toInt().coerceAtLeast(1)
         val brush = Brush.horizontalGradient(colors, startX = 0f, endX = size.width)

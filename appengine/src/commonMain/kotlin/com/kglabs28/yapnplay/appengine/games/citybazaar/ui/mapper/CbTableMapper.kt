@@ -111,6 +111,8 @@ object CbTableMapper {
                     p.inJail && p.halfRent -> CityBazaarStrings.cbStatusHalf
                     p.inJail -> CityBazaarStrings.cbStatusJail
                     p.presence == CityBazaarPresence.AWAY -> CityBazaarStrings.cbStatusAway
+                    // The user's own lit Autoplay switch says it already; others get the tag.
+                    p.autoplay && !cpuPlays && !p.isMe -> TableStrings.seatAutoplay
                     else -> null
                 },
                 mutedForMe = muted,

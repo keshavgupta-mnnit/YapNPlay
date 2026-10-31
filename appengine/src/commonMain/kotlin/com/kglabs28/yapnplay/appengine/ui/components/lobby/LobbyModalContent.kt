@@ -176,6 +176,12 @@ fun LobbyModalContent(
                 if (modal.canCancel) DarkButton(RoomStrings.lobbyCancel, onCancelCountdown)
             },
         )
+        is LobbyModal.CountdownStopped -> ModalCard(
+            title = RoomStrings.lobbyStartStopped,
+            subtitle = modal.message,
+            modifier = modifier,
+            actions = { DarkButton(RoomStrings.lobbyStartStoppedOk, onDismiss) },
+        )
     }
 }
 

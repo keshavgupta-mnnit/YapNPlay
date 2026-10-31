@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.voice.data.remote
 
+import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import com.kglabs28.yapnplay.appengine.features.voice.domain.MySpeech
 import com.kglabs28.yapnplay.appengine.core.audio.MicLevelMonitor
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
@@ -43,6 +45,9 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  * configured, or it can't be reached) the mic level is still read so
  * the user's own talking wave works. With the mic off (app in front) the
  * level is read too, only to tell the user they're talking on mute.
+ * If someone there has their mic on but this device keeps not receiving
+ * them (its voice session missed them coming back), it rejoins the voice
+ * room by itself, as leaving and coming back would.
  */
 class VoiceClientImpl(
     private val mic: MicLevelMonitor,
@@ -101,6 +106,8 @@ class VoiceClientImpl(
 
     /** Targets whose screen needs voice now (someone to talk with, a mic on). Declared before init, which reads it. */
     private val wanted = MutableStateFlow<Set<VoiceTarget>>(emptySet())
+    /** Per target, the others there with their mic on (who should be heard). */
+    private val talkers = MutableStateFlow<Map<VoiceTarget, Set<String>>>(emptyMap())
 
     override fun speakers(target: VoiceTarget): Flow<Set<String>> = flow {
         val entry = Entry(target)
@@ -129,7 +136,8 @@ class VoiceClientImpl(
         scope.launch { follow() }
     }
 
-    override fun setVoiceWanted(target: VoiceTarget, wanted: Boolean) {
+    override fun setVoiceWanted(target: VoiceTarget, wanted: Boolean, talkers: Set<String>) {
+        this.talkers.update { it + (target to talkers) }
         this.wanted.update { if (wanted) it + target else it - target }
     }
 
@@ -146,6 +154,7 @@ class VoiceClientImpl(
                 return@collectLatest
             }
             var backoff = RETRY_MIN_MS
+            var healGap = HEAL_GAP_MIN_MS
             var reported = false
             while (true) {
                 try {
@@ -157,7 +166,14 @@ class VoiceClientImpl(
                         joinedRoom = room
                     }
                     backoff = RETRY_MIN_MS
-                    engine.connected.first { !it }
+                    if (untilDroppedOrSomeoneUnheard(target)) {
+                        // Someone talking isn't reaching this device: rejoin (spaced out, should it not help).
+                        engine.disconnect()
+                        joinedRoom = null
+                        delay(healGap)
+                        healGap = (healGap * 2).coerceAtMost(HEAL_GAP_MAX_MS)
+                        continue
+                    }
                     joinedRoom = null
                 } catch (e: CancellationException) {
                     throw e
@@ -169,6 +185,28 @@ class VoiceClientImpl(
                 backoff = (backoff * 2).coerceAtMost(RETRY_MAX_MS)
             }
         }
+    }
+
+    /**
+     * Waits while in the voice room: false when it drops, true when someone there with their mic on has
+     * gone unreceived for [UNHEARD_MS] (nobody this device muted, with the speaker on).
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun untilDroppedOrSomeoneUnheard(target: VoiceTarget): Boolean {
+        val unheard = combine(talkers.map { it[target].orEmpty() }, engine.remoteAudio, muted, speaker) { expected, receiving, mutedIds, speakerOn ->
+            speakerOn && (expected - mutedIds - receiving).isNotEmpty()
+        }.distinctUntilChanged()
+        return combine(engine.connected, unheard) { connected, missing -> connected to missing }
+            .transformLatest { (connected, missing) ->
+                when {
+                    !connected -> emit(false)
+                    missing -> {
+                        delay(UNHEARD_MS)
+                        emit(true)
+                    }
+                }
+            }
+            .first()
     }
 
     /** The voice room a LiveKit pass is for (its `video.room` claim). */
@@ -183,5 +221,10 @@ class VoiceClientImpl(
         const val LEAVE_GRACE_MS = 1_500L
         const val RETRY_MIN_MS = 2_000L
         const val RETRY_MAX_MS = 30_000L
+        /** Someone with their mic on not received this long: rejoin. */
+        const val UNHEARD_MS = 8_000L
+        /** Waits after such a rejoin, doubling up to the max, so a talker who truly can't connect doesn't cause a loop. */
+        const val HEAL_GAP_MIN_MS = 2_000L
+        const val HEAL_GAP_MAX_MS = 300_000L
     }
 }

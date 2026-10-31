@@ -13,6 +13,9 @@ interface VoiceEngine {
     /** Identities (user ids) of the other people speaking right now. */
     val remoteSpeakers: StateFlow<Set<String>>
 
+    /** Identities (user ids) of the others whose audio this device is receiving now. */
+    val remoteAudio: StateFlow<Set<String>>
+
     /** True while this device's user is speaking into their published mic. */
     val localSpeaking: StateFlow<Boolean>
 

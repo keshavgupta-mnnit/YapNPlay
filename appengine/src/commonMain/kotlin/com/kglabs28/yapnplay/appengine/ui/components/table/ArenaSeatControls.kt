@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
@@ -81,7 +82,7 @@ fun ArenaSeatSwitches(
         )
         if (showAutoplay) ArenaRoundSwitch(
             icon = Icons.Rounded.SportsEsports,
-            description = MonoStrings.monoAutoplay,
+            description = TableStrings.seatAutoplay,
             on = autoplay,
             fill = colors.ArenaAutoOn,
             rim = colors.ArenaAutoOnRim,

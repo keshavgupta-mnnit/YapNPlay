@@ -159,6 +159,8 @@ object AppConstants {
 
     /** Countdown refresh while searching for players. */
     const val SEARCH_TICK_MS = 1_000L
+    /** A stopped start countdown older than this is not shown (someone coming in later). */
+    const val COUNTDOWN_STOP_NEWS_MS = 30_000L
 
     /** Lobby columns: member list | game | house rules (weights). */
     const val LOBBY_MEMBERS_WEIGHT = 0.34f

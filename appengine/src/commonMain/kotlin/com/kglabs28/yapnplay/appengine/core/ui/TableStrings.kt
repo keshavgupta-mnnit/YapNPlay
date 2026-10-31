@@ -6,6 +6,8 @@ object TableStrings {
     const val matchGoneBody = "The game server restarted, so this game couldn't carry on. Start a new one from the Game Zone."
 
     const val seatBot = "CPU"
+    /** On a player the server is playing for (their Autoplay is on); also the Autoplay switch. */
+    const val seatAutoplay = "Autoplay"
     const val seatLeaveBody = "Pick who plays on for you: a CPU, or a spectator (they get 30s to accept while the match waits)."
     const val seatOffered = "Offered"
     const val seatIdle = "Idle"

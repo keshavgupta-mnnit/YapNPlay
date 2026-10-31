@@ -79,7 +79,7 @@ fun BoxScope.LudoCornerCards(
         val spotX = centre.x + spot.x * halfW
         // On a right edge the avatar sits on the spot and the card runs right; on a left edge the card ends there.
         val startX = if (spot.x >= 0f) spotX - avatarPx / 2 else spotX + avatarPx / 2 - cardPx
-        val x = startX.coerceIn(0f, areaSize.width - cardPx)
+        val x = startX.coerceIn(0f, (areaSize.width - cardPx).coerceAtLeast(0f))
         val h = heights[card.seat] ?: avatarPx.roundToInt()
         val y = (centre.y + spot.y * halfH - avatarPx / 2).coerceIn(0f, (areaSize.height - h).toFloat().coerceAtLeast(0f))
         val place = Modifier

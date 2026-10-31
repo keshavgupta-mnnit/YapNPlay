@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.core.mvi.playTableUpdate
 import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.protocol.SeatPresence
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
@@ -83,7 +84,7 @@ class MatchMonoChaosViewModel(
 
     private var matchId: String = ""
     /** Voice only while another person is here and someone's mic is on. */
-    private val voiceNeed = VoiceNeed { wanted -> if (matchId.isNotEmpty()) voice.setVoiceWanted.match(matchId, wanted) }
+    private val voiceNeed = VoiceNeed { wanted, talkers -> if (matchId.isNotEmpty()) voice.setVoiceWanted.match(matchId, wanted, talkers) }
     private var match: MonoChaosMatch? = null
     private var talking: Set<String> = emptySet()
     /** The user speaking into their mic, whether that mic is open (on at the table, app in front), and whether the table is on screen. */
@@ -223,7 +224,13 @@ class MatchMonoChaosViewModel(
         jobs = sheets.start() + listOf(
             scope.launch {
                 try {
-                    observeMatch(id).collect { onUpdate(it) }
+                    // A failing update never stops the table: the latest match still shows and play goes on.
+                    observeMatch(id).collect { update ->
+                        playTableUpdate(update, "MatchMonoChaos.update", ::onUpdate) {
+                            match = it.match
+                            render()
+                        }
+                    }
                 } catch (e: Exception) {
                     setState { copy(loaded = true, error = e.message ?: MonoStrings.monoOpenFailed) }
                 }
@@ -394,7 +401,7 @@ class MatchMonoChaosViewModel(
         val talkers = if (mySpeech == MySpeech.SPEAKING) talking + m.viewerUserId else talking
         // Talking with the mic off: others' from the table, the user's own from their mic at once.
         val greyTalkers = if (mySpeech == MySpeech.SPEAKING_MUTED) mutedTalkers + m.viewerUserId else mutedTalkers
-        voiceNeed.update(myMicOpen = micGate.open, mySpeakerOn = speakerOn, othersMicOn = m.players.filter { !it.isMe && !it.isCpu && !it.removed && it.userId != null }.map { it.micOn } + m.spectators.filter { it.userId != m.viewerUserId }.map { it.micOn })
+        voiceNeed.update(myMicOpen = micGate.open, mySpeakerOn = speakerOn, others = m.players.filter { !it.isMe && !it.isCpu && !it.removed }.mapNotNull { p -> p.userId?.let { it to p.micOn } }.toMap() + m.spectators.filter { it.userId != m.viewerUserId }.associate { it.userId to it.micOn })
         val now = clock.now()
         val me = m.me
         val waitingOnMe = m.currentSeat == me?.seat

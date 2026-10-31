@@ -37,8 +37,11 @@ interface VoiceClient {
      */
     fun setMicOpen(open: Boolean, listenMuted: Boolean)
 
-    /** Whether [target]'s screen needs its voice room now (someone to talk with, a mic on); the device joins only then. */
-    fun setVoiceWanted(target: VoiceTarget, wanted: Boolean)
+    /**
+     * Whether [target]'s screen needs its voice room now (someone to talk with, a mic on); the device joins only then.
+     * [talkers]: the others there with their mic on; one this device keeps not receiving makes it rejoin.
+     */
+    fun setVoiceWanted(target: VoiceTarget, wanted: Boolean, talkers: Set<String>)
 
     /**
      * While collected (and wanted, [setVoiceWanted]), this device is in [target]'s voice room and the

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
+import kotlin.time.Duration.Companion.milliseconds
+import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.CountdownStopInfo
 import com.kglabs28.yapnplay.appengine.features.voice.domain.MySpeech
 import com.kglabs28.yapnplay.appengine.features.voice.domain.MicGate
 import com.kglabs28.yapnplay.appengine.core.common.TextUtils
@@ -65,7 +67,7 @@ class PlayRoomLobbyViewModel(
 
     private var roomId: String? = null
     /** Voice only while another member is here and someone's mic is on. */
-    private val voiceNeed = VoiceNeed { wanted -> roomId?.let { setVoiceWanted.room(it, wanted) } }
+    private val voiceNeed = VoiceNeed { wanted, talkers -> roomId?.let { setVoiceWanted.room(it, wanted, talkers) } }
     private var data: LobbyData? = null
     private var userModal: LobbyModal? = null
     /** The members' records behind the open leaderboard (both tabs rank these). */
@@ -77,6 +79,8 @@ class PlayRoomLobbyViewModel(
     private val micGate = MicGate { open, listenMuted -> setMicOpen(open, listenMuted) }
     private var foreground = true
     private var tickJob: Job? = null
+    /** The countdown stop already told (each is shown once). */
+    private var toldStop: CountdownStopInfo? = null
 
     override suspend fun handleIntent(intent: PlayRoomLobbyIntent) {
         when (intent) {
@@ -174,6 +178,7 @@ class PlayRoomLobbyViewModel(
             observeLobby(id).collect {
                 data = it
                 syncMic()
+                tellCountdownStop(it)
                 render()
             }
         }
@@ -313,7 +318,7 @@ class PlayRoomLobbyViewModel(
         val me = me()
         // The mic listens only while it's on in the room and the room is on screen.
         micGate.update(micOn = me?.micOn == true, inFront = foreground)
-        voiceNeed.update(micGate.open, me?.speakerOn != false, room.members.filter { it.userId != d.myUserId && it.online }.map { it.micOn })
+        voiceNeed.update(micGate.open, me?.speakerOn != false, room.members.filter { it.userId != d.myUserId && it.online }.associate { it.userId to it.micOn })
         val game = d.selectedGame
         manageCountdownTicker(room)
         setState {
@@ -416,6 +421,19 @@ class PlayRoomLobbyViewModel(
             title = RoomStrings.lobbyStartingIn(seconds),
             canCancel = me != null && (me.isLeader || me.ready),
         )
+    }
+
+    /**
+     * A countdown just stopped without a match: everyone is told why and who stopped it, so a person
+     * cancelling is never mistaken for the server failing (or the other way round). Only fresh stops,
+     * once each: one from before the user came in is not news.
+     */
+    private fun tellCountdownStop(d: LobbyData) {
+        val stop = d.room.countdownStop ?: return
+        if (stop == toldStop) return
+        toldStop = stop
+        if (clock.now() - stop.at > AppConstants.COUNTDOWN_STOP_NEWS_MS.milliseconds) return
+        userModal = LobbyModal.CountdownStopped(CountdownStopText.of(stop, d.myUserId))
     }
 
     /** Re-renders every second while a countdown runs, so the number ticks. */

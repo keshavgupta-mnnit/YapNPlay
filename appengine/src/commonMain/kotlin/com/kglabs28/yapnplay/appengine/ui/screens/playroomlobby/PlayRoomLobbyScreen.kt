@@ -273,6 +273,7 @@ fun PlayRoomLobbyScreen(
         // leave, mic permission and the countdown need their buttons.
         val dismissable = modal is LobbyModal.MemberMenu ||
             modal is LobbyModal.ConfirmMemberAction ||
+            modal is LobbyModal.CountdownStopped ||
             modal == LobbyModal.RuleSheet
         BlockingOverlay(
             visible = modal != null,

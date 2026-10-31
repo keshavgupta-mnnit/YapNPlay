@@ -67,7 +67,7 @@ class PlayRoomLobbyViewModel(
 
     private var roomId: String? = null
     /** Voice only while another member is here and someone's mic is on. */
-    private val voiceNeed = VoiceNeed { wanted -> roomId?.let { setVoiceWanted.room(it, wanted) } }
+    private val voiceNeed = VoiceNeed { wanted, talkers -> roomId?.let { setVoiceWanted.room(it, wanted, talkers) } }
     private var data: LobbyData? = null
     private var userModal: LobbyModal? = null
     /** The members' records behind the open leaderboard (both tabs rank these). */
@@ -318,7 +318,7 @@ class PlayRoomLobbyViewModel(
         val me = me()
         // The mic listens only while it's on in the room and the room is on screen.
         micGate.update(micOn = me?.micOn == true, inFront = foreground)
-        voiceNeed.update(micGate.open, me?.speakerOn != false, room.members.filter { it.userId != d.myUserId && it.online }.map { it.micOn })
+        voiceNeed.update(micGate.open, me?.speakerOn != false, room.members.filter { it.userId != d.myUserId && it.online }.associate { it.userId to it.micOn })
         val game = d.selectedGame
         manageCountdownTicker(room)
         setState {

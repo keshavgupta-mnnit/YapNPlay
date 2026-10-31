@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatTable
 import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.games.mono.domain.MonoContinueVote
@@ -235,7 +236,7 @@ object MonoUiMapper {
     private fun statusLabel(presence: String, autoplay: Boolean, isCpu: Boolean): String? = when {
         isCpu || presence == SeatPresence.BOT.name -> null
         presence == SeatPresence.AWAY.name -> MonoStrings.monoAway
-        autoplay -> MonoStrings.monoAutoplay
+        autoplay -> TableStrings.seatAutoplay
         else -> null
     }
 

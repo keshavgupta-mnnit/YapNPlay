@@ -104,7 +104,6 @@ object MonoStrings {
 
 
     const val monoAway = "Away"
-    const val monoAutoplay = "Autoplay"
     const val monoMicShort = "Mic"
     const val monoAutoShort = "Auto"
     const val monoMic = "Microphone"

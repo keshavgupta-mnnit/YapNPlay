@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 class SilentVoiceEngine : VoiceEngine {
     override val connected: StateFlow<Boolean> = MutableStateFlow(false)
     override val remoteSpeakers: StateFlow<Set<String>> = MutableStateFlow(emptySet())
+    override val remoteAudio: StateFlow<Set<String>> = MutableStateFlow(emptySet())
     override val localSpeaking: StateFlow<Boolean> = MutableStateFlow(false)
     override suspend fun connect(url: String, token: String) = error("voice is not available on desktop")
     override suspend fun disconnect() = Unit

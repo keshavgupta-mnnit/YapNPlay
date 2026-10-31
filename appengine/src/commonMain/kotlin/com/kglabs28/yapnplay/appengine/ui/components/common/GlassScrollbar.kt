@@ -32,7 +32,9 @@ fun Modifier.glassScrollbar(state: ScrollState): Modifier {
         if (max <= 0 || max == Int.MAX_VALUE) return@drawWithContent
         val w = width.toPx()
         val viewport = size.height
-        val thumb = (viewport * viewport / (viewport + max)).coerceAtLeast(w * MIN_THUMB_WIDTHS)
+        // Not laid out yet, or opening from nothing (a sheet sliding in): no bar until it has height.
+        if (viewport <= 0f) return@drawWithContent
+        val thumb = (viewport * viewport / (viewport + max)).coerceIn(minThumb(w, viewport), viewport)
         val top = (viewport - thumb) * state.value / max
         val x = size.width - w
         val radius = CornerRadius(w / 2, w / 2)
@@ -44,6 +46,9 @@ fun Modifier.glassScrollbar(state: ScrollState): Modifier {
 private const val TRACK_ALPHA = 0.08f
 private const val THUMB_ALPHA = 0.45f
 private const val MIN_THUMB_WIDTHS = 6f
+
+/** The thumb is never shorter than a few bar widths, nor taller than a short list itself. */
+private fun minThumb(barWidth: Float, viewport: Float): Float = minOf(barWidth * MIN_THUMB_WIDTHS, viewport)
 
 /** A scrolling column with the app's scrollbar: what every scrolling list uses. */
 @Composable
@@ -62,11 +67,13 @@ fun Modifier.glassScrollbar(state: LazyListState): Modifier {
         if (total == 0 || visible.isEmpty() || (!state.canScrollForward && !state.canScrollBackward)) return@drawWithContent
         val w = width.toPx()
         val viewport = size.height
+        // Not laid out yet, or opening from nothing (a sheet sliding in): no bar until it has height.
+        if (viewport <= 0f) return@drawWithContent
         // Items in view (counting the first one's part already scrolled away) out of all of them.
         val first = visible.first()
         val firstShown = state.firstVisibleItemIndex + state.firstVisibleItemScrollOffset.toFloat() / first.size.coerceAtLeast(1)
         val inView = visible.size.toFloat().coerceAtMost(total.toFloat())
-        val thumb = (viewport * inView / total).coerceIn(w * MIN_THUMB_WIDTHS, viewport)
+        val thumb = (viewport * inView / total).coerceIn(minThumb(w, viewport), viewport)
         val range = (total - inView).coerceAtLeast(1f)
         val top = (viewport - thumb) * (firstShown / range).coerceIn(0f, 1f)
         val x = size.width - w

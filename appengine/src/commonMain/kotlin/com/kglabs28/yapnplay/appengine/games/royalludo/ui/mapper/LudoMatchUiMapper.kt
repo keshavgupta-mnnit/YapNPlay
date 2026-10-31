@@ -95,7 +95,8 @@ object LudoMatchUiMapper {
                 statusLabel = if (match.seatOffer?.seat == player.seat) seatStatus(match.seatOffer.stage) else when (player.presence) {
                     LudoPresence.AWAY -> LudoStrings.ludoAway
                     LudoPresence.BOT -> null
-                    LudoPresence.PLAYING -> null
+                    // The user's own lit Autoplay switch says it already; others get the tag.
+                    LudoPresence.PLAYING -> TableStrings.seatAutoplay.takeIf { player.autoplay && !cpuPlays && !player.isMe }
                 },
             )
         }

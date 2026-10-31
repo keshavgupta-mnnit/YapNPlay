@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,6 +27,9 @@ import kotlinx.coroutines.withContext
  * Everyone's identity is their user id (the backend's token says so).
  * Muting someone here unsubscribes from their audio, so this device
  * neither downloads nor plays it; nobody else is affected.
+ * While the mic is wanted, it is checked every few seconds (and after a
+ * reconnect) to really be going out; a mic the session lost is published
+ * again, as turning it off and on would.
  */
 class LiveKitVoiceEngine(private val context: Context) : VoiceEngine {
 
@@ -34,6 +38,7 @@ class LiveKitVoiceEngine(private val context: Context) : VoiceEngine {
 
     private var room: Room? = null
     private var events: Job? = null
+    private var micWatch: Job? = null
     private var micWanted = false
     private var muted: Set<String> = emptySet()
     private var speakerOn = true
@@ -43,6 +48,9 @@ class LiveKitVoiceEngine(private val context: Context) : VoiceEngine {
 
     private val others = MutableStateFlow<Set<String>>(emptySet())
     override val remoteSpeakers: StateFlow<Set<String>> = others.asStateFlow()
+
+    private val receiving = MutableStateFlow<Set<String>>(emptySet())
+    override val remoteAudio: StateFlow<Set<String>> = receiving.asStateFlow()
 
     private val me = MutableStateFlow(false)
     override val localSpeaking: StateFlow<Boolean> = me.asStateFlow()
@@ -60,7 +68,14 @@ class LiveKitVoiceEngine(private val context: Context) : VoiceEngine {
         }
         isConnected.value = true
         applyMutes(next)
+        refreshReceiving(next)
         applyMic()
+        micWatch = scope.launch {
+            while (true) {
+                delay(MIC_CHECK_MS)
+                republishLostMic(next)
+            }
+        }
     }
 
     override suspend fun disconnect() = withContext(Dispatchers.Main) { leave() }
@@ -97,7 +112,12 @@ class LiveKitVoiceEngine(private val context: Context) : VoiceEngine {
                 others.value = event.speakers.filterNot { it is LocalParticipant }.mapNotNull { it.identity?.value }.toSet()
                 me.value = event.speakers.any { it is LocalParticipant }
             }
-            is RoomEvent.TrackPublished, is RoomEvent.TrackSubscribed, is RoomEvent.ParticipantConnected -> applyMutes(source)
+            is RoomEvent.TrackPublished, is RoomEvent.TrackSubscribed, is RoomEvent.ParticipantConnected -> {
+                applyMutes(source)
+                refreshReceiving(source)
+            }
+            is RoomEvent.TrackUnsubscribed, is RoomEvent.TrackUnpublished, is RoomEvent.ParticipantDisconnected -> refreshReceiving(source)
+            is RoomEvent.Reconnected -> scope.launch { republishLostMic(source) }
             is RoomEvent.Disconnected -> leave()
             else -> Unit
         }
@@ -113,9 +133,31 @@ class LiveKitVoiceEngine(private val context: Context) : VoiceEngine {
         }
     }
 
+    /** The mic is wanted but not going out (no live, unmuted mic track): publish it again. */
+    private suspend fun republishLostMic(source: Room) {
+        micLock.withLock {
+            if (source !== room || !isConnected.value || !micWanted) return@withLock
+            val publication = source.localParticipant.getTrackPublication(Track.Source.MICROPHONE)
+            if (publication != null && !publication.muted && publication.track != null) return@withLock
+            runCatching {
+                source.localParticipant.setMicrophoneEnabled(false)
+                source.localParticipant.setMicrophoneEnabled(true)
+            }.onFailure { CrashReporter.record(it, "LiveKitVoiceEngine.republishMic") }
+        }
+    }
+
+    /** The others whose audio track this device has (subscribed) right now. */
+    private fun refreshReceiving(source: Room) {
+        receiving.value = source.remoteParticipants.values.filter { participant ->
+            participant.trackPublications.values.filterIsInstance<RemoteTrackPublication>().any { it.kind == Track.Kind.AUDIO && it.track != null }
+        }.mapNotNull { it.identity?.value }.toSet()
+    }
+
     private fun leave() {
         events?.cancel()
         events = null
+        micWatch?.cancel()
+        micWatch = null
         room?.let {
             room = null
             runCatching { it.disconnect() }
@@ -123,6 +165,10 @@ class LiveKitVoiceEngine(private val context: Context) : VoiceEngine {
         }
         isConnected.value = false
         others.value = emptySet()
+        receiving.value = emptySet()
         me.value = false
     }
 }
+
+/** How often a wanted mic is checked to really be going out. */
+private const val MIC_CHECK_MS = 5_000L

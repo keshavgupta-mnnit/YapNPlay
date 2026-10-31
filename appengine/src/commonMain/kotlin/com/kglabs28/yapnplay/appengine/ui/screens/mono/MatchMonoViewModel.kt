@@ -84,7 +84,7 @@ class MatchMonoViewModel(
 
     private var matchId: String = ""
     /** Voice only while another person is here and someone's mic is on. */
-    private val voiceNeed = VoiceNeed { wanted -> if (matchId.isNotEmpty()) voice.setVoiceWanted.match(matchId, wanted) }
+    private val voiceNeed = VoiceNeed { wanted, talkers -> if (matchId.isNotEmpty()) voice.setVoiceWanted.match(matchId, wanted, talkers) }
     private var match: MonoMatch? = null
     private var talking: Set<String> = emptySet()
     /** The user speaking into their mic, whether that mic is open (on at the table, app in front), and whether the table is on screen. */
@@ -355,7 +355,7 @@ class MatchMonoViewModel(
         val talkers = if (mySpeech == MySpeech.SPEAKING) talking + m.viewerUserId else talking
         // Talking with the mic off: others' from the table, the user's own from their mic at once.
         val greyTalkers = if (mySpeech == MySpeech.SPEAKING_MUTED) mutedTalkers + m.viewerUserId else mutedTalkers
-        voiceNeed.update(myMicOpen = micGate.open, mySpeakerOn = speakerOn, othersMicOn = m.players.filter { !it.isMe && !it.isCpu && !it.removed && it.userId != null }.map { it.micOn } + m.spectators.filter { it.userId != m.viewerUserId }.map { it.micOn })
+        voiceNeed.update(myMicOpen = micGate.open, mySpeakerOn = speakerOn, others = m.players.filter { !it.isMe && !it.isCpu && !it.removed }.mapNotNull { p -> p.userId?.let { it to p.micOn } }.toMap() + m.spectators.filter { it.userId != m.viewerUserId }.associate { it.userId to it.micOn })
         val now = clock.now()
         val me = m.me
         val waitingOnMe = m.currentSeat == me?.seat

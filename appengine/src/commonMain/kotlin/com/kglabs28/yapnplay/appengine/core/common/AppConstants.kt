@@ -53,7 +53,8 @@ object AppConstants {
     const val LUDO_LEGAL_PULSE_MS = 700
     /** Board neon (lanes, bases) breathing in and out. */
     const val LUDO_NEON_BREATH_MS = 1_600
-    const val LUDO_TIMER_TICK_MS = 100L
+    /** How often a table recomputes its time-based state (turn clocks, countdowns); the timer ring glides between. */
+    const val LUDO_TIMER_TICK_MS = 250L
 
     /** The exit dialog closes by itself after this long without a choice. */
     const val EXIT_DIALOG_SECONDS = 30L

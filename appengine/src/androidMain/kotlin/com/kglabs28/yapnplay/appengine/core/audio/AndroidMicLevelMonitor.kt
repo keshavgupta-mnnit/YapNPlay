@@ -13,6 +13,7 @@ import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,8 +47,9 @@ class AndroidMicLevelMonitor(private val context: Context) : MicLevelMonitor {
         job = scope.launch { listen() }
     }
 
-    override fun stop() {
-        job?.cancel()
+    override suspend fun stop() {
+        // Waits for the recorder to be released: the voice room must never find the mic still held.
+        job?.cancelAndJoin()
         job = null
         level.value = false
     }
@@ -57,7 +59,9 @@ class AndroidMicLevelMonitor(private val context: Context) : MicLevelMonitor {
         val minBuffer = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL, ENCODING)
         if (minBuffer <= 0) return
         val record = try {
-            AudioRecord(MediaRecorder.AudioSource.VOICE_COMMUNICATION, SAMPLE_RATE, CHANNEL, ENCODING, maxOf(minBuffer, FRAME * BUFFER_FRAMES * BYTES_PER_SAMPLE))
+            // The plain mic, not the "voice call" source: only the level is read, and the call source would switch
+            // the phone into call mode (routing and volume) under the voice room, which can quieten what the user hears.
+            AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, CHANNEL, ENCODING, maxOf(minBuffer, FRAME * BUFFER_FRAMES * BYTES_PER_SAMPLE))
         } catch (e: Exception) {
             CrashReporter.record(e, "AndroidMicLevelMonitor.create")
             return

@@ -40,8 +40,6 @@ data class MonoMatch(
     val reversed: Boolean = false,
     /** After a draw, the only card the seat may play. */
     val drawnCardIndex: Int? = null,
-    /** The seat that played a 7 and must pick a swap partner. */
-    val pendingSwapSeat: Int? = null,
     val eliminatedSeats: List<Int> = emptyList(),
     val turnEndsAt: Instant? = null,
     val startedAt: Instant = Instant.fromEpochMilliseconds(0),

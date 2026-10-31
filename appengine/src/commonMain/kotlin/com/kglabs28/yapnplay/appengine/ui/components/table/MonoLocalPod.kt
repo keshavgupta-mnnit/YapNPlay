@@ -1,6 +1,5 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,7 +29,8 @@ fun MonoLocalPod(
         modifier = modifier.width(dimens.monoLocalPodWidth),
         // The switches sit right under the pill.
     ) {
-        // No speaker on the user's own pill.
+        // No speaker on the user's own pill. Under it, the tag's fixed slot, then the switches:
+        // a tag coming or going never moves the seat or pushes the switches into anything.
         MonoPlayerPod(card = card, showFan = false, trailing = {})
         ArenaSeatSwitches(
             micOn = micOn,
@@ -39,7 +39,7 @@ fun MonoLocalPod(
             onToggleAutoplay = onToggleAutoplay,
             // Centred under the whole seat, sized to it and clear of the avatar's badge.
             size = seatSwitchSize(dimens.monoSeatAvatar),
-            modifier = Modifier.fillMaxWidth().padding(top = Spacing.Xxs),
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }

@@ -3,7 +3,6 @@ package com.kglabs28.yapnplay.appengine.ui.screens.mono
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverModal
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableFeedLineUi
-import com.kglabs28.yapnplay.appengine.ui.components.table.MonoSwapTargetUi
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetUi
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogUi
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
@@ -34,8 +33,6 @@ data class MatchMonoState(
     val playableIndexes: Set<Int> = emptySet(),
     /** True while the table waits for the user to pick the next colour. */
     val awaitingColorChoice: Boolean = false,
-    /** True while the Rule of 7 waits for the user to pick a partner. */
-    val awaitingSwapChoice: Boolean = false,
     /** A draw penalty on the table that the user may stack onto or take. */
     val activeStackPenalty: Int = 0,
     /** A stack is on the user: stack a draw card onto it, or take the penalty. */
@@ -96,8 +93,6 @@ data class MatchMonoState(
     val handOrder: List<Int>
         get() = MonoHandOrder.mono(hand)
     /** Everyone else, clockwise from the user's seat (the order turns go round the table). */
-    /** Whom the Rule of 7 can trade hands with. */
-    val swapTargets get() = opponents.map { MonoSwapTargetUi(it.seat, it.name, it.avatarId.orEmpty(), it.cardCount) }
 
     /** Everyone else still in the game, clockwise from the user (a player who left takes no seat). */
     /** The user has finished: no more MONO!, CAUGHT or Draw for them. */
@@ -120,8 +115,6 @@ sealed interface MatchMonoIntent : UiIntent {
     data object AcceptStack : MatchMonoIntent
     /** End the turn after drawing a playable card and declining to play it. */
     data object Pass : MatchMonoIntent
-    /** The Rule of 7: the seat whose hand to trade with. */
-    data class ChooseSwapTarget(val seat: Int) : MatchMonoIntent
     data class SetAutoplay(val enabled: Boolean) : MatchMonoIntent
     /** The mic button: the user's mic switch, the same in every game (turning it on asks for the mic first). */
     data object ToggleMic : MatchMonoIntent

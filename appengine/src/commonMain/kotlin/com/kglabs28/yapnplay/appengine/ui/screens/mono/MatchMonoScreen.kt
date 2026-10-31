@@ -12,7 +12,6 @@ import androidx.compose.runtime.SideEffect
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorVoiceButtons
 import com.kglabs28.yapnplay.appengine.ui.components.table.flightsIntoHand
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoHandArrivals
-import com.kglabs28.yapnplay.appengine.ui.components.table.MonoSwapChoice
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoColourChoice
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetContent
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetUi
@@ -163,7 +162,6 @@ fun MatchMonoContent(
             // Choices sit over the piles only, so the hand and every seat stay in view.
             prompt = when {
                 state.awaitingColorChoice -> ({ MonoTablePrompt(MonoStrings.monoChooseColour) { MonoColourChoice(MonoConstants.Color.entries.map { MonoStrings.monoColourName(it.name) to it.hue().fill }, { send(MatchMonoIntent.ChooseColor(MonoConstants.Color.entries[it])) }) } })
-                state.awaitingSwapChoice -> ({ MonoTablePrompt(MonoStrings.monoSwapTitle) { MonoSwapChoice(state.swapTargets, { send(MatchMonoIntent.ChooseSwapTarget(it)) }) } })
                 else -> null
             },
             arena = { MonoArena(state = state, anchors = anchors, flights = flights, send = send) },

@@ -88,7 +88,7 @@ object MonoStrings {
     fun monoNoteKnockedOut(name: String) = "$name is knocked out"
     const val monoNoteYouKnockedOut = "You're knocked out"
     const val monoCantCallYet = "Call MONO when you're down to your last card"
-    const val monoDrawButton = "Draw Card"
+    const val monoDrawButton = "Draw"
     fun monoTakeButton(penalty: Int) = "Take +$penalty"
 
     /** Declines the card just drawn and ends the turn. */

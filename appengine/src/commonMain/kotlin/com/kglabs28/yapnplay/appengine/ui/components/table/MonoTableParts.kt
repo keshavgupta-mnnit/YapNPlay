@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.layout.heightIn
+import com.kglabs28.yapnplay.appengine.ui.components.common.fitToSpace
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.layout.layout
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -131,7 +133,7 @@ fun MonoTableArena(
             }
             // Hung under the deck, taking no room, so the piles never move.
             deckButtons?.let { buttons ->
-                Box(modifier = Modifier.align(Alignment.BottomCenter).hangBelow(Spacing.Xs)) {
+                Box(modifier = Modifier.align(Alignment.BottomCenter).hangBelow(Spacing.Xxxs)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) { buttons() }
                 }
             }
@@ -148,17 +150,17 @@ fun MonoTableArena(
                 Box(modifier = tilt) { faceCard() }
             }
         }
-        // Under the piles, past the table's inner ring (so its line never runs under the text) and
-        // centred: the stack's total, then what just happened, between the piles and the hand.
-        // They float over the table and take no room, so the piles never move; on a short table they
-        // may run past its bottom rather than be squeezed (a squeezed label shows cut in half).
+        // Under the piles (and the deck's buttons) and centred: the stack's total, then what just happened.
+        // They float over the table and take no room, so the piles never move. They only use the room left
+        // down to the arena's bottom (the hand's edge), shrinking to fit, so they never cover the cards.
         val pileHalf = cardWidth / CARD_W_PER_H * LYING_HEIGHT / 2
+        val notesTop = maxHeight / 2 + pileHalf + Spacing.Sm + if (deckButtons != null) YapNPlayTheme.dimens.monoDeckButtonHeight + Spacing.Xxs else YapNPlayTheme.dimens.zero
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                // Below the deck's buttons when they show.
-                .offset(y = maxHeight / 2 + pileHalf + Spacing.Lg + if (deckButtons != null) YapNPlayTheme.dimens.monoDeckButtonHeight + Spacing.Xs else YapNPlayTheme.dimens.zero)
-                .wrapContentHeight(align = Alignment.Top, unbounded = true)
+                .offset(y = notesTop)
+                .heightIn(max = (maxHeight - notesTop - Spacing.Xxs).coerceAtLeast(YapNPlayTheme.dimens.zero))
+                .fitToSpace()
                 .zIndex(1f),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
@@ -277,7 +279,7 @@ private fun innerRingSize(screen: IntSize): Size {
 }
 
 /**
- * The local player's hand, fanned. Cards overlap as the hand grows so a
+ * The local player's hand, in a straight row. Cards overlap as the hand grows so a
  * big hand still shows every corner index; past the point where the
  * overlap stops being readable the row scrolls. A playable card rises
  * well past the fan's own dip, so it never reads as just a middle card. Exactly one card is
@@ -313,21 +315,12 @@ fun MonoHandRow(
             val rowWidth = maxOf(handWidth, this@BoxWithConstraints.constraints.maxWidth)
             val start = (rowWidth - handWidth) / 2
             val cardHeight = placeables.maxOfOrNull { it.height } ?: 0
-            // Fanned like a held hand: each card tilts out from the middle and the ends dip. A hand too big
-            // to fit scrolls flat instead, so every card reads straight while swiping through it.
-            val scrolls = handWidth > this@BoxWithConstraints.constraints.maxWidth
-            val middle = (placeables.size - 1) / 2f
-            val spread = if (scrolls) 0f else (FAN_DEGREES / placeables.size.coerceAtLeast(1)).coerceAtMost(FAN_STEP_MAX)
-            val dipPx = if (scrolls) 0 else (cardHeight * FAN_DIP).roundToInt()
+            // Straight, every card upright, whatever the hand's size: the same look small or big.
             // Room above for a playable card standing up, so the scroller never cuts its top off.
             val liftPx = with(density) { liftRoom.roundToPx() }
-            layout(rowWidth, liftPx + cardHeight + dipPx) {
+            layout(rowWidth, liftPx + cardHeight) {
                 placeables.forEachIndexed { index, placeable ->
-                    val offCentre = (index - middle) / middle.coerceAtLeast(1f)
-                    placeable.placeWithLayer(start + marginPx + stepPx * index, liftPx + (dipPx * offCentre * offCentre).roundToInt()) {
-                        rotationZ = (index - middle) * spread
-                        transformOrigin = TransformOrigin(0.5f, 1f)
-                    }
+                    placeable.place(start + marginPx + stepPx * index, liftPx)
                 }
             }
         }
@@ -345,9 +338,6 @@ private const val STACK_RIM_ALPHA = 0.6f
 /** Same as a card: width ÷ height. */
 private const val EMPTY_PILE_RATIO = 0.68f
 /** The whole hand's tilt, the most one card may tilt from its neighbour, and how far the ends dip (× card height). */
-private const val FAN_DEGREES = 40f
-private const val FAN_STEP_MAX = 5f
-private const val FAN_DIP = 0.08f
 private const val FAN_MARGIN = 0.6f
 /** A pile may take this much of the arena's height (tilted, it looks shorter); a card is 0.68 as wide as tall. */
 private const val PILE_OF_ARENA = 1f

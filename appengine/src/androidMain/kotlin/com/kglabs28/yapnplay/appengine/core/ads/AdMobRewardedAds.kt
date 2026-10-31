@@ -104,7 +104,10 @@ class AdMobRewardedAds(
                 ready = ad
             }
             override fun onAdFailedToLoad(error: LoadAdError) {
-                CrashReporter.record(IllegalStateException(error.message), "AdMobRewardedAds.preload:" + error.code)
+                // No network or no ad to show is normal (ad blockers, a dropped connection): only real setup errors are reported.
+                if (error.code != AdRequest.ERROR_CODE_NETWORK_ERROR && error.code != AdRequest.ERROR_CODE_NO_FILL) {
+                    CrashReporter.record(IllegalStateException(error.message), "AdMobRewardedAds.preload:" + error.code)
+                }
                 loading = false
                 // "No fill" often clears up: try again a few times, waiting longer each time (a coins tap also retries).
                 failures++

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.ui.text.TextStyle
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -88,14 +89,15 @@ fun MonoDeckButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
         width = dimens.monoDeckButtonWidth,
         height = dimens.monoDeckButtonHeight,
         modifier = modifier,
+        textStyle = YapNPlayTheme.typography.label,
     )
 }
 
-/** The deck's buttons on the user's turn: Pass (after a draw), then Draw, or "Take +N" under a stack. */
+/** The deck's buttons on the user's turn: Draw (or "Take +N" under a stack), then Pass on its right after a draw. */
 @Composable
 fun MonoDeckButtons(stacked: Boolean, canPass: Boolean, penalty: Int, onDraw: () -> Unit, onPass: () -> Unit) {
-    if (canPass) MonoDeckButton(text = MonoStrings.monoPass, onClick = onPass)
     MonoDeckButton(text = if (stacked) MonoStrings.monoTakeButton(penalty) else MonoStrings.monoDrawButton, onClick = onDraw)
+    if (canPass) MonoDeckButton(text = MonoStrings.monoPass, onClick = onPass)
 }
 
 /** The shared look of the table's big buttons: a glowing glass pill, icon then label. */
@@ -111,6 +113,7 @@ private fun ArenaPillButton(
     width: Dp,
     modifier: Modifier = Modifier,
     height: Dp = YapNPlayTheme.dimens.arenaActionHeight,
+    textStyle: TextStyle = YapNPlayTheme.typography.title,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -148,7 +151,7 @@ private fun ArenaPillButton(
         // A narrow button shrinks its word rather than cutting it; the word never takes the tap.
         ShrinkText(
             text = text,
-            style = YapNPlayTheme.typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Black),
+            style = textStyle.copy(color = colors.TextPrimary, fontWeight = FontWeight.Black),
             modifier = Modifier.weight(1f, fill = false),
             slideOnTap = false,
         )

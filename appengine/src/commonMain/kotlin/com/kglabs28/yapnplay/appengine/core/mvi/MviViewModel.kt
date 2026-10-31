@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.core.mvi
 
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
+import kotlin.time.TimeMark
 import com.kglabs28.yapnplay.appengine.core.common.AppConstants
 import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
@@ -37,22 +40,30 @@ abstract class MviViewModel<S : UiState, I : UiIntent, E : UiEffect>(
     private val _effects = Channel<E>(Channel.BUFFERED)
     val effects: Flow<E> = _effects.receiveAsFlow()
 
-    /** Actions still being handled: the same one again is ignored until it is done (no repeat taps). */
-    private val running = mutableSetOf<I>()
+    /** Actions still being handled, with when each started: the same one again waits a moment (no repeat taps). */
+    private val running = mutableMapOf<I, Run>()
 
     /**
      * Single entry point for every user action. A tap that repeats an
      * action still running (a dialog opening, an ad loading) is dropped,
-     * so mashing a button can't queue opens and closes.
+     * so mashing a button can't queue opens and closes. After [REPEAT_AFTER]
+     * it goes through again, so a request stuck on a weak connection never
+     * leaves a button dead for long.
      */
     fun onIntent(intent: I) {
         AppLog.d(AppConstants.LOG_TAG_INTENTS, "${this::class.simpleName} <- ${intent::class.simpleName} (scope active=${scope.isActive})")
-        if (!running.add(intent)) return AppLog.d(AppConstants.LOG_TAG_INTENTS, "${intent::class.simpleName} already running: ignored")
+        val started = running[intent]
+        if (started != null && started.mark.elapsedNow() < REPEAT_AFTER) {
+            return AppLog.d(AppConstants.LOG_TAG_INTENTS, "${intent::class.simpleName} already running: ignored")
+        }
+        val run = Run(TimeSource.Monotonic.markNow())
+        running[intent] = run
         scope.launch {
             try {
                 handleIntent(intent)
             } finally {
-                running.remove(intent)
+                // Only this run's own mark: a later repeat keeps its own.
+                if (running[intent] === run) running.remove(intent)
             }
         }
     }
@@ -78,4 +89,12 @@ abstract class MviViewModel<S : UiState, I : UiIntent, E : UiEffect>(
 
     /** Release anything held outside [scope] (e.g. an open mic). */
     protected open fun onCleared() = Unit
+
+    /** One handling of an action, and when it started. */
+    private class Run(val mark: TimeMark)
+
+    private companion object {
+        /** How long a repeat of a still-running action is ignored. */
+        val REPEAT_AFTER = 3.seconds
+    }
 }

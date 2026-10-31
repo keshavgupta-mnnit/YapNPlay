@@ -258,8 +258,10 @@ class YapNPlayDimens {
     val arenaActionHeight: Dp get() = 50.dp.scaled()
     val arenaCallWidth: Dp get() = 86.dp.scaled()
     /** The small Draw / Take / Pass buttons under the deck, on the user's turn. */
-    val monoDeckButtonHeight: Dp get() = 32.dp.scaled()
-    val monoDeckButtonWidth: Dp get() = 92.dp.scaled()
+    val monoDeckButtonHeight: Dp get() = 26.dp.scaled()
+    /** The room kept under every seat for its tag ("2nd", "Away", "ELIMINATED"), there or not. */
+    val seatTagSlot: Dp get() = 14.dp.scaled()
+    val monoDeckButtonWidth: Dp get() = 72.dp.scaled()
     /** The round mic / autoplay switches under the user's seat. */
     val arenaSwitchSize: Dp get() = 36.dp.scaled()
     /** The most a Mic / Auto button grows to (it fills half the pill's width up to this). */

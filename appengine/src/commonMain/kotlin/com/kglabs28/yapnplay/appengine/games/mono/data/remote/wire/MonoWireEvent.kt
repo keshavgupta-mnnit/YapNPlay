@@ -43,13 +43,7 @@ sealed interface MonoWireEvent {
     @Serializable @SerialName("DeckReshuffled")
     data class DeckReshuffled(val drawPileCount: Int) : MonoWireEvent
 
-    /** The Rule of 7: two seats traded hands. */
-    @Serializable @SerialName("HandSwapped")
-    data class HandSwapped(val from: Int, val to: Int) : MonoWireEvent
 
-    /** The Rule of 0: every hand moved one way around the table. */
-    @Serializable @SerialName("HandsPassed")
-    data class HandsPassed(val direction: String) : MonoWireEvent
 
     @Serializable @SerialName("TurnPassed")
     data class TurnPassed(val seat: Int) : MonoWireEvent

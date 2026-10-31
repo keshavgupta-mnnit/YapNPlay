@@ -135,8 +135,8 @@ fun ArenaTopBar(
                     fontSize = typography.label.fontSize * SUBTITLE_GROW,
                     textAlign = TextAlign.End,
                 ),
-                // Shares the bar with the name (never all of it), shrinking to fit: a long "Round 12 / 30" never hides the name.
-                modifier = Modifier.weight(1f, fill = false),
+                // Half the bar, its text at the right end: shrinks to fit, so a long "Room · Round 12 / 30" never hides the name.
+                modifier = Modifier.weight(1f),
             )
         }
 

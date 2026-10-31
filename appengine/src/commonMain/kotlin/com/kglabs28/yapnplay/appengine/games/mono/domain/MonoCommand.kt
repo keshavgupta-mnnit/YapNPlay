@@ -15,8 +15,6 @@ sealed interface MonoCommand {
     data object Caught : MonoCommand
     /** The keep-playing vote. */
     data class VoteContinue(val keepPlaying: Boolean) : MonoCommand
-    /** The Rule of 7: pick the opponent whose hand to trade with. */
-    data class ChooseSwapTarget(val seat: Int) : MonoCommand
     data class SetAutoplay(val enabled: Boolean) : MonoCommand
     data class SetMic(val on: Boolean) : MonoCommand
     data class Leave(val giveToUserId: String?) : MonoCommand

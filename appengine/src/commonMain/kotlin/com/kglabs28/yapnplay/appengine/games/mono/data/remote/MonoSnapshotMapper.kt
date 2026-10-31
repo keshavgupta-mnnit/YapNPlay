@@ -72,7 +72,6 @@ class MonoSnapshotMapper(private val json: Json) {
             monoCalledSeat = state.monoCalledSeat,
             reversed = state.reversed,
             drawnCardIndex = state.drawnCardIndex,
-            pendingSwapSeat = state.pendingSwapSeat,
             eliminatedSeats = state.eliminatedSeats,
             finishedSeats = state.finishedSeats,
             turnEndsAt = snapshot.turn.deadline?.let(toLocal),
@@ -129,8 +128,6 @@ class MonoSnapshotMapper(private val json: Json) {
         is MonoWireEvent.FalseCatch -> MonoEvent.FalseCatch(SeatNumber(seat), SeatNumber(target), penaltyCards)
         is MonoWireEvent.ContinueVoted -> MonoEvent.ContinueVoted(continued, yes, voters)
         is MonoWireEvent.DeckReshuffled -> MonoEvent.DeckReshuffled(drawPileCount)
-        is MonoWireEvent.HandSwapped -> MonoEvent.HandSwapped(SeatNumber(from), SeatNumber(to))
-        is MonoWireEvent.HandsPassed -> MonoEvent.HandsPassed(direction)
         is MonoWireEvent.TurnPassed -> MonoEvent.TurnPassed(SeatNumber(seat))
         is MonoWireEvent.SeatFinished -> MonoEvent.SeatFinished(SeatNumber(seat), place)
         is MonoWireEvent.MatchEnded -> MonoEvent.MatchEnded(finishingOrder)

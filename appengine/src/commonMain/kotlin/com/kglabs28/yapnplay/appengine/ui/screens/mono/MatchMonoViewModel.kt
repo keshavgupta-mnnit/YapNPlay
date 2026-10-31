@@ -119,10 +119,6 @@ class MatchMonoViewModel(
             is MatchMonoIntent.TapCard -> tapCard(intent.index)
             MatchMonoIntent.DrawCard -> send(MonoCommand.DrawCard)
             MatchMonoIntent.Pass -> send(MonoCommand.Pass)
-            is MatchMonoIntent.ChooseSwapTarget -> {
-                send(MonoCommand.ChooseSwapTarget(intent.seat))
-                setState { copy(awaitingSwapChoice = false) }
-            }
             is MatchMonoIntent.ChooseColor -> {
                 send(MonoCommand.ChooseColor(intent.color.name))
                 setState { copy(awaitingColorChoice = false, selectedCardIndex = null) }
@@ -264,24 +260,6 @@ class MatchMonoViewModel(
         fun facesFor(seat: Int) = if (seat == me) now.me?.hand.orEmpty().map { it.look() } else emptyList()
         val cues = events.flatMap { event ->
             when (event) {
-                // A 7: two hands trade places.
-                is MonoEvent.HandSwapped -> {
-                    val a = event.from.value
-                    val b = event.to.value
-                    listOf(
-                        MonoTableDirector.Cue.Moved(a, b, previous?.cardCountForSeat(a) ?: 0, facesFor(b)),
-                        MonoTableDirector.Cue.Moved(b, a, previous?.cardCountForSeat(b) ?: 0, facesFor(a)),
-                    )
-                }
-                // A 0: every hand moves on one seat, the way play goes.
-                is MonoEvent.HandsPassed -> {
-                    val seats = previous?.players.orEmpty().filter { !it.removed && it.cardCount > 0 }.map { it.seat }.sorted()
-                    val forward = event.direction == CLOCKWISE
-                    seats.mapIndexed { i, seat ->
-                        val next = seats[(i + if (forward) 1 else seats.size - 1) % seats.size]
-                        MonoTableDirector.Cue.Moved(seat, next, previous?.cardCountForSeat(seat) ?: 0, facesFor(next))
-                    }.filter { it.fromSeat != it.toSeat }
-                }
                 else -> listOfNotNull(
                     when (event) {
                 is MonoEvent.CardPlayed -> {
@@ -395,7 +373,6 @@ class MatchMonoViewModel(
                 myTurn = myTurn,
                 playableIndexes = if (waitingOnMe) playable(m, me, stacking) else emptySet(),
                 awaitingColorChoice = waitingOnMe && m.phase == MonoPhase.AWAITING_COLOR_CHOICE.name,
-                awaitingSwapChoice = waitingOnMe && m.phase == MonoPhase.AWAITING_SWAP_CHOICE.name,
                 activeStackPenalty = m.activeStackPenalty,
                 canStack = stacking,
                 canCallMono = me != null && me.autoplay != true && canCall(m, me, waitingOnMe, now),
@@ -567,7 +544,6 @@ class MatchMonoViewModel(
 
 private const val REPORT_INVOLVED = 2
 /** The server's word for a hand pass that goes the way of play. */
-private const val CLOCKWISE = "clockwise"
 /** The beat before the table draws for a user with nothing to play. */
 private val AUTO_DRAW_DELAY = 700.milliseconds
 /** Longer for a stack, so its message can be read before the cards come. */

@@ -7,5 +7,5 @@ import kotlinx.coroutines.flow.StateFlow
 class SilentMicLevelMonitor : MicLevelMonitor {
     override val speaking: StateFlow<Boolean> = MutableStateFlow(false)
     override fun start() = Unit
-    override fun stop() = Unit
+    override suspend fun stop() = Unit
 }

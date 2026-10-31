@@ -1,5 +1,11 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.State
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Animatable
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -99,8 +105,9 @@ fun MonoPlayerPod(
                     MonoSeatHeaderFor(card, avatar, trailing)
                     MonoSeatLabel(card, avatar)
                 }
-                if (showFan && card.cards > 0) {
-                    BoxWithConstraints(modifier = Modifier.width(YapNPlayTheme.dimens.monoSideFanWidth)) {
+                // The fan's place is kept even when empty, so every top seat is as wide as the others.
+                BoxWithConstraints(modifier = Modifier.width(YapNPlayTheme.dimens.monoSideFanWidth)) {
+                    if (showFan && card.cards > 0) {
                         MonoCardFan(count = card.cards, cardWidth = dimens.monoSeatFanCard, maxWidth = maxWidth, eliminated = card.eliminated)
                     }
                 }
@@ -113,8 +120,6 @@ fun MonoPlayerPod(
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
-                        // Tucked up under the pill (unless a tag sits there), so the seat covers less of the table.
-                        .pullUp(if ((card.placeLabel ?: card.statusLabel) == null) avatar * FAN_TUCK else dimens.zero)
                         .padding(start = avatar * FAN_START),
                 ) {
                     MonoCardFan(
@@ -176,16 +181,17 @@ private fun MonoSeatHeaderFor(card: MonoPlayerPodUi, avatar: Dp, trailing: (@Com
     )
 }
 
+/** A seat's place or status ("2nd", "ELIMINATED", Away), or null. */
+fun MonoPlayerPodUi.tagLabel(): String? = placeLabel ?: statusLabel
+
 /** A finishing place or Away / Autoplay, under the seat. */
 @Composable
-private fun MonoSeatLabel(card: MonoPlayerPodUi, avatar: Dp) {
-    (card.placeLabel ?: card.statusLabel)?.let { label ->
-        ArenaSeatTag(
-            text = label,
-            tint = if (card.placeLabel != null) card.tint else YapNPlayTheme.colors.IconMuted,
-            avatar = avatar,
-        )
-    }
+internal fun MonoSeatLabel(card: MonoPlayerPodUi, avatar: Dp) {
+    ArenaSeatTagSlot(
+        text = card.tagLabel(),
+        tint = if (card.placeLabel != null) card.tint else YapNPlayTheme.colors.IconMuted,
+        avatar = avatar,
+    )
 }
 
 /**
@@ -218,6 +224,7 @@ fun ArenaSeatHeader(
     val pillHeight = avatar * PILL_SHARE
     val pillShape = RoundedCornerShape(percent = 50)
     val glow = if (talking || talkingMuted) talkPulse() else 0f
+    val shownTime = glidingFraction(timerFraction)
 
     // The speaker / mute button sits outside the pill, at its right end, so the name keeps the pill's whole width.
     Row(
@@ -234,7 +241,7 @@ fun ArenaSeatHeader(
                 .seatTalkGlow(glow, pillHeight, muted = !talking)
                 .seatTimer(
                     active = isTurn,
-                    fraction = timerFraction,
+                    fraction = { shownTime.value },
                     tint = tint,
                     pillHeight = pillHeight,
                     width = dimens.monoSeatTimer,
@@ -393,6 +400,19 @@ fun MonoCalledBadge(modifier: Modifier = Modifier) {
     )
 }
 
+/**
+ * The turn clock as drawn: it glides down between the table's updates (a few a second), so the ring moves
+ * smoothly while only the ring redraws; a new turn (the clock going back up) jumps straight to full.
+ */
+@Composable
+private fun glidingFraction(target: Float): State<Float> {
+    val shown = remember { Animatable(target) }
+    LaunchedEffect(target) {
+        if (target >= shown.value) shown.snapTo(target) else shown.animateTo(target, tween(AppConstants.LUDO_TIMER_TICK_MS.toInt(), easing = LinearEasing))
+    }
+    return shown.asState()
+}
+
 /** 0 → 1 → 0, slowly: the talking glow breathing. */
 @Composable
 private fun talkPulse(): Float {
@@ -424,7 +444,7 @@ private fun Modifier.seatTalkGlow(strength: Float, pillHeight: Dp, muted: Boolea
 }
 
 /** The turn timer round the seat's outline: it starts at the avatar's top and shrinks clockwise. */
-private fun Modifier.seatTimer(active: Boolean, fraction: Float, tint: Color, pillHeight: Dp, width: Dp): Modifier = drawWithContent {
+private fun Modifier.seatTimer(active: Boolean, fraction: () -> Float, tint: Color, pillHeight: Dp, width: Dp): Modifier = drawWithContent {
     // Drawn first, so the avatar's level badge (which hangs over the outline) stays in front of it.
     if (!active) {
         drawContent()
@@ -435,7 +455,7 @@ private fun Modifier.seatTimer(active: Boolean, fraction: Float, tint: Color, pi
     val outline = seatOutline(size, pillHeight.toPx())
     val measure = PathMeasure().apply { setPath(outline, false) }
     val left = Path()
-    measure.getSegment(measure.length * (1f - fraction.coerceIn(0f, 1f)), measure.length, left, true)
+    measure.getSegment(measure.length * (1f - fraction().coerceIn(0f, 1f)), measure.length, left, true)
     clipPath(outline, clipOp = ClipOp.Difference) {
         drawPath(outline, tint.copy(alpha = TRACK_ALPHA), style = Stroke(stroke))
         drawPath(left, tint, style = Stroke(stroke, cap = StrokeCap.Round))
@@ -471,7 +491,6 @@ private const val PILL_SHARE = SEAT_PILL_SHARE
 private const val PILL_CAP = 0.95f
 private const val FAN_START = 0.75f
 /** How far the fan under a seat tucks up towards the pill (× avatar). */
-private const val FAN_TUCK = 0.1f
 private const val CALLED_SHIFT = 0.7f
 private const val ICON_SHARE = 0.55f
 private const val LEVEL_BADGE_SHARE = 0.42f
@@ -490,9 +509,3 @@ private const val ELIMINATED_ALPHA = 0.4f
 private const val PULSE_MIN = 0.45f
 private const val PULSE_MS = 700
 
-/** Lays the content [by] higher than it would sit, and takes that much less room. */
-private fun Modifier.pullUp(by: Dp): Modifier = layout { measurable, constraints ->
-    val placeable = measurable.measure(constraints)
-    val up = by.roundToPx().coerceAtMost(placeable.height)
-    layout(placeable.width, placeable.height - up) { placeable.place(0, -up) }
-}

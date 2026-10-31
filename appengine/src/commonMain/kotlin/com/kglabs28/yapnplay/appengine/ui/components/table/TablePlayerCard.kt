@@ -98,11 +98,13 @@ fun TablePlayerCard(
                     null
                 },
             )
+            // A fixed slot for the tag, so it never collides with the switches below or the seat under it.
+            ArenaSeatTagSlot(text = badge, tint = badgeTint, avatar = avatar)
             // The user's switches under the card, centred on it, sized to it and clear of the avatar's badge.
             if (controls != null) {
                 CompositionLocalProvider(LocalSeatSwitchSize provides seatSwitchSize(avatar)) {
                     Column(
-                        modifier = Modifier.fillMaxWidth().padding(top = Spacing.Xxs),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(gap),
                         content = controls,
@@ -110,7 +112,6 @@ fun TablePlayerCard(
                 }
             }
         }
-        badge?.let { label -> ArenaSeatTag(text = label, tint = badgeTint, avatar = avatar) }
     }
 }
 

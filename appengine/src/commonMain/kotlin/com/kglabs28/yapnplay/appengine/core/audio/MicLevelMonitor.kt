@@ -13,6 +13,6 @@ interface MicLevelMonitor {
     /** Starts listening (needs the microphone permission; without it nothing happens). */
     fun start()
 
-    /** Stops listening; [speaking] goes false. */
-    fun stop()
+    /** Stops listening and waits until the mic is released (so the voice room can take it at once); [speaking] goes false. */
+    suspend fun stop()
 }

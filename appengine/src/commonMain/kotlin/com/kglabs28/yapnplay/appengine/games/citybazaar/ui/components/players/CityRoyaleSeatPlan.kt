@@ -71,7 +71,8 @@ class CityRoyaleSeatPlan(
      */
     private fun clearAbove(wanted: Float, x: Float, cardWidth: Float, cardHeight: Float): Float {
         val edge = minOf(boardUpperAt(x), boardUpperAt(x + cardWidth))
-        return minOf(wanted, edge - gap - cardHeight).coerceIn(topLimit, bottomLimit - cardHeight)
+        // A very short screen (a split window, a tiny tablet pane) may not fit a card at all: then it sits at the top, never throws.
+        return minOf(wanted, edge - gap - cardHeight).coerceIn(topLimit, maxOf(topLimit, bottomLimit - cardHeight))
     }
 
     /** The board's upper edge (left tip → top → right tip) at [x]; no board there: below everything. */

@@ -20,7 +20,7 @@ data class MonoCardWire(
  */
 @Serializable
 data class MonoPublicState(
-    /** AWAITING_PLAY, AWAITING_COLOR_CHOICE, AWAITING_STACK_CHOICE, AWAITING_SWAP_CHOICE or FINISHED. */
+    /** AWAITING_PLAY, AWAITING_COLOR_CHOICE, AWAITING_STACK_CHOICE or FINISHED. */
     val phase: String,
     val topCard: MonoCardWire? = null,
     val topCardColor: String? = null,
@@ -45,8 +45,6 @@ data class MonoPublicState(
     val drawnCardIndex: Int? = null,
     /** Epoch millis when a playable drawn card stops being playable and the turn passes; 0 when none. */
     val drawnCardExpiry: Long = 0,
-    /** The seat that played a 7 and must pick a swap partner. */
-    val pendingSwapSeat: Int? = null,
     val eliminatedSeats: List<Int> = emptyList(),
     val finishedSeats: List<Int> = emptyList(),
     /** Seats from first to last once the match is over. */

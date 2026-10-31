@@ -25,7 +25,8 @@ class PingProbe(private val realtime: RealtimeGateway) {
     }
 
     private suspend fun measure(): Long? {
-        if (realtime.status.value != ConnectionStatus.ONLINE) return null
+        // Known to be down: no point asking. Still connecting (a reconnect): the ping waits for it, up to the timeout.
+        if (realtime.status.value == ConnectionStatus.OFFLINE) return null
         val start = TimeSource.Monotonic.markNow()
         return try {
             // No answer in time: unreachable (a timeout must not end the probe, so no withTimeout here).

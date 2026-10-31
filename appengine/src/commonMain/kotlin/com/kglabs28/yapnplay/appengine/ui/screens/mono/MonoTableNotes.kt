@@ -22,8 +22,6 @@ object MonoTableNotes {
                 is MonoEvent.MonoCaught -> caught(me, e.catcher.value, e.seat.value, e.penaltyCards, ::name)
                 is MonoEvent.FalseCatch -> wrongCatch(e.seat.value == me, name(e.seat.value), e.penaltyCards)
                 is MonoEvent.MonoMissed -> missed(e.seat.value == me, name(e.seat.value), e.penaltyCards)
-                is MonoEvent.HandSwapped -> MonoStrings.monoNoteSwapped(name(e.from.value), name(e.to.value))
-                is MonoEvent.HandsPassed -> MonoStrings.monoNotePassed
                 else -> null
             }
         }.lastOrNull()

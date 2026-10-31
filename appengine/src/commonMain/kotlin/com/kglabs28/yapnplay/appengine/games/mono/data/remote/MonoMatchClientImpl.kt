@@ -59,7 +59,6 @@ class MonoMatchClientImpl(
         MonoCommand.Pass -> MonoWireAction.Pass
         MonoCommand.Caught -> MonoWireAction.Caught
         is MonoCommand.VoteContinue -> MonoWireAction.VoteContinue(keepPlaying)
-        is MonoCommand.ChooseSwapTarget -> MonoWireAction.ChooseSwapTarget(seat)
         is MonoCommand.SetAutoplay,
         MonoCommand.ProposeEnd,
         is MonoCommand.VoteEnd,

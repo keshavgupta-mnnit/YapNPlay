@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.fitToSpace
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -231,8 +232,18 @@ fun MonoTableShell(
                 if (!watching) Box(modifier = Modifier.align(Alignment.BottomEnd)) { monoButton() }
                 if (watching) watcherControls?.let { Box(modifier = Modifier.align(Alignment.BottomEnd)) { it() } }
 
-                // A choice the table waits on, centred over the whole middle so it always has room.
-                prompt?.let { Box(modifier = Modifier.align(Alignment.Center)) { it() } }
+                // A choice the table waits on: inside the arena only (between the U and the hand, with a margin),
+                // shrunk to fit when it is taller, so it never covers the hand or a seat.
+                prompt?.let {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(start = side, end = side, top = topBand + Spacing.Xs, bottom = handBand + Spacing.Xs),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(modifier = Modifier.fitToSpace()) { it() }
+                    }
+                }
             }
         }
         MonoFlightLayer(state = flights, anchors = anchors)

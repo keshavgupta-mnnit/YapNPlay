@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.games.doodleking.domain.DoodleFeedKind
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverController
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogState
@@ -84,6 +85,12 @@ class DoodleKingMatchViewModel(
     private var seatResults: List<SeatResult> = emptyList()
     /** Sends the drawer's strokes while they draw. */
     private var inkJob: Job? = null
+    /** The user's guesses this turn (by drawing): how many the feed has answered, the last one sent, the word once guessed. */
+    private var guessTurn = 0
+    private var answered = 0
+    private var lastGuess = ""
+    private var guessedWord: String? = null
+    private var feedback: DoodleGuessFeedbackUi? = null
     /** When the whole drawing was last asked for (it's asked again at most every few seconds). */
     private var lastSyncMillis = 0L
     private var jobs: List<Job> = emptyList()
@@ -115,7 +122,10 @@ class DoodleKingMatchViewModel(
             is DoodleKingMatchIntent.PickWord -> if (id != null) sendCommand(id, DoodleCommand.PickWord(intent.index))
             is DoodleKingMatchIntent.SendGuess -> {
                 val text = intent.text.trim().take(DoodleKingConstants.MAX_GUESS_LENGTH)
-                if (id != null && text.isNotEmpty()) sendCommand(id, DoodleCommand.Guess(text))
+                if (id != null && text.isNotEmpty() && match?.me?.guessed == false) {
+                    lastGuess = text
+                    sendCommand(id, DoodleCommand.Guess(text))
+                }
             }
             DoodleKingMatchIntent.Pass -> if (id != null && match?.iAmDrawing == true) sendCommand(id, DoodleCommand.Pass)
             is DoodleKingMatchIntent.SelectInk -> {
@@ -134,6 +144,7 @@ class DoodleKingMatchViewModel(
                 render()
             }
             DoodleKingMatchIntent.Undo -> board.undo()
+            DoodleKingMatchIntent.Redo -> board.redo()
             DoodleKingMatchIntent.Clear -> board.clear()
             DoodleKingMatchIntent.OpenSettings -> showSettings()
             DoodleKingMatchIntent.ToggleEffects -> {
@@ -223,6 +234,7 @@ class DoodleKingMatchViewModel(
         val m = update.match
         match = m
         if (board.drawingId != m.drawingId) board.reset(m.drawingId)
+        answerGuesses(m)
         askForDrawingIfMissing(m)
         manageInkSender(m)
         syncMic()
@@ -230,6 +242,35 @@ class DoodleKingMatchViewModel(
             leaderboard = DoodleTableMapper.leaderboard(m, DoodleTableMapper.elapsed(clock.now() - m.startedAt)).let { LeaderboardResult.withResult(it, seatResults) }
         }
         render()
+    }
+
+    /**
+     * The table's answer to the user's latest guess, from the turn's feed: right (their word goes
+     * green under their card), very close, or wrong. A new turn starts clean.
+     */
+    private fun answerGuesses(m: DoodleMatch) {
+        if (m.drawingId != guessTurn) {
+            guessTurn = m.drawingId
+            answered = 0
+            guessedWord = null
+            feedback = null
+        }
+        val mine = m.feed.filter { it.seat == m.me?.seat && it.kind in GUESS_ANSWERS }
+        if (mine.size <= answered) return
+        answered = mine.size
+        val last = mine.last()
+        val kind = when (last.kind) {
+            DoodleFeedKind.CORRECT -> DoodleGuessResult.RIGHT
+            DoodleFeedKind.CLOSE -> DoodleGuessResult.CLOSE
+            else -> DoodleGuessResult.WRONG
+        }
+        if (kind == DoodleGuessResult.RIGHT) guessedWord = lastGuess
+        val message = when (kind) {
+            DoodleGuessResult.RIGHT -> DoodleStrings.dkYouGotIt(last.points)
+            DoodleGuessResult.CLOSE -> DoodleStrings.dkVeryClose(last.text.orEmpty())
+            DoodleGuessResult.WRONG -> DoodleStrings.dkWrongGuess
+        }
+        feedback = DoodleGuessFeedbackUi((feedback?.id ?: 0) + 1, kind, message)
     }
 
     /** Joined mid-turn, or strokes went missing: ask for the whole drawing (at most every few seconds). */
@@ -309,7 +350,7 @@ class DoodleKingMatchViewModel(
         val barMode = when {
             m.iAmDrawing && m.phase == DoodlePhase.DRAW -> DoodleBarMode.DRAW
             me == null || m.phase != DoodlePhase.DRAW || m.iAmDrawing -> DoodleBarMode.WAIT
-            me.guessed -> DoodleBarMode.CHAT
+            me.guessed -> DoodleBarMode.GUESSED
             else -> DoodleBarMode.GUESS
         }
         setState {
@@ -322,6 +363,15 @@ class DoodleKingMatchViewModel(
                 spectatorCount = m.spectators.size.takeIf { it > 0 }?.toString().orEmpty(),
                 elapsed = DoodleTableMapper.elapsed(now - m.startedAt),
                 status = DoodleTableMapper.status(m),
+                // Under the user's card: their word while they draw, the word once they guessed it, else the hint.
+                myWord = when {
+                    m.iAmDrawing -> m.word.orEmpty()
+                    me?.guessed == true && m.phase == DoodlePhase.DRAW -> guessedWord?.takeIf { it.isNotEmpty() } ?: m.hint
+                    m.phase == DoodlePhase.REVEAL -> m.word.orEmpty()
+                    else -> m.hint
+                }.uppercase(),
+                myWordGuessed = me?.guessed == true && m.phase == DoodlePhase.DRAW,
+                feedback = feedback.takeIf { m.phase == DoodlePhase.DRAW },
                 timeLeft = if (m.phase == DoodlePhase.FINISHED) "" else DoodleTableMapper.clock(seconds),
                 timeUrgent = m.phase == DoodlePhase.DRAW && seconds <= URGENT_SECONDS,
                 board = this@DoodleKingMatchViewModel.board,
@@ -329,7 +379,6 @@ class DoodleKingMatchViewModel(
                 inkColour = board.colour,
                 inkSize = board.size,
                 eraser = board.eraser,
-                word = if (m.iAmDrawing) m.word.orEmpty().uppercase() else "",
                 hint = m.hint,
                 leftCards = cards.filter { !it.isMe },
                 myCard = cards.firstOrNull { it.isMe },
@@ -362,5 +411,6 @@ class DoodleKingMatchViewModel(
         const val SYNC_GAP_MS = 3_000L
         const val URGENT_SECONDS = 10L
         const val SIZES = 3
+        val GUESS_ANSWERS = setOf(DoodleFeedKind.GUESS, DoodleFeedKind.CLOSE, DoodleFeedKind.CORRECT)
     }
 }

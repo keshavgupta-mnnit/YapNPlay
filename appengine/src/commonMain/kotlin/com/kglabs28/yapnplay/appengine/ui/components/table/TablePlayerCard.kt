@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.heightIn
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -55,6 +56,8 @@ fun TablePlayerCard(
     density: TableCardDensity = TableCardDensity.ROOMY,
     details: (@Composable ColumnScope.() -> Unit)? = null,
     controls: (@Composable ColumnScope.() -> Unit)? = null,
+    /** At the name pill's right end, inside it (a status icon: drawing, guessed…). */
+    pillEnd: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -88,6 +91,7 @@ fun TablePlayerCard(
                 talkingMuted = card.talkingMuted,
                 avatar = avatar,
                 details = details,
+                pillEnd = pillEnd,
                 trailing = if (!card.isMe && card.canSpeak) {
                     {
                         TableMuteButton(

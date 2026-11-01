@@ -420,14 +420,16 @@ class YapNPlayDimens {
     val profileWideDialogWidth: Dp get() = 420.dp.scaled()
     val friendsGridMaxHeight: Dp get() = 210.dp.scaled()
     val profileListMaxHeight: Dp get() = 190.dp.scaled()
+    // Letter slots (a word to guess, one underlined box per letter).
+    val letterSlotMax: Dp get() = 22.dp.scaled()
+    val letterSlotGap: Dp get() = 3.dp.scaled()
+    val letterSlotLine: Dp get() = 2.dp.scaled()
+    /** The app's keyboard when a screen keeps more of itself in view (a game's guess). */
+    val appKeyboardCompactHeight: Dp get() = 176.dp.scaled()
     // Doodle King.
     /** The side columns (cards on the left; guesses and leaderboard on the right). */
     val doodleSideWidth: Dp get() = 150.dp.scaled()
     val doodleCardAvatar: Dp get() = 34.dp.scaled()
-    /** The bottom bar: the user's card, the tools or guess box, the word or Enter. */
-    val doodleBarHeight: Dp get() = 64.dp.scaled()
-    val doodleBarCardWidth: Dp get() = 150.dp.scaled()
-    val doodleBarEndWidth: Dp get() = 150.dp.scaled()
     val doodleToolButton: Dp get() = 34.dp.scaled()
     val doodleInkDot: Dp get() = 26.dp.scaled()
     val doodleInputHeight: Dp get() = 30.dp.scaled()
@@ -437,9 +439,12 @@ class YapNPlayDimens {
     val doodleRankRowHeight: Dp get() = 18.dp.scaled()
     val doodlePickWidth: Dp get() = 420.dp.scaled()
     val doodleWordButtonHeight: Dp get() = 44.dp.scaled()
-    /** While typing: the small live canvas in the corner and the row above the keyboard. */
-    val doodleTypingCanvasWidth: Dp get() = 150.dp.scaled()
-    val doodleTypingRowHeight: Dp get() = 36.dp.scaled()
+    /** The word under the user's card, and the round mic beside it (2–4 dp away). */
+    val doodleWordPanelHeight: Dp get() = 26.dp.scaled()
+    val doodleMicGap: Dp get() = 3.dp.scaled()
+    /** The left column: everyone's cards, the user's (with its mic) at the bottom. */
+    val doodleLeftWidth: Dp get() = 192.dp.scaled()
+    val doodleEnterWidth: Dp get() = 96.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

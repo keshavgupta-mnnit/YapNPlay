@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.keyboard
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.LetterSlots
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -90,7 +91,7 @@ fun AppKeyboard(
         modifier = modifier
             // Touches on the keys stay here (the shade above closes the keyboard).
             .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(requireUnconsumed = false).consume() } }
-            .glassPanel(glowColor = colors.GameZoneAccent, surface = colors.RoomsPanel.copy(alpha = PANEL_ALPHA))
+            .glassPanel(glowColor = if (request.error) colors.Error else colors.GameZoneAccent, surface = colors.RoomsPanel.copy(alpha = PANEL_ALPHA))
             .padding(Spacing.Xs),
         verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
@@ -104,11 +105,15 @@ fun AppKeyboard(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .glassPill(glowColor = colors.GameZoneAccent, surface = colors.RoomsInput, shape = RoundedCornerShape(dimens.cbRowRadius))
+                    .glassPill(glowColor = if (request.error) colors.Error else colors.GameZoneAccent, surface = colors.RoomsInput, shape = RoundedCornerShape(dimens.cbRowRadius))
                     .padding(horizontal = Spacing.Sm),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                // A word to guess: its letter slots, filled as it's typed.
+                val slots = request.slots
+                if (slots != null) {
+                    LetterSlots(pattern = slots, typed = value, letterColor = if (request.error) colors.Error else colors.TextPrimary, modifier = Modifier.weight(1f))
+                } else Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     if (value.isEmpty()) {
                         Box(Modifier.width(dimens.hairline * 2).height(dimens.iconSmall).graphicsLayer { alpha = caretAlpha }.background(colors.Cyan))
                         BasicText(text = request.hint, style = typography.label.copy(color = colors.RoomsPlaceholderDigits), maxLines = 1)
@@ -117,7 +122,7 @@ fun AppKeyboard(
                         Box(Modifier.width(dimens.hairline * 2).height(dimens.iconSmall).graphicsLayer { alpha = caretAlpha }.background(colors.Cyan))
                     }
                 }
-                BasicText(text = Strings.keyboardCount(value.length, request.maxLength), style = typography.micro.copy(color = colors.TextSecondary))
+                if (slots == null) BasicText(text = Strings.keyboardCount(value.length, request.maxLength), style = typography.micro.copy(color = colors.TextSecondary))
                 if (value.isNotEmpty()) FieldClearButton(onClear = { onType("") })
             }
             GlassIconButton(

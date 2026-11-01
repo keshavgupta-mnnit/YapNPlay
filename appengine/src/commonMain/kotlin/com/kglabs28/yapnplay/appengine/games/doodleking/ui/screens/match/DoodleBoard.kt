@@ -26,6 +26,8 @@ class DoodleBoard {
         private set
     private val lines = mutableListOf<DoodleLine>()
     private val outgoing = mutableListOf<DoodleInkOp>()
+    /** Lines taken back with undo, newest last: redo puts them back. A new line forgets them. */
+    private val undone = mutableListOf<DoodleLine>()
     /** The points of the line being drawn not yet queued to send. */
     private val unsent = mutableListOf<Int>()
     private var nextId = 1
@@ -45,6 +47,7 @@ class DoodleBoard {
         lines.clear()
         outgoing.clear()
         unsent.clear()
+        undone.clear()
         nextId = 1
         drawing = false
         revision++
@@ -54,6 +57,7 @@ class DoodleBoard {
 
     fun start(x: Float, y: Float) {
         flushUnsent()
+        undone.clear()
         val line = DoodleLine(nextId++, colour, size, eraser)
         line.points += scale(x)
         line.points += scale(y)
@@ -84,15 +88,27 @@ class DoodleBoard {
     fun undo() {
         if (lines.isEmpty()) return
         flushUnsent()
-        lines.removeAt(lines.lastIndex)
+        undone += lines.removeAt(lines.lastIndex)
         drawing = false
         outgoing += DoodleInkOp.Undo(drawingId)
+        revision++
+    }
+
+    /** The last line taken back comes back, sent again as a new line. */
+    fun redo() {
+        val line = undone.removeLastOrNull() ?: return
+        flushUnsent()
+        val again = DoodleLine(nextId++, line.colour, line.size, line.eraser).apply { points += line.points }
+        lines += again
+        drawing = false
+        queue(again, again.points)
         revision++
     }
 
     fun clear() {
         if (lines.isEmpty()) return
         flushUnsent()
+        undone.clear()
         lines.clear()
         drawing = false
         outgoing += DoodleInkOp.Clear(drawingId)
@@ -124,12 +140,19 @@ class DoodleBoard {
         revision++
     }
 
-    /** The line being drawn's new points become one part to send. */
+    /** The line being drawn's new points become parts to send. */
     private fun flushUnsent() {
         val line = lines.lastOrNull() ?: return
         if (unsent.isEmpty()) return
-        outgoing += DoodleInkOp.Part(drawingId, DoodleStrokeData(line.id, line.colour, line.size, line.eraser, unsent.toList()))
+        queue(line, unsent)
         unsent.clear()
+    }
+
+    /** [points] of [line] to send, in parts no bigger than the server takes. */
+    private fun queue(line: DoodleLine, points: List<Int>) {
+        points.chunked(PART_VALUES).forEach {
+            outgoing += DoodleInkOp.Part(drawingId, DoodleStrokeData(line.id, line.colour, line.size, line.eraser, it))
+        }
     }
 
     private fun scale(v: Float): Int = (v.coerceIn(0f, 1f) * DoodleKingConstants.CANVAS_MAX).roundToInt()
@@ -137,5 +160,7 @@ class DoodleBoard {
     private companion object {
         /** Canvas units (of 4095) a point must move to be kept. */
         const val MIN_STEP = 12
+        /** The most numbers (x,y pairs) one part may carry (the server's limit). */
+        const val PART_VALUES = 600
     }
 }

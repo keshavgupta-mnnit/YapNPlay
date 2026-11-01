@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.doodleking.ui.components
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,9 +19,9 @@ import com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match.DoodleR
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.ui.components.table.arenaGlass
 
-/** Between turns, over the drawing: the word, and what everyone scored this turn. */
+/** Between turns, over the drawing: the word, and what everyone scored this turn (names in their seat colours). */
 @Composable
-fun DoodleRevealCard(reveal: DoodleRevealUi, modifier: Modifier = Modifier) {
+fun DoodleRevealCard(reveal: DoodleRevealUi, seatTint: (Int) -> Color, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
     val typography = YapNPlayTheme.typography
     Column(
@@ -35,7 +36,8 @@ fun DoodleRevealCard(reveal: DoodleRevealUi, modifier: Modifier = Modifier) {
         ShrinkText(text = reveal.word, style = typography.title.copy(color = colors.ArenaCrown))
         reveal.rows.forEach { row ->
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                ShrinkText(text = row.name, style = typography.caption.copy(color = colors.TextPrimary), modifier = Modifier.weight(1f))
+                // Each name in its seat's colour.
+                ShrinkText(text = row.name, style = typography.caption.copy(color = seatTint(row.seat)), modifier = Modifier.weight(1f))
                 BasicText(text = row.points, style = typography.caption.copy(color = if (row.gained) colors.ReadyGreen else colors.TextSecondary))
             }
         }

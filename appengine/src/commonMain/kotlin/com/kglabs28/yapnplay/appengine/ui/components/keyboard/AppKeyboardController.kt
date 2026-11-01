@@ -39,8 +39,15 @@ class AppKeyboardController {
     fun type(value: String) {
         val now = request ?: return
         val next = value.take(now.maxLength)
-        request = now.copy(value = next)
+        // A key after a wrong entry: no longer red.
+        request = now.copy(value = next, error = false)
         now.onChange(next)
+    }
+
+    /** The field [owner]'s last entry was wrong (red), or no longer is. */
+    fun setError(owner: Any, error: Boolean) {
+        val now = request ?: return
+        if (now.owner === owner && now.error != error) request = now.copy(error = error)
     }
 
     fun done() {

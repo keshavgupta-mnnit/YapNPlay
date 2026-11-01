@@ -1,5 +1,15 @@
 package com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.placeholders.DoodleKingArtwork
+import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleGuessFeedback
+import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleStatusPill
+import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleCardMarkIcon
+import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.Icons
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatHandoverDialog
@@ -38,11 +48,10 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.revealWhen
 import com.kglabs28.yapnplay.appengine.core.ui.DoodleStrings
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
-import com.kglabs28.yapnplay.appengine.games.doodleking.identity.DoodleKingConstants
-import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleBottomBar
+import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleControls
+import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleMyCard
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleCanvasView
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleFeedPanel
-import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleHintText
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodlePickCard
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleRankPanel
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleRevealCard
@@ -53,7 +62,6 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
 import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
-import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberPermissionRequester
 import com.kglabs28.yapnplay.appengine.ui.components.common.verticalScrollWithBar
 import com.kglabs28.yapnplay.appengine.ui.components.keyboard.LocalAppKeyboard
@@ -66,7 +74,6 @@ import com.kglabs28.yapnplay.appengine.ui.components.table.TablePlayerCard
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableSpectatorVoiceButtons
 import com.kglabs28.yapnplay.appengine.ui.components.table.arenaGlass
 import com.kglabs28.yapnplay.appengine.ui.placeholders.GameArenaBackground
-import com.kglabs28.yapnplay.appengine.ui.placeholders.GameArt
 
 /**
  * The Doodle King table. Left: everyone's card, always in seat order.
@@ -151,7 +158,7 @@ fun DoodleKingMatchScreen(
             if (board != null) {
                 MatchLeaderboard(
                     board = board,
-                    gameArt = { GameArt(artKey = DoodleKingConstants.ID, modifier = it) },
+                    gameArt = { DoodleKingArtwork(modifier = it) },
                     onPlayAgain = { send(DoodleKingMatchIntent.Done) },
                 )
             }
@@ -159,20 +166,48 @@ fun DoodleKingMatchScreen(
     }
 }
 
-/** The table, folded into the short typing strip while the keyboard is open. */
+/**
+ * The table. While the user types a guess it folds into a strip above the
+ * app's (short) keyboard: a bigger live drawing with the time under it, and
+ * the turn's guesses as tall as the drawing with the answer to the last
+ * guess under them. The keyboard shows the guess itself, as letter slots.
+ */
 @Composable
 private fun DoodleKingTable(state: DoodleKingMatchState, send: (DoodleKingMatchIntent) -> Unit, micGranted: () -> Boolean) {
     val dimens = YapNPlayTheme.dimens
     val tints = doodleSeatTints()
     val seatTint: (Int) -> Color = { tints.forSeat(it) }
+    val keyboard = LocalAppKeyboard.current
+    // The guess box's keyboard belongs to the table: it stays open while the table folds into its strip.
+    val owner = remember { Any() }
+    DisposableEffect(owner) { onDispose { keyboard.close(owner) } }
     var guess by rememberSaveable { mutableStateOf("") }
-    // The app's own keyboard, or the phone's (if chosen in Settings).
-    val appKeys = LocalAppKeyboard.current.request != null
+    // The last answer shows on the box until the user types again.
+    var toneId by remember { mutableIntStateOf(-1) }
+    val feedback = state.feedback
+    LaunchedEffect(feedback?.id) {
+        if (feedback == null) return@LaunchedEffect
+        toneId = feedback.id
+        if (feedback.kind == DoodleGuessResult.RIGHT) {
+            // Got it: back to the table, and the box takes no more typing.
+            keyboard.close(owner)
+            guess = ""
+        } else {
+            keyboard.setError(owner, true)
+        }
+    }
+    // A new turn: an empty box.
+    LaunchedEffect(state.board.drawingId) { guess = "" }
+    val guessing = state.barMode == DoodleBarMode.GUESS
+    // Nothing left to guess (the turn ended, or they got it): the keyboard goes.
+    LaunchedEffect(guessing) { if (!guessing) keyboard.close(owner) }
+    val appKeys = keyboard.isOpenFor(owner)
     val phoneKeys = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-    val typing = (appKeys || phoneKeys) && (state.barMode == DoodleBarMode.GUESS || state.barMode == DoodleBarMode.CHAT)
+    val typing = guessing && (appKeys || phoneKeys)
+    val submit = { if (guess.isNotBlank()) send(DoodleKingMatchIntent.SendGuess(guess)) }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         // The app's keys cover the bottom: the strip fits above them, so nothing needs lifting.
-        val room = if (typing && appKeys) maxHeight - dimens.appKeyboardHeight - dimens.appKeyboardGap else maxHeight
+        val room = if (typing && appKeys) maxHeight - dimens.appKeyboardCompactHeight - dimens.appKeyboardGap else maxHeight
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -196,109 +231,142 @@ private fun DoodleKingTable(state: DoodleKingMatchState, send: (DoodleKingMatchI
                     onExit = { send(DoodleKingMatchIntent.ExitClicked) },
                     onToggleHearSpectator = { send(DoodleKingMatchIntent.ToggleHearSpectator(it)) },
                 )
-                TableMiddle(state = state, send = send, seatTint = seatTint, modifier = Modifier.weight(1f))
+                TableMiddle(
+                    state = state,
+                    send = send,
+                    seatTint = seatTint,
+                    micGranted = micGranted,
+                    controls = {
+                        DoodleControls(
+                            state = state,
+                            guess = guess,
+                            onGuessChange = {
+                                guess = it
+                                toneId = -1
+                            },
+                            onSubmitGuess = submit,
+                            keyboardOwner = owner,
+                            guessTone = feedback?.takeIf { it.id == toneId }?.kind,
+                            send = send,
+                        )
+                    },
+                    modifier = Modifier.weight(1f),
+                )
             }
-            // Always this same bar (and guess box), so opening the keyboard never closes it.
+        }
+    }
+}
+
+/**
+ * Left: everyone else's cards in seat order, the user's own (with its mic and word) at the bottom.
+ * Centre: the status pill, the board, and the user's controls under it. Right: the leaderboard
+ * on top and the turn's guesses under it, the whole height.
+ */
+@Composable
+private fun TableMiddle(
+    state: DoodleKingMatchState,
+    send: (DoodleKingMatchIntent) -> Unit,
+    seatTint: (Int) -> Color,
+    micGranted: () -> Boolean,
+    controls: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val dimens = YapNPlayTheme.dimens
+    val colors = YapNPlayTheme.colors
+    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
+        Column(modifier = Modifier.width(dimens.doodleLeftWidth).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+            Column(
+                modifier = Modifier.weight(1f).fillMaxWidth().verticalScrollWithBar(),
+                verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+            ) {
+                state.leftCards.forEach { card ->
+                    TablePlayerCard(
+                        card = card,
+                        tint = seatTint(card.seat),
+                        faded = card.left,
+                        badge = card.tag,
+                        avatarSize = dimens.doodleCardAvatar,
+                        density = TableCardDensity.COMPACT,
+                        details = { BasicText(text = card.score, style = YapNPlayTheme.typography.caption.copy(color = colors.ArenaCrown)) },
+                        // A brush while they draw, a tick once they guessed it.
+                        pillEnd = { DoodleCardMarkIcon(card.mark) },
+                        onToggleHear = { send(DoodleKingMatchIntent.ToggleHear(card.seat)) },
+                        onLongPress = { send(DoodleKingMatchIntent.PlayerLongPressed(card.seat)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+            state.myCard?.let { card ->
+                DoodleMyCard(
+                    card = card,
+                    tint = seatTint(card.seat),
+                    word = state.myWord,
+                    wordGuessed = state.myWordGuessed,
+                    micOn = state.micOn,
+                    micLocked = state.micLocked,
+                    onToggleMic = { send(DoodleKingMatchIntent.ToggleMic(micGranted())) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+        Column(modifier = Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+            DoodleStatusPill(status = state.status, timeLeft = state.timeLeft, urgent = state.timeUrgent, seatTint = seatTint)
+            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                DoodleCanvasView(board = state.board, canDraw = state.barMode == DoodleBarMode.DRAW, modifier = Modifier.fillMaxHeight())
+                state.reveal?.let { DoodleRevealCard(reveal = it, seatTint = seatTint) }
+            }
             if (state.spectating) {
                 TableSpectatorVoiceButtons(
                     micOn = state.micOn,
                     speakerOn = state.speakerOn,
                     onToggleMic = { send(DoodleKingMatchIntent.ToggleMic(micGranted())) },
                     onToggleSpeaker = { send(DoodleKingMatchIntent.ToggleSpeaker) },
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
             } else {
-                DoodleBottomBar(
-                    state = state,
-                    guess = guess,
-                    onGuessChange = { guess = it },
-                    typing = typing,
-                    seatTint = seatTint,
-                    send = send,
-                    micGranted = micGranted,
-                )
-            }
-        }
-    }
-}
-
-/** Cards on the left, the board in the centre, guesses and leaderboard on the right. */
-@Composable
-private fun TableMiddle(state: DoodleKingMatchState, send: (DoodleKingMatchIntent) -> Unit, seatTint: (Int) -> Color, modifier: Modifier = Modifier) {
-    val dimens = YapNPlayTheme.dimens
-    val colors = YapNPlayTheme.colors
-    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-        Column(
-            modifier = Modifier.width(dimens.doodleSideWidth).fillMaxHeight().verticalScrollWithBar(),
-            verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
-        ) {
-            state.leftCards.forEach { card ->
-                TablePlayerCard(
-                    card = card,
-                    tint = seatTint(card.seat),
-                    faded = card.left,
-                    badge = card.tag,
-                    avatarSize = dimens.doodleCardAvatar,
-                    density = TableCardDensity.COMPACT,
-                    details = { BasicText(text = card.score, style = YapNPlayTheme.typography.caption.copy(color = colors.ArenaCrown)) },
-                    onToggleHear = { send(DoodleKingMatchIntent.ToggleHear(card.seat)) },
-                    onLongPress = { send(DoodleKingMatchIntent.PlayerLongPressed(card.seat)) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
-        Column(modifier = Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-            StatusRow(status = state.status, timeLeft = state.timeLeft, urgent = state.timeUrgent)
-            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                DoodleCanvasView(board = state.board, canDraw = state.barMode == DoodleBarMode.DRAW, modifier = Modifier.fillMaxHeight())
-                state.reveal?.let { DoodleRevealCard(reveal = it) }
+                controls()
             }
         }
         Column(modifier = Modifier.width(dimens.doodleSideWidth).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-            DoodleFeedPanel(rows = state.feed, seatTint = seatTint, modifier = Modifier.weight(FEED_WEIGHT).fillMaxWidth())
             DoodleRankPanel(rows = state.ranks, seatTint = seatTint, modifier = Modifier.weight(1f).fillMaxWidth())
+            DoodleFeedPanel(rows = state.feed, seatTint = seatTint, modifier = Modifier.weight(FEED_WEIGHT).fillMaxWidth())
         }
     }
 }
 
-/** While typing: the live drawing small on the left; the time and hint over the latest guesses on the right. */
+/**
+ * While typing: the live drawing on the left with the time centred under it; the turn's guesses
+ * on the right, as tall as the drawing, with the answer to the last guess centred under them.
+ */
 @Composable
 private fun TypingStrip(state: DoodleKingMatchState, seatTint: (Int) -> Color, modifier: Modifier = Modifier) {
     Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-        DoodleCanvasView(board = state.board, canDraw = false, modifier = Modifier.fillMaxHeight())
-        Column(modifier = Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-                TimeChip(timeLeft = state.timeLeft, urgent = state.timeUrgent)
-                DoodleHintText(hint = state.hint, modifier = Modifier.weight(1f))
-            }
-            DoodleFeedPanel(rows = state.feed, seatTint = seatTint, modifier = Modifier.weight(1f).fillMaxWidth())
+        Column(modifier = Modifier.fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
+            DoodleCanvasView(board = state.board, canDraw = false, modifier = Modifier.weight(1f))
+            TimeChip(timeLeft = state.timeLeft, urgent = state.timeUrgent)
         }
-    }
-}
-
-@Composable
-private fun StatusRow(status: String, timeLeft: String, urgent: Boolean) {
-    val colors = YapNPlayTheme.colors
-    Row(
-        modifier = Modifier.height(YapNPlayTheme.dimens.doodleStatusHeight),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
-    ) {
-        ShrinkText(text = status, style = YapNPlayTheme.typography.label.copy(color = colors.ArenaCrown))
-        if (timeLeft.isNotEmpty()) TimeChip(timeLeft = timeLeft, urgent = urgent)
+        Column(modifier = Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
+            DoodleFeedPanel(rows = state.feed, seatTint = seatTint, modifier = Modifier.weight(1f).fillMaxWidth())
+            Box(modifier = Modifier.height(YapNPlayTheme.dimens.doodleStatusHeight), contentAlignment = Alignment.Center) {
+                DoodleGuessFeedback(state)
+            }
+        }
     }
 }
 
 @Composable
 private fun TimeChip(timeLeft: String, urgent: Boolean) {
     val colors = YapNPlayTheme.colors
-    BasicText(
-        text = timeLeft,
-        style = YapNPlayTheme.typography.label.copy(color = if (urgent) colors.Error else colors.TextPrimary),
+    Row(
         modifier = Modifier
+            .height(YapNPlayTheme.dimens.doodleStatusHeight)
             .arenaGlass(RoundedCornerShape(YapNPlayTheme.dimens.ludoGlossRadius))
-            .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxs),
-    )
+            .padding(horizontal = Spacing.Sm),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
+    ) {
+        AppIcon(imageVector = Icons.Rounded.Schedule, tint = if (urgent) colors.Error else colors.TextPrimary, size = YapNPlayTheme.dimens.iconSmall)
+        BasicText(text = timeLeft, style = YapNPlayTheme.typography.label.copy(color = if (urgent) colors.Error else colors.TextPrimary))
+    }
 }
 
 @Composable

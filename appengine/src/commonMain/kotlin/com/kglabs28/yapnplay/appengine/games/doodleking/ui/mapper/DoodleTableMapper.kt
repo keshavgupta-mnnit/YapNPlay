@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.doodleking.ui.mapper
 
+import com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match.DoodleStatusUi
+import com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match.DoodleCardMark
 import com.kglabs28.yapnplay.appengine.ui.components.seat.KeepPlayingUiMapper
 import com.kglabs28.yapnplay.appengine.ui.components.seat.KeepPlayingUi
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteUiMapper
@@ -54,10 +56,14 @@ object DoodleTableMapper {
             score = DoodleStrings.dkScore(p.score),
             tag = when {
                 p.removed -> DoodleStrings.dkLeftTag
-                drawing -> DoodleStrings.dkDrawingTag
-                p.guessed && match.phase == DoodlePhase.DRAW -> DoodleStrings.dkGuessedTag
-                p.away -> LudoStrings.ludoAway
+                p.away && !drawing -> LudoStrings.ludoAway
                 else -> null
+            },
+            // A brush on the drawer's pill, a tick on everyone who got it: no tags under the cards.
+            mark = when {
+                drawing && match.phase != DoodlePhase.REVEAL && match.phase != DoodlePhase.LIMIT -> DoodleCardMark.DRAWING
+                p.guessed && (match.phase == DoodlePhase.DRAW || match.phase == DoodlePhase.REVEAL) -> DoodleCardMark.GUESSED
+                else -> DoodleCardMark.NONE
             },
             left = p.removed,
         )
@@ -85,16 +91,19 @@ object DoodleTableMapper {
         DoodleRankRowUi(p.seat, "${i + 1}", if (p.isMe) DoodleStrings.dkYou else p.name, p.score.toString(), p.isMe)
     }
 
-    fun status(match: DoodleMatch): String {
-        val name = match.drawer?.name.orEmpty()
+    /** The status line: the drawer's name in their colour, then what they're doing. */
+    fun status(match: DoodleMatch): DoodleStatusUi {
+        val drawer = match.drawer
         val mine = match.iAmDrawing
+        val name = if (mine) DoodleStrings.dkYou else drawer?.name.orEmpty()
+        val seat = match.drawerSeat
         return when (match.phase) {
-            DoodlePhase.INTRO -> if (mine) DoodleStrings.dkYourTurn else DoodleStrings.dkTurnOf(name)
-            DoodlePhase.PICK -> if (mine) DoodleStrings.dkYouPick else DoodleStrings.dkPicking(name)
-            DoodlePhase.DRAW -> if (mine) DoodleStrings.dkYouDraw else DoodleStrings.dkDrawing(name)
-            DoodlePhase.REVEAL -> DoodleStrings.dkWordWas
-            DoodlePhase.LIMIT -> TableStrings.extendTitle
-            DoodlePhase.FINISHED -> DoodleStrings.dkGameOver
+            DoodlePhase.INTRO -> if (mine) DoodleStatusUi(text = DoodleStrings.dkYourTurn) else DoodleStatusUi(name, seat, DoodleStrings.dkTurnTo)
+            DoodlePhase.PICK -> if (mine) DoodleStatusUi(text = DoodleStrings.dkYouPick) else DoodleStatusUi(name, seat, DoodleStrings.dkIsPicking)
+            DoodlePhase.DRAW -> DoodleStatusUi(name, seat, if (mine) DoodleStrings.dkAreDrawing else DoodleStrings.dkIsDrawing, brush = true)
+            DoodlePhase.REVEAL -> DoodleStatusUi(text = DoodleStrings.dkWordWas)
+            DoodlePhase.LIMIT -> DoodleStatusUi(text = TableStrings.extendTitle)
+            DoodlePhase.FINISHED -> DoodleStatusUi(text = DoodleStrings.dkGameOver)
         }
     }
 
@@ -109,7 +118,7 @@ object DoodleTableMapper {
     fun reveal(match: DoodleMatch): DoodleRevealUi? {
         if (match.phase != DoodlePhase.REVEAL) return null
         val rows = match.players.filter { !it.removed }.sortedByDescending { it.turnPoints }.map {
-            DoodleRevealRowUi(if (it.isMe) DoodleStrings.dkYou else it.name, DoodleStrings.dkPoints(it.turnPoints), it.turnPoints > 0)
+            DoodleRevealRowUi(it.seat, if (it.isMe) DoodleStrings.dkYou else it.name, DoodleStrings.dkPoints(it.turnPoints), it.turnPoints > 0)
         }
         return DoodleRevealUi(match.word.orEmpty().uppercase(), rows)
     }

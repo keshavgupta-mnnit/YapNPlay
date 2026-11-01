@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.placeholders
 
+import com.kglabs28.yapnplay.appengine.resources.ic_game_doodle_king
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import com.kglabs28.yapnplay.appengine.resources.Res
@@ -49,6 +50,7 @@ fun builtInPainter(image: BuiltInImage): Painter = painterResource(
         BuiltInImage.CITY_BAZAAR_ART -> Res.drawable.ic_game_city_royale
         BuiltInImage.MONO_ART -> Res.drawable.ic_game_mono
         BuiltInImage.MONO_CHAOS_ART -> Res.drawable.ic_game_mono_chaos
+        BuiltInImage.DOODLE_KING_ART -> Res.drawable.ic_game_doodle_king
         BuiltInImage.GAME_TABLE_ARENA -> Res.drawable.bg_game_table_arena
         BuiltInImage.GAME_ARENA -> Res.drawable.bg_game_arena
         BuiltInImage.MONO_CARD_BACK -> Res.drawable.img_mono_card_back

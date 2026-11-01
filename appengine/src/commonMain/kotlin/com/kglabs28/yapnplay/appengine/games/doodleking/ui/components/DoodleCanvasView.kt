@@ -34,7 +34,6 @@ import com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match.DoodleB
 fun DoodleCanvasView(board: DoodleBoard, canDraw: Boolean, modifier: Modifier = Modifier) {
     val dimens = YapNPlayTheme.dimens
     val shape = RoundedCornerShape(dimens.doodleCanvasRadius)
-    val rim = if (canDraw) YapNPlayTheme.colors.Cyan else YapNPlayTheme.colors.GlassShine
     val paths = remember { DoodlePathCache() }
     val input = if (!canDraw) {
         Modifier
@@ -53,7 +52,8 @@ fun DoodleCanvasView(board: DoodleBoard, canDraw: Boolean, modifier: Modifier = 
             .aspectRatio(DoodleKingConstants.CANVAS_ASPECT)
             .clip(shape)
             .background(DoodleInk.PAPER)
-            .border(dimens.doodleCanvasRim, rim, shape)
+            // The same bordered board for the drawer and the guessers.
+            .border(dimens.doodleCanvasRim, YapNPlayTheme.colors.Cyan, shape)
             .then(input)
             .drawBehind {
                 // Read here, while drawing: a new stroke redraws the paper only.

@@ -30,15 +30,20 @@ object DoodleStrings {
         else -> "Hard"
     }
 
-    // Status line over the canvas.
-    fun dkTurnOf(name: String) = "$name's turn to draw"
+    // Status line over the canvas: the name (in its colour), then the rest.
+    const val dkTurnTo = "'s turn to draw"
     const val dkYourTurn = "Your turn to draw"
-    fun dkPicking(name: String) = "$name is picking a word…"
+    const val dkIsPicking = " is picking a word…"
     const val dkYouPick = "Pick a word to draw"
-    fun dkDrawing(name: String) = "$name is drawing"
-    const val dkYouDraw = "You are drawing"
+    const val dkIsDrawing = " is drawing..."
+    const val dkYou = "You"
+    const val dkAreDrawing = " are drawing..."
     const val dkWordWas = "The word was"
     const val dkGameOver = "Game over"
+
+    // The answer to the user's guess.
+    fun dkYouGotIt(points: Int) = "You got it! +$points"
+    const val dkWrongGuess = "Not quite. Try again"
 
     // Tools and buttons.
     const val dkBrush = "Brush"
@@ -48,15 +53,14 @@ object DoodleStrings {
     const val dkPass = "PASS"
     const val dkEnter = "ENTER"
     const val dkGuessHint = "Type your guess"
-    const val dkChatHint = "Chat with those who guessed"
+    const val dkRedo = "Redo"
     const val dkMicLocked = "Your mic is off while you draw"
     val dkInkNames = listOf("Black", "Red", "Blue", "Green", "Yellow")
 
-    // Card tags.
-    const val dkYou = "You"
-    const val dkDrawingTag = "Drawing"
-    const val dkGuessedTag = "Guessed ✓"
+    // Card tags and marks.
     const val dkLeftTag = "Left"
+    const val dkDrawingMark = "Drawing"
+    const val dkGuessedMark = "Guessed it"
 
     // Panels.
     const val dkGuesses = "Guesses"

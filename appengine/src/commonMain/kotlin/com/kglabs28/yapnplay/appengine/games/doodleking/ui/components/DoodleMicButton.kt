@@ -20,7 +20,7 @@ fun DoodleMicButton(micOn: Boolean, locked: Boolean, onToggle: () -> Unit, modif
         else -> colors.Error
     }
     GlassIconButton(
-        imageVector = if (micOn) Icons.Rounded.Mic else Icons.Rounded.MicOff,
+        imageVector = if (micOn && !locked) Icons.Rounded.Mic else Icons.Rounded.MicOff,
         contentDescription = if (locked) DoodleStrings.dkMicLocked else RoomStrings.lobbyMic,
         onClick = onToggle,
         size = YapNPlayTheme.dimens.doodleToolButton,

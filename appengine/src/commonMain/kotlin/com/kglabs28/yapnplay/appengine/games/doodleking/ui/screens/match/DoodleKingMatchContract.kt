@@ -18,8 +18,8 @@ enum class DoodleBarMode {
     DRAW,
     /** Guessing: the hint and the guess box. */
     GUESS,
-    /** Already guessed: the box is chat for those who guessed. */
-    CHAT,
+    /** Already guessed: the box shows the word in green and takes no more typing. */
+    GUESSED,
     /** Nothing to type (between turns, or the drawer picking). */
     WAIT,
 }
@@ -32,8 +32,8 @@ data class DoodleKingMatchState(
     val showAudience: Boolean = false,
     val spectatorCount: String = "",
     val elapsed: String = "",
-    /** Over the canvas: whose turn and what they're doing. */
-    val status: String = "",
+    /** Over the canvas, in one pill with the time: whose turn and what they're doing. */
+    val status: DoodleStatusUi = DoodleStatusUi(),
     /** The phase's time left ("0:45"), and its last seconds. */
     val timeLeft: String = "",
     val timeUrgent: Boolean = false,
@@ -44,10 +44,14 @@ data class DoodleKingMatchState(
     val inkColour: Int = 0,
     val inkSize: Int = 1,
     val eraser: Boolean = false,
-    /** The drawer's word; empty for everyone else. */
-    val word: String = "",
-    /** The word as guessers see it (`_` per hidden letter). */
+    /** The word as guessers see it (`_` per hidden letter): the guess box's letter slots. */
     val hint: String = "",
+    /** The word under the user's card, as letter slots: the drawer's word, the guessed word, or the hint. */
+    val myWord: String = "",
+    /** The user has guessed it: their word shows in green. */
+    val myWordGuessed: Boolean = false,
+    /** What the user's last guess was: right, very close or wrong, with its line. */
+    val feedback: DoodleGuessFeedbackUi? = null,
     val leftCards: List<DoodleCardUi> = emptyList(),
     val myCard: DoodleCardUi? = null,
     val micOn: Boolean = false,
@@ -83,8 +87,10 @@ data class DoodleCardUi(
     override val micOn: Boolean,
     /** "120 pts". */
     val score: String,
-    /** DRAWING, GUESSED, Away; null: none. */
+    /** Away or Left; null: none. */
     val tag: String?,
+    /** The icon at the pill's end: drawing (a brush) or guessed (a tick). */
+    val mark: DoodleCardMark,
     val left: Boolean,
 ) : TablePlayerCardUi
 
@@ -99,7 +105,17 @@ data class DoodlePickUi(val words: List<String>, val seconds: String)
 
 data class DoodleRevealUi(val word: String, val rows: List<DoodleRevealRowUi>)
 
-data class DoodleRevealRowUi(val name: String, val points: String, val gained: Boolean)
+data class DoodleRevealRowUi(val seat: Int, val name: String, val points: String, val gained: Boolean)
+
+/** The status line: [name] in the seat's colour, then [text] in white, a brush while someone draws. */
+data class DoodleStatusUi(val name: String = "", val seat: Int = 0, val text: String = "", val brush: Boolean = false)
+
+enum class DoodleCardMark { NONE, DRAWING, GUESSED }
+
+/** The answer to the user's last guess ([id] changes with each one). */
+data class DoodleGuessFeedbackUi(val id: Int, val kind: DoodleGuessResult, val message: String)
+
+enum class DoodleGuessResult { RIGHT, CLOSE, WRONG }
 
 /** The table's dialogs; the leave, seat and vote ones are every table's. */
 sealed interface DoodleModal {
@@ -129,6 +145,7 @@ sealed interface DoodleKingMatchIntent : UiIntent {
     data object SelectBrush : DoodleKingMatchIntent
     data object SelectEraser : DoodleKingMatchIntent
     data object Undo : DoodleKingMatchIntent
+    data object Redo : DoodleKingMatchIntent
     data object Clear : DoodleKingMatchIntent
     data object OpenSettings : DoodleKingMatchIntent
     data object ToggleEffects : DoodleKingMatchIntent

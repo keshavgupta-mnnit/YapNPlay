@@ -19,10 +19,8 @@ data class GameZoneState(
     /** "1,248 Online"; empty until loaded. */
     val onlineLabel: String = "",
     val loaded: Boolean = false,
-    /** Non-null while a Quick Play search is running or just found a match. */
+    /** Non-null while a Quick Play search is running, just found a match, or ended without one. */
     val search: QuickPlaySearchUi? = null,
-    /** Shown under QUICK PLAY after a search ended without a match. */
-    val searchMessage: String? = null,
     /** Play is blocked after a recorded incident; offers a rewarded ad. */
     val penalty: PenaltyUi? = null,
     /** Non-null while the league picker is open (before Quick Play). */
@@ -40,6 +38,8 @@ data class QuickPlaySearchUi(
     val progress: String,
     val timeLeft: String,
     val matchFound: Boolean,
+    /** The search ended without a match: the same panel says so, with Try again. */
+    val failed: Boolean = false,
 )
 
 sealed interface GameZoneIntent : UiIntent {
@@ -48,7 +48,10 @@ sealed interface GameZoneIntent : UiIntent {
     data object ToggleViewMode : GameZoneIntent
     /** Quick Play for the game at [index] (carousel button or grid tile): opens the league picker. */
     data class PlayGame(val index: Int) : GameZoneIntent
+    /** Cancels a running search, or closes the panel after one ended without a match. */
     data object CancelSearch : GameZoneIntent
+    /** The search ended without a match: the same game and league again. */
+    data object RetrySearch : GameZoneIntent
     data object WatchAd : GameZoneIntent
     data object DismissPenalty : GameZoneIntent
     /** A league row tapped: search in it, or the coins offer when it's locked. */

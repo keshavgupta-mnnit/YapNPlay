@@ -223,11 +223,13 @@ fun ArenaSeatHeader(
     talkingMuted: Boolean = false,
     details: (@Composable ColumnScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
+    /** At the pill's right end, inside it and centred on it (a status icon). */
+    pillEnd: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
-    val pillHeight = avatar * PILL_SHARE
+    val pillHeight = seatPillHeight(avatar)
     val pillShape = RoundedCornerShape(percent = 50)
     // The breathing is read while drawing only: the seat isn't recomposed every frame.
     val glow = if (talking || talkingMuted) talkPulse() else null
@@ -274,12 +276,16 @@ fun ArenaSeatHeader(
                     )
                     details?.invoke(this)
                 }
+                pillEnd?.invoke(this)
             }
             ArenaSeatAvatar(tint = tint, level = level, avatarId = avatarId, size = avatar)
         }
         trailing?.invoke(this)
     }
 }
+
+/** How tall a seat's name pill is beside an avatar of [avatar] (for things drawn level with it). */
+fun seatPillHeight(avatar: Dp): Dp = avatar * PILL_SHARE
 
 /** The round avatar in the player's colour, with their level in a badge under it. */
 @Composable

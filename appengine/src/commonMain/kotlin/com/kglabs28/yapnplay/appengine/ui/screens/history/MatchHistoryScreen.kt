@@ -1,6 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.history
 
-import com.kglabs28.yapnplay.appengine.ui.placeholders.GameArt
+import com.kglabs28.yapnplay.appengine.ui.placeholders.DoodleKingArtwork
 import com.kglabs28.yapnplay.appengine.games.doodleking.identity.DoodleKingConstants
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
@@ -95,7 +95,7 @@ fun MatchHistoryScreen(
                         GameIds.ROYAL_LUDO -> RoyalLudoArtwork(modifier = art)
                         MonoChaosConstants.ID -> MonoChaosArtwork(modifier = art)
                         MonoConstants.ID -> MonoArtwork(modifier = art)
-                        DoodleKingConstants.ID -> GameArt(artKey = DoodleKingConstants.ID, modifier = art)
+                        DoodleKingConstants.ID -> DoodleKingArtwork(modifier = art)
                     }
                 },
                 onPlayAgain = { send(MatchHistoryIntent.CloseBoard) },

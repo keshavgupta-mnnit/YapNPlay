@@ -59,6 +59,8 @@ class GameZoneViewModel(
     private var searchJob: Job? = null
     /** The game being searched for (its table opens when a match is found). */
     private var searchGameId = ""
+    /** The league (entry coins) of the last search, for Try again. */
+    private var searchEntry = 0
     private var tickJob: Job? = null
     /** The last league list, to tell a locked row from an open one. */
     private var lastLeagues: CoinLeagues? = null
@@ -89,6 +91,7 @@ class GameZoneViewModel(
             }
             GameZoneIntent.CloseCoinsOffer -> setState { copy(coinsOffer = null) }
             GameZoneIntent.CancelSearch -> cancelSearch()
+            GameZoneIntent.RetrySearch -> retrySearch()
             GameZoneIntent.DismissPenalty -> setState { copy(penalty = null) }
             GameZoneIntent.WatchAd -> {
                 setState { copy(penalty = penalty?.copy(watchingAd = true)) }
@@ -128,7 +131,7 @@ class GameZoneViewModel(
             setState { copy(penalty = PenaltyUi(LudoStrings.ludoPenaltyTitle, LudoStrings.ludoPenaltyBody(block.points, minutes), watchingAd = false, adOffered = isAdReady())) }
             return
         }
-        setState { copy(searchMessage = null, leagues = LeaguePickerUi(balanceLabel = "", leagues = emptyList())) }
+        setState { copy(leagues = LeaguePickerUi(balanceLabel = "", leagues = emptyList())) }
         reloadLeagues(message = null)
     }
 
@@ -195,8 +198,8 @@ class GameZoneViewModel(
     private fun startSearch(entryCoins: Int) {
         val game = state.value.games.getOrNull(state.value.focusedIndex) ?: return
         if (searchJob?.isActive == true) return
-        setState { copy(searchMessage = null) }
         searchGameId = game.id
+        searchEntry = entryCoins
         searchJob = scope.launch {
             findQuickPlayMatch(game.id, entryCoins).collect { status ->
                 when (status) {
@@ -208,7 +211,13 @@ class GameZoneViewModel(
                             setState { copy(search = null, coinsOffer = CoinsOfferUi(CoinsStrings.notEnoughTitle, CoinsStrings.notEnoughBodyGeneric, offerFree = true, adReady = isAdReady())) }
                             refreshAdLimits()
                         } else {
-                            setState { copy(search = null, searchMessage = Strings.gameZoneNoMatch) }
+                            // The same panel says so (players found, the time at 0:00), with Try again.
+                            setState {
+                                copy(
+                                    search = search?.copy(headline = Strings.gameZoneNoMatch, timeLeft = Strings.gameZoneTimeLeft(0), failed = true)
+                                        ?: QuickPlaySearchUi(Strings.gameZoneNoMatch, "", Strings.gameZoneTimeLeft(0), matchFound = false, failed = true),
+                                )
+                            }
                         }
                     }
                 }
@@ -262,10 +271,19 @@ class GameZoneViewModel(
     }
 
     private suspend fun cancelSearch() {
+        // A search that already ended has no queue to leave: the panel just closes.
+        val running = state.value.search?.failed != true
         searchJob?.cancel()
         tickJob?.cancel()
-        leaveQuickPlayQueue()
+        if (running) leaveQuickPlayQueue()
         setState { copy(search = null) }
+    }
+
+    /** Another search for the same game and league, from the failed search's panel. */
+    private fun retrySearch() {
+        if (state.value.search?.failed != true) return
+        setState { copy(search = null) }
+        startSearch(searchEntry)
     }
 
     private fun secondsUntil(instant: Instant): Long =

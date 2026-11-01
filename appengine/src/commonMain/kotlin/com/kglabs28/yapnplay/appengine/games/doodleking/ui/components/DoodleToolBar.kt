@@ -11,13 +11,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Redo
 import androidx.compose.material.icons.automirrored.rounded.Undo
-import androidx.compose.material.icons.rounded.AutoFixNormal
 import androidx.compose.material.icons.rounded.Brush
-import androidx.compose.material.icons.rounded.DeleteSweep
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
@@ -28,8 +30,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.table.arenaGlass
 
 /**
  * The drawer's tools, left to right: the brush (its dot shows the size; a
- * tap on it again steps the size), the 5 colours, the eraser, undo and
- * clear all. The tool in hand is lit.
+ * tap on it again steps the size), the 5 colours, the eraser (white glass),
+ * undo, redo and clear all. The tool in hand is lit.
  */
 @Composable
 fun DoodleToolBar(
@@ -40,6 +42,7 @@ fun DoodleToolBar(
     onInk: (Int) -> Unit,
     onEraser: () -> Unit,
     onUndo: () -> Unit,
+    onRedo: () -> Unit,
     onClear: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -71,14 +74,16 @@ fun DoodleToolBar(
                     .clickable(role = Role.Button, onClickLabel = DoodleStrings.dkInkNames[index]) { onInk(index) },
             )
         }
-        ToolButton(Icons.Rounded.AutoFixNormal, DoodleStrings.dkEraser, lit = eraser, size = button, onClick = onEraser)
+        // The eraser on white glass, so it reads as the paper's own tool.
+        ToolButton(DoodleEraserIcon, DoodleStrings.dkEraser, lit = eraser, size = button, onClick = onEraser, surface = colors.GlassShine.copy(alpha = ERASER_GLASS))
         ToolButton(Icons.AutoMirrored.Rounded.Undo, DoodleStrings.dkUndo, lit = false, size = button, onClick = onUndo)
-        ToolButton(Icons.Rounded.DeleteSweep, DoodleStrings.dkClear, lit = false, size = button, onClick = onClear)
+        ToolButton(Icons.AutoMirrored.Rounded.Redo, DoodleStrings.dkRedo, lit = false, size = button, onClick = onRedo)
+        ToolButton(Icons.Rounded.Refresh, DoodleStrings.dkClear, lit = false, size = button, onClick = onClear)
     }
 }
 
 @Composable
-private fun ToolButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, lit: Boolean, size: Dp, onClick: () -> Unit) {
+private fun ToolButton(icon: ImageVector, label: String, lit: Boolean, size: Dp, onClick: () -> Unit, surface: Color = YapNPlayTheme.colors.TopBarButton) {
     val colors = YapNPlayTheme.colors
     GlassIconButton(
         imageVector = icon,
@@ -86,7 +91,8 @@ private fun ToolButton(icon: androidx.compose.ui.graphics.vector.ImageVector, la
         onClick = onClick,
         size = size,
         iconSize = size * ICON_SHARE,
-        tint = if (lit) colors.Cyan else colors.IconMuted,
+        surface = surface,
+        tint = if (lit) colors.Cyan else colors.TextPrimary,
         glowColor = if (lit) colors.Cyan else colors.IconMuted,
     )
 }
@@ -95,3 +101,5 @@ private fun ToolButton(icon: androidx.compose.ui.graphics.vector.ImageVector, la
 private const val SIZE_DOT_BASE = 0.3f
 private const val SIZE_DOT_STEP = 0.15f
 private const val ICON_SHARE = 0.6f
+/** How white the eraser's glass is. */
+private const val ERASER_GLASS = 0.35f

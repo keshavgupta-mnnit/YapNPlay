@@ -54,12 +54,14 @@ object AppManagerKeys {
         val MONO_CHAOS_ART = ConfigKey("art_mono_chaos_url", "", "MONO: Complete Chaos game art (pickers, leaderboard).")
     }
 
-    /** Rewarded ads (AdMob). Defaults are Google's TEST unit: swap in the real one from Remote Config. */
+    /** Rewarded and native ads (AdMob). Defaults are Google's TEST units: swap in the real ones from Remote Config. */
     object Ads {
         /** Off until real ads serve: no ad is loaded and no ad button or offer shows anywhere. Turn on from Remote Config. */
         val ENABLED = ConfigKey("ads_enabled", true, "Rewarded ads (coins, lifting a play block) offered at all.")
         val LAUNCH_OFFER = ConfigKey("ads_launch_offer", true, "Offer free coins for a rewarded ad once each time the app opens.")
         val REWARDED_UNIT_ID = ConfigKey("ad_rewarded_unit_id", "ca-app-pub-3940256099942544/5224354917", "AdMob rewarded ad unit id (default: Google's test unit).")
+        val NATIVE_ENABLED = ConfigKey("ads_native_enabled", true, "The slim ad pill over the game's top bar and under the connecting card (needs ads_enabled too).")
+        val NATIVE_UNIT_ID = ConfigKey("ad_native_unit_id", "ca-app-pub-3940256099942544/2247696110", "AdMob native ad unit id for the ad pill (default: Google's test unit).")
     }
 
     /** Every key with its default, for Remote Config's in-app defaults. */
@@ -67,7 +69,7 @@ object AppManagerKeys {
         App.SERVER_BASE_URL, App.UPDATE_PROMPT_ENABLED, App.UPDATE_MIN_VERSION, App.UPDATE_MESSAGE, App.VOICE_ENABLED, App.PARTY_CHAT_ENABLED, App.MAX_ROOMS_PER_USER, App.PLAY_STORE_URL, App.INVITE_LINKS_ENABLED,
         Games.ROYAL_LUDO_ENABLED, Games.CITY_BAZAAR_ENABLED, Games.TURN_HURRY_SECONDS,
         CityBazaar.EVENT_BREATH_MS, CityBazaar.EVENT_BREATH_MAX_MS, CityBazaar.POPUP_MS, CityBazaar.SNACKBAR_MS,
-        Ads.ENABLED, Ads.LAUNCH_OFFER, Ads.REWARDED_UNIT_ID,
+        Ads.ENABLED, Ads.LAUNCH_OFFER, Ads.REWARDED_UNIT_ID, Ads.NATIVE_ENABLED, Ads.NATIVE_UNIT_ID,
         Backgrounds.HOME, Backgrounds.LEADERBOARD, Backgrounds.GAME_ZONE_CARD, Backgrounds.FRIEND_ZONE_CARD, Backgrounds.ROYAL_LUDO_ART, Backgrounds.CITY_BAZAAR_ART, Backgrounds.MONO_ART, Backgrounds.MONO_CHAOS_ART,
     )
 

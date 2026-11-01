@@ -541,6 +541,25 @@ away seat goes to the bot.
 - **Timings:** all of them live in `game.presence` / `game.seatHandover`
   config.
 
+## Emoji gifts (0.11.0, every game)
+
+A seated player sends an emoji to any other seat at their table (people
+and CPU seats alike) for coins. Older apps never send it and skip the
+relay (they only read MatchSnapshot / MatchEnded), so nothing changes for them.
+
+- `GET /coins/emoji-gifts` → `EmojiGiftPrices { coins, gifts: [{ id, coins }] }`,
+  in picker order. One fixed set for everyone, ids `"1"` to `"8"`; the app
+  decides which emoji each number shows. Prices are the admin setting
+  `coins.emoji_gift_prices`, one per id in order, default
+  `[100,100,200,200,200,200,300,300]`.
+- MATCH `SendEmojiGift { matchId, emojiId, toSeat }` → `EmojiGiftResult { coins, spent }`.
+  The price is taken first (`NOT_ENOUGH_COINS`: nothing taken); a refused
+  gift (spectator, own or unknown seat, match over) is refunded and rejected.
+  Ledger reason `EMOJI_GIFT`.
+- Then every viewer, the sender too, gets `MatchRelay` with
+  `EmojiGift { type: "EmojiGift", matchId, fromSeat, toSeat, emojiId }`;
+  the app flies it from seat to seat and shows it on the receiver's avatar.
+
 ## Moderation channel (all games and rooms)
 
 - `ReportPlayer(contextId, reportedUserId, reason="voice_chat")` from the

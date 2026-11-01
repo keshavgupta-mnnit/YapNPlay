@@ -85,9 +85,8 @@ fun MonoTableShell(
     // Every opponent's seat, shrunk together as the table fills.
     val seatScale = TableSeatPlan.scale(leftPods.size + topPods.size + rightPods.size)
     // The bands the layers keep clear of each other.
-    // A seat with a mute button is that much wider: the button sits outside its name pill.
-    val muteRoom = dimens.ludoMuteButton + Spacing.Xxs
-    fun roomFor(pod: MonoPlayerPodUi) = if (onToggleHear != null && pod.canSpeak) muteRoom else dimens.zero
+    // A seat with an emoji or mute button is that much wider: the buttons sit outside its name pill.
+    fun roomFor(pod: MonoPlayerPodUi) = seatButtonsRoom(dimens.monoSeatAvatarCompact, pod.isMe, onToggleHear != null && pod.canSpeak)
     val sideColumn = dimens.monoPodWidthCompact + ((leftPods + rightPods).maxOfOrNull { roomFor(it) } ?: dimens.zero)
     val side = sideColumn + Spacing.Sm
     val topBand = if (topPods.isEmpty()) Spacing.Xs else dimens.monoTopBandHeight

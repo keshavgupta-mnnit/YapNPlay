@@ -36,6 +36,8 @@ object Strings {
     const val connectionLost = "Connection lost"
     const val connectionLostBody = "Reconnecting… your game will carry on when you're back."
     const val connectionRetry = "Retry"
+    /** The badge on every ad, so it never passes for the app's own content. */
+    const val adBadge = "AD"
     const val updateRequiredTitle = "Update required"
     const val updateRequiredBody = "This version of YapNPlay is no longer supported. Update to keep playing."
     const val updateAvailableTitle = "New version available"

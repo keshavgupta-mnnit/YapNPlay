@@ -1,6 +1,8 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
-import com.kglabs28.yapnplay.appengine.ui.components.table.tableCardMuteRoom
+import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftLayer
+import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftViewModel
+import com.kglabs28.yapnplay.appengine.ui.components.table.seatButtonsRoom
 import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -103,6 +105,7 @@ fun CityBazaarMatchScreen(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CityBazaarMatchViewModel? = null,
+    emojiGiftViewModel: EmojiGiftViewModel? = null,
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: CityBazaarMatchState()
     // Player colours for the coloured names in the history.
@@ -140,7 +143,9 @@ fun CityBazaarMatchScreen(
     }
 
     GameArenaBackground(modifier = modifier) {
-        CityBazaarMatchContent(state = state, send = send, die1 = die1, die2 = die2, micGranted = { micPermission.isGranted() })
+        EmojiGiftLayer(matchId = matchId, viewModel = emojiGiftViewModel) {
+            CityBazaarMatchContent(state = state, send = send, die1 = die1, die2 = die2, micGranted = { micPermission.isGranted() })
+        }
 
         val board = state.leaderboard
         BlockingOverlay(visible = board != null) {
@@ -493,7 +498,7 @@ private fun BoxScope.CityRoyale3dSeats(
             onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
             onLongPress = { send(CityBazaarMatchIntent.PlayerLongPressed(card.seat)) },
             modifier = Modifier.onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center }// A seat with a mute button is wider: the button sits outside its name pill.
-                .monoScaled(seatScale).width(dimens.cb3dSeatWidth + if (!card.isMe && card.canSpeak) tableCardMuteRoom(dimens.cb3dSeatAvatar) else dimens.zero),
+                .monoScaled(seatScale).width(dimens.cb3dSeatWidth + seatButtonsRoom(dimens.cb3dSeatAvatar, card.isMe, card.canSpeak)),
         )
     }
 

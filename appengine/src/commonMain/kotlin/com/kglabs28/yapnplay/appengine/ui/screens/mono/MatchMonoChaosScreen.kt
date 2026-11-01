@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftLayer
+import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftViewModel
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoDeckButtons
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCallButton
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCaughtButton
@@ -87,6 +89,7 @@ fun MatchMonoChaosScreen(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MatchMonoChaosViewModel? = null,
+    emojiGiftViewModel: EmojiGiftViewModel? = null,
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: MatchMonoChaosState()
     val send: (MatchMonoChaosIntent) -> Unit = { viewModel?.onIntent(it) }
@@ -112,7 +115,9 @@ fun MatchMonoChaosScreen(
         onStopOrDispose { send(MatchMonoChaosIntent.ScreenVisible(false)) }
     }
 
-    MatchMonoChaosContent(state = state, send = send, onClose = onClose, anchors = anchors, flights = flights, modifier = modifier)
+    EmojiGiftLayer(matchId = matchId, viewModel = emojiGiftViewModel, modifier = modifier) {
+        MatchMonoChaosContent(state = state, send = send, onClose = onClose, anchors = anchors, flights = flights)
+    }
 }
 
 /** The table itself, drawn from [state] alone (the screen above wires it to its view model). */

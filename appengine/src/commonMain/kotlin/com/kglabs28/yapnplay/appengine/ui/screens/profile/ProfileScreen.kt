@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.profile
 
+import androidx.compose.ui.Alignment
+import com.kglabs28.yapnplay.appengine.ui.components.ads.AdPill
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberShareSheet
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberExitApp
 import com.kglabs28.yapnplay.appengine.ui.components.common.ExitAppCard
@@ -103,18 +105,14 @@ fun ProfileScreen(
             }
         },
     ) {
+        // The card starts at the top, the same gap from the top as from the sides; the ad at the bottom centre.
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = Spacing.Md, vertical = Spacing.Xs),
+                .padding(Spacing.Md),
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
         ) {
-            ProfileTopBar(
-                onBack = { send(ProfileIntent.Back) },
-                onSettings = { send(ProfileIntent.OpenSettings) },
-                onExit = { send(ProfileIntent.AskExit) },
-                modifier = Modifier.fillMaxWidth(),
-            )
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -124,7 +122,7 @@ fun ProfileScreen(
                     .revealWhen(state.loaded),
                 verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
-                // One shell holds who the user is and their friends.
+                // One shell holds the top bar, who the user is and their friends.
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -132,6 +130,12 @@ fun ProfileScreen(
                         .padding(Spacing.Xs),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
                 ) {
+                    ProfileTopBar(
+                        onBack = { send(ProfileIntent.Back) },
+                        onSettings = { send(ProfileIntent.OpenSettings) },
+                        onExit = { send(ProfileIntent.AskExit) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                     ProfileIdentityCard(
                         name = state.name,
                         userCode = state.userCode,
@@ -204,6 +208,7 @@ fun ProfileScreen(
                     }
                 }
             }
+            AdPill(reserveSpace = true)
         }
     }
 

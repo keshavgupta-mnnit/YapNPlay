@@ -110,5 +110,13 @@ object TableStrings {
     fun endEarlyRule(ranking: String) = "Any player can ask to end the game from Settings. Everyone still playing votes; it ends if more than half agree, and a missing vote counts as no. $ranking A player can ask again after a few minutes."
     const val endEarlyRuleTitle = "Ending early"
 
+    // Emoji gifts.
+    const val emojiGiftTitle = "Send an emoji"
+    fun emojiGiftOpen(name: String) = "Send $name an emoji"
+    const val emojiGiftClose = "Close"
+    fun emojiGiftNotEnough(price: Int) = "Not enough coins: this one costs $price."
+    const val emojiGiftFailed = "Couldn't send it. Try again."
+    const val emojiGiftLoadFailed = "Couldn't load the emojis. Try again."
+
     private const val SECONDS_PER_MINUTE = 60L
 }

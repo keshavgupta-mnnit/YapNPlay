@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.KeepPlayingUi
+import com.kglabs28.yapnplay.appengine.ui.components.seat.KeepPlayingDialog
 import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatHandoverDialog
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteUi
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteCard
@@ -61,21 +63,7 @@ fun CityBazaarModalContent(
         is CbModal.Buy -> CbBuyPrompt(modal = modal, onNo = actions.onDecline, onYes = actions.onBuy, modifier = modifier)
         is CbModal.Build -> CbBuildPrompt(modal = modal, onNo = actions.onSkipBuild, onYes = actions.onConfirmBuild, modifier = modifier)
         // The keep-playing and end votes in the same dialog as every table's.
-        is CbModal.ExtensionVote -> SeatPickerDialog(
-            title = CityBazaarStrings.cbExtendTitle,
-            message = modal.body,
-            options = emptyList(),
-            selectedIndex = null,
-            onSelect = {},
-            secondaryLabel = CityBazaarStrings.cbExtendEnd,
-            onSecondary = { actions.onVoteExtension(false) },
-            primaryLabel = CityBazaarStrings.cbExtendContinue,
-            onPrimary = { actions.onVoteExtension(true) },
-            modifier = modifier,
-            countdown = modal.countdown,
-            footer = listOfNotNull(modal.tally, modal.status),
-            showActions = modal.canVote,
-        )
+        is CbModal.ExtensionVote -> KeepPlayingDialog(KeepPlayingUi(modal.body, modal.tally, modal.status, modal.canVote, modal.countdown), onVote = actions.onVoteExtension, modifier = modifier)
         is CbModal.EndVote -> EndVoteCard(EndVoteUi(modal.body, modal.tally, modal.status, modal.canVote, modal.countdown), onVote = actions.onVoteEnd, modifier = modifier)
         is CbModal.Seat -> SeatHandoverDialog(modal.modal, actions.onSeat, modifier)
         CbModal.ConfirmEnd -> EndGameConfirmDialog(onCancel = actions.onDismiss, onEnd = actions.onConfirmEnd, modifier = modifier)

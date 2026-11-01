@@ -27,7 +27,7 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.GameTableArenaArtwork
  * The MONO table: the shared skeleton both MONO games draw into, over
  * the card-table room (its lit oval table holds the piles).
  *
- *  - The top bar: logo, title, spectators, match clock, settings, exit.
+ *  - The top bar: the app's logo, title, spectators, match clock, settings, exit.
  *  - Under it, everything is layered over the table rather than stacked,
  *    so nothing at the edges can squeeze the piles:
  *    - the opponents in a U, in turn order from the user: up the left
@@ -60,8 +60,6 @@ fun MonoTableShell(
     anchors: MonoAnchors,
     flights: MonoFlightState,
     modifier: Modifier = Modifier,
-    /** The game's logo beside the title. */
-    logo: (@Composable (Modifier) -> Unit)? = null,
     /** What the table is waiting on (a colour, a swap partner, the vote); null when nothing. */
     prompt: (@Composable () -> Unit)? = null,
     arena: @Composable () -> Unit,
@@ -121,7 +119,6 @@ fun MonoTableShell(
                 elapsed = elapsed,
                 onSettings = onSettings,
                 onExit = onExit,
-                logo = logo,
                 onToggleHearSpectator = onToggleHearSpectator,
             )
             Box(

@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.kglabs28.yapnplay.appengine.ui.components.table.tableCardMuteRoom
 import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import androidx.compose.foundation.clickable
@@ -22,14 +24,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -256,7 +255,6 @@ fun CityBazaarMatchContent(
             elapsed = state.elapsed,
             onSettings = { send(CityBazaarMatchIntent.OpenSettings) },
             onExit = { send(CityBazaarMatchIntent.ExitClicked) },
-            logo = { CityBazaarArtwork(modifier = it) },
             // The view to switch to.
             switchLabel = if (state.threeD) CityBazaarStrings.cbView2d else CityBazaarStrings.cbView3d,
             onSwitch = { send(CityBazaarMatchIntent.ToggleView) },

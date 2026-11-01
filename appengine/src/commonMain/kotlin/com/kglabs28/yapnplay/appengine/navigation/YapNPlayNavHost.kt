@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.navigation
 
+import com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match.DoodleKingMatchScreen
 import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.GetMatchRoomUseCase
 import org.koin.compose.koinInject
 import com.kglabs28.yapnplay.appengine.ui.screens.welcome.WelcomeViewModel
@@ -172,6 +173,13 @@ fun YapNPlayNavHost(
             CityBazaarMatchScreen(
                 matchId = entry.toRoute<CityBazaarMatch>().matchId,
                 onClose = { navController.closeMatch(entry, matchRooms(entry.toRoute<CityBazaarMatch>().matchId)) },
+                viewModel = entry.rememberScreenViewModel(),
+            )
+        }
+        composable<DoodleKingMatch> { entry ->
+            DoodleKingMatchScreen(
+                matchId = entry.toRoute<DoodleKingMatch>().matchId,
+                onClose = { navController.closeMatch(entry, matchRooms(entry.toRoute<DoodleKingMatch>().matchId)) },
                 viewModel = entry.rememberScreenViewModel(),
             )
         }

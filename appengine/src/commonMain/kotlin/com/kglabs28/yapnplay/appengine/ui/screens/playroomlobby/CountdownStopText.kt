@@ -15,6 +15,7 @@ object CountdownStopText {
             CountdownStopCause.GAME_CHANGED -> RoomStrings.lobbyStopGameChanged(name)
             CountdownStopCause.SETTINGS_CHANGED -> RoomStrings.lobbyStopSettingsChanged(name)
             CountdownStopCause.START_FAILED -> RoomStrings.lobbyStopFailed
+            CountdownStopCause.UPDATE_NEEDED -> RoomStrings.lobbyStopNeedsUpdate(name)
         }
     }
 }

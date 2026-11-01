@@ -125,15 +125,6 @@ object CityBazaarStrings {
     const val cbGroupYellow = "Yellow"
     const val cbGroupGrey = "Companies"
 
-    const val cbExtendTitle = "ROUNDS ARE OVER!"
-    fun cbExtendBody(extra: String) = "Play $extra more? The game goes on if at least half of the players vote to continue."
-    fun cbExtraRounds(n: Int) = "$n rounds"
-    fun cbExtraMinutes(n: Int) = "$n minutes"
-    const val cbExtendContinue = "Continue"
-    const val cbExtendEnd = "End game"
-    fun cbExtendTally(yes: Int, total: Int) = "Votes to continue: $yes of $total"
-    fun cbExtendYouVoted(keepPlaying: Boolean) = if (keepPlaying) "You voted to continue. Waiting for the others..." else "You voted to end. Waiting for the others..."
-    const val cbExtendWatching = "The players are deciding whether to keep playing..."
     /** How City Royale ranks players when it ends early. */
     const val cbEndRanking = "The richest player wins."
     fun cbFeedExtended(extra: String, yes: Int, total: Int) = "Players voted to keep playing: $extra more ($yes of $total)"

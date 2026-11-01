@@ -10,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -179,7 +178,6 @@ fun RoyalLudoTable(
             elapsed = state.elapsed,
             onSettings = { send(RoyalLudoMatchIntent.OpenSettings) },
             onExit = { send(RoyalLudoMatchIntent.ExitClicked) },
-            logo = { RoyalLudoArtwork(modifier = it) },
             onToggleHearSpectator = { send(RoyalLudoMatchIntent.ToggleHearSpectator(it)) },
         )
         BoxWithConstraints(

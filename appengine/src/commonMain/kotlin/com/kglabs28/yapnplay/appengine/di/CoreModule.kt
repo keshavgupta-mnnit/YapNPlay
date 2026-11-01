@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.games.base.GameRegistry
 import io.ktor.http.HttpStatusCode
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.AppManagerHelper
 import com.kglabs28.yapnplay.appengine.core.common.AppClock
@@ -94,7 +95,7 @@ val coreModule = module {
     // The socket: the real-time match connection to the backend.
     single<RealtimeGateway> {
         val config = get<AppManagerHelper>()
-        RealtimeConnection(get(), get(), get(), get(APP_SCOPE)) { config.serverBaseUrl() }
+        RealtimeConnection(get(), get(), get(), get(APP_SCOPE), baseUrl = { config.serverBaseUrl() }, games = { get<GameRegistry>().games.map { it.id.value } })
     }
     single { MatchChannel(get()) }
 }

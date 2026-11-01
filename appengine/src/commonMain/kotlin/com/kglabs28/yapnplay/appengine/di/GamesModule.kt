@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.games.doodleking.identity.DoodleKingDescriptor
 import com.kglabs28.yapnplay.appengine.features.connection.usecase.ObserveConnectionQualityUseCase
 import com.kglabs28.yapnplay.appengine.core.network.PingProbe
 import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.GetMatchRoomUseCase
@@ -45,6 +46,7 @@ val gamesModule = module {
                 CityBazaarEngine(),
                 MonoEngine(),
                 MonoChaosEngine(),
+                DoodleKingDescriptor(),
             ),
         )
     }

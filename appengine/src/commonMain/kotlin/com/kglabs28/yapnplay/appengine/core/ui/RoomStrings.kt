@@ -106,6 +106,7 @@ object RoomStrings {
     fun lobbyStopGameChanged(name: String) = "$name changed the game."
     fun lobbyStopSettingsChanged(name: String) = "$name changed the room settings."
     const val lobbyStopFailed = "The server couldn't start the match. Please try again."
+    fun lobbyStopNeedsUpdate(names: String) = "$names need the latest app to play this game."
     const val lobbyCancel = "Cancel"
     const val lobbyConfirm = "Confirm"
 

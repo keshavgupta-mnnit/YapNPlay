@@ -50,6 +50,8 @@ class RealtimeConnection(
     private val scope: CoroutineScope,
     /** The backend address, read on every connect (AppManager can change it). */
     private val baseUrl: () -> String,
+    /** The games this app has, sent on connect: the server starts no game someone's app can't show. */
+    private val games: () -> List<String> = { emptyList() },
 ) : RealtimeGateway {
     private val incoming = MutableSharedFlow<Envelope>(extraBufferCapacity = INCOMING_BUFFER)
     private val outbox = Outbox<String>(Outbox.UNLIMITED)
@@ -115,7 +117,10 @@ class RealtimeConnection(
         while (scope.isActive) {
             try {
                 val token = session.credentials().bearerToken
-                http.webSocket(urlString = BackendPaths.webSocketUrl(baseUrl()), request = { header(HttpHeaders.Authorization, BEARER + token) }) {
+                http.webSocket(urlString = BackendPaths.webSocketUrl(baseUrl()), request = {
+                    header(HttpHeaders.Authorization, BEARER + token)
+                    header(APP_GAMES_HEADER, games().joinToString(","))
+                }) {
                     attempt = 0
                     _connected.value = true
                     _status.value = ConnectionStatus.ONLINE
@@ -156,6 +161,8 @@ class RealtimeConnection(
 
     private companion object {
         const val BEARER = "Bearer "
+        /** The header listing this app's games (the server knows it). */
+        const val APP_GAMES_HEADER = "X-YapNPlay-Games"
         const val INCOMING_BUFFER = 256
         const val REPLY_TIMEOUT_MS = 15_000L
         const val BACKOFF_START_MS = 1_000L

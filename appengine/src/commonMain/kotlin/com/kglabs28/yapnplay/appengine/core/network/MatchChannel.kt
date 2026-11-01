@@ -88,6 +88,12 @@ class MatchChannel(private val realtime: RealtimeGateway) {
         }
     }
 
+    /** Side messages the server forwards as they are (`MatchRelay`: a Doodle King stroke); one match is open at a time. */
+    fun relays(): Flow<JsonObject> =
+        realtime.stream(Channel.MATCH)
+            .filter { it.type == MessageType.MATCH_RELAY }
+            .map { it.payload }
+
     /** `MatchEnded`: the final ranking with each seat's coins (it follows the last snapshot; one match at a time). */
     fun endings(): Flow<MatchEnded> =
         realtime.stream(Channel.MATCH)

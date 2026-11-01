@@ -17,12 +17,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetConten
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.TableSheetUi
 import com.kglabs28.yapnplay.appengine.ui.components.seat.LeaveMatchDialog
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -42,11 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
-import com.kglabs28.yapnplay.appengine.ui.components.table.arenaGlass
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
@@ -55,7 +46,6 @@ import com.kglabs28.yapnplay.appengine.games.mono.identity.MonoConstants
 import com.kglabs28.yapnplay.appengine.games.mono.ui.components.MonoCardView
 import com.kglabs28.yapnplay.appengine.games.mono.ui.components.hue
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
-import com.kglabs28.yapnplay.appengine.ui.components.common.ModalCard
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.MatchLeaderboard
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoAnchors
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCardFace
@@ -67,7 +57,6 @@ import com.kglabs28.yapnplay.appengine.ui.components.table.MonoPlayerPodUi
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoTablePrompt
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoTableArena
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoTableShell
-import com.kglabs28.yapnplay.appengine.ui.components.table.TableGlassButton
 import com.kglabs28.yapnplay.appengine.ui.components.table.fill
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableSeatPlan
 import com.kglabs28.yapnplay.appengine.ui.components.table.rememberMonoAnchors
@@ -158,7 +147,6 @@ fun MatchMonoContent(
             rightPods = rightPods,
             anchors = anchors,
             flights = flights,
-            logo = { MonoArtwork(modifier = it) },
             // Choices sit over the piles only, so the hand and every seat stay in view.
             prompt = when {
                 state.awaitingColorChoice -> ({ MonoTablePrompt(MonoStrings.monoChooseColour) { MonoColourChoice(MonoConstants.Color.entries.map { MonoStrings.monoColourName(it.name) to it.hue().fill }, { send(MatchMonoIntent.ChooseColor(MonoConstants.Color.entries[it])) }) } })

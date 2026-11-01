@@ -420,6 +420,26 @@ class YapNPlayDimens {
     val profileWideDialogWidth: Dp get() = 420.dp.scaled()
     val friendsGridMaxHeight: Dp get() = 210.dp.scaled()
     val profileListMaxHeight: Dp get() = 190.dp.scaled()
+    // Doodle King.
+    /** The side columns (cards on the left; guesses and leaderboard on the right). */
+    val doodleSideWidth: Dp get() = 150.dp.scaled()
+    val doodleCardAvatar: Dp get() = 34.dp.scaled()
+    /** The bottom bar: the user's card, the tools or guess box, the word or Enter. */
+    val doodleBarHeight: Dp get() = 64.dp.scaled()
+    val doodleBarCardWidth: Dp get() = 150.dp.scaled()
+    val doodleBarEndWidth: Dp get() = 150.dp.scaled()
+    val doodleToolButton: Dp get() = 34.dp.scaled()
+    val doodleInkDot: Dp get() = 26.dp.scaled()
+    val doodleInputHeight: Dp get() = 30.dp.scaled()
+    val doodleCanvasRadius: Dp get() = 10.dp.scaled()
+    val doodleCanvasRim: Dp get() = 2.dp.scaled()
+    val doodleStatusHeight: Dp get() = 22.dp.scaled()
+    val doodleRankRowHeight: Dp get() = 18.dp.scaled()
+    val doodlePickWidth: Dp get() = 420.dp.scaled()
+    val doodleWordButtonHeight: Dp get() = 44.dp.scaled()
+    /** While typing: the small live canvas in the corner and the row above the keyboard. */
+    val doodleTypingCanvasWidth: Dp get() = 150.dp.scaled()
+    val doodleTypingRowHeight: Dp get() = 36.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

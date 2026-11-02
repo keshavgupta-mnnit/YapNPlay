@@ -88,6 +88,8 @@ dependencies {
     implementation(libs.firebase.config)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.messaging)
+    // Firebase Analytics: the console's users / versions / retention reports. No code needed, it starts with the app.
+    implementation(libs.firebase.analytics)
 }
 
 // Robolectric resolves the manifest through the debug manifest merge

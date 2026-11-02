@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.moderation
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.text.style.TextAlign
 import org.koin.compose.koinInject
 import com.kglabs28.yapnplay.appengine.core.common.AppVersionProvider
@@ -76,73 +78,75 @@ fun MatchSettingsCard(
         )
         return
     }
-    ModalCard(title = LudoStrings.ludoSettings, onClose = onClose, modifier = modifier) {
-        Column(verticalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-            SettingRow(LudoStrings.ludoSoundEffects, effectsOn, onToggleEffects)
-            SettingRow(LudoStrings.ludoMusic, musicOn, onToggleMusic)
-            systemKeyboard?.let { SettingRow(Strings.settingsPhoneKeyboard, it, onToggleKeyboard) }
-            onHistory?.let {
-                GlassPillButton(
-                    text = HistoryStrings.historyTitle,
-                    onClick = it,
-                    leadingIcon = Icons.Rounded.History,
-                    accent = YapNPlayTheme.colors.Gold,
-                    contentColor = YapNPlayTheme.colors.Gold,
-                    height = YapNPlayTheme.dimens.ctaHeight,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+    Box(modifier = modifier) {
+        ModalCard(title = LudoStrings.ludoSettings, onClose = onClose) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
+                SettingRow(LudoStrings.ludoSoundEffects, effectsOn, onToggleEffects)
+                SettingRow(LudoStrings.ludoMusic, musicOn, onToggleMusic)
+                systemKeyboard?.let { SettingRow(Strings.settingsPhoneKeyboard, it, onToggleKeyboard) }
+                onHistory?.let {
+                    GlassPillButton(
+                        text = HistoryStrings.historyTitle,
+                        onClick = it,
+                        leadingIcon = Icons.Rounded.History,
+                        accent = YapNPlayTheme.colors.Gold,
+                        contentColor = YapNPlayTheme.colors.Gold,
+                        height = YapNPlayTheme.dimens.ctaHeight,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                onFeedback?.let {
+                    GlassPillButton(
+                        text = FeedbackStrings.feedbackSettingsButton,
+                        onClick = { showingFeedback = true },
+                        leadingIcon = Icons.Rounded.SupportAgent,
+                        accent = YapNPlayTheme.colors.Cyan,
+                        contentColor = YapNPlayTheme.colors.Cyan,
+                        height = YapNPlayTheme.dimens.ctaHeight,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                if (rules.isNotEmpty()) {
+                    GlassPillButton(
+                        text = TableStrings.gameRules,
+                        onClick = { showingRules = true },
+                        leadingIcon = Icons.AutoMirrored.Rounded.MenuBook,
+                        accent = YapNPlayTheme.colors.Cyan,
+                        contentColor = YapNPlayTheme.colors.Cyan,
+                        height = YapNPlayTheme.dimens.ctaHeight,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                onEndGame?.let {
+                    GlassPillButton(
+                        text = endGameLabel,
+                        onClick = it,
+                        leadingIcon = Icons.Rounded.SportsScore,
+                        accent = YapNPlayTheme.colors.Warning,
+                        contentColor = YapNPlayTheme.colors.Warning,
+                        height = YapNPlayTheme.dimens.ctaHeight,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                onReport?.let {
+                    GlassPillButton(
+                        text = LudoStrings.ludoReport,
+                        onClick = it,
+                        leadingIcon = Icons.Rounded.Flag,
+                        accent = YapNPlayTheme.colors.Error,
+                        contentColor = YapNPlayTheme.colors.Error,
+                        height = YapNPlayTheme.dimens.ctaHeight,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
-            onFeedback?.let {
-                GlassPillButton(
-                    text = FeedbackStrings.feedbackSettingsButton,
-                    onClick = { showingFeedback = true },
-                    leadingIcon = Icons.Rounded.SupportAgent,
-                    accent = YapNPlayTheme.colors.Cyan,
-                    contentColor = YapNPlayTheme.colors.Cyan,
-                    height = YapNPlayTheme.dimens.ctaHeight,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            if (rules.isNotEmpty()) {
-                GlassPillButton(
-                    text = TableStrings.gameRules,
-                    onClick = { showingRules = true },
-                    leadingIcon = Icons.AutoMirrored.Rounded.MenuBook,
-                    accent = YapNPlayTheme.colors.Cyan,
-                    contentColor = YapNPlayTheme.colors.Cyan,
-                    height = YapNPlayTheme.dimens.ctaHeight,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            onEndGame?.let {
-                GlassPillButton(
-                    text = endGameLabel,
-                    onClick = it,
-                    leadingIcon = Icons.Rounded.SportsScore,
-                    accent = YapNPlayTheme.colors.Warning,
-                    contentColor = YapNPlayTheme.colors.Warning,
-                    height = YapNPlayTheme.dimens.ctaHeight,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            onReport?.let {
-                GlassPillButton(
-                    text = LudoStrings.ludoReport,
-                    onClick = it,
-                    leadingIcon = Icons.Rounded.Flag,
-                    accent = YapNPlayTheme.colors.Error,
-                    contentColor = YapNPlayTheme.colors.Error,
-                    height = YapNPlayTheme.dimens.ctaHeight,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            // The installed version, centred at the foot of every settings dialog.
-            BasicText(
-                text = Strings.appVersion(versions.versionName()),
-                style = YapNPlayTheme.typography.label.copy(color = YapNPlayTheme.colors.TextSecondary, textAlign = TextAlign.Center),
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
+        // The installed version (and its code), small at the bottom centre of every settings dialog, just off the edge.
+        BasicText(
+            text = Strings.appVersion(versions.versionName(), versions.versionCode()),
+            style = YapNPlayTheme.typography.micro.copy(color = YapNPlayTheme.colors.TextSecondary),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = Spacing.Xxs),
+        )
     }
 }
 

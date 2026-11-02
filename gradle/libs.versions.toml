@@ -86,6 +86,8 @@ firebase-config = { module = "com.google.firebase:firebase-config", version = "2
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics", version = "20.0.0" }
 # Version comes from firebase-bom (androidApp applies the platform).
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
+# Version comes from firebase-bom: active users, versions, devices, countries, retention (collected automatically).
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 livekit-android = { module = "io.livekit:livekit-android", version.ref = "livekit" }
 play-app-update = { module = "com.google.android.play:app-update-ktx", version = "2.1.0" }
 play-games-v2 = { module = "com.google.android.gms:play-services-games-v2", version = "20.1.2" }

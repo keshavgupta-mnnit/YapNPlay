@@ -182,6 +182,7 @@ fun YapNPlayNavHost(
                 matchId = entry.toRoute<DoodleKingMatch>().matchId,
                 onClose = { navController.closeMatch(entry, matchRooms(entry.toRoute<DoodleKingMatch>().matchId)) },
                 viewModel = entry.rememberScreenViewModel(),
+                emojiGiftViewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<RoyalLudoMatch> { entry ->

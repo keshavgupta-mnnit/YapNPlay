@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftLayer
+import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftViewModel
 import com.kglabs28.yapnplay.appengine.ui.placeholders.DoodleKingArtwork
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleGuessFeedback
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleStatusPill
@@ -90,6 +92,7 @@ fun DoodleKingMatchScreen(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DoodleKingMatchViewModel? = null,
+    emojiGiftViewModel: EmojiGiftViewModel? = null,
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: DoodleKingMatchState()
     val send: (DoodleKingMatchIntent) -> Unit = { viewModel?.onIntent(it) }
@@ -113,7 +116,10 @@ fun DoodleKingMatchScreen(
     }
 
     GameArenaBackground(modifier = modifier) {
-        DoodleKingTable(state = state, send = send, micGranted = { micPermission.isGranted() })
+        // Emoji gifts, the same as every table: the cards get the emoji button, emojis fly over the table.
+        EmojiGiftLayer(matchId = matchId, viewModel = emojiGiftViewModel) {
+            DoodleKingTable(state = state, send = send, micGranted = { micPermission.isGranted() })
+        }
 
         val pick = state.pick
         BlockingOverlay(visible = pick != null) {

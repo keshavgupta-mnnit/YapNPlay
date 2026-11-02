@@ -5,7 +5,8 @@ package com.kglabs28.yapnplay.appengine.core.ui
  * never inline a word where the user can see it.
  */
 object Strings {
-    fun appVersion(version: String) = "Version $version"
+    /** e.g. v1.0.13(29): the version name and, in brackets, the version code. */
+    fun appVersion(version: String, code: Long) = "v$version($code)"
 
     const val homeTitle = "YapNPlay"
     const val homeLogoTitle = "YapNPlay"

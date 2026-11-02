@@ -56,6 +56,8 @@ kotlin {
             // Images from AppManager URLs (backgrounds, game art), any platform.
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
+            // Animated emoji gifts (Google's Noto animated emoji, Lottie files in composeResources/files/emoji).
+            implementation(libs.compottie)
             implementation(libs.ktor.client.okhttp)
             // Local (no-backend) mode only: answers the app's HTTP calls in-process.
             implementation(libs.ktor.client.mock)

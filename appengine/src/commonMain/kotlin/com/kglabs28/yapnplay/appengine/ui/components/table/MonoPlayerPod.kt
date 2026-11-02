@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.layout.BoxScope
+import com.kglabs28.yapnplay.appengine.ui.components.emojigift.emojiGiftAvatarTap
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
@@ -64,6 +66,12 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayColors
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
+import com.kglabs28.yapnplay.appengine.ui.components.emojigift.EmojiGiftLanded
+import com.kglabs28.yapnplay.appengine.ui.components.emojigift.EmojiGiftLandingUi
+import com.kglabs28.yapnplay.appengine.ui.components.emojigift.EmojiGiftSeatButton
+import com.kglabs28.yapnplay.appengine.ui.components.emojigift.LocalEmojiGiftTable
+import com.kglabs28.yapnplay.appengine.ui.components.emojigift.emojiGiftAnchor
+import androidx.compose.runtime.DisposableEffect
 import com.kglabs28.yapnplay.appengine.ui.components.profile.AvatarPresets
 import com.kglabs28.yapnplay.appengine.ui.placeholders.PresetAvatarArtwork
 import kotlin.math.PI
@@ -159,6 +167,8 @@ private fun MonoSeatHeaderFor(card: MonoPlayerPodUi, avatar: Dp, trailing: (@Com
         talking = card.talking,
         talkingMuted = card.talkingMuted,
         avatar = avatar,
+        seat = card.seat,
+        isMe = card.isMe,
         // The user's own seat says how many cards they hold (their hand lies along the bottom, not by the seat).
         details = if (card.isMe && card.cards > 0) {
             {
@@ -206,6 +216,11 @@ internal fun MonoSeatLabel(card: MonoPlayerPodUi, avatar: Dp) {
  * height, so they never cover the name. The turn timer runs round the outside of the whole
  * outline, never over the avatar; while [talking], a blue-pink light glows
  * behind it, and while [talkingMuted] (the user talking with their mic off) a grey one. Shared by MONO, Royal Ludo and City Royale.
+ *
+ * At a table with emoji gifts ([LocalEmojiGiftTable]) another player's
+ * [seat] wears a small smiley on the avatar's lower edge (like an online
+ * dot), and the smiley or the avatar opens the emoji picker (while the user
+ * has a seat to send from); an emoji sent to this seat covers the avatar for a while.
  */
 @Composable
 fun ArenaSeatHeader(
@@ -221,9 +236,17 @@ fun ArenaSeatHeader(
     avatar: Dp,
     modifier: Modifier = Modifier,
     talkingMuted: Boolean = false,
+    /** This seat's number at the table (emoji gifts); null: no emoji button or avatar swap. */
+    seat: Int? = null,
+    /** The user's own seat: where their emojis fly from, so no emoji button on it. */
+    isMe: Boolean = false,
     details: (@Composable ColumnScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
+    val gifts = LocalEmojiGiftTable.current
+    if (gifts != null && seat != null) DisposableEffect(gifts, seat) { onDispose { gifts.anchors.forget(seat) } }
+    // Another player, and the user has a seat to send from: the smiley on the avatar, and a tap on the avatar too.
+    val canGift = gifts != null && seat != null && !isMe && gifts.anchors.mySeat != null
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
@@ -275,18 +298,47 @@ fun ArenaSeatHeader(
                     details?.invoke(this)
                 }
             }
-            ArenaSeatAvatar(tint = tint, level = level, avatarId = avatarId, size = avatar)
+            ArenaSeatAvatar(
+                tint = tint,
+                level = level,
+                avatarId = avatarId,
+                size = avatar,
+                landed = seat?.let { gifts?.ui?.value?.landed?.get(it) },
+                modifier = Modifier.emojiGiftAnchor(gifts, seat, isMe).emojiGiftAvatarTap(gifts, seat, canGift),
+                badge = if (canGift && gifts != null && seat != null) {
+                    {
+                        EmojiGiftSeatButton(
+                            table = gifts,
+                            seat = seat,
+                            name = name,
+                            size = avatar * EMOJI_BADGE_SHARE,
+                            modifier = Modifier.align(Alignment.BottomEnd).offset(x = avatar * EMOJI_BADGE_OUT, y = avatar * EMOJI_BADGE_OUT),
+                        )
+                    }
+                } else {
+                    null
+                },
+            )
         }
         trailing?.invoke(this)
     }
 }
 
-/** The round avatar in the player's colour, with their level in a badge under it. */
+/** The round avatar in the player's colour, with their level in a badge under it; an emoji that [landed] here covers the face. */
 @Composable
-private fun ArenaSeatAvatar(tint: Color, level: String, avatarId: String, size: Dp) {
+private fun ArenaSeatAvatar(
+    tint: Color,
+    level: String,
+    avatarId: String,
+    size: Dp,
+    landed: EmojiGiftLandingUi?,
+    modifier: Modifier = Modifier,
+    /** Worn on the avatar (the emoji smiley at its lower right); null: none. */
+    badge: (@Composable BoxScope.() -> Unit)? = null,
+) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
-    Box(modifier = Modifier.size(size), contentAlignment = Alignment.BottomCenter) {
+    Box(modifier = modifier.size(size), contentAlignment = Alignment.BottomCenter) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -297,7 +349,9 @@ private fun ArenaSeatAvatar(tint: Color, level: String, avatarId: String, size: 
             contentAlignment = Alignment.Center,
         ) {
             val preset = AvatarPresets.index(avatarId)
-            if (preset >= 0) {
+            if (landed != null) {
+                EmojiGiftLanded(landing = landed, size = size)
+            } else if (preset >= 0) {
                 PresetAvatarArtwork(index = preset, modifier = Modifier.fillMaxSize().clip(CircleShape))
             } else {
                 AppIcon(imageVector = Icons.Rounded.Person, tint = colors.IconMuted, size = size * ICON_SHARE)
@@ -317,6 +371,7 @@ private fun ArenaSeatAvatar(tint: Color, level: String, avatarId: String, size: 
                     .padding(horizontal = Spacing.Xxs),
             )
         }
+        badge?.invoke(this)
     }
 }
 
@@ -510,3 +565,6 @@ private const val ELIMINATED_ALPHA = 0.4f
 private const val PULSE_MIN = 0.45f
 private const val PULSE_MS = 700
 
+/** The emoji smiley on another player's avatar, against the avatar, and how far it sits out past its edge. */
+private const val EMOJI_BADGE_SHARE = 0.4f
+private const val EMOJI_BADGE_OUT = 0.06f

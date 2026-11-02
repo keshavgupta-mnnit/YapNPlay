@@ -274,8 +274,8 @@ class YapNPlayDimens {
     val arenaDiceIcon: Dp get() = 44.dp.scaled()
     /** Kept free under the Ludo board, so the user's card and its switches fit by the bottom base. */
     val ludoBoardBottomStrip: Dp get() = 0.dp
-    /** The game's logo beside the top bar (larger than the bar). */
-    val arenaLogoSize: Dp get() = 58.dp.scaled()
+    /** The app's logo beside the game's top bar (larger than the bar). */
+    val arenaLogoSize: Dp get() = 64.dp.scaled()
     val cbRollBadge: Dp get() = 22.dp.scaled()
     /** Pods get compact (tighter padding, smaller text) when each has less height than this. */
     val cbCardCompactBelow: Dp get() = 80.dp.scaled()
@@ -410,6 +410,9 @@ class YapNPlayDimens {
     val friendPickAvatar: Dp get() = 32.dp.scaled()
     val groupListMaxHeight: Dp get() = 200.dp.scaled()
     val profileTabHeight: Dp get() = 24.dp.scaled()
+    /** The profile's back, settings and exit buttons (a fifth smaller than the app's top bar buttons), and their icons. */
+    val profileBarButton: Dp get() = 30.dp.scaled()
+    val profileBarIcon: Dp get() = 16.dp.scaled()
     val profileBadge: Dp get() = 18.dp.scaled()
     val personAvatar: Dp get() = 72.dp.scaled()
     val personRowAvatar: Dp get() = 44.dp.scaled()
@@ -420,6 +423,25 @@ class YapNPlayDimens {
     val profileWideDialogWidth: Dp get() = 420.dp.scaled()
     val friendsGridMaxHeight: Dp get() = 210.dp.scaled()
     val profileListMaxHeight: Dp get() = 190.dp.scaled()
+    // Emoji gifts at the table.
+    /** One emoji's tile in the picker (art over its price). */
+    /** The largest a tile gets; on smaller screens it follows the window's height (EmojiGiftSizing). */
+    val emojiGiftTile: Dp get() = 52.dp.scaled()
+    /** The gap between the picker and the seat it opened from. */
+    val emojiGiftPickerGap: Dp get() = 6.dp.scaled()
+    /** An emoji in flight, at the start of its arc (it grows on the way). */
+    val emojiGiftFlight: Dp get() = 34.dp.scaled()
+    /** The dots of the trail an emoji leaves behind. */
+    val emojiGiftTrailDot: Dp get() = 2.5.dp.scaled()
+    // Ads.
+    /** The slim ad pill (AD, icon, headline, Install): connecting card, Quick Play search, profile, Ludo table. */
+    val adPillHeight: Dp get() = 34.dp.scaled()
+    val adPillIcon: Dp get() = 26.dp.scaled()
+    val adPillWidth: Dp get() = 320.dp.scaled()
+    /** A pill narrower than this (a side card) leaves out the advertiser's icon, so the headline stays readable. */
+    val adPillCompactBelow: Dp get() = 260.dp.scaled()
+    /** The pill's round ends, badge and button corners, and the gaps inside it. */
+    val adPillInset: Dp get() = 6.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

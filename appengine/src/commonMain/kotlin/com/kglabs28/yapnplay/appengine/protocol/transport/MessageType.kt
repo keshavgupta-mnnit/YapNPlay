@@ -58,11 +58,19 @@ object MessageType {
     const val CHOOSE_SEAT_TAKER = "ChooseSeatTaker"
     const val TAKE_SEAT = "TakeSeat"
     const val OFFER_BOT_SEAT = "OfferBotSeat"
+    /** 0.11.0: send an emoji to a seat for coins (answered with EmojiGiftResult). */
+    const val SEND_EMOJI_GIFT = "SendEmojiGift"
 
     // ── Match channel: server to client ───────────────────────────────────
     const val MATCH_SNAPSHOT = "MatchSnapshot"
     const val MATCH_EVENT = "MatchEvent"
     const val MATCH_ENDED = "MatchEnded"
+    /** A side message for the table; its payload's `"type"` says what (EmojiGift). */
+    const val MATCH_RELAY = "MatchRelay"
+    /** 0.11.0: reply to SendEmojiGift. */
+    const val EMOJI_GIFT_RESULT = "EmojiGiftResult"
+    /** 0.11.0: the `"type"` of a MatchRelay carrying an emoji one seat sent another. */
+    const val EMOJI_GIFT = "EmojiGift"
 
     // ── Matchmaking channel: client to server ─────────────────────────────
     const val JOIN_QUEUE = "JoinQueue"

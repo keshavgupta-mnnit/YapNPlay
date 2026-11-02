@@ -1,7 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.components.players
 
 import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
-import com.kglabs28.yapnplay.appengine.ui.components.table.tableCardMuteRoom
+import com.kglabs28.yapnplay.appengine.ui.components.table.seatButtonsRoom
 import com.kglabs28.yapnplay.appengine.ui.components.table.monoScaled
 import com.kglabs28.yapnplay.appengine.ui.components.table.TableSeatPlan
 import androidx.compose.foundation.layout.BoxScope
@@ -67,9 +67,9 @@ fun BoxScope.LudoCornerCards(
     // Fewer players, bigger cards (the board stays the same size).
     val scale = TableSeatPlan.scale(cards.count { !it.isMe })
     val avatarPx = with(density) { YapNPlayTheme.dimens.monoSeatAvatar.toPx() } * scale
-    // A card with a mute button is wider: the button sits outside its name pill.
-    val muteRoom = tableCardMuteRoom(YapNPlayTheme.dimens.ludoCardAvatar)
-    fun widthOf(card: LudoPlayerCardUi) = if (!card.isMe && card.canSpeak) cardWidth + muteRoom else cardWidth
+    // A card with an emoji or mute button is wider: the buttons sit outside its name pill.
+    val cardAvatar = YapNPlayTheme.dimens.ludoCardAvatar
+    fun widthOf(card: LudoPlayerCardUi) = cardWidth + seatButtonsRoom(cardAvatar, card.isMe, card.canSpeak)
     // Measured card heights, so a card is kept inside the area.
     val heights = remember { mutableStateMapOf<Int, Int>() }
     cards.forEach { card ->

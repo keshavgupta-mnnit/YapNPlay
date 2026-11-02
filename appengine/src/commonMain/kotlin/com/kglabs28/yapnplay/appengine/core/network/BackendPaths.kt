@@ -24,6 +24,7 @@ object BackendPaths {
     const val AD_REWARD = "/coins/ad-reward"
     const val AD_STATUS = "/coins/ad-status"
     const val LEAGUES = "/coins/leagues"
+    const val EMOJI_GIFTS = "/coins/emoji-gifts"
     const val WEB_SOCKET = "/ws"
 
     fun roomPreview(code: String) = "/rooms/preview/$code"

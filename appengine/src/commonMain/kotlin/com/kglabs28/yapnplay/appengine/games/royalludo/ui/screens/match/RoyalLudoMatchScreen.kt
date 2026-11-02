@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.components.ads.AdPill
+import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftLayer
+import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftViewModel
 import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import com.kglabs28.yapnplay.appengine.ui.placeholders.RoyalLudoArtwork
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberShareSheet
@@ -62,6 +65,7 @@ fun RoyalLudoMatchScreen(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RoyalLudoMatchViewModel? = null,
+    emojiGiftViewModel: EmojiGiftViewModel? = null,
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: RoyalLudoMatchState()
     val send: (RoyalLudoMatchIntent) -> Unit = { viewModel?.onIntent(it) }
@@ -92,7 +96,9 @@ fun RoyalLudoMatchScreen(
     }
 
     GameArenaBackground(modifier = modifier) {
-        RoyalLudoTable(state = state, send = send, dice = dice, micGranted = { micPermission.isGranted() })
+        EmojiGiftLayer(matchId = matchId, viewModel = emojiGiftViewModel) {
+            RoyalLudoTable(state = state, send = send, dice = dice, micGranted = { micPermission.isGranted() })
+        }
 
         val board = state.leaderboard
         BlockingOverlay(visible = board != null) {
@@ -127,6 +133,9 @@ fun RoyalLudoMatchScreen(
             } else {
                 { send(RoyalLudoMatchIntent.DismissModal) }
             },
+            // Leaving, ending the game, a vote or a seat decision: an ad under it.
+            showAd = modal is LudoMatchModal.ConfirmEnd || modal is LudoMatchModal.LeaveConfirm || modal is LudoMatchModal.EndVote ||
+                modal is LudoMatchModal.Vote || modal is LudoMatchModal.Seat,
         ) {
             if (modal != null) {
                 LudoMatchModalContent(
@@ -179,7 +188,6 @@ fun RoyalLudoTable(
             elapsed = state.elapsed,
             onSettings = { send(RoyalLudoMatchIntent.OpenSettings) },
             onExit = { send(RoyalLudoMatchIntent.ExitClicked) },
-            logo = { RoyalLudoArtwork(modifier = it) },
             onToggleHearSpectator = { send(RoyalLudoMatchIntent.ToggleHearSpectator(it)) },
         )
         BoxWithConstraints(
@@ -239,6 +247,8 @@ fun RoyalLudoTable(
                     modifier = place,
                 )
             }
+            // The ad pill in the bottom-left corner, clear of the board, the cards and Roll Dice.
+            AdPill(modifier = Modifier.align(Alignment.BottomStart), reserveSpace = true, refresh = true)
             if (state.spectating) {
                 TableSpectatorVoiceButtons(
                     micOn = state.micOn,

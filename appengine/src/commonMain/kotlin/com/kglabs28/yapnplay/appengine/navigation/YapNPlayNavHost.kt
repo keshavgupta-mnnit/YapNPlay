@@ -173,6 +173,7 @@ fun YapNPlayNavHost(
                 matchId = entry.toRoute<CityBazaarMatch>().matchId,
                 onClose = { navController.closeMatch(entry, matchRooms(entry.toRoute<CityBazaarMatch>().matchId)) },
                 viewModel = entry.rememberScreenViewModel(),
+                emojiGiftViewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<RoyalLudoMatch> { entry ->
@@ -180,6 +181,7 @@ fun YapNPlayNavHost(
                 matchId = entry.toRoute<RoyalLudoMatch>().matchId,
                 onClose = { navController.closeMatch(entry, matchRooms(entry.toRoute<RoyalLudoMatch>().matchId)) },
                 viewModel = entry.rememberScreenViewModel(),
+                emojiGiftViewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<MonoMatchRoute> { entry ->
@@ -187,6 +189,7 @@ fun YapNPlayNavHost(
                 matchId = entry.toRoute<MonoMatchRoute>().matchId,
                 onClose = { navController.closeMatch(entry, matchRooms(entry.toRoute<MonoMatchRoute>().matchId)) },
                 viewModel = entry.rememberScreenViewModel(),
+                emojiGiftViewModel = entry.rememberScreenViewModel(),
             )
         }
         composable<MonoChaosMatchRoute> { entry ->
@@ -194,6 +197,7 @@ fun YapNPlayNavHost(
                 matchId = entry.toRoute<MonoChaosMatchRoute>().matchId,
                 onClose = { navController.closeMatch(entry, matchRooms(entry.toRoute<MonoChaosMatchRoute>().matchId)) },
                 viewModel = entry.rememberScreenViewModel(),
+                emojiGiftViewModel = entry.rememberScreenViewModel(),
             )
         }
     }

@@ -90,6 +90,8 @@ fun TablePlayerCard(
                 talking = card.talking,
                 talkingMuted = card.talkingMuted,
                 avatar = avatar,
+                seat = card.seat,
+                isMe = card.isMe,
                 details = details,
                 pillEnd = pillEnd,
                 trailing = if (!card.isMe && card.canSpeak) {
@@ -98,7 +100,7 @@ fun TablePlayerCard(
                             muted = card.mutedForMe,
                             description = LudoStrings.ludoMuteFor(card.name),
                             onToggle = onToggleHear,
-                            modifier = Modifier.size(avatar * MUTE_SHARE),
+                            modifier = Modifier.size(seatButtonSize(avatar)),
                             micOn = card.micOn,
                         )
                     }
@@ -124,10 +126,3 @@ fun TablePlayerCard(
 }
 
 private const val FADED_ALPHA = 0.4f
-private const val MUTE_SHARE = 0.55f
-
-/**
- * How much wider a card with a mute button is drawn ([avatar] its avatar):
- * the button sits outside the name pill, so callers add this to the card's width.
- */
-fun tableCardMuteRoom(avatar: Dp): Dp = avatar * MUTE_SHARE + Spacing.Xxs

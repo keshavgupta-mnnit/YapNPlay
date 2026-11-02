@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.games.doodleking.data.remote
 
+import com.kglabs28.yapnplay.appengine.protocol.transport.MessageType
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import com.kglabs28.yapnplay.appengine.games.base.match.MatchKeepPlayingVote
 import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
 import com.kglabs28.yapnplay.appengine.features.seathandover.data.toDomain
@@ -91,8 +94,8 @@ class DoodleKingSnapshotMapper(private val json: Json) {
         return DoodleUpdate(match, events)
     }
 
-    /** A forwarded drawing message; null for anything that isn't one. */
-    fun ink(payload: JsonObject): DoodleInkOp? = runCatching {
+    /** A forwarded drawing message; null for anything that isn't one (an emoji gift shares the relay). */
+    fun ink(payload: JsonObject): DoodleInkOp? = if (payload[TYPE]?.jsonPrimitive?.contentOrNull !in DRAWING_TYPES) null else runCatching {
         when (val relay = json.decodeFromJsonElement(DoodleRelay.serializer(), payload)) {
             is DoodleStroke -> DoodleInkOp.Part(relay.drawingId, relay.toDomain())
             is DoodleUndo -> DoodleInkOp.Undo(relay.drawingId)
@@ -102,4 +105,11 @@ class DoodleKingSnapshotMapper(private val json: Json) {
     }.onFailure { CrashReporter.record(it, "DoodleKingSnapshotMapper.ink") }.getOrNull()
 
     private fun DoodleStroke.toDomain() = DoodleStrokeData(id, colour, size, eraser, points)
+
+    private companion object {
+        const val TYPE = "type"
+        /** The relay's drawing messages (the rest, like emoji gifts, belong to others). */
+        val DRAWING_TYPES = setOf(MessageType.DOODLE_STROKE, MessageType.DOODLE_UNDO, MessageType.DOODLE_CLEAR, DRAWING)
+        const val DRAWING = "DoodleDrawing"
+    }
 }

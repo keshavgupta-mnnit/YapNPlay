@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -24,17 +25,19 @@ fun FrostedIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     tint: Color = YapNPlayTheme.colors.AvatarRingSilver,
+    size: Dp = YapNPlayTheme.dimens.topBarControlHeight,
+    iconSize: Dp = YapNPlayTheme.dimens.iconMedium,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     Box(
         modifier = modifier
-            .size(dimens.topBarControlHeight)
-            .tableFrostedGlass(tint = tint, shape = CircleShape, radius = dimens.topBarControlHeight / 2, glow = dimens.zero)
+            .size(size)
+            .tableFrostedGlass(tint = tint, shape = CircleShape, radius = size / 2, glow = dimens.zero)
             .clickable(role = Role.Button, onClick = onClick)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
-        AppIcon(imageVector = icon, tint = colors.TextPrimary, size = dimens.iconMedium)
+        AppIcon(imageVector = icon, tint = colors.TextPrimary, size = iconSize)
     }
 }

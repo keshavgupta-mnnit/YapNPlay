@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.gamezone
 
+import com.kglabs28.yapnplay.appengine.ui.components.ads.AdPill
 import com.kglabs28.yapnplay.appengine.ui.components.coins.LeaguePickerCard
 import com.kglabs28.yapnplay.appengine.ui.components.coins.CoinsOfferCard
 import com.kglabs28.yapnplay.appengine.ui.components.games.GamePickerViewMode
@@ -129,22 +130,26 @@ fun GameZoneScreen(
                         .revealWhen(ready),
                 )
             }
-            // Matching snackbar: centred, blocking modal over the frosted app.
+            // Matching snackbar: centred, blocking modal over the frosted app, an ad at the bottom centre.
             val search = state.search
             BlockingOverlay(visible = search != null) {
-                if (search != null) MatchSearchPanel(
-                    headline = search.headline,
-                    progress = search.progress,
-                    timeLeft = search.timeLeft,
-                    hint = if (search.failed) Strings.gameZoneNoMatchBody else Strings.gameZoneCpuFillHint,
-                    cancelLabel = if (search.failed) Strings.gameZoneClose else Strings.gameZoneCancel,
-                    onCancel = if (search.matchFound) null else {
-                        { viewModel?.onIntent(GameZoneIntent.CancelSearch) }
-                    },
-                    failed = search.failed,
-                    retryLabel = Strings.gameZoneTryAgain,
-                    onRetry = { viewModel?.onIntent(GameZoneIntent.RetrySearch) },
-                )
+                if (search != null) Box(modifier = Modifier.fillMaxSize()) {
+                    MatchSearchPanel(
+                        headline = search.headline,
+                        progress = search.progress,
+                        timeLeft = search.timeLeft,
+                        hint = if (search.failed) Strings.gameZoneNoMatchBody else Strings.gameZoneCpuFillHint,
+                        cancelLabel = if (search.failed) Strings.gameZoneClose else Strings.gameZoneCancel,
+                        onCancel = if (search.matchFound) null else {
+                            { viewModel?.onIntent(GameZoneIntent.CancelSearch) }
+                        },
+                        failed = search.failed,
+                        retryLabel = Strings.gameZoneTryAgain,
+                        onRetry = { viewModel?.onIntent(GameZoneIntent.RetrySearch) },
+                        modifier = Modifier.align(Alignment.Center),
+                    )
+                    AdPill(modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = Spacing.Md))
+                }
             }
             val penalty = state.penalty
             BlockingOverlay(

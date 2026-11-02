@@ -24,3 +24,4 @@ secrets.properties
 
 # Local configuration
 local.properties
+/.kotlin

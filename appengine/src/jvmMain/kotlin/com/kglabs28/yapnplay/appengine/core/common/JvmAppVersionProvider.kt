@@ -4,6 +4,8 @@ package com.kglabs28.yapnplay.appengine.core.common
 class JvmAppVersionProvider : AppVersionProvider {
     override fun versionName(): String = DEV_VERSION
 
+    override fun versionCode(): Long = 0L
+
     private companion object {
         const val DEV_VERSION = "dev"
     }

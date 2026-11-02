@@ -9,6 +9,7 @@ import com.kglabs28.yapnplay.appengine.core.network.DeviceIdentity
 import org.koin.android.ext.koin.androidApplication
 import com.kglabs28.yapnplay.appengine.core.ads.RewardedAds
 import com.kglabs28.yapnplay.appengine.core.ads.AdMobRewardedAds
+import com.kglabs28.yapnplay.appengine.core.ads.NativeAdPool
 import com.kglabs28.yapnplay.appengine.appmanager.FirebaseRemoteConfigSource
 import com.kglabs28.yapnplay.appengine.appmanager.RemoteConfigSource
 import com.kglabs28.yapnplay.appengine.core.network.CredentialStore
@@ -43,4 +44,6 @@ val platformAppManagerModule = module {
     single<VoiceEngine> { LiveKitVoiceEngine(androidContext()) }
     // Made at start, so it sees the first screen resume (it needs the visible Activity to play).
     single<RewardedAds>(createdAtStart = true) { AdMobRewardedAds(androidApplication(), get()) }
+    // Started with the app, so the first ad pill (the connecting card's) has an ad as soon as possible.
+    single(createdAtStart = true) { NativeAdPool(androidApplication(), get()) }
 }

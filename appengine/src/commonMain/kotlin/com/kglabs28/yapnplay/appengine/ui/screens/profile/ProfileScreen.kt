@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.profile
 
+import androidx.compose.ui.Alignment
+import com.kglabs28.yapnplay.appengine.ui.components.ads.AdPill
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberShareSheet
 import com.kglabs28.yapnplay.appengine.ui.components.common.rememberExitApp
 import com.kglabs28.yapnplay.appengine.ui.components.common.ExitAppCard
@@ -103,18 +105,14 @@ fun ProfileScreen(
             }
         },
     ) {
+        // The card starts at the top, the same gap from the top as from the sides; the ad at the bottom centre, just off the edge.
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = Spacing.Md, vertical = Spacing.Xs),
-            verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                .padding(start = Spacing.Md, end = Spacing.Md, top = Spacing.Md, bottom = Spacing.Xxxs),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
-            ProfileTopBar(
-                onBack = { send(ProfileIntent.Back) },
-                onSettings = { send(ProfileIntent.OpenSettings) },
-                onExit = { send(ProfileIntent.AskExit) },
-                modifier = Modifier.fillMaxWidth(),
-            )
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -124,7 +122,7 @@ fun ProfileScreen(
                     .revealWhen(state.loaded),
                 verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
-                // One shell holds who the user is and their friends.
+                // One shell holds the top bar, who the user is and their friends.
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -132,22 +130,31 @@ fun ProfileScreen(
                         .padding(Spacing.Xs),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
                 ) {
-                    ProfileIdentityCard(
-                        name = state.name,
-                        userCode = state.userCode,
-                        avatarId = state.avatarId,
-                        stats = state.stats,
-                        codeCopied = state.codeCopied,
-                        onChangeAvatar = { send(ProfileIntent.EditAvatar) },
-                        onEditName = { send(ProfileIntent.EditName) },
-                        onOpenHistory = onOpenHistory,
-                        onCopyCode = {
-                            clipboard.setText(AnnotatedString(state.userCode))
-                            send(ProfileIntent.CodeCopied)
-                        },
-                        onShareCode = { send(ProfileIntent.ShareCode) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    // The bar and the name sit close: no gap between them.
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        ProfileTopBar(
+                            onBack = { send(ProfileIntent.Back) },
+                            onSettings = { send(ProfileIntent.OpenSettings) },
+                            onExit = { send(ProfileIntent.AskExit) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        ProfileIdentityCard(
+                            name = state.name,
+                            userCode = state.userCode,
+                            avatarId = state.avatarId,
+                            stats = state.stats,
+                            codeCopied = state.codeCopied,
+                            onChangeAvatar = { send(ProfileIntent.EditAvatar) },
+                            onEditName = { send(ProfileIntent.EditName) },
+                            onOpenHistory = onOpenHistory,
+                            onCopyCode = {
+                                clipboard.setText(AnnotatedString(state.userCode))
+                                send(ProfileIntent.CodeCopied)
+                            },
+                            onShareCode = { send(ProfileIntent.ShareCode) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                     // No friends yet: the section is hidden.
                     if (state.friends.isNotEmpty()) ProfileFriendsSection(
                         friends = state.tabFriends,
@@ -204,12 +211,13 @@ fun ProfileScreen(
                     }
                 }
             }
+            AdPill(reserveSpace = true)
         }
     }
 
     val modal = state.modal
     val exitApp = rememberExitApp()
-    BlockingOverlay(visible = state.exitAsked, onDismiss = { send(ProfileIntent.DismissExit) }) {
+    BlockingOverlay(visible = state.exitAsked, onDismiss = { send(ProfileIntent.DismissExit) }, showAd = true) {
         ExitAppCard(onExit = exitApp, onStay = { send(ProfileIntent.DismissExit) })
     }
     AppSettingsDialog(

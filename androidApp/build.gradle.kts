@@ -23,8 +23,8 @@ android {
         applicationId = "com.kglabs28.yapnplay"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.0.5"
+        versionCode = 10
+        versionName = "1.0.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Must match AppConstants.INVITE_HOST / APP_SCHEME (invite + room links).
         manifestPlaceholders["inviteHost"] = "kglabs28-yapnplay.web.app"
@@ -88,6 +88,8 @@ dependencies {
     implementation(libs.firebase.config)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.messaging)
+    // Firebase Analytics: the console's users / versions / retention reports. No code needed, it starts with the app.
+    implementation(libs.firebase.analytics)
 }
 
 // Robolectric resolves the manifest through the debug manifest merge

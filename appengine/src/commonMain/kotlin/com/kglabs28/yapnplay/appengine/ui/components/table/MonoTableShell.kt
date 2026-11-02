@@ -1,5 +1,11 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.pullUp
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import com.kglabs28.yapnplay.appengine.ui.components.ads.AdPill
 import com.kglabs28.yapnplay.appengine.ui.components.common.fitToSpace
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.graphics.TransformOrigin
@@ -80,12 +86,13 @@ fun MonoTableShell(
     onPodLongPress: ((Int) -> Unit)? = null,
 ) {
     val dimens = YapNPlayTheme.dimens
+    // The ad's width, from the top bar's clock-to-exit group (the pill's own width until it is measured).
+    var adWidth by remember { mutableStateOf(dimens.adPillWidth) }
     // Every opponent's seat, shrunk together as the table fills.
     val seatScale = TableSeatPlan.scale(leftPods.size + topPods.size + rightPods.size)
     // The bands the layers keep clear of each other.
-    // A seat with a mute button is that much wider: the button sits outside its name pill.
-    val muteRoom = dimens.ludoMuteButton + Spacing.Xxs
-    fun roomFor(pod: MonoPlayerPodUi) = if (onToggleHear != null && pod.canSpeak) muteRoom else dimens.zero
+    // A seat with an emoji or mute button is that much wider: the buttons sit outside its name pill.
+    fun roomFor(pod: MonoPlayerPodUi) = seatButtonsRoom(dimens.monoSeatAvatarCompact, pod.isMe, onToggleHear != null && pod.canSpeak)
     val sideColumn = dimens.monoPodWidthCompact + ((leftPods + rightPods).maxOfOrNull { roomFor(it) } ?: dimens.zero)
     val side = sideColumn + Spacing.Sm
     val topBand = if (topPods.isEmpty()) Spacing.Xs else dimens.monoTopBandHeight
@@ -120,6 +127,18 @@ fun MonoTableShell(
                 onSettings = onSettings,
                 onExit = onExit,
                 onToggleHearSpectator = onToggleHearSpectator,
+                onTrailingWidth = { adWidth = it },
+            )
+            // The ad on its own line under the bar, at its right end, as wide as the clock-to-exit group above it:
+            // the seats start below it, so none can cover it. It stays up all game, so a new ad comes in every so often.
+            // The bar's row is as tall as the logo, its pills shorter: the ad rises into the room under them, 4 below the pills.
+            AdPill(
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .width(adWidth)
+                    .pullUp((dimens.arenaLogoSize - dimens.arenaBarHeight) / 2 + Spacing.Xs - Spacing.Xxs),
+                reserveSpace = true,
+                refresh = true,
             )
             Box(
                 modifier = Modifier

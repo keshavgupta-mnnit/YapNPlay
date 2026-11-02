@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import androidx.compose.foundation.layout.Box
 import com.kglabs28.yapnplay.appengine.ui.components.common.verticalScrollWithBar
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
@@ -37,6 +38,8 @@ fun CbPlayerPanel(
     cities: List<CbOwnedRowUi>,
     onPropertyClick: (tile: Int) -> Unit,
     modifier: Modifier = Modifier,
+    /** Drawn at the bottom, under the list, as wide as the panel (the ad). */
+    footer: (@Composable () -> Unit)? = null,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -65,6 +68,7 @@ fun CbPlayerPanel(
                 cities.forEach { CbCityCard(city = it, onClick = { onPropertyClick(it.tile) }) }
             }
         }
+        footer?.let { Box(Modifier.fillMaxWidth().padding(start = Spacing.Xxs, end = Spacing.Xxs, bottom = Spacing.Xxs)) { it() } }
     }
 }
 

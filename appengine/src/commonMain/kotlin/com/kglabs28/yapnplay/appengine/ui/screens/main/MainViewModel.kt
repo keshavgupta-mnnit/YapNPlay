@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.features.seathandover.usecase.SendSeatCommandUseCase
+import com.kglabs28.yapnplay.appengine.features.seathandover.domain.SeatCommand
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.TimeZone
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
@@ -60,6 +62,7 @@ class MainViewModel(
     private val settingsController: AppSettingsController,
     private val startupGate: StartupGate,
     private val sendFriendRequest: SendFriendRequestUseCase,
+    private val sendSeatCommand: SendSeatCommandUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MainState, MainIntent, MainEffect>(MainState(), dispatchers) {
 
@@ -108,6 +111,11 @@ class MainViewModel(
                 emitEffect(MainEffect.OpenMatch(it.gameId, it.matchId))
             }
             MainIntent.DismissRejoin -> setState { copy(rejoin = null) }
+            MainIntent.DeclineRejoin -> state.value.rejoin?.let {
+                setState { copy(rejoin = null) }
+                // Like Leave at the table with no one picked: a CPU takes the seat.
+                sendSeatCommand(it.matchId, SeatCommand.Leave(giveToUserId = null))
+            }
             is MainIntent.AddFriendFromLink -> addFriendFromLink(intent.userCode)
             MainIntent.DismissFriendLink -> setState { copy(friendLink = null) }
             MainIntent.AskExit -> setState { copy(exitAsked = true) }

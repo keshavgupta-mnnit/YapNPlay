@@ -48,7 +48,7 @@ fun ProfileIdentityCard(
         }
         Column(modifier = Modifier.width(IntrinsicSize.Max), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Lg)) {
-                ProfileEditableText(text = name, style = typography.title.copy(color = colors.TextPrimary), onEdit = onEditName)
+                ProfileEditableText(text = name, style = typography.title.copy(color = colors.Cyan), onEdit = onEditName)
                 Spacer(Modifier.weight(1f))
                 ProfileIdPill(code = userCode, copied = codeCopied, onCopy = onCopyCode, onShare = onShareCode)
             }

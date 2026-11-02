@@ -32,7 +32,13 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbPrope
  * bold bar of their colour.
  */
 @Composable
-fun CbPropertyCard(card: CbPropertyCardUi, modifier: Modifier = Modifier, fillHeight: Boolean = false) {
+fun CbPropertyCard(
+    card: CbPropertyCardUi,
+    modifier: Modifier = Modifier,
+    fillHeight: Boolean = false,
+    /** Drawn just above the owner bar, as wide as the card (the ad in the side column). */
+    aboveOwner: (@Composable () -> Unit)? = null,
+) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
@@ -72,6 +78,7 @@ fun CbPropertyCard(card: CbPropertyCardUi, modifier: Modifier = Modifier, fillHe
             }
             if (card.costs.isNotEmpty()) CbSheetTable(rows = card.costs)
         }
+        aboveOwner?.let { Box(Modifier.fillMaxWidth().padding(horizontal = Spacing.Xxs)) { it() } }
         // Bottom bar: the owner on their colour, or "Available for sale" on dark grey (none for tiles that can't be owned).
         if (card.owner.isNotEmpty()) {
             ShrinkText(

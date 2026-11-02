@@ -88,7 +88,7 @@ class MatchChannel(private val realtime: RealtimeGateway) {
         }
     }
 
-    /** Side messages the server forwards as they are (`MatchRelay`: a Doodle King stroke); one match is open at a time. */
+    /** Side messages the server forwards as they are (`MatchRelay`: a Doodle King stroke, an emoji gift…), each with its own `"type"`; one match is open at a time. */
     fun relays(): Flow<JsonObject> =
         realtime.stream(Channel.MATCH)
             .filter { it.type == MessageType.MATCH_RELAY }

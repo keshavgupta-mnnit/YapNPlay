@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import com.kglabs28.yapnplay.appengine.ui.placeholders.HomeLogoArtwork
 import com.kglabs28.yapnplay.appengine.ui.components.common.StableDigitsText
 import androidx.compose.ui.text.style.TextAlign
@@ -74,7 +77,10 @@ fun ArenaTopBar(
     onHistory: (() -> Unit)? = null,
     /** Mutes or unmutes a spectator (by user id) for the user only, from a long press on them; null: no long press. */
     onToggleHearSpectator: ((String) -> Unit)? = null,
+    /** Told how wide the right-hand group is (the clock pill to the exit button), e.g. to size the ad under it. */
+    onTrailingWidth: ((Dp) -> Unit)? = null,
 ) {
+    val density = LocalDensity.current
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
@@ -151,34 +157,41 @@ fun ArenaTopBar(
             }
         }
 
-        // The match clock.
+        // The right-hand group (clock to exit), measured so a line under the bar can match its width.
         Row(
-            modifier = Modifier
-                .height(dimens.arenaBarHeight)
-                .arenaGlass(pill)
-                .padding(horizontal = Spacing.Md),
+            modifier = Modifier.onSizeChanged { size -> onTrailingWidth?.let { report -> with(density) { report(size.width.toDp()) } } },
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
-            // The connection first: a lag reads as the network's, not the app's.
-            ConnectionBadge()
-            AppIcon(imageVector = Icons.Rounded.Schedule, tint = colors.TextPrimary, size = dimens.iconSmall)
-            StableDigitsText(text = elapsed, style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
-        }
-        switchLabel?.let { label ->
-            Box(
+            // The match clock.
+            Row(
                 modifier = Modifier
-                    .size(dimens.arenaBarHeight)
-                    .arenaGlass(RoundedCornerShape(dimens.arenaBarHeight * SQUARE_RADIUS))
-                    .clickable(role = Role.Button, onClick = onSwitch),
-                contentAlignment = Alignment.Center,
+                    .height(dimens.arenaBarHeight)
+                    .arenaGlass(pill)
+                    .padding(horizontal = Spacing.Md),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
-                BasicText(text = label, style = typography.label.copy(color = colors.Cyan, fontWeight = FontWeight.Black), maxLines = 1)
+                // The connection first: a lag reads as the network's, not the app's.
+                ConnectionBadge()
+                AppIcon(imageVector = Icons.Rounded.Schedule, tint = colors.TextPrimary, size = dimens.iconSmall)
+                StableDigitsText(text = elapsed, style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
             }
+            switchLabel?.let { label ->
+                Box(
+                    modifier = Modifier
+                        .size(dimens.arenaBarHeight)
+                        .arenaGlass(RoundedCornerShape(dimens.arenaBarHeight * SQUARE_RADIUS))
+                        .clickable(role = Role.Button, onClick = onSwitch),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    BasicText(text = label, style = typography.label.copy(color = colors.Cyan, fontWeight = FontWeight.Black), maxLines = 1)
+                }
+            }
+            onHistory?.let { ArenaSquareButton(icon = Icons.Rounded.History, description = TableStrings.tableHistory, tint = colors.Cyan, onClick = it) }
+            ArenaSquareButton(icon = Icons.Rounded.Settings, description = LudoStrings.ludoSettings, tint = colors.Cyan, onClick = onSettings)
+            ArenaSquareButton(icon = Icons.AutoMirrored.Rounded.Logout, description = LudoStrings.ludoExit, tint = colors.Error, rim = colors.Error, onClick = onExit)
         }
-        onHistory?.let { ArenaSquareButton(icon = Icons.Rounded.History, description = TableStrings.tableHistory, tint = colors.Cyan, onClick = it) }
-        ArenaSquareButton(icon = Icons.Rounded.Settings, description = LudoStrings.ludoSettings, tint = colors.Cyan, onClick = onSettings)
-        ArenaSquareButton(icon = Icons.AutoMirrored.Rounded.Logout, description = LudoStrings.ludoExit, tint = colors.Error, rim = colors.Error, onClick = onExit)
     }
 }
 

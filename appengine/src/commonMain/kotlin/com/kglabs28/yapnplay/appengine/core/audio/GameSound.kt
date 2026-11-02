@@ -13,4 +13,8 @@ enum class GameSound {
     MONO_CALL,
     /** CAUGHT: someone pays a penalty for a missed (or wrong) call. */
     CAUGHT,
+    /** An emoji gift takes off from the sender's seat. */
+    EMOJI_TOSS,
+    /** An emoji gift lands on the receiver's avatar. */
+    EMOJI_POP,
 }

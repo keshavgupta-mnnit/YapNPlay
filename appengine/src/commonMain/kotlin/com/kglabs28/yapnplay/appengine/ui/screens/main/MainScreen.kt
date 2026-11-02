@@ -111,7 +111,7 @@ fun MainScreen(
             onSkip = { welcomeViewModel.onIntent(WelcomeIntent.Skip) },
         )
     }
-    BlockingOverlay(visible = state.exitAsked, onDismiss = { viewModel?.onIntent(MainIntent.DismissExit) }) {
+    BlockingOverlay(visible = state.exitAsked, onDismiss = { viewModel?.onIntent(MainIntent.DismissExit) }, showAd = true) {
         ExitAppCard(onExit = exitApp, onStay = { viewModel?.onIntent(MainIntent.DismissExit) })
     }
     state.rejoin?.let { rejoin ->
@@ -119,6 +119,7 @@ fun MainScreen(
             RejoinMatchCard(
                 title = rejoin.title,
                 onRejoin = { viewModel?.onIntent(MainIntent.Rejoin) },
+                onDecline = { viewModel?.onIntent(MainIntent.DeclineRejoin) },
                 onDismiss = { viewModel?.onIntent(MainIntent.DismissRejoin) },
             )
         }

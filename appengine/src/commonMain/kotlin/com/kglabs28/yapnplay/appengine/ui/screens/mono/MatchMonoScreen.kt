@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftLayer
+import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftViewModel
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoDeckButtons
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCallButton
 import com.kglabs28.yapnplay.appengine.ui.components.table.MonoCaughtButton
@@ -76,6 +78,7 @@ fun MatchMonoScreen(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MatchMonoViewModel? = null,
+    emojiGiftViewModel: EmojiGiftViewModel? = null,
 ) {
     val state = viewModel?.state?.collectAsState()?.value ?: MatchMonoState()
     val send: (MatchMonoIntent) -> Unit = { viewModel?.onIntent(it) }
@@ -102,7 +105,9 @@ fun MatchMonoScreen(
         onStopOrDispose { send(MatchMonoIntent.ScreenVisible(false)) }
     }
 
-    MatchMonoContent(state = state, send = send, onClose = onClose, anchors = anchors, flights = flights, modifier = modifier)
+    EmojiGiftLayer(matchId = matchId, viewModel = emojiGiftViewModel, modifier = modifier) {
+        MatchMonoContent(state = state, send = send, onClose = onClose, anchors = anchors, flights = flights)
+    }
 }
 
 /** The table itself, drawn from [state] alone (the screen above wires it to its view model). */
@@ -203,19 +208,20 @@ fun MatchMonoContent(
 
         // A seat dialog (offered a seat, idle check, the leader's pick), the same in every game.
         state.seatModal?.let { modal ->
-            BlockingOverlay(visible = true, onDismiss = null) { SeatHandoverDialog(modal, { send(MatchMonoIntent.Seat(it)) }) }
+            BlockingOverlay(visible = true, onDismiss = null, showAd = true) { SeatHandoverDialog(modal, { send(MatchMonoIntent.Seat(it)) }) }
         }
         // The keep-playing vote over the dimmed table, like every game's votes (a sheet, if open, comes first).
         if (state.sheet == null) {
             state.vote?.let { v ->
-                BlockingOverlay(visible = true, onDismiss = null) {
+                BlockingOverlay(visible = true, onDismiss = null, showAd = true) {
                     KeepPlayingVoteDialog(v.secondsLeft, v.yes, v.no, v.voters, v.canVote) { send(MatchMonoIntent.VoteContinue(it)) }
                 }
             }
         }
         state.sheet?.let { sheet ->
             // A report to vote on needs an answer; the rest close on a tap outside.
-            BlockingOverlay(visible = true, onDismiss = if (sheet is TableSheetUi.Vote || sheet is TableSheetUi.EndVote) null else ({ send(MatchMonoIntent.CloseSheet) })) {
+            val decision = sheet is TableSheetUi.Vote || sheet is TableSheetUi.EndVote
+            BlockingOverlay(visible = true, onDismiss = if (decision) null else ({ send(MatchMonoIntent.CloseSheet) }), showAd = decision) {
                 TableSheetContent(
                     sheet = sheet,
                     onToggleEffects = { send(MatchMonoIntent.ToggleEffects) },
@@ -232,7 +238,7 @@ fun MatchMonoContent(
             }
         }
         state.leaveDialog?.let { dialog ->
-            BlockingOverlay(visible = true, onDismiss = { send(MatchMonoIntent.CancelExit) }) {
+            BlockingOverlay(visible = true, onDismiss = { send(MatchMonoIntent.CancelExit) }, showAd = true) {
                 LeaveMatchDialog(
                     onStay = { send(MatchMonoIntent.CancelExit) },
                     onLeave = { send(MatchMonoIntent.ConfirmExit) },
@@ -245,7 +251,7 @@ fun MatchMonoContent(
             }
         }
         if (state.confirmEnd) {
-            BlockingOverlay(visible = true, onDismiss = { send(MatchMonoIntent.CancelEnd) }) {
+            BlockingOverlay(visible = true, onDismiss = { send(MatchMonoIntent.CancelEnd) }, showAd = true) {
                 EndGameConfirmDialog(onCancel = { send(MatchMonoIntent.CancelEnd) }, onEnd = { send(MatchMonoIntent.ConfirmEnd) })
             }
         }

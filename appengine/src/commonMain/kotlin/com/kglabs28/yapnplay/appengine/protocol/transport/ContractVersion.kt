@@ -30,5 +30,8 @@ package com.kglabs28.yapnplay.appengine.protocol.transport
  * 0.10.0 — MatchEnded RankedSeat: coinsWon is every seat's place share
  * (CPUs and leavers too, shown not credited); new stake (the entry put
  * in); CPUs show the flat completion bonus.
+ * 0.11.0 — emoji gifts: SendEmojiGift / EmojiGiftResult on the match
+ * channel, EmojiGift (MatchRelay) to the whole table, `GET
+ * /coins/emoji-gifts` (EmojiGiftPrices).
  */
-const val CONTRACT_VERSION: String = "0.10.0"
+const val CONTRACT_VERSION: String = "0.11.0"

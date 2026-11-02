@@ -9,7 +9,7 @@ import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
-/** The profile's top bar: back, "Profile", then frosted-white Settings and the glassy red Exit (closes the app, after asking). */
+/** The profile's top bar (inside its card, small buttons): back, "Profile", then frosted-white Settings and the glassy red Exit (closes the app, after asking). */
 @Composable
 fun ProfileTopBar(
     onBack: () -> Unit,
@@ -17,8 +17,10 @@ fun ProfileTopBar(
     onExit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BackTitleBar(title = ProfileStrings.profileTitle, backDescription = ProfileStrings.profileBack, onBack = onBack, modifier = modifier) {
-        FrostedIconButton(icon = Icons.Rounded.Settings, description = ProfileStrings.profileSettings, onClick = onSettings)
-        FrostedIconButton(icon = Icons.AutoMirrored.Rounded.ExitToApp, description = ProfileStrings.profileExit, onClick = onExit, tint = YapNPlayTheme.colors.Error)
+    val button = YapNPlayTheme.dimens.profileBarButton
+    val icon = YapNPlayTheme.dimens.profileBarIcon
+    BackTitleBar(title = ProfileStrings.profileTitle, backDescription = ProfileStrings.profileBack, onBack = onBack, modifier = modifier, buttonSize = button, iconSize = icon) {
+        FrostedIconButton(icon = Icons.Rounded.Settings, description = ProfileStrings.profileSettings, onClick = onSettings, size = button, iconSize = icon)
+        FrostedIconButton(icon = Icons.AutoMirrored.Rounded.ExitToApp, description = ProfileStrings.profileExit, onClick = onExit, tint = YapNPlayTheme.colors.Error, size = button, iconSize = icon)
     }
 }

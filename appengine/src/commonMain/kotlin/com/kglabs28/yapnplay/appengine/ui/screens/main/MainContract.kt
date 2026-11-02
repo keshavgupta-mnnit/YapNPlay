@@ -71,7 +71,10 @@ sealed interface MainIntent : UiIntent {
     data object DismissNotifications : MainIntent
     data class NotificationClicked(val roomId: String) : MainIntent
     data object Rejoin : MainIntent
+    /** The cross: hide the card, the seat stays the user's. */
     data object DismissRejoin : MainIntent
+    /** "Don't want it": leave the match for good (a CPU plays on), as from the table. */
+    data object DeclineRejoin : MainIntent
     /** A friend link was opened: send its owner a friend request. */
     data class AddFriendFromLink(val userCode: String) : MainIntent
     data object DismissFriendLink : MainIntent

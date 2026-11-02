@@ -4,7 +4,9 @@ import com.kglabs28.yapnplay.appengine.ui.placeholders.HomeBackgroundArtwork
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Refresh
@@ -19,11 +21,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
+import com.kglabs28.yapnplay.appengine.ui.components.ads.AdPill
 import com.kglabs28.yapnplay.appengine.core.network.ConnectionStatus
 import com.kglabs28.yapnplay.appengine.core.network.RealtimeGateway
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import kotlinx.coroutines.delay
+import kotlin.time.TimeSource
+import com.kglabs28.yapnplay.appengine.appmanager.helpers.AdsAppManagerHelper
 import org.koin.compose.koinInject
 
 /**
@@ -31,14 +37,17 @@ import org.koin.compose.koinInject
  * empty. Before the first connection: a "Connecting…" card, or "Can't
  * reach YapNPlay" with Retry when it fails. Later drops cover the app
  * with "Connection lost" (after a short grace, so a quick reconnect
- * shows nothing) and clear by themselves when it is back.
+ * shows nothing) and clear by themselves when it is back. While ads are
+ * on, the first "Connecting…" card stays at least [AD_HOLD_MS], so its ad is seen.
  */
 @Composable
 fun ConnectionGate(
     modifier: Modifier = Modifier,
     realtime: RealtimeGateway = koinInject(),
+    ads: AdsAppManagerHelper = koinInject(),
     content: @Composable () -> Unit,
 ) {
+    val shownAt = remember { TimeSource.Monotonic.markNow() }
     LaunchedEffect(Unit) { realtime.connect() }
     val status by realtime.status.collectAsState()
     var everOnline by rememberSaveable { mutableStateOf(false) }
@@ -46,6 +55,7 @@ fun ConnectionGate(
     LaunchedEffect(status) {
         showLost = false
         if (status == ConnectionStatus.ONLINE) {
+            if (!everOnline && ads.isNativeEnabled()) delay(AD_HOLD_MS - shownAt.elapsedNow().inWholeMilliseconds)
             everOnline = true
         } else {
             delay(LOST_GRACE_MS)
@@ -57,11 +67,15 @@ fun ConnectionGate(
         if (!everOnline) {
             HomeBackgroundArtwork(modifier = Modifier.fillMaxSize())
             Box(Modifier.fillMaxSize().background(YapNPlayTheme.colors.Background.copy(alpha = ART_SHADE)))
-            ConnectionCard(
-                title = if (status == ConnectionStatus.OFFLINE) Strings.connectionOffline else Strings.connectionConnecting,
-                body = if (status == ConnectionStatus.OFFLINE) Strings.connectionOfflineBody else Strings.connectionConnectingBody,
-                onRetry = realtime::retryNow.takeIf { status == ConnectionStatus.OFFLINE },
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Md)) {
+                ConnectionCard(
+                    title = if (status == ConnectionStatus.OFFLINE) Strings.connectionOffline else Strings.connectionConnecting,
+                    body = if (status == ConnectionStatus.OFFLINE) Strings.connectionOfflineBody else Strings.connectionConnectingBody,
+                    onRetry = realtime::retryNow.takeIf { status == ConnectionStatus.OFFLINE },
+                )
+                // An ad while the app connects; its room is kept from the start, so the card never jumps when it arrives.
+                AdPill(reserveSpace = true)
+            }
         } else {
             content()
             if (showLost) {
@@ -87,5 +101,6 @@ fun ConnectionGate(
 }
 
 private const val LOST_GRACE_MS = 2_000L
+private const val AD_HOLD_MS = 2_500L
 private const val SCRIM_ALPHA = 0.8f
 private const val ART_SHADE = 0.55f

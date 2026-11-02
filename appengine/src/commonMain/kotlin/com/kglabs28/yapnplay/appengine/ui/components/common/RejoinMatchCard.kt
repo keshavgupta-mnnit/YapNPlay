@@ -6,11 +6,16 @@ import androidx.compose.runtime.Composable
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.ui.Strings
 
-/** "Your game is still on": rejoin the match [title], or not now. */
+/**
+ * "Your game is still on": rejoin the match [title], or [onDecline] to give
+ * up the seat for good (the same as leaving from the table). The close cross
+ * ([onDismiss]) only hides the card: the seat stays the user's.
+ */
 @Composable
 fun RejoinMatchCard(
     title: String,
     onRejoin: () -> Unit,
+    onDecline: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val colors = YapNPlayTheme.colors
@@ -19,7 +24,7 @@ fun RejoinMatchCard(
         subtitle = Strings.rejoinBody(title),
         onClose = onDismiss,
         actions = {
-            GlassPillButton(text = Strings.rejoinNotNow, onClick = onDismiss)
+            GlassPillButton(text = Strings.rejoinDecline, onClick = onDecline)
             PillButton(
                 text = Strings.rejoinAction,
                 onClick = onRejoin,

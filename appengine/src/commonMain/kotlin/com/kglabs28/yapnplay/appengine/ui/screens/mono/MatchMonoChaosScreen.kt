@@ -163,7 +163,6 @@ fun MatchMonoChaosContent(
             rightPods = rightPods,
             anchors = anchors,
             flights = flights,
-            logo = { MonoChaosArtwork(modifier = it) },
             // Choices sit over the piles only, so the hand and every seat (swap partners too) stay in view.
             prompt = when {
                 state.awaitingColorChoice -> ({ MonoTablePrompt(MonoStrings.monoChooseColour) { MonoColourChoice(MonoChaosConstants.Color.entries.map { MonoStrings.monoColourName(it.name) to it.hue().fill }, { send(MatchMonoChaosIntent.ChooseColor(MonoChaosConstants.Color.entries[it])) }) } })
@@ -223,19 +222,20 @@ fun MatchMonoChaosContent(
 
         // A seat dialog (offered a seat, idle check, the leader's pick), the same in every game.
         state.seatModal?.let { modal ->
-            BlockingOverlay(visible = true, onDismiss = null) { SeatHandoverDialog(modal, { send(MatchMonoChaosIntent.Seat(it)) }) }
+            BlockingOverlay(visible = true, onDismiss = null, showAd = true) { SeatHandoverDialog(modal, { send(MatchMonoChaosIntent.Seat(it)) }) }
         }
         // The keep-playing vote over the dimmed table, like every game's votes (a sheet, if open, comes first).
         if (state.sheet == null) {
             state.vote?.let { v ->
-                BlockingOverlay(visible = true, onDismiss = null) {
+                BlockingOverlay(visible = true, onDismiss = null, showAd = true) {
                     KeepPlayingVoteDialog(v.secondsLeft, v.yes, v.no, v.voters, v.canVote) { send(MatchMonoChaosIntent.VoteContinue(it)) }
                 }
             }
         }
         state.sheet?.let { sheet ->
             // A report to vote on needs an answer; the rest close on a tap outside.
-            BlockingOverlay(visible = true, onDismiss = if (sheet is TableSheetUi.Vote || sheet is TableSheetUi.EndVote) null else ({ send(MatchMonoChaosIntent.CloseSheet) })) {
+            val decision = sheet is TableSheetUi.Vote || sheet is TableSheetUi.EndVote
+            BlockingOverlay(visible = true, onDismiss = if (decision) null else ({ send(MatchMonoChaosIntent.CloseSheet) }), showAd = decision) {
                 TableSheetContent(
                     sheet = sheet,
                     onToggleEffects = { send(MatchMonoChaosIntent.ToggleEffects) },
@@ -252,7 +252,7 @@ fun MatchMonoChaosContent(
             }
         }
         state.leaveDialog?.let { dialog ->
-            BlockingOverlay(visible = true, onDismiss = { send(MatchMonoChaosIntent.CancelExit) }) {
+            BlockingOverlay(visible = true, onDismiss = { send(MatchMonoChaosIntent.CancelExit) }, showAd = true) {
                 LeaveMatchDialog(
                     onStay = { send(MatchMonoChaosIntent.CancelExit) },
                     onLeave = { send(MatchMonoChaosIntent.ConfirmExit) },
@@ -265,7 +265,7 @@ fun MatchMonoChaosContent(
             }
         }
         if (state.confirmEnd) {
-            BlockingOverlay(visible = true, onDismiss = { send(MatchMonoChaosIntent.CancelEnd) }) {
+            BlockingOverlay(visible = true, onDismiss = { send(MatchMonoChaosIntent.CancelEnd) }, showAd = true) {
                 EndGameConfirmDialog(onCancel = { send(MatchMonoChaosIntent.CancelEnd) }, onEnd = { send(MatchMonoChaosIntent.ConfirmEnd) })
             }
         }

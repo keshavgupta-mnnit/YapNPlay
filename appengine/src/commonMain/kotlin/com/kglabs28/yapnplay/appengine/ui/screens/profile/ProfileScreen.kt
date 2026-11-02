@@ -105,13 +105,13 @@ fun ProfileScreen(
             }
         },
     ) {
-        // The card starts at the top, the same gap from the top as from the sides; the ad at the bottom centre.
+        // The card starts at the top, the same gap from the top as from the sides; the ad at the bottom centre, just off the edge.
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(Spacing.Md),
+                .padding(start = Spacing.Md, end = Spacing.Md, top = Spacing.Md, bottom = Spacing.Xxxs),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+            verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
             Column(
                 modifier = Modifier
@@ -130,28 +130,31 @@ fun ProfileScreen(
                         .padding(Spacing.Xs),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
                 ) {
-                    ProfileTopBar(
-                        onBack = { send(ProfileIntent.Back) },
-                        onSettings = { send(ProfileIntent.OpenSettings) },
-                        onExit = { send(ProfileIntent.AskExit) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    ProfileIdentityCard(
-                        name = state.name,
-                        userCode = state.userCode,
-                        avatarId = state.avatarId,
-                        stats = state.stats,
-                        codeCopied = state.codeCopied,
-                        onChangeAvatar = { send(ProfileIntent.EditAvatar) },
-                        onEditName = { send(ProfileIntent.EditName) },
-                        onOpenHistory = onOpenHistory,
-                        onCopyCode = {
-                            clipboard.setText(AnnotatedString(state.userCode))
-                            send(ProfileIntent.CodeCopied)
-                        },
-                        onShareCode = { send(ProfileIntent.ShareCode) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    // The bar and the name sit close: no gap between them.
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        ProfileTopBar(
+                            onBack = { send(ProfileIntent.Back) },
+                            onSettings = { send(ProfileIntent.OpenSettings) },
+                            onExit = { send(ProfileIntent.AskExit) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        ProfileIdentityCard(
+                            name = state.name,
+                            userCode = state.userCode,
+                            avatarId = state.avatarId,
+                            stats = state.stats,
+                            codeCopied = state.codeCopied,
+                            onChangeAvatar = { send(ProfileIntent.EditAvatar) },
+                            onEditName = { send(ProfileIntent.EditName) },
+                            onOpenHistory = onOpenHistory,
+                            onCopyCode = {
+                                clipboard.setText(AnnotatedString(state.userCode))
+                                send(ProfileIntent.CodeCopied)
+                            },
+                            onShareCode = { send(ProfileIntent.ShareCode) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                     // No friends yet: the section is hidden.
                     if (state.friends.isNotEmpty()) ProfileFriendsSection(
                         friends = state.tabFriends,
@@ -214,7 +217,7 @@ fun ProfileScreen(
 
     val modal = state.modal
     val exitApp = rememberExitApp()
-    BlockingOverlay(visible = state.exitAsked, onDismiss = { send(ProfileIntent.DismissExit) }) {
+    BlockingOverlay(visible = state.exitAsked, onDismiss = { send(ProfileIntent.DismissExit) }, showAd = true) {
         ExitAppCard(onExit = exitApp, onStay = { send(ProfileIntent.DismissExit) })
     }
     AppSettingsDialog(

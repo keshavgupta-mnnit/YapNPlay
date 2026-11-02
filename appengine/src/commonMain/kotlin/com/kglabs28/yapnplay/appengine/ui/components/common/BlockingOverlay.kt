@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import com.kglabs28.yapnplay.appengine.ui.components.ads.AdPill
+import androidx.compose.foundation.layout.padding
+import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -32,7 +35,7 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
  * Screens never touch it directly; they call [BlockingOverlay].
  */
 class BlockingOverlayState {
-    private class Entry(val token: Any, val content: @Composable () -> Unit, val onDismiss: (() -> Unit)?)
+    private class Entry(val token: Any, val content: @Composable () -> Unit, val onDismiss: (() -> Unit)?, val showAd: Boolean)
 
     private val entries = mutableStateListOf<Entry>()
 
@@ -41,9 +44,12 @@ class BlockingOverlayState {
     /** Set for dismissable modals: tap outside or Back closes them. */
     val onDismiss: (() -> Unit)? get() = entries.lastOrNull()?.onDismiss
 
-    fun show(token: Any, content: @Composable () -> Unit, onDismiss: (() -> Unit)?) {
+    /** The top modal is a decision (leave, end the game, a vote): an ad shows at the bottom centre under it. */
+    val showAd: Boolean get() = entries.lastOrNull()?.showAd == true
+
+    fun show(token: Any, content: @Composable () -> Unit, onDismiss: (() -> Unit)?, showAd: Boolean = false) {
         val index = entries.indexOfFirst { it.token === token }
-        val entry = Entry(token, content, onDismiss)
+        val entry = Entry(token, content, onDismiss, showAd)
         if (index >= 0) entries[index] = entry else entries.add(entry)
     }
 
@@ -123,6 +129,15 @@ fun BlockingOverlayHost(
                     ) {
                         CompositionLocalProvider(LocalOnModalLayer provides true) { modal() }
                     }
+                    // A decision's ad, at the bottom centre; its taps are its own (never "outside").
+                    if (state.showAd) {
+                        AdPill(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = Spacing.Xxxs)
+                                .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(requireUnconsumed = false).consume() } },
+                        )
+                    }
                 }
             }
         }
@@ -140,6 +155,8 @@ fun BlockingOverlayHost(
 fun BlockingOverlay(
     visible: Boolean,
     onDismiss: (() -> Unit)? = null,
+    /** A decision (leave, end the game, a vote, exit): an ad at the bottom centre while it is up. */
+    showAd: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val host = LocalBlockingOverlay.current
@@ -147,8 +164,8 @@ fun BlockingOverlay(
     val latestDismiss by rememberUpdatedState(onDismiss)
     val dismissable = onDismiss != null
     val token = remember { Any() }
-    DisposableEffect(visible, dismissable, host) {
-        if (visible) host.show(token, { latest() }, if (dismissable) ({ latestDismiss?.invoke() }) else null)
+    DisposableEffect(visible, dismissable, showAd, host) {
+        if (visible) host.show(token, { latest() }, if (dismissable) ({ latestDismiss?.invoke() }) else null, showAd)
         onDispose { host.hide(token) }
     }
 }

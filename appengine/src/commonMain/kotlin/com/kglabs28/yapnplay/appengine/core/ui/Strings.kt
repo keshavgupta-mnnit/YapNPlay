@@ -38,6 +38,8 @@ object Strings {
     const val connectionRetry = "Retry"
     /** The badge on every ad, so it never passes for the app's own content. */
     const val adBadge = "AD"
+    /** The animated emojis' licence asks for this credit (the Feedback & support card, bottom centre). */
+    const val emojiArtCredit = "Animated emoji by Google (Noto Emoji), CC BY 4.0"
     const val updateRequiredTitle = "Update required"
     const val updateRequiredBody = "This version of YapNPlay is no longer supported. Update to keep playing."
     const val updateAvailableTitle = "New version available"
@@ -46,7 +48,8 @@ object Strings {
     const val rejoinTitle = "Your game is still on"
     fun rejoinBody(title: String) = "You still have a seat in $title. Jump back in?"
     const val rejoinAction = "Rejoin"
-    const val rejoinNotNow = "Not now"
+    /** Gives up the seat (a CPU plays on), the same as leaving from the table. */
+    const val rejoinDecline = "Don't want it"
     const val deviceAccountTitle = "Welcome back!"
     const val settingsPhoneKeyboard = "Phone keyboard"
     fun deviceAccountBody(name: String, level: Int) = "This phone already has a YapNPlay account: $name (Level $level). Continue with it, or start a new one?"

@@ -180,6 +180,11 @@ fun CityBazaarMatchScreen(
             visible = modal != null,
             // Turn decisions, an auction, a vote and the final ranking need an answer.
             onDismiss = if (modal == null || modal.needsAnswer) null else ({ send(CityBazaarMatchIntent.DismissModal) }),
+            // A money decision (buy, build, raise money, auction), jail, leaving, ending the game, a vote or a seat: an ad under it.
+            showAd = modal is CbModal.Buy || modal is CbModal.Build || modal is CbModal.Debt || modal is CbModal.Auction ||
+                modal is CbModal.JailRoll || modal is CbModal.JailChoice ||
+                modal is CbModal.ConfirmEnd || modal is CbModal.LeaveConfirm || modal is CbModal.EndVote ||
+                modal is CbModal.ExtensionVote || modal is CbModal.Vote || modal is CbModal.Seat,
         ) {
             if (modal != null) {
                 CityBazaarModalContent(
@@ -261,7 +266,6 @@ fun CityBazaarMatchContent(
             elapsed = state.elapsed,
             onSettings = { send(CityBazaarMatchIntent.OpenSettings) },
             onExit = { send(CityBazaarMatchIntent.ExitClicked) },
-            logo = { CityBazaarArtwork(modifier = it) },
             // The view to switch to.
             switchLabel = if (state.threeD) CityBazaarStrings.cbView2d else CityBazaarStrings.cbView3d,
             onSwitch = { send(CityBazaarMatchIntent.ToggleView) },

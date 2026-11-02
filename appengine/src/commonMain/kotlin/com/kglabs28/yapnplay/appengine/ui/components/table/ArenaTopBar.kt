@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import com.kglabs28.yapnplay.appengine.ui.placeholders.HomeLogoArtwork
 import com.kglabs28.yapnplay.appengine.ui.components.common.StableDigitsText
 import androidx.compose.ui.text.style.TextAlign
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
@@ -9,16 +13,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
@@ -27,7 +28,6 @@ import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,7 +47,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /**
  * The card-table top bar (design), every element a glass pill:
- *  - the game's logo, larger than the bar, then the title pill: the
+ *  - the app's logo, larger than the bar, then the title pill: the
  *    game's name and the room under it, stretching over the free width;
  *  - the spectator pill, only while someone watches (room matches), as
  *    tall as the title pill and only as wide as its faces: who is watching
@@ -70,8 +70,6 @@ fun ArenaTopBar(
     onSettings: () -> Unit,
     onExit: () -> Unit,
     modifier: Modifier = Modifier,
-    /** The game's logo in the title pill's circle; null shows a crown. */
-    logo: (@Composable (Modifier) -> Unit)? = null,
     /** A short switch before settings ("3D" / "2D"); null hides it. */
     switchLabel: String? = null,
     onSwitch: () -> Unit = {},
@@ -79,7 +77,10 @@ fun ArenaTopBar(
     onHistory: (() -> Unit)? = null,
     /** Mutes or unmutes a spectator (by user id) for the user only, from a long press on them; null: no long press. */
     onToggleHearSpectator: ((String) -> Unit)? = null,
+    /** Told how wide the right-hand group is (the clock pill to the exit button), e.g. to size the ad under it. */
+    onTrailingWidth: ((Dp) -> Unit)? = null,
 ) {
+    val density = LocalDensity.current
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
@@ -90,12 +91,12 @@ fun ArenaTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(if (logo != null) dimens.arenaLogoSize else dimens.arenaBarHeight),
+            .height(dimens.arenaLogoSize),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
     ) {
-        // The game's logo stands on its own, bigger than the bar.
-        logo?.invoke(Modifier.size(dimens.arenaLogoSize).clip(RoundedCornerShape(dimens.arenaLogoSize * LOGO_RADIUS)))
+        // The app's logo stands on its own, bigger than the bar (the same on every game's table).
+        HomeLogoArtwork(modifier = Modifier.size(dimens.arenaLogoSize).clip(RoundedCornerShape(dimens.arenaLogoSize * LOGO_RADIUS)))
         // Title: name, room.
         Row(
             modifier = Modifier
@@ -105,21 +106,10 @@ fun ArenaTopBar(
                 .clip(pill)
                 .background(Brush.verticalGradient(listOf(colors.ArenaTitleTop, colors.ArenaTitleBottom)))
                 .border(dimens.borderThin, colors.ArenaTitleRim.copy(alpha = RIM_ALPHA), pill)
-                .padding(start = if (logo != null) Spacing.Lg else Spacing.Xxs, end = Spacing.Lg),
+                .padding(start = Spacing.Lg, end = Spacing.Lg),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
         ) {
-            if (logo == null) {
-                Box(
-                    modifier = Modifier
-                        .size(dimens.arenaBarHeight - Spacing.Xs)
-                        .clip(CircleShape)
-                        .background(colors.Background.copy(alpha = CROWN_BACK_ALPHA)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    AppIcon(imageVector = Icons.Rounded.WorkspacePremium, tint = colors.ArenaCrown, size = dimens.iconMedium)
-                }
-            }
             // The wide bar reads in one line: the game's name, big and bold, at the start; the mode and round
             // as one line at the end. In a room match the pill is shorter: both shrink to fit rather than being cut.
             ShrinkText(
@@ -167,34 +157,41 @@ fun ArenaTopBar(
             }
         }
 
-        // The match clock.
+        // The right-hand group (clock to exit), measured so a line under the bar can match its width.
         Row(
-            modifier = Modifier
-                .height(dimens.arenaBarHeight)
-                .arenaGlass(pill)
-                .padding(horizontal = Spacing.Md),
+            modifier = Modifier.onSizeChanged { size -> onTrailingWidth?.let { report -> with(density) { report(size.width.toDp()) } } },
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
-            // The connection first: a lag reads as the network's, not the app's.
-            ConnectionBadge()
-            AppIcon(imageVector = Icons.Rounded.Schedule, tint = colors.TextPrimary, size = dimens.iconSmall)
-            StableDigitsText(text = elapsed, style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
-        }
-        switchLabel?.let { label ->
-            Box(
+            // The match clock.
+            Row(
                 modifier = Modifier
-                    .size(dimens.arenaBarHeight)
-                    .arenaGlass(RoundedCornerShape(dimens.arenaBarHeight * SQUARE_RADIUS))
-                    .clickable(role = Role.Button, onClick = onSwitch),
-                contentAlignment = Alignment.Center,
+                    .height(dimens.arenaBarHeight)
+                    .arenaGlass(pill)
+                    .padding(horizontal = Spacing.Md),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
             ) {
-                BasicText(text = label, style = typography.label.copy(color = colors.Cyan, fontWeight = FontWeight.Black), maxLines = 1)
+                // The connection first: a lag reads as the network's, not the app's.
+                ConnectionBadge()
+                AppIcon(imageVector = Icons.Rounded.Schedule, tint = colors.TextPrimary, size = dimens.iconSmall)
+                StableDigitsText(text = elapsed, style = typography.title.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
             }
+            switchLabel?.let { label ->
+                Box(
+                    modifier = Modifier
+                        .size(dimens.arenaBarHeight)
+                        .arenaGlass(RoundedCornerShape(dimens.arenaBarHeight * SQUARE_RADIUS))
+                        .clickable(role = Role.Button, onClick = onSwitch),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    BasicText(text = label, style = typography.label.copy(color = colors.Cyan, fontWeight = FontWeight.Black), maxLines = 1)
+                }
+            }
+            onHistory?.let { ArenaSquareButton(icon = Icons.Rounded.History, description = TableStrings.tableHistory, tint = colors.Cyan, onClick = it) }
+            ArenaSquareButton(icon = Icons.Rounded.Settings, description = LudoStrings.ludoSettings, tint = colors.Cyan, onClick = onSettings)
+            ArenaSquareButton(icon = Icons.AutoMirrored.Rounded.Logout, description = LudoStrings.ludoExit, tint = colors.Error, rim = colors.Error, onClick = onExit)
         }
-        onHistory?.let { ArenaSquareButton(icon = Icons.Rounded.History, description = TableStrings.tableHistory, tint = colors.Cyan, onClick = it) }
-        ArenaSquareButton(icon = Icons.Rounded.Settings, description = LudoStrings.ludoSettings, tint = colors.Cyan, onClick = onSettings)
-        ArenaSquareButton(icon = Icons.AutoMirrored.Rounded.Logout, description = LudoStrings.ludoExit, tint = colors.Error, rim = colors.Error, onClick = onExit)
     }
 }
 
@@ -238,7 +235,6 @@ fun Modifier.arenaGlass(
 private const val AUDIENCE_MAX = 4f
 private const val SQUARE_RADIUS = 0.28f
 private const val RIM_ALPHA = 0.7f
-private const val CROWN_BACK_ALPHA = 0.55f
 private const val LOGO_RADIUS = 0.24f
 /** The bar's game name and its mode / round line, a size up from their styles. */
 private const val TITLE_GROW = 1.25f

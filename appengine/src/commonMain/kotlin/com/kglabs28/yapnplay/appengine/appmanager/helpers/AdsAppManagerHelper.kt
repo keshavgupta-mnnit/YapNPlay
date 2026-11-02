@@ -14,4 +14,12 @@ class AdsAppManagerHelper(private val appManager: AppManager) {
     /** The ad pill over the game's top bar and under the connecting card (only while ads are on). */
     fun isNativeEnabled(): Boolean = isEnabled() && appManager.get(AppManagerKeys.Ads.NATIVE_ENABLED)
     fun nativeUnitId(): String = appManager.get(AppManagerKeys.Ads.NATIVE_UNIT_ID)
+    /** How long an all-game ad pill keeps one ad before the next (never under [MIN_REFRESH_MS]). */
+    fun nativeRefreshMs(): Long = (appManager.get(AppManagerKeys.Ads.NATIVE_REFRESH_SECONDS) * MILLIS_PER_SECOND).coerceAtLeast(MIN_REFRESH_MS)
+
+    private companion object {
+        const val MILLIS_PER_SECOND = 1_000L
+        /** A mistyped 0 or 1 never turns into an ad request every frame. */
+        const val MIN_REFRESH_MS = 10_000L
+    }
 }

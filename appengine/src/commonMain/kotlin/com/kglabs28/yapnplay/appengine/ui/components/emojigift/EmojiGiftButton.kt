@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.Dp
 import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
-/** The round smiley on another player's seat, beside their speaker: opens the emoji picker for them. */
+/** The small round smiley worn on another player's avatar (like an online dot): opens the emoji picker for them. */
 @Composable
 fun EmojiGiftButton(
     description: String,
@@ -46,4 +46,4 @@ fun EmojiGiftButton(
 }
 
 private const val OPEN_FILL_ALPHA = 0.25f
-private const val ICON_SHARE = 0.68f
+private const val ICON_SHARE = 0.85f

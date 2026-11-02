@@ -133,6 +133,9 @@ fun RoyalLudoMatchScreen(
             } else {
                 { send(RoyalLudoMatchIntent.DismissModal) }
             },
+            // Leaving, ending the game, a vote or a seat decision: an ad under it.
+            showAd = modal is LudoMatchModal.ConfirmEnd || modal is LudoMatchModal.LeaveConfirm || modal is LudoMatchModal.EndVote ||
+                modal is LudoMatchModal.Vote || modal is LudoMatchModal.Seat,
         ) {
             if (modal != null) {
                 LudoMatchModalContent(
@@ -185,7 +188,6 @@ fun RoyalLudoTable(
             elapsed = state.elapsed,
             onSettings = { send(RoyalLudoMatchIntent.OpenSettings) },
             onExit = { send(RoyalLudoMatchIntent.ExitClicked) },
-            logo = { RoyalLudoArtwork(modifier = it) },
             onToggleHearSpectator = { send(RoyalLudoMatchIntent.ToggleHearSpectator(it)) },
         )
         BoxWithConstraints(
@@ -246,7 +248,7 @@ fun RoyalLudoTable(
                 )
             }
             // The ad pill in the bottom-left corner, clear of the board, the cards and Roll Dice.
-            AdPill(modifier = Modifier.align(Alignment.BottomStart), reserveSpace = true)
+            AdPill(modifier = Modifier.align(Alignment.BottomStart), reserveSpace = true, refresh = true)
             if (state.spectating) {
                 TableSpectatorVoiceButtons(
                     micOn = state.micOn,

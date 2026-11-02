@@ -274,8 +274,8 @@ class YapNPlayDimens {
     val arenaDiceIcon: Dp get() = 44.dp.scaled()
     /** Kept free under the Ludo board, so the user's card and its switches fit by the bottom base. */
     val ludoBoardBottomStrip: Dp get() = 0.dp
-    /** The game's logo beside the top bar (larger than the bar). */
-    val arenaLogoSize: Dp get() = 58.dp.scaled()
+    /** The app's logo beside the game's top bar (larger than the bar). */
+    val arenaLogoSize: Dp get() = 64.dp.scaled()
     val cbRollBadge: Dp get() = 22.dp.scaled()
     /** Pods get compact (tighter padding, smaller text) when each has less height than this. */
     val cbCardCompactBelow: Dp get() = 80.dp.scaled()
@@ -425,9 +425,8 @@ class YapNPlayDimens {
     val profileListMaxHeight: Dp get() = 190.dp.scaled()
     // Emoji gifts at the table.
     /** One emoji's tile in the picker (art over its price). */
-    val emojiGiftTile: Dp get() = 54.dp.scaled()
-    val emojiGiftTileArt: Dp get() = 32.dp.scaled()
-    val emojiGiftCoin: Dp get() = 12.dp.scaled()
+    /** The largest a tile gets; on smaller screens it follows the window's height (EmojiGiftSizing). */
+    val emojiGiftTile: Dp get() = 52.dp.scaled()
     /** The gap between the picker and the seat it opened from. */
     val emojiGiftPickerGap: Dp get() = 6.dp.scaled()
     /** An emoji in flight, at the start of its arc (it grows on the way). */
@@ -439,6 +438,8 @@ class YapNPlayDimens {
     val adPillHeight: Dp get() = 34.dp.scaled()
     val adPillIcon: Dp get() = 26.dp.scaled()
     val adPillWidth: Dp get() = 320.dp.scaled()
+    /** A pill narrower than this (a side card) leaves out the advertiser's icon, so the headline stays readable. */
+    val adPillCompactBelow: Dp get() = 260.dp.scaled()
     /** The pill's round ends, badge and button corners, and the gaps inside it. */
     val adPillInset: Dp get() = 6.dp.scaled()
 }

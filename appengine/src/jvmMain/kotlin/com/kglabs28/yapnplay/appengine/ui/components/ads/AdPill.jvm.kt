@@ -5,4 +5,4 @@ import androidx.compose.ui.Modifier
 
 /** Desktop has no ads. */
 @Composable
-actual fun AdPill(modifier: Modifier, reserveSpace: Boolean) = Unit
+actual fun AdPill(modifier: Modifier, reserveSpace: Boolean, refresh: Boolean) = Unit

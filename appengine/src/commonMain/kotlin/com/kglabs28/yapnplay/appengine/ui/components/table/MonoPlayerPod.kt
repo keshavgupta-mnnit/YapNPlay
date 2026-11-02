@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.layout.BoxScope
+import com.kglabs28.yapnplay.appengine.ui.components.emojigift.emojiGiftAvatarTap
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
@@ -216,8 +218,9 @@ internal fun MonoSeatLabel(card: MonoPlayerPodUi, avatar: Dp) {
  * behind it, and while [talkingMuted] (the user talking with their mic off) a grey one. Shared by MONO, Royal Ludo and City Royale.
  *
  * At a table with emoji gifts ([LocalEmojiGiftTable]) another player's
- * [seat] also gets the emoji button after [trailing] (while the user has a
- * seat to send from), and an emoji sent to this seat covers the avatar for a while.
+ * [seat] wears a small smiley on the avatar's lower edge (like an online
+ * dot), and the smiley or the avatar opens the emoji picker (while the user
+ * has a seat to send from); an emoji sent to this seat covers the avatar for a while.
  */
 @Composable
 fun ArenaSeatHeader(
@@ -242,6 +245,8 @@ fun ArenaSeatHeader(
 ) {
     val gifts = LocalEmojiGiftTable.current
     if (gifts != null && seat != null) DisposableEffect(gifts, seat) { onDispose { gifts.anchors.forget(seat) } }
+    // Another player, and the user has a seat to send from: the smiley on the avatar, and a tap on the avatar too.
+    val canGift = gifts != null && seat != null && !isMe && gifts.anchors.mySeat != null
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
@@ -299,19 +304,38 @@ fun ArenaSeatHeader(
                 avatarId = avatarId,
                 size = avatar,
                 landed = seat?.let { gifts?.ui?.value?.landed?.get(it) },
-                modifier = Modifier.emojiGiftAnchor(gifts, seat, isMe),
+                modifier = Modifier.emojiGiftAnchor(gifts, seat, isMe).emojiGiftAvatarTap(gifts, seat, canGift),
+                badge = if (canGift && gifts != null && seat != null) {
+                    {
+                        EmojiGiftSeatButton(
+                            table = gifts,
+                            seat = seat,
+                            name = name,
+                            size = avatar * EMOJI_BADGE_SHARE,
+                            modifier = Modifier.align(Alignment.BottomEnd).offset(x = avatar * EMOJI_BADGE_OUT, y = avatar * EMOJI_BADGE_OUT),
+                        )
+                    }
+                } else {
+                    null
+                },
             )
         }
         trailing?.invoke(this)
-        if (gifts != null && seat != null && !isMe && gifts.anchors.mySeat != null) {
-            EmojiGiftSeatButton(table = gifts, seat = seat, name = name, size = seatButtonSize(avatar))
-        }
     }
 }
 
 /** The round avatar in the player's colour, with their level in a badge under it; an emoji that [landed] here covers the face. */
 @Composable
-private fun ArenaSeatAvatar(tint: Color, level: String, avatarId: String, size: Dp, landed: EmojiGiftLandingUi?, modifier: Modifier = Modifier) {
+private fun ArenaSeatAvatar(
+    tint: Color,
+    level: String,
+    avatarId: String,
+    size: Dp,
+    landed: EmojiGiftLandingUi?,
+    modifier: Modifier = Modifier,
+    /** Worn on the avatar (the emoji smiley at its lower right); null: none. */
+    badge: (@Composable BoxScope.() -> Unit)? = null,
+) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     Box(modifier = modifier.size(size), contentAlignment = Alignment.BottomCenter) {
@@ -347,6 +371,7 @@ private fun ArenaSeatAvatar(tint: Color, level: String, avatarId: String, size: 
                     .padding(horizontal = Spacing.Xxs),
             )
         }
+        badge?.invoke(this)
     }
 }
 
@@ -540,3 +565,6 @@ private const val ELIMINATED_ALPHA = 0.4f
 private const val PULSE_MIN = 0.45f
 private const val PULSE_MS = 700
 
+/** The emoji smiley on another player's avatar, against the avatar, and how far it sits out past its edge. */
+private const val EMOJI_BADGE_SHARE = 0.4f
+private const val EMOJI_BADGE_OUT = 0.06f

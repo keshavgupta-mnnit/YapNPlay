@@ -73,8 +73,8 @@ fun ConnectionGate(
                     body = if (status == ConnectionStatus.OFFLINE) Strings.connectionOfflineBody else Strings.connectionConnectingBody,
                     onRetry = realtime::retryNow.takeIf { status == ConnectionStatus.OFFLINE },
                 )
-                // An ad while the app connects (nothing while ads are off or none arrived).
-                AdPill()
+                // An ad while the app connects; its room is kept from the start, so the card never jumps when it arrives.
+                AdPill(reserveSpace = true)
             }
         } else {
             content()

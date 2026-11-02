@@ -12,20 +12,22 @@ import com.kglabs28.yapnplay.appengine.core.common.AppLog
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 
 /**
- * Loads one native ad for the ad pill from [unitId]; [onLoaded] gets it
- * (the caller destroys it when done). No fill or no network just logs:
- * the pill stays empty. [cancel] drops a load still on its way.
+ * Loads one native ad for the ad pill from [unitId]: [onLoaded] gets it,
+ * [onFailed] says it didn't come. No fill or no network only logs; other
+ * failures (setup mistakes) are reported.
  */
-class NativeAdLoader(private val context: Context, private val unitId: String, private val onLoaded: (NativeAd) -> Unit) {
-
-    private var cancelled = false
-
+class NativeAdLoader(
+    private val context: Context,
+    private val unitId: String,
+    private val onLoaded: (NativeAd) -> Unit,
+    private val onFailed: () -> Unit,
+) {
     fun load() {
         AppLog.d(TAG, "native: load started (unit=$unitId)")
         val loader = AdLoader.Builder(context, unitId)
             .forNativeAd { ad ->
-                // Arrived after the pill left the screen: nobody will show it.
-                if (cancelled) ad.destroy() else onLoaded(ad).also { AppLog.d(TAG, "native: ad loaded") }
+                AppLog.d(TAG, "native: ad loaded")
+                onLoaded(ad)
             }
             .withAdListener(object : AdListener() {
                 override fun onAdFailedToLoad(error: LoadAdError) {
@@ -33,15 +35,12 @@ class NativeAdLoader(private val context: Context, private val unitId: String, p
                     if (error.code != AdRequest.ERROR_CODE_NETWORK_ERROR && error.code != AdRequest.ERROR_CODE_NO_FILL) {
                         CrashReporter.record(IllegalStateException(error.message), "NativeAdLoader.load:" + error.code)
                     }
+                    onFailed()
                 }
             })
             .withNativeAdOptions(NativeAdOptions.Builder().setAdChoicesPlacement(NativeAdOptions.ADCHOICES_TOP_RIGHT).build())
             .build()
         loader.loadAd(AdRequest.Builder().build())
-    }
-
-    fun cancel() {
-        cancelled = true
     }
 }
 

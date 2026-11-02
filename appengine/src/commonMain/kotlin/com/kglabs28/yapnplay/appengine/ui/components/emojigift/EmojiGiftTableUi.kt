@@ -17,7 +17,8 @@ data class EmojiGiftPickerUi(
     val seat: Int,
     /** The user's coins, ready to show. */
     val coins: String,
-    val offers: List<EmojiGiftOfferUi>,
+    /** The emojis in rows of three (9: three by three), in picker order. */
+    val rows: List<List<EmojiGiftOfferUi>>,
     /** Prices still on their way (the first time it opens). */
     val loading: Boolean = false,
     /** A paid emoji is on its way: the tiles wait. */

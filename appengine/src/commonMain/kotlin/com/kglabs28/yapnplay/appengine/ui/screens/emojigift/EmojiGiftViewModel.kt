@@ -63,12 +63,12 @@ class EmojiGiftViewModel(
     }
 
     private suspend fun open(seat: Int) {
-        setPicker { EmojiGiftPickerUi(seat, TextUtils.groupedThousands(coins), offerUis(), loading = true) }
+        setPicker { EmojiGiftPickerUi(seat, TextUtils.groupedThousands(coins), offerRows(), loading = true) }
         when (val result = getMenu()) {
             is AppResult.Success -> {
                 offers = result.data.offers
                 coins = result.data.coins
-                setPicker { it?.copy(coins = TextUtils.groupedThousands(coins), offers = offerUis(), loading = false) }
+                setPicker { it?.copy(coins = TextUtils.groupedThousands(coins), rows = offerRows(), loading = false) }
             }
             is AppResult.Failure -> setPicker { it?.copy(loading = false, message = if (offers.isEmpty()) TableStrings.emojiGiftLoadFailed else null) }
         }
@@ -110,9 +110,14 @@ class EmojiGiftViewModel(
         setState { copy(table = table.copy(landed = if (table.landed[flight.toSeat]?.id == id) table.landed - flight.toSeat else table.landed)) }
     }
 
-    private fun offerUis(): List<EmojiGiftOfferUi> =
-        offers.map { EmojiGiftOfferUi(it.id, TextUtils.groupedThousands(it.coins), affordable = it.coins <= coins) }
+    /** The emojis in rows of [PICKER_COLUMNS] (9: three by three). */
+    private fun offerRows(): List<List<EmojiGiftOfferUi>> =
+        offers.map { EmojiGiftOfferUi(it.id, TextUtils.groupedThousands(it.coins), affordable = it.coins <= coins) }.chunked(PICKER_COLUMNS)
 
     private fun setPicker(transform: (EmojiGiftPickerUi?) -> EmojiGiftPickerUi?) =
         setState { copy(table = table.copy(picker = transform(table.picker))) }
+
+    private companion object {
+        const val PICKER_COLUMNS = 3
+    }
 }

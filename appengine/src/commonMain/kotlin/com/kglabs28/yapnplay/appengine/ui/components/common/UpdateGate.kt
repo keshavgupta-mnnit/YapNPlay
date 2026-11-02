@@ -106,18 +106,17 @@ fun UpdateGate(
     }
 }
 
-/** "New version available" with Update (to Google Play) and a close cross, in a glass pill. */
+/** "New version available" with Update (to Google Play) and a close cross, in a solid dark glass pill (easy to spot over any screen). */
 @Composable
 private fun UpdateBar(message: String, onUpdate: () -> Unit, onClose: () -> Unit) {
     val colors = YapNPlayTheme.colors
     Row(
         modifier = Modifier
-            .glassPill(glowColor = colors.Cyan, surface = colors.RoomsPanel)
+            .glassPill(glowColor = colors.Cyan, surface = colors.RoomsPanel, backdrop = colors.Background)
             .padding(start = Spacing.Md, end = Spacing.Xs, top = Spacing.Xs, bottom = Spacing.Xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
     ) {
-        AppIcon(imageVector = Icons.Rounded.SystemUpdate, tint = colors.Cyan, size = YapNPlayTheme.dimens.iconSmall)
         BasicText(text = message, style = YapNPlayTheme.typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
         GlassPillButton(text = Strings.updateNow, onClick = onUpdate, leadingIcon = Icons.Rounded.SystemUpdate)
         GlassIconButton(imageVector = Icons.Rounded.Close, contentDescription = Strings.updateLater, onClick = onClose, size = YapNPlayTheme.dimens.smallButtonHeight)

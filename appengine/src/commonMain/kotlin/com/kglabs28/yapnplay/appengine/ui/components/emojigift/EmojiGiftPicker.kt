@@ -1,7 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.emojigift
 
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
+import androidx.compose.ui.unit.Dp
+import com.kglabs28.yapnplay.appengine.ui.components.ads.AdPill
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,64 +37,67 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlowSpinner
 
 /**
- * The emoji picker (design): "Send an emoji", the user's coins and a close
- * cross, then the emojis four to a row, each with its price. A tap buys
+ * The emoji picker (design): "Send an emoji" over the user's coins, a
+ * white close button, then the emojis three by three, each with its price.
+ * The grid's width is the picker's: no empty room at its sides. A tap buys
  * that one for the seat it opened on; a note under the grid says when it
- * couldn't go (short of coins, no connection).
+ * couldn't go (short of coins, no connection). An ad, as wide as the grid, at the bottom.
+ * [tile] is each emoji's size (from the screen: EmojiGiftSizing), so the picker never covers the table.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EmojiGiftPicker(
     picker: EmojiGiftPickerUi,
     onPick: (emojiId: String) -> Unit,
     onClose: () -> Unit,
+    tile: Dp,
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
     val shape = RoundedCornerShape(dimens.cardRadius)
-    val gridWidth = dimens.emojiGiftTile * COLUMNS + Spacing.Xs * (COLUMNS - 1)
+    val columns = picker.rows.maxOfOrNull { it.size } ?: DEFAULT_COLUMNS
+    val gridWidth = EmojiGiftSizing.width(tile, columns, Spacing.Xs)
     Column(
         modifier = modifier
             .shadow(elevation = dimens.promptGlow, shape = shape, ambientColor = colors.ArenaDrawRim, spotColor = colors.ArenaDrawRim)
             .clip(shape)
             .background(Brush.verticalGradient(listOf(colors.ArenaDrawFillBottom, colors.ArenaGlassBottom)))
             .border(dimens.borderThin, colors.ArenaDrawRim, shape)
-            .padding(Spacing.Sm),
+            .padding(Spacing.Xs),
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
-        Row(modifier = Modifier.width(gridWidth), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-            BasicText(
-                text = TableStrings.emojiGiftTitle,
-                style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold),
-                maxLines = 1,
-                modifier = Modifier.weight(1f),
-            )
-            AppIcon(imageVector = Icons.Rounded.MonetizationOn, tint = colors.Gold, size = dimens.iconSmall)
-            BasicText(text = picker.coins, style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold), maxLines = 1)
+        Row(modifier = Modifier.width(gridWidth), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
+            // The title over the coins, so both fit a narrow grid.
+            Column(modifier = Modifier.weight(1f)) {
+                ShrinkText(text = TableStrings.emojiGiftTitle, style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
+                    AppIcon(imageVector = Icons.Rounded.MonetizationOn, tint = colors.Gold, size = dimens.iconSmall)
+                    BasicText(text = picker.coins, style = typography.micro.copy(color = colors.Gold, fontWeight = FontWeight.Bold), maxLines = 1)
+                }
+            }
+            // Close: a white disc with a dark cross.
             Box(
                 modifier = Modifier
                     .size(dimens.ludoMuteButton)
                     .clip(CircleShape)
+                    .background(colors.TextPrimary)
                     .clickable(role = Role.Button, onClick = onClose)
                     .semantics { contentDescription = TableStrings.emojiGiftClose },
                 contentAlignment = Alignment.Center,
             ) {
-                AppIcon(imageVector = Icons.Rounded.Close, tint = colors.TextPrimary, size = dimens.iconSmall)
+                AppIcon(imageVector = Icons.Rounded.Close, tint = colors.Background, size = dimens.iconSmall)
             }
         }
-        if (picker.loading && picker.offers.isEmpty()) {
+        if (picker.loading && picker.rows.isEmpty()) {
             Box(modifier = Modifier.width(gridWidth), contentAlignment = Alignment.Center) { GlowSpinner() }
         } else {
-            FlowRow(
-                modifier = Modifier.width(gridWidth),
-                maxItemsInEachRow = COLUMNS,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
-                verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
-            ) {
-                picker.offers.forEach { offer ->
-                    EmojiGiftTile(offer = offer, enabled = !picker.sending, onPick = { onPick(offer.emojiId) })
+            picker.rows.forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+                    row.forEach { offer ->
+                        EmojiGiftTile(offer = offer, enabled = !picker.sending, onPick = { onPick(offer.emojiId) }, size = tile)
+                    }
                 }
             }
         }
@@ -104,7 +108,9 @@ fun EmojiGiftPicker(
                 modifier = Modifier.width(gridWidth),
             )
         }
+        AdPill(modifier = Modifier.width(gridWidth), reserveSpace = true)
     }
 }
 
-private const val COLUMNS = 4
+/** The grid's width before the prices arrive (9 emojis, three by three). */
+private const val DEFAULT_COLUMNS = 3

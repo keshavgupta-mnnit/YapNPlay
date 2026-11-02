@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.emojigift
 
+import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,13 +26,13 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /** One emoji in the picker: its art over a coin and its price; faded when the user can't afford it. */
 @Composable
-fun EmojiGiftTile(offer: EmojiGiftOfferUi, enabled: Boolean, onPick: () -> Unit, modifier: Modifier = Modifier) {
+fun EmojiGiftTile(offer: EmojiGiftOfferUi, enabled: Boolean, onPick: () -> Unit, size: Dp, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val shape = RoundedCornerShape(dimens.cardRadius)
     Column(
         modifier = modifier
-            .size(dimens.emojiGiftTile)
+            .size(size)
             .clip(shape)
             .background(Brush.verticalGradient(listOf(colors.ArenaGlassTop, colors.ArenaGlassBottom)))
             .border(dimens.hairline, colors.ArenaGlassRim, shape)
@@ -41,9 +42,9 @@ fun EmojiGiftTile(offer: EmojiGiftOfferUi, enabled: Boolean, onPick: () -> Unit,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        EmojiGiftArt(emojiId = offer.emojiId, size = dimens.emojiGiftTileArt)
+        EmojiGiftArt(emojiId = offer.emojiId, size = size * EmojiGiftSizing.ART_OF_TILE)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
-            AppIcon(imageVector = Icons.Rounded.MonetizationOn, tint = colors.Gold, size = dimens.emojiGiftCoin)
+            AppIcon(imageVector = Icons.Rounded.MonetizationOn, tint = colors.Gold, size = size * EmojiGiftSizing.COIN_OF_TILE)
             BasicText(
                 text = offer.price,
                 style = YapNPlayTheme.typography.micro.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold),

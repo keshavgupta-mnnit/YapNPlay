@@ -11,7 +11,7 @@ material = "1.14.0"
 kotlin = "2.2.21"
 kotlinxSerialization = "1.7.3"
 kotlinxCoroutines = "1.9.0"
-kotlinxDatetime = "0.6.1"
+kotlinxDatetime = "0.7.1-0.6.x-compat"
 junitJupiter = "5.11.2"
 
 # Phase 7: Android app (all stable releases)
@@ -61,6 +61,8 @@ lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecyc
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+# Lottie player (the animated emoji gifts). 2.0.2 is the newest built for Kotlin 2.2 / Compose 1.10.
+compottie = { module = "io.github.alexzhirkevich:compottie", version = "2.0.2" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }

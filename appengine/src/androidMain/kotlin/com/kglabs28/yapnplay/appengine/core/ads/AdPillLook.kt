@@ -15,4 +15,8 @@ data class AdPillLook(
     val rimWidth: Int,
     val textSize: Float,
     val smallTextSize: Float,
+    /** Narrower than this (px), the advertiser's icon is left out so the headline stays readable. */
+    val compactBelow: Int,
+    /** The pill's design width (px): at it every part has its full size; narrower, they shrink together. */
+    val fullWidth: Int,
 )

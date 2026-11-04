@@ -225,14 +225,14 @@ private fun DoodleKingTable(state: DoodleKingMatchState, send: (DoodleKingMatchI
     // The hint's letters go with what's typed.
     val submit = { if (guess.isNotBlank()) send(DoodleKingMatchIntent.SendGuess(DoodleGuessSlots.guess(state.hint, guess))) }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        // The app's keys cover the bottom: the strip fits above them, so nothing needs lifting.
-        val room = if (typing && appKeys) maxHeight - dimens.appKeyboardCompactHeight - dimens.appKeyboardGap else maxHeight
+        // The app's keys cover the bottom: the strip fits right above them (a hair of space only), so nothing needs lifting.
+        val room = if (typing && appKeys) maxHeight - dimens.appKeyboardCompactHeight else maxHeight
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(room)
                 .imePadding()
-                .padding(horizontal = Spacing.Md, vertical = Spacing.Xs)
+                .padding(start = Spacing.Md, end = Spacing.Md, top = Spacing.Xs, bottom = if (typing && appKeys) Spacing.Xxs else Spacing.Xs)
                 .revealWhen(state.loaded),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
         ) {
@@ -414,7 +414,7 @@ private fun MicPermissionCard(send: (DoodleKingMatchIntent) -> Unit) {
 }
 
 /** While typing, the live drawing takes this much of the strip for each part the guesses take. */
-private const val STRIP_BOARD_WEIGHT = 1.6f
+private const val STRIP_BOARD_WEIGHT = 2.3f
 
 /** The guesses take a little more of the right column than the leaderboard. */
 private const val FEED_WEIGHT = 1.3f

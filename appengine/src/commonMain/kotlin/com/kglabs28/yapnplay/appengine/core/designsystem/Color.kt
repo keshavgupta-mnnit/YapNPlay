@@ -33,6 +33,8 @@ object YapNPlayColors {
     /** Glassy call-to-action buttons (the selected tab's finish, other colours): lighter green, and dark red. */
     val CtaGlassGreen = Color(0xFF34C9A0)
     val CtaGlassGreenRim = Color(0xFFA8F7DC)
+    val CtaGlassPurple = Color(0xFFA43FE6)
+    val CtaGlassPurpleRim = Color(0xFFE2A9FF)
     val CtaGlassRed = Color(0xB3701428)
     val CtaGlassRedRim = Color(0xFFFF8FA6)
     /** The Create Room panel's text: dark, on its frosted white glass. */

@@ -459,8 +459,8 @@ class YapNPlayDimens {
     /** The board's glowing cyan rim. */
     val doodleCanvasRim: Dp get() = 3.dp.scaled()
     /** The board's one thin inner border, and the small space between it and the rim (the paper keeps the room). */
-    val doodleCanvasInnerRim: Dp get() = 1.dp.scaled()
-    val doodleCanvasGap: Dp get() = 2.dp.scaled()
+    val doodleCanvasInnerRim: Dp get() = 2.dp.scaled()
+    val doodleCanvasGap: Dp get() = 5.dp.scaled()
     val doodleStatusHeight: Dp get() = 22.dp.scaled()
     val doodleRankRowHeight: Dp get() = 18.dp.scaled()
     val doodlePickWidth: Dp get() = 420.dp.scaled()

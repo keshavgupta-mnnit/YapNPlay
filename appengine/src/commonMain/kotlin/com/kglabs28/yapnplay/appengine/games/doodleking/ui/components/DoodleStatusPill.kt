@@ -25,9 +25,9 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.table.arenaGlass
 
 /**
- * Under the canvas, one pill the board's width: the drawer's name in their
- * seat's colour, what they're doing in white (a brush while they draw), and
- * at the far end the clock and the time left (red in its last seconds).
+ * Under the canvas, one pill, centred: the drawer's name in their seat's
+ * colour, what they're doing in white (a brush while they draw), then the
+ * clock and the time left (red in its last seconds).
  */
 @Composable
 fun DoodleStatusPill(status: DoodleStatusUi, timeLeft: String, urgent: Boolean, seatTint: (Int) -> Color, modifier: Modifier = Modifier) {
@@ -52,7 +52,7 @@ fun DoodleStatusPill(status: DoodleStatusUi, timeLeft: String, urgent: Boolean, 
         )
         if (status.brush) AppIcon(imageVector = Icons.Rounded.Brush, tint = colors.TextPrimary, size = icon)
         if (timeLeft.isNotEmpty()) {
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.width(Spacing.Md))
             AppIcon(imageVector = Icons.Rounded.Schedule, tint = if (urgent) colors.Error else colors.TextPrimary, size = icon)
             BasicText(text = timeLeft, style = style.copy(color = if (urgent) colors.Error else colors.TextPrimary))
         }

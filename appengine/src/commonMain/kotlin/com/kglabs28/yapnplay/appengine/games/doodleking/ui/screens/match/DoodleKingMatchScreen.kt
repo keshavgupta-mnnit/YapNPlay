@@ -267,7 +267,7 @@ private fun DoodleKingTable(state: DoodleKingMatchState, send: (DoodleKingMatchI
                             keyboardOwner = owner,
                             guessTone = feedback?.takeIf { it.id == toneId }?.kind,
                             send = send,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxSize(),
                         )
                     },
                     modifier = Modifier.weight(1f),
@@ -337,7 +337,7 @@ private fun TableMiddle(
                 DoodleCanvasView(board = state.board, canDraw = state.barMode == DoodleBarMode.DRAW, modifier = Modifier.fillMaxSize())
                 state.reveal?.let { DoodleRevealCard(reveal = it, seatTint = seatTint) }
             }
-            DoodleStatusPill(status = state.status, timeLeft = state.timeLeft, urgent = state.timeUrgent, seatTint = seatTint, modifier = Modifier.fillMaxWidth())
+            DoodleStatusPill(status = state.status, timeLeft = state.timeLeft, urgent = state.timeUrgent, seatTint = seatTint)
             Box(modifier = Modifier.fillMaxWidth().height(dimens.doodleBarHeight), contentAlignment = Alignment.TopCenter) {
                 if (state.spectating) {
                     TableSpectatorVoiceButtons(

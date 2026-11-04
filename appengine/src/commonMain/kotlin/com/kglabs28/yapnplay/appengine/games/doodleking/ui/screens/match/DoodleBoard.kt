@@ -28,6 +28,8 @@ class DoodleBoard {
     private val outgoing = mutableListOf<DoodleInkOp>()
     /** Lines taken back with undo, newest last: redo puts them back. A new line forgets them. */
     private val undone = mutableListOf<DoodleLine>()
+    /** The lines the last Clear took off, oldest first: Undo on an empty board puts them back. */
+    private val cleared = mutableListOf<DoodleLine>()
     /** The points of the line being drawn not yet queued to send. */
     private val unsent = mutableListOf<Int>()
     private var nextId = 1
@@ -48,6 +50,7 @@ class DoodleBoard {
         outgoing.clear()
         unsent.clear()
         undone.clear()
+        cleared.clear()
         nextId = 1
         drawing = false
         revision++
@@ -85,8 +88,12 @@ class DoodleBoard {
         drawing = false
     }
 
+    /** The last line is taken back; on an empty board, what the last Clear took off comes back. */
     fun undo() {
-        if (lines.isEmpty()) return
+        if (lines.isEmpty()) {
+            restoreCleared()
+            return
+        }
         flushUnsent()
         undone += lines.removeAt(lines.lastIndex)
         drawing = false
@@ -105,10 +112,28 @@ class DoodleBoard {
         revision++
     }
 
+    /** The lines a Clear took off, drawn again (and sent again as new lines, so everyone sees them back). */
+    private fun restoreCleared() {
+        if (cleared.isEmpty()) return
+        flushUnsent()
+        cleared.forEach { old ->
+            val again = DoodleLine(nextId++, old.colour, old.size, old.eraser).apply { points += old.points }
+            lines += again
+            queue(again, again.points)
+        }
+        cleared.clear()
+        undone.clear()
+        drawing = false
+        revision++
+    }
+
     fun clear() {
         if (lines.isEmpty()) return
         flushUnsent()
         undone.clear()
+        // Kept aside, so Undo can bring them back.
+        cleared.clear()
+        cleared += lines
         lines.clear()
         drawing = false
         outgoing += DoodleInkOp.Clear(drawingId)

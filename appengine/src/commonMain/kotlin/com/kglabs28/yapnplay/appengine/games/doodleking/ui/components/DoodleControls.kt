@@ -1,11 +1,14 @@
 package com.kglabs28.yapnplay.appengine.games.doodleking.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.IosShare
 import androidx.compose.runtime.Composable
@@ -20,6 +23,7 @@ import com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match.DoodleK
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match.DoodleKingMatchState
 import com.kglabs28.yapnplay.appengine.ui.components.common.PillButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
+import com.kglabs28.yapnplay.appengine.ui.components.table.arenaGlass
 
 /**
  * Under the canvas, the user's controls. Drawing: the tools with Pass
@@ -70,8 +74,14 @@ fun DoodleControls(
                 modifier = Modifier.width(dimens.doodlePassWidth),
             )
         }
-        DoodleBarMode.GUESS, DoodleBarMode.GUESSED -> Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+        // One glass card over the whole slot, the box and Enter inside it, each as tall as the card less its padding.
+        DoodleBarMode.GUESS, DoodleBarMode.GUESSED -> BoxWithConstraints(
+            modifier = modifier
+                .arenaGlass(RoundedCornerShape(dimens.ludoGlossRadius))
+                .padding(Spacing.Xs),
+        ) {
+            val innerHeight = maxHeight
+            Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
                 DoodleGuessField(
                     value = guess,
                     current = { guess },
@@ -81,21 +91,22 @@ fun DoodleControls(
                     guessed = state.barMode == DoodleBarMode.GUESSED,
                     owner = keyboardOwner,
                     onSubmit = onSubmitGuess,
-                    modifier = Modifier.weight(1f).height(dimens.doodleInputHeight),
+                    prompt = state.feedback?.message ?: DoodleStrings.dkGuessHint,
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
                 )
+                // Always the purple look (a blank Enter just does nothing); dim only once they got it.
                 PillButton(
                     text = DoodleStrings.dkEnter,
                     onClick = onSubmitGuess,
                     gradient = purple,
                     contentColor = colors.TextPrimary,
-                    enabled = state.barMode == DoodleBarMode.GUESS && guess.isNotBlank(),
-                    height = dimens.doodleInputHeight,
+                    enabled = state.barMode == DoodleBarMode.GUESS,
+                    height = innerHeight,
                     trailingIcon = Icons.Rounded.IosShare,
                     iconSize = dimens.iconSmall,
                     modifier = Modifier.width(dimens.doodleEnterWidth),
                 )
             }
-            DoodleGuessFeedback(state)
         }
         DoodleBarMode.WAIT -> Unit
     }

@@ -19,7 +19,7 @@ object DoodleInk {
     val PAPER = Color(0xFFF7F9FC)
 
     /** The thin line just inside the board's glowing rim. */
-    val INNER_RIM = Color(0xFFC9CED8)
+    val INNER_RIM = Color(0xFF9AA2B1)
 
     /** Line widths (thin, medium, thick) as a share of the canvas width; the eraser is wider. */
     val WIDTHS = listOf(0.006f, 0.013f, 0.026f)

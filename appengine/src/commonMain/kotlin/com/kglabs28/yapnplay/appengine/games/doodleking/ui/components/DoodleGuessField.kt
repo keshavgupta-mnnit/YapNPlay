@@ -1,14 +1,12 @@
 package com.kglabs28.yapnplay.appengine.games.doodleking.ui.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -24,7 +22,6 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 import com.kglabs28.yapnplay.appengine.core.designsystem.glassPill
 import com.kglabs28.yapnplay.appengine.core.ui.DoodleStrings
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match.DoodleGuessResult
-import com.kglabs28.yapnplay.appengine.ui.components.common.LetterSlots
 import com.kglabs28.yapnplay.appengine.ui.components.keyboard.AppKeyboardController
 import com.kglabs28.yapnplay.appengine.ui.components.keyboard.AppKeyboardRequest
 import com.kglabs28.yapnplay.appengine.ui.components.keyboard.LocalAppKeyboard
@@ -32,8 +29,10 @@ import com.kglabs28.yapnplay.appengine.ui.components.profile.ProfileTextField
 import org.koin.compose.koinInject
 
 /**
- * The guess box: the word's letter slots ([pattern]); the hint's letters
- * show in their places and what the user types fills the others, in capitals. Its rim tells the last answer: green right, red wrong or
+ * The guess box: one plain box all turn, the prompt with a keyboard icon (what
+ * is typed, in capitals, once they type; the last answer in its colour just after
+ * a guess). The word's letter slots live under the user's card and on the
+ * keyboard: there the hint's letters show in their places and what's typed fills the others. Its rim tells the last answer: green right, red wrong or
  * very close ([tone]); green and closed for typing once guessed. A tap opens
  * the app's keyboard (short, showing the same slots), which stays open
  * guess after guess. [owner] is the table's, so the keyboard stays open
@@ -52,6 +51,8 @@ fun DoodleGuessField(
     owner: Any,
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The last answer, shown in the empty box in its colour (the table's own words). */
+    prompt: String = DoodleStrings.dkGuessHint,
     keyboardChoice: KeyboardPreference = koinInject(),
 ) {
     val colors = YapNPlayTheme.colors
@@ -81,37 +82,34 @@ fun DoodleGuessField(
         keyboard.isOpenFor(owner) -> colors.GameZoneAccent
         else -> colors.IconMuted
     }
-    Box(
+    // The same plain box all turn (the word's slots are under the user's card and on the keyboard): what's typed,
+    // or the prompt, or the last answer while it's empty, with the keyboard icon at the end.
+    val answer = tone != null && value.isEmpty()
+    Row(
         modifier = modifier
             .glassPill(glowColor = rim, surface = colors.RoomsInput, shape = RoundedCornerShape(YapNPlayTheme.dimens.cbRowRadius))
             .then(if (guessed) Modifier else Modifier.clickable(role = Role.Button) { open(keyboard, owner, pattern, letters, { read() }, change) { submit() } })
             .padding(horizontal = Spacing.Sm),
-        contentAlignment = Alignment.CenterStart,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
-      Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-        // Empty and nothing given yet: the plain prompt; otherwise the word's slots (hint letters in place).
-        val prompt = value.isEmpty() && pattern.none { it != '_' && it.isLetterOrDigit() }
-        if (prompt) {
-            BasicText(
-                text = DoodleStrings.dkGuessHint,
-                style = YapNPlayTheme.typography.label.copy(color = colors.RoomsPlaceholderDigits),
-                maxLines = 1,
-                modifier = Modifier.weight(1f),
-            )
-        } else {
-            LetterSlots(
-                pattern = pattern,
-                typed = value,
-                letterColor = when {
-                    guessed || tone == DoodleGuessResult.RIGHT -> colors.ReadyGreen
-                    tone != null -> colors.Error
-                    else -> colors.TextPrimary
+        BasicText(
+            text = when {
+                value.isNotEmpty() -> value.uppercase()
+                answer -> prompt
+                else -> DoodleStrings.dkGuessHint
+            },
+            style = YapNPlayTheme.typography.label.copy(
+                color = when {
+                    value.isNotEmpty() -> colors.TextPrimary
+                    answer -> rim
+                    else -> colors.RoomsPlaceholderDigits
                 },
-                modifier = Modifier.weight(1f),
-            )
-        }
+            ),
+            maxLines = 1,
+            modifier = Modifier.weight(1f),
+        )
         AppIcon(imageVector = Icons.Rounded.Keyboard, tint = colors.IconMuted, size = YapNPlayTheme.dimens.iconMedium)
-      }
     }
 }
 

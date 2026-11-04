@@ -4,13 +4,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -23,7 +27,7 @@ import com.kglabs28.yapnplay.appengine.games.doodleking.identity.DoodleKingConst
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match.DoodleBoard
 
 /**
- * The paper everyone sees (4:3, the front-facing board). The drawing is
+ * The paper everyone sees (the whole board). The drawing is
  * read while drawing only ([DoodleBoard.revision]), so new strokes redraw
  * the paper and nothing else; each line's path is built once and only the
  * line being drawn is rebuilt ([DoodlePathCache]). With [canDraw] the
@@ -46,19 +50,30 @@ fun DoodleCanvasView(board: DoodleBoard, canDraw: Boolean, modifier: Modifier = 
             )
         }
     }
+    val cyan = YapNPlayTheme.colors.Cyan
+    val inner = RoundedCornerShape((dimens.doodleCanvasRadius - dimens.doodleCanvasGap).coerceAtLeast(dimens.zero))
+    // The same board for the drawer and the guessers: a glowing cyan rim, a little space, one thin inner border, then the paper.
     Box(
         modifier = modifier
+            .shadow(dimens.neonGlow, shape, ambientColor = cyan, spotColor = cyan)
             .clip(shape)
             .background(DoodleInk.PAPER)
-            // The same bordered board for the drawer and the guessers.
-            .border(dimens.doodleCanvasRim, YapNPlayTheme.colors.Cyan, shape)
-            .then(input)
-            .drawBehind {
-                // Read here, while drawing: a new stroke redraws the paper only.
-                board.revision
-                paths.paths(board.strokes, size).forEach { (line, path) -> drawLine(line, path) }
-            },
-    )
+            .border(dimens.doodleCanvasRim, cyan, shape)
+            .padding(dimens.doodleCanvasGap + dimens.doodleCanvasRim),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(inner)
+                .border(dimens.doodleCanvasInnerRim, DoodleInk.INNER_RIM, inner)
+                .then(input)
+                .drawBehind {
+                    // Read here, while drawing: a new stroke redraws the paper only.
+                    board.revision
+                    paths.paths(board.strokes, size).forEach { (line, path) -> drawLine(line, path) }
+                },
+        )
+    }
 }
 
 /** One line: a dot for a single point, else its rounded path. */

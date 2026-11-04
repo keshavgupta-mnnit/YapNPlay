@@ -33,8 +33,8 @@ fun DoodleFeedPanel(rows: List<DoodleFeedRowUi>, seatTint: (Int) -> Color, modif
     LaunchedEffect(rows.size) { if (rows.isNotEmpty()) listState.animateScrollToItem(rows.lastIndex) }
     DoodleSidePanel(
         title = DoodleStrings.dkGuesses,
-        band = listOf(colors.CtaPurpleStart, colors.CtaPurpleEnd),
-        titleColor = colors.TextPrimary,
+        rim = colors.CtaPurpleStart,
+        titleColor = colors.CtaPurpleRim,
         modifier = modifier,
     ) {
         if (rows.isEmpty()) {

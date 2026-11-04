@@ -330,14 +330,14 @@ private fun TableMiddle(
                 )
             }
         }
-        // The status pill and the bar have fixed slots and the board fills all the rest, so its size only
+        // The board starts level with the leaderboard; the status pill and the bar under it have fixed slots and the board fills all the rest, so its size only
         // follows the screen, never what the bar shows (tools, guess box, an answer) or a word coming and going.
         Column(modifier = Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-            DoodleStatusPill(status = state.status, timeLeft = state.timeLeft, urgent = state.timeUrgent, seatTint = seatTint)
             Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                 DoodleCanvasView(board = state.board, canDraw = state.barMode == DoodleBarMode.DRAW, modifier = Modifier.fillMaxSize())
                 state.reveal?.let { DoodleRevealCard(reveal = it, seatTint = seatTint) }
             }
+            DoodleStatusPill(status = state.status, timeLeft = state.timeLeft, urgent = state.timeUrgent, seatTint = seatTint, modifier = Modifier.fillMaxWidth())
             Box(modifier = Modifier.fillMaxWidth().height(dimens.doodleBarHeight), contentAlignment = Alignment.TopCenter) {
                 if (state.spectating) {
                     TableSpectatorVoiceButtons(

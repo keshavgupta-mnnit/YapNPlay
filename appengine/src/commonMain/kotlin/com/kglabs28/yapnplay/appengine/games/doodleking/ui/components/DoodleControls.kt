@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.IosShare
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,7 +90,8 @@ fun DoodleControls(
                     contentColor = colors.TextPrimary,
                     enabled = state.barMode == DoodleBarMode.GUESS && guess.isNotBlank(),
                     height = dimens.doodleInputHeight,
-                    trailingIcon = null,
+                    trailingIcon = Icons.Rounded.IosShare,
+                    iconSize = dimens.iconSmall,
                     modifier = Modifier.width(dimens.doodleEnterWidth),
                 )
             }

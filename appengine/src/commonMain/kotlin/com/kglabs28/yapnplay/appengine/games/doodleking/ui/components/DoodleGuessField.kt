@@ -2,6 +2,12 @@ package com.kglabs28.yapnplay.appengine.games.doodleking.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
+import androidx.compose.material.icons.rounded.Keyboard
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -80,18 +86,32 @@ fun DoodleGuessField(
             .glassPill(glowColor = rim, surface = colors.RoomsInput, shape = RoundedCornerShape(YapNPlayTheme.dimens.cbRowRadius))
             .then(if (guessed) Modifier else Modifier.clickable(role = Role.Button) { open(keyboard, owner, pattern, letters, { read() }, change) { submit() } })
             .padding(horizontal = Spacing.Sm),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.CenterStart,
     ) {
-        LetterSlots(
-            pattern = pattern,
-            typed = value,
-            letterColor = when {
-                guessed || tone == DoodleGuessResult.RIGHT -> colors.ReadyGreen
-                tone != null -> colors.Error
-                else -> colors.TextPrimary
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
+      Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
+        // Empty and nothing given yet: the plain prompt; otherwise the word's slots (hint letters in place).
+        val prompt = value.isEmpty() && pattern.none { it != '_' && it.isLetterOrDigit() }
+        if (prompt) {
+            BasicText(
+                text = DoodleStrings.dkGuessHint,
+                style = YapNPlayTheme.typography.label.copy(color = colors.RoomsPlaceholderDigits),
+                maxLines = 1,
+                modifier = Modifier.weight(1f),
+            )
+        } else {
+            LetterSlots(
+                pattern = pattern,
+                typed = value,
+                letterColor = when {
+                    guessed || tone == DoodleGuessResult.RIGHT -> colors.ReadyGreen
+                    tone != null -> colors.Error
+                    else -> colors.TextPrimary
+                },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        AppIcon(imageVector = Icons.Rounded.Keyboard, tint = colors.IconMuted, size = YapNPlayTheme.dimens.iconMedium)
+      }
     }
 }
 

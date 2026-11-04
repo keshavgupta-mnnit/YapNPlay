@@ -31,7 +31,12 @@ fun DoodleFeedPanel(rows: List<DoodleFeedRowUi>, seatTint: (Int) -> Color, modif
     val style = YapNPlayTheme.typography.caption
     val listState = rememberLazyListState()
     LaunchedEffect(rows.size) { if (rows.isNotEmpty()) listState.animateScrollToItem(rows.lastIndex) }
-    DoodleSidePanel(title = DoodleStrings.dkGuesses, modifier = modifier) {
+    DoodleSidePanel(
+        title = DoodleStrings.dkGuesses,
+        band = listOf(colors.CtaPurpleStart, colors.CtaPurpleEnd),
+        titleColor = colors.TextPrimary,
+        modifier = modifier,
+    ) {
         if (rows.isEmpty()) {
             BasicText(text = DoodleStrings.dkNoGuesses, style = style.copy(color = colors.TextSecondary))
         }

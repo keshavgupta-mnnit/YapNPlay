@@ -20,6 +20,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.seat.EndGameConfirmDialog
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteCard
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import androidx.compose.foundation.layout.Arrangement
+import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleGuessSlots
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -199,18 +200,30 @@ private fun DoodleKingTable(state: DoodleKingMatchState, send: (DoodleKingMatchI
             keyboard.close(owner)
             guess = ""
         } else {
+            // Wrong (or very close): the box starts again, empty but for the hint's letters.
+            guess = ""
+            keyboard.sync(owner, guess)
             keyboard.setError(owner, true)
         }
     }
     // A new turn: an empty box.
     LaunchedEffect(state.board.drawingId) { guess = "" }
+    // A letter given as a hint: what's typed keeps its places, the keyboard shows the new slots.
+    var lastHint by remember { mutableStateOf(state.hint) }
+    LaunchedEffect(state.hint) {
+        if (state.hint == lastHint) return@LaunchedEffect
+        if (guess.length <= DoodleGuessSlots.blanks(lastHint)) guess = DoodleGuessSlots.refit(lastHint, state.hint, guess)
+        lastHint = state.hint
+        keyboard.reshape(owner, slots = state.hint, maxLength = DoodleGuessSlots.blanks(state.hint).coerceAtLeast(1), value = guess)
+    }
     val guessing = state.barMode == DoodleBarMode.GUESS
     // Nothing left to guess (the turn ended, or they got it): the keyboard goes.
     LaunchedEffect(guessing) { if (!guessing) keyboard.close(owner) }
     val appKeys = keyboard.isOpenFor(owner)
     val phoneKeys = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     val typing = guessing && (appKeys || phoneKeys)
-    val submit = { if (guess.isNotBlank()) send(DoodleKingMatchIntent.SendGuess(guess)) }
+    // The hint's letters go with what's typed.
+    val submit = { if (guess.isNotBlank()) send(DoodleKingMatchIntent.SendGuess(DoodleGuessSlots.guess(state.hint, guess))) }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         // The app's keys cover the bottom: the strip fits above them, so nothing needs lifting.
         val room = if (typing && appKeys) maxHeight - dimens.appKeyboardCompactHeight - dimens.appKeyboardGap else maxHeight
@@ -254,6 +267,7 @@ private fun DoodleKingTable(state: DoodleKingMatchState, send: (DoodleKingMatchI
                             keyboardOwner = owner,
                             guessTone = feedback?.takeIf { it.id == toneId }?.kind,
                             send = send,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     },
                     modifier = Modifier.weight(1f),
@@ -274,6 +288,7 @@ private fun TableMiddle(
     send: (DoodleKingMatchIntent) -> Unit,
     seatTint: (Int) -> Color,
     micGranted: () -> Boolean,
+    /** The user's bar under the board, as wide as it. */
     controls: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -315,21 +330,25 @@ private fun TableMiddle(
                 )
             }
         }
+        // The status pill and the bar have fixed slots and the board fills all the rest, so its size only
+        // follows the screen, never what the bar shows (tools, guess box, an answer) or a word coming and going.
         Column(modifier = Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
             DoodleStatusPill(status = state.status, timeLeft = state.timeLeft, urgent = state.timeUrgent, seatTint = seatTint)
             Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                DoodleCanvasView(board = state.board, canDraw = state.barMode == DoodleBarMode.DRAW, modifier = Modifier.fillMaxHeight())
+                DoodleCanvasView(board = state.board, canDraw = state.barMode == DoodleBarMode.DRAW, modifier = Modifier.fillMaxSize())
                 state.reveal?.let { DoodleRevealCard(reveal = it, seatTint = seatTint) }
             }
-            if (state.spectating) {
-                TableSpectatorVoiceButtons(
-                    micOn = state.micOn,
-                    speakerOn = state.speakerOn,
-                    onToggleMic = { send(DoodleKingMatchIntent.ToggleMic(micGranted())) },
-                    onToggleSpeaker = { send(DoodleKingMatchIntent.ToggleSpeaker) },
-                )
-            } else {
-                controls()
+            Box(modifier = Modifier.fillMaxWidth().height(dimens.doodleBarHeight), contentAlignment = Alignment.TopCenter) {
+                if (state.spectating) {
+                    TableSpectatorVoiceButtons(
+                        micOn = state.micOn,
+                        speakerOn = state.speakerOn,
+                        onToggleMic = { send(DoodleKingMatchIntent.ToggleMic(micGranted())) },
+                        onToggleSpeaker = { send(DoodleKingMatchIntent.ToggleSpeaker) },
+                    )
+                } else {
+                    controls()
+                }
             }
         }
         Column(modifier = Modifier.width(dimens.doodleSideWidth).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
@@ -346,8 +365,8 @@ private fun TableMiddle(
 @Composable
 private fun TypingStrip(state: DoodleKingMatchState, seatTint: (Int) -> Color, modifier: Modifier = Modifier) {
     Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-        Column(modifier = Modifier.fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
-            DoodleCanvasView(board = state.board, canDraw = false, modifier = Modifier.weight(1f))
+        Column(modifier = Modifier.weight(STRIP_BOARD_WEIGHT).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
+            DoodleCanvasView(board = state.board, canDraw = false, modifier = Modifier.weight(1f).fillMaxWidth())
             TimeChip(timeLeft = state.timeLeft, urgent = state.timeUrgent)
         }
         Column(modifier = Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
@@ -393,6 +412,9 @@ private fun MicPermissionCard(send: (DoodleKingMatchIntent) -> Unit) {
         },
     )
 }
+
+/** While typing, the live drawing takes this much of the strip for each part the guesses take. */
+private const val STRIP_BOARD_WEIGHT = 1.6f
 
 /** The guesses take a little more of the right column than the leaderboard. */
 private const val FEED_WEIGHT = 1.3f

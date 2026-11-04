@@ -50,9 +50,8 @@ import com.kglabs28.yapnplay.appengine.core.ui.MonoStrings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /**
- * The user's two switches just under their seat's pill (design): a row as
- * wide as the pill (give it the pill's width through [modifier]) with Mic
- * and Auto as two round buttons, a gap between them, centred. On, Mic fills
+ * The user's two switches beside their seat (design): Mic and Auto as two
+ * round buttons, a gap between them ([seatSwitchesRoom] is the room they take). On, Mic fills
  * dark pink and Auto dark blue.
  */
 @Composable
@@ -95,7 +94,16 @@ fun ArenaSeatSwitches(
 /** The Mic / Auto buttons' size under a seat card with an [avatar] that big. */
 fun seatSwitchSize(avatar: Dp): Dp = avatar * SWITCH_OF_AVATAR
 
-/** The size of the switches under the seat card being drawn; null outside one. */
+/**
+ * How much wider the user's seat is drawn for its Mic / Auto switches beside it ([ArenaSeatSwitches]
+ * with its default gap), so the name keeps the same room as on everyone else's seat.
+ */
+fun seatSwitchesRoom(avatar: Dp, showAutoplay: Boolean = true): Dp {
+    val count = if (showAutoplay) 2 else 1
+    return Spacing.Xxxs + seatSwitchSize(avatar) * count + Spacing.Xs * (count - 1)
+}
+
+/** The size of the switches beside the seat card being drawn; null outside one. */
 val LocalSeatSwitchSize = staticCompositionLocalOf<Dp?> { null }
 
 private const val SWITCH_OF_AVATAR = 0.62f

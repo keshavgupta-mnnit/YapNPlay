@@ -461,12 +461,15 @@ class YapNPlayDimens {
     val doodleRankRowHeight: Dp get() = 18.dp.scaled()
     val doodlePickWidth: Dp get() = 420.dp.scaled()
     val doodleWordButtonHeight: Dp get() = 44.dp.scaled()
-    /** The word under the user's card, and the round mic beside it (2–4 dp away). */
-    val doodleWordPanelHeight: Dp get() = 26.dp.scaled()
-    val doodleMicGap: Dp get() = 3.dp.scaled()
+    /** The word's row under the user's card (always kept, so the card never changes height). */
+    val doodleWordPanelHeight: Dp get() = 36.dp.scaled()
+    /** The room under the board for the user's bar (tools / guess box / a watcher's buttons): fixed, so the board never resizes. */
+    val doodleBarHeight: Dp get() = 52.dp.scaled()
     /** The left column: everyone's cards, the user's (with its mic) at the bottom. */
     val doodleLeftWidth: Dp get() = 192.dp.scaled()
     val doodleEnterWidth: Dp get() = 96.dp.scaled()
+    /** Pass beside the drawer's tools: narrow, so every tool shows on a phone. */
+    val doodlePassWidth: Dp get() = 64.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

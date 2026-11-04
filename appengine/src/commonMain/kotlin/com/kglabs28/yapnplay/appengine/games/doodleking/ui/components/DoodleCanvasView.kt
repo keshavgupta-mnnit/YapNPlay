@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -49,7 +48,6 @@ fun DoodleCanvasView(board: DoodleBoard, canDraw: Boolean, modifier: Modifier = 
     }
     Box(
         modifier = modifier
-            .aspectRatio(DoodleKingConstants.CANVAS_ASPECT)
             .clip(shape)
             .background(DoodleInk.PAPER)
             // The same bordered board for the drawer and the guessers.

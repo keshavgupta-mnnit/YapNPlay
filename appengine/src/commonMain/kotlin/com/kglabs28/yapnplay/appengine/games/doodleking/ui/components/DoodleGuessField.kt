@@ -26,8 +26,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.profile.ProfileTextField
 import org.koin.compose.koinInject
 
 /**
- * The guess box: the word's letter slots ([pattern]), filled in capitals as
- * the user types. Its rim tells the last answer: green right, red wrong or
+ * The guess box: the word's letter slots ([pattern]); the hint's letters
+ * show in their places and what the user types fills the others, in capitals. Its rim tells the last answer: green right, red wrong or
  * very close ([tone]); green and closed for typing once guessed. A tap opens
  * the app's keyboard (short, showing the same slots), which stays open
  * guess after guess. [owner] is the table's, so the keyboard stays open
@@ -51,7 +51,8 @@ fun DoodleGuessField(
     val colors = YapNPlayTheme.colors
     val keyboard = LocalAppKeyboard.current
     val system by keyboardChoice.useSystem.collectAsState()
-    val letters = pattern.count { it == '_' || it.isLetterOrDigit() }.coerceAtLeast(1)
+    // The phone's keyboard types the whole word; the app's types only the hidden letters (the hint's stay put).
+    val letters = (if (system) pattern.count { it == '_' || it.isLetterOrDigit() } else DoodleGuessSlots.blanks(pattern)).coerceAtLeast(1)
     val change: (String) -> Unit = { onValueChange(it.filter(Char::isLetterOrDigit).take(letters)) }
     if (system) {
         ProfileTextField(

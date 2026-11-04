@@ -28,9 +28,11 @@ object DoodleKingConstants {
         "Pass, or draw nothing: −50",
     )
 
-    /** Points on the canvas run 0–4095 on both axes; the canvas is 4:3. */
+    /**
+     * Points on the canvas run 0–4095 on both axes, across the whole board: the board fills all the
+     * room the screen has, so a drawing is stretched to the shape of each device's board.
+     */
     const val CANVAS_MAX = 4_095
-    const val CANVAS_ASPECT = 4f / 3f
 
     /** A drawn line goes out at most this often (ms), in one part. */
     const val STROKE_SEND_MS = 60L

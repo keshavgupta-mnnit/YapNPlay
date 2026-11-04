@@ -23,8 +23,8 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
 /**
  * A word as letter slots, in capitals: one underlined box per letter of
  * [pattern] (`_` an unknown letter, a letter a given one, a space a gap
- * between words, a hyphen as it is). [typed] fills the letter slots in
- * order, over the given letters. Slots shrink to fit the width.
+ * between words, a hyphen as it is). [typed] fills the unknown slots in
+ * order; given letters always show in their places. Slots shrink to fit the width.
  */
 @Composable
 fun LetterSlots(
@@ -47,11 +47,10 @@ fun LetterSlots(
                 val isSlot = c == '_' || c.isLetterOrDigit()
                 val shown = when {
                     !isSlot -> if (c == ' ') "" else c.toString()
-                    next < typed.length -> typed[next].uppercaseChar().toString()
-                    c == '_' -> ""
-                    else -> c.uppercaseChar().toString()
+                    c != '_' -> c.uppercaseChar().toString()
+                    next < typed.length -> typed[next++].uppercaseChar().toString()
+                    else -> ""
                 }
-                if (isSlot) next++
                 Box(modifier = Modifier.width(slot), contentAlignment = Alignment.BottomCenter) {
                     BasicText(
                         text = shown,

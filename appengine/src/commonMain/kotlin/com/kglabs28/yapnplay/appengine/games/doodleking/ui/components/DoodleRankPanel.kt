@@ -30,7 +30,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import com.kglabs28.yapnplay.appengine.ui.components.common.glassScrollbar
 
 /**
- * The live leaderboard: everyone by points, centred, the top three on gold,
+ * The live leaderboard: everyone by points, each row the panel's whole width
+ * (place, then the name from the start, points at the end), the top three on gold,
  * silver and bronze glass. When the order changes the rows slide to their
  * new places and the list goes back to the top; the player cards on the
  * left never move.
@@ -48,8 +49,18 @@ fun DoodleRankPanel(rows: List<DoodleRankRowUi>, seatTint: (Int) -> Color, modif
     )
     // A new order: back to the top, so the leader is always in sight.
     LaunchedEffect(rows.map { it.seat }) { listState.scrollToItem(0) }
-    DoodleSidePanel(title = DoodleStrings.dkLeaderboard, modifier = modifier) {
-        LazyColumn(state = listState, modifier = Modifier.fillMaxWidth().glassScrollbar(listState), verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs)) {
+    DoodleSidePanel(
+        title = DoodleStrings.dkLeaderboard,
+        band = listOf(colors.Gold, colors.ArenaCrown),
+        titleColor = colors.Background,
+        modifier = modifier,
+    ) {
+        // As much room before the rows as the scrollbar keeps after them, so they sit evenly.
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxWidth().padding(start = dimens.scrollbarWidth + Spacing.Xs).glassScrollbar(listState),
+            verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs),
+        ) {
             itemsIndexed(rows, key = { _, row -> row.seat }) { index, row ->
                 val weight = if (row.isMe) FontWeight.Bold else FontWeight.Normal
                 val shape = RoundedCornerShape(dimens.cbRowRadius)
@@ -61,9 +72,9 @@ fun DoodleRankPanel(rows: List<DoodleRankRowUi>, seatTint: (Int) -> Color, modif
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
                 ) {
-                    BasicText(text = row.place, style = style.copy(color = colors.ArenaCrown, fontWeight = weight, textAlign = TextAlign.Center), modifier = Modifier.width(dimens.iconSmall))
-                    ShrinkText(text = row.name, style = style.copy(color = seatTint(row.seat), fontWeight = weight, textAlign = TextAlign.Center), modifier = Modifier.weight(1f))
-                    BasicText(text = row.score, style = style.copy(color = colors.TextPrimary, fontWeight = weight, textAlign = TextAlign.Center))
+                    BasicText(text = row.place, style = style.copy(color = colors.ArenaCrown, fontWeight = weight, textAlign = TextAlign.Start), modifier = Modifier.width(dimens.iconSmall))
+                    ShrinkText(text = row.name, style = style.copy(color = seatTint(row.seat), fontWeight = weight, textAlign = TextAlign.Start), modifier = Modifier.weight(1f))
+                    BasicText(text = row.score, style = style.copy(color = colors.TextPrimary, fontWeight = weight, textAlign = TextAlign.End))
                 }
             }
         }

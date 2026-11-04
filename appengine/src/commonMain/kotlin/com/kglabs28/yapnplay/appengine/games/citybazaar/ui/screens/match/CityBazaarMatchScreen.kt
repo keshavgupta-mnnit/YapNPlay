@@ -5,6 +5,8 @@ import androidx.compose.runtime.setValue
 import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftLayer
 import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftViewModel
 import com.kglabs28.yapnplay.appengine.ui.components.table.seatButtonsRoom
+import com.kglabs28.yapnplay.appengine.ui.components.table.seatSwitchesRoom
+import com.kglabs28.yapnplay.appengine.ui.components.table.tableCardAvatar
 import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -384,7 +386,7 @@ fun CityBazaarMatchContent(
                                 autoplay = state.autoplay,
                                 onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
                                 onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
-                            showAutoplay = state.myCard?.out != true,
+                                showAutoplay = state.myCard?.out != true,
                             )
                         }
                     }
@@ -541,26 +543,26 @@ private fun BoxScope.CityRoyale3dSeats(
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
-            // The card and its Mic / Auto buttons share one middle line; the taller dice stands on the bottom.
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-                TablePlayerCard(
-                    card = card,
-                    tint = card.colour.tint(),
-                    faded = card.out,
-                    badge = card.status,
-                    avatarSize = dimens.cbCardAvatar,
-                    density = TableCardDensity.DENSE,
-                    details = { CbCashLine(cash = card.cash, compact = false) },
-                    onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
-                    modifier = Modifier.width(dimens.cb3dSeatWidth).onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
-                )
+            // The card with its Mic / Auto beside it, as in every game; the taller dice stands on the bottom.
+            TablePlayerCard(
+                card = card,
+                tint = card.colour.tint(),
+                faded = card.out,
+                badge = card.status,
+                avatarSize = dimens.cbCardAvatar,
+                density = TableCardDensity.DENSE,
+                details = { CbCashLine(cash = card.cash, compact = false) },
+                onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
+                modifier = Modifier
+                    .width(dimens.cb3dSeatWidth + seatSwitchesRoom(tableCardAvatar(dimens.cbCardAvatar)))
+                    .onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
+            ) {
                 ArenaSeatSwitches(
                     micOn = state.micOn,
                     autoplay = state.autoplay,
                     onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
                     onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
                     showAutoplay = state.myCard?.out != true,
-                    gap = Spacing.Xs,
                 )
             }
             ArenaDiceButton(

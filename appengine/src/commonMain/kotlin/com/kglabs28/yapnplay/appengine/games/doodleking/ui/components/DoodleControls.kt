@@ -39,8 +39,14 @@ fun DoodleControls(
     val colors = YapNPlayTheme.colors
     val purple = listOf(colors.CtaPurpleStart, colors.CtaPurpleEnd)
     when (state.barMode) {
-        DoodleBarMode.DRAW -> Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
+        // The tools and Pass span exactly the board's width.
+        DoodleBarMode.DRAW -> Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+        ) {
             DoodleToolBar(
+                modifier = Modifier.weight(1f),
                 colour = state.inkColour,
                 size = state.inkSize,
                 eraser = state.eraser,
@@ -58,7 +64,8 @@ fun DoodleControls(
                 contentColor = colors.TextPrimary,
                 height = dimens.doodleToolButton + Spacing.Xs * 2,
                 trailingIcon = null,
-                modifier = Modifier.width(dimens.doodleEnterWidth),
+                // Narrower than Enter, so the tools keep their room on a phone.
+                modifier = Modifier.width(dimens.doodlePassWidth),
             )
         }
         DoodleBarMode.GUESS, DoodleBarMode.GUESSED -> Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {

@@ -5,6 +5,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,7 +33,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.table.arenaGlass
 /**
  * The drawer's tools, left to right: the brush (its dot shows the size; a
  * tap on it again steps the size), the 5 colours, the eraser (white glass),
- * undo, redo and clear all. The tool in hand is lit.
+ * undo, redo and clear all. The tool in hand is lit. Where the bar is too
+ * narrow for them (a phone), the tools shrink together so all of them show.
  */
 @Composable
 fun DoodleToolBar(
@@ -48,18 +51,25 @@ fun DoodleToolBar(
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
-    val button = dimens.doodleToolButton
+    BoxWithConstraints(modifier = modifier.arenaGlass(RoundedCornerShape(dimens.ludoGlossRadius)).padding(horizontal = Spacing.Sm, vertical = Spacing.Xs)) {
+    // Every tool at its full size, and the share of that which fits.
+    val full = dimens.doodleToolButton * TOOL_BUTTONS + dimens.doodleInkDot * DoodleInk.COLOURS.size +
+        Spacing.Xs * (TOOL_BUTTONS + DoodleInk.COLOURS.size - 1)
+    val fit = (maxWidth / full).coerceAtMost(1f)
+    val button = dimens.doodleToolButton * fit
+    val dot = dimens.doodleInkDot * fit
     Row(
-        modifier = modifier.arenaGlass(RoundedCornerShape(dimens.ludoGlossRadius)).padding(horizontal = Spacing.Sm, vertical = Spacing.Xs),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+        // Given more room than the tools need (as wide as the board), they stay centred in the glass.
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xs * fit, Alignment.CenterHorizontally),
     ) {
         Box(contentAlignment = Alignment.BottomEnd) {
             ToolButton(Icons.Rounded.Brush, DoodleStrings.dkBrush, lit = !eraser, size = button, onClick = onBrush)
             // The brush's size, as a dot in its corner.
             Box(
                 modifier = Modifier
-                    .size(dimens.doodleInkDot * (SIZE_DOT_BASE + size * SIZE_DOT_STEP))
+                    .size(dot * (SIZE_DOT_BASE + size * SIZE_DOT_STEP))
                     .background(DoodleInk.colour(colour), CircleShape)
                     .border(dimens.hairline, colors.TextPrimary, CircleShape),
             )
@@ -68,7 +78,7 @@ fun DoodleToolBar(
             val chosen = !eraser && index == colour
             Box(
                 modifier = Modifier
-                    .size(dimens.doodleInkDot)
+                    .size(dot)
                     .background(DoodleInk.colour(index), CircleShape)
                     .border(if (chosen) dimens.doodleCanvasRim else dimens.hairline, if (chosen) colors.TextPrimary else colors.GlassShine, CircleShape)
                     .clickable(role = Role.Button, onClickLabel = DoodleStrings.dkInkNames[index]) { onInk(index) },
@@ -79,6 +89,7 @@ fun DoodleToolBar(
         ToolButton(Icons.AutoMirrored.Rounded.Undo, DoodleStrings.dkUndo, lit = false, size = button, onClick = onUndo)
         ToolButton(Icons.AutoMirrored.Rounded.Redo, DoodleStrings.dkRedo, lit = false, size = button, onClick = onRedo)
         ToolButton(Icons.Rounded.Refresh, DoodleStrings.dkClear, lit = false, size = button, onClick = onClear)
+    }
     }
 }
 
@@ -98,6 +109,8 @@ private fun ToolButton(icon: ImageVector, label: String, lit: Boolean, size: Dp,
 }
 
 /** The brush's size dot: this share of a colour dot, and this much more per size step. */
+/** Brush, eraser, undo, redo, clear. */
+private const val TOOL_BUTTONS = 5
 private const val SIZE_DOT_BASE = 0.3f
 private const val SIZE_DOT_STEP = 0.15f
 private const val ICON_SHARE = 0.6f

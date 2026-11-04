@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.runtime.Composable
@@ -139,11 +138,14 @@ fun GameZoneScreen(
                         headline = search.headline,
                         progress = search.progress,
                         timeLeft = search.timeLeft,
-                        hint = Strings.gameZoneCpuFillHint,
-                        cancelLabel = Strings.gameZoneCancel,
+                        hint = if (search.failed) Strings.gameZoneNoMatchBody else Strings.gameZoneCpuFillHint,
+                        cancelLabel = if (search.failed) Strings.gameZoneClose else Strings.gameZoneCancel,
                         onCancel = if (search.matchFound) null else {
                             { viewModel?.onIntent(GameZoneIntent.CancelSearch) }
                         },
+                        failed = search.failed,
+                        retryLabel = Strings.gameZoneTryAgain,
+                        onRetry = { viewModel?.onIntent(GameZoneIntent.RetrySearch) },
                         modifier = Modifier.align(Alignment.Center),
                     )
                     AdPill(modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = Spacing.Md))
@@ -177,12 +179,6 @@ fun GameZoneScreen(
                     onWatchAd = { viewModel?.onIntent(GameZoneIntent.WatchAdForCoins) },
                     onPlayFree = { viewModel?.onIntent(GameZoneIntent.PlayFree) },
                     onClose = { viewModel?.onIntent(GameZoneIntent.CloseCoinsOffer) },
-                )
-            }
-            state.searchMessage?.let {
-                BasicText(
-                    text = it,
-                    style = YapNPlayTheme.typography.label.copy(color = colors.Error),
                 )
             }
         }

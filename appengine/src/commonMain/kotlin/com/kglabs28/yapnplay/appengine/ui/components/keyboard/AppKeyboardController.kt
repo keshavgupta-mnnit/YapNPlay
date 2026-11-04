@@ -36,11 +36,24 @@ class AppKeyboardController {
         if (now.owner === owner && now.value != value) request = now.copy(value = value)
     }
 
+    /** The field's word changed (a letter given as a hint): its slots, how much fits, and the text refitted. */
+    fun reshape(owner: Any, slots: String, maxLength: Int, value: String) {
+        val now = request ?: return
+        if (now.owner === owner) request = now.copy(slots = slots, maxLength = maxLength, value = value)
+    }
+
     fun type(value: String) {
         val now = request ?: return
         val next = value.take(now.maxLength)
-        request = now.copy(value = next)
+        // A key after a wrong entry: no longer red.
+        request = now.copy(value = next, error = false)
         now.onChange(next)
+    }
+
+    /** The field [owner]'s last entry was wrong (red), or no longer is. */
+    fun setError(owner: Any, error: Boolean) {
+        val now = request ?: return
+        if (now.owner === owner && now.error != error) request = now.copy(error = error)
     }
 
     fun done() {

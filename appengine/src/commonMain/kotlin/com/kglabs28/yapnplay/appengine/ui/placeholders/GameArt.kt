@@ -20,6 +20,7 @@ object GameArtKeys {
     const val CITY_BAZAAR = "city-bazaar"
     const val MONO = "mono"
     const val MONO_CHAOS = "mono-chaos"
+    const val DOODLE_KING = "doodle-king"
 }
 
 /**
@@ -37,6 +38,7 @@ fun GameArt(
         GameArtKeys.CITY_BAZAAR -> CityBazaarArtwork(modifier = modifier.fillMaxSize())
         GameArtKeys.MONO -> MonoArtwork(modifier = modifier.fillMaxSize())
         GameArtKeys.MONO_CHAOS -> MonoChaosArtwork(modifier = modifier.fillMaxSize())
+        GameArtKeys.DOODLE_KING -> DoodleKingArtwork(modifier = modifier.fillMaxSize())
         else -> GlyphArt(modifier)
     }
 }

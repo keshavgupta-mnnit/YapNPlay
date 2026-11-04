@@ -14,4 +14,4 @@ data class CountdownStopInfo(
     val at: Instant,
 )
 
-enum class CountdownStopCause { CANCELLED, NOT_READY, LEFT, GAME_CHANGED, SETTINGS_CHANGED, START_FAILED }
+enum class CountdownStopCause { CANCELLED, NOT_READY, LEFT, GAME_CHANGED, SETTINGS_CHANGED, START_FAILED, UPDATE_NEEDED }

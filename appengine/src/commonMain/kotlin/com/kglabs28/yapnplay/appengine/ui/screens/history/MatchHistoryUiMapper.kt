@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.history
 
+import com.kglabs28.yapnplay.appengine.core.ui.DoodleStrings
+import com.kglabs28.yapnplay.appengine.games.doodleking.identity.DoodleKingConstants
 import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.core.common.TextUtils
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
@@ -91,12 +93,14 @@ object MatchHistoryUiMapper {
         GameIds.ROYAL_LUDO -> LudoStrings.ludoTitle
         MonoConstants.ID -> MonoStrings.monoTitle
         MonoChaosConstants.ID -> MonoStrings.monoChaosTitle
+        DoodleKingConstants.ID -> DoodleStrings.dkTitle
         else -> gameId
     }
 
     private fun placeTitles(gameId: String): List<String> = when (gameId) {
         GameIds.CITY_BAZAAR -> CityBazaarStrings.cbPlaceTitles
         GameIds.ROYAL_LUDO -> LudoStrings.ludoPlaceTitles
+        DoodleKingConstants.ID -> DoodleStrings.dkPlaceTitles
         else -> MonoStrings.monoPlaceTitles
     }
 

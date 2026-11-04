@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.profile
 
+import com.kglabs28.yapnplay.appengine.ui.components.keyboard.AppKeyboardController
 import androidx.compose.runtime.collectAsState
 import org.koin.compose.koinInject
 import com.kglabs28.yapnplay.appengine.core.common.KeyboardPreference
@@ -59,6 +60,8 @@ fun ProfileTextField(
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
     lines: Int = 1,
+    /** After Done the app's keyboard opens again on the emptied field (a game's guess box: guess after guess). */
+    keepOpenOnDone: Boolean = false,
     keyboardChoice: KeyboardPreference = koinInject(),
 ) {
     val system by keyboardChoice.useSystem.collectAsState()
@@ -103,7 +106,7 @@ fun ProfileTextField(
                             keyboard.place(owner, bottom)
                         }
                         .clickable(role = Role.Button) {
-                            keyboard.open(AppKeyboardRequest(owner, hint, value, maxLength, { change(it) }, { done() }))
+                            keyboard.open(AppKeyboardRequest(owner, hint, value, maxLength, { change(it) }, reopening(keyboard, owner, hint, maxLength, keepOpenOnDone, { change(it) }) { done() }))
                             keyboard.place(owner, bottom)
                         }
                 },
@@ -134,3 +137,17 @@ fun ProfileTextField(
 
 /** A taller box is this much of the one-line height per line (lines sit closer than fields). */
 private const val LINE_SHARE = 0.6f
+
+/** Done's action; with [keepOpen] the keyboard opens again on the emptied field once it ran. */
+private fun reopening(
+    keyboard: AppKeyboardController,
+    owner: Any,
+    hint: String,
+    maxLength: Int,
+    keepOpen: Boolean,
+    change: (String) -> Unit,
+    done: () -> Unit,
+): () -> Unit = {
+    done()
+    if (keepOpen) keyboard.open(AppKeyboardRequest(owner, hint, "", maxLength, change, reopening(keyboard, owner, hint, maxLength, true, change, done)))
+}

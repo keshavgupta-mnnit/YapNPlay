@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.mapper
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.KeepPlayingUiMapper
 import kotlinx.datetime.Instant
 import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteUiMapper
 import com.kglabs28.yapnplay.appengine.games.base.match.MatchEndVote
@@ -54,23 +55,9 @@ import kotlin.time.Duration
 /** The user's decisions: buy, build, jail, debt, auction, keep-playing vote. */
 object CbPromptMapper {
     /** The continue-or-end vote as the user sees it: buttons if they may vote and haven't yet. */
-    fun extensionVote(match: CityBazaarMatch, vote: CityBazaarExtensionVoteInfo, countdown: String): CbModal.ExtensionVote {
-        val seat = match.me?.seat
-        val eligible = seat != null && seat in vote.voters
-        val votedYes = seat != null && seat in vote.yes
-        val votedNo = seat != null && seat in vote.no
-        return CbModal.ExtensionVote(
-            body = CityBazaarStrings.cbExtendBody(extraLabel(vote)),
-            tally = CityBazaarStrings.cbExtendTally(vote.yes.size, vote.voters.size),
-            status = when {
-                !eligible -> CityBazaarStrings.cbExtendWatching
-                votedYes || votedNo -> CityBazaarStrings.cbExtendYouVoted(votedYes)
-                else -> null
-            },
-            canVote = eligible && !votedYes && !votedNo,
-            countdown = countdown,
-        )
-    }
+    fun extensionVote(match: CityBazaarMatch, vote: CityBazaarExtensionVoteInfo, countdown: String): CbModal.ExtensionVote =
+        KeepPlayingUiMapper.of(vote.voters, vote.yes, vote.no, vote.extraRounds, vote.extraMinutes, match.me?.seat, countdown, DEFAULT_EXTRA_ROUNDS)
+            .let { CbModal.ExtensionVote(it.body, it.tally, it.status, it.canVote, it.countdown) }
 
     /** The end-game vote as the user sees it: buttons if they may vote and haven't yet. */
     fun endVote(match: CityBazaarMatch, vote: MatchEndVote, now: Instant): CbModal.EndVote {
@@ -78,11 +65,6 @@ object CbPromptMapper {
         return CbModal.EndVote(body = ui.body, tally = ui.tally, status = ui.status, canVote = ui.canVote, countdown = ui.countdown)
     }
 
-    /** "30 rounds" or "15 minutes", by which limit was hit. */
-    fun extraLabel(vote: CityBazaarExtensionVoteInfo?): String = when {
-        vote?.extraMinutes != null -> CityBazaarStrings.cbExtraMinutes(vote.extraMinutes)
-        else -> CityBazaarStrings.cbExtraRounds(vote?.extraRounds ?: DEFAULT_EXTRA_ROUNDS)
-    }
 
     // ---------------- decisions ----------------
 
@@ -228,7 +210,8 @@ object CbPromptMapper {
         )
     }
 
-    private const val DEFAULT_EXTRA_ROUNDS = 30
+    /** City Royale's extension when a vote doesn't say. */
+    const val DEFAULT_EXTRA_ROUNDS = 30
     private const val BUILDING = "b"
     private const val TILE = "t"
 }

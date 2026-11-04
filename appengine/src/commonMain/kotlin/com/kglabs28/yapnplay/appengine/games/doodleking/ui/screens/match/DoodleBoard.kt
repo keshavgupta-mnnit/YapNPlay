@@ -1,0 +1,191 @@
+package com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match
+
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import com.kglabs28.yapnplay.appengine.games.doodleking.domain.DoodleInkOp
+import com.kglabs28.yapnplay.appengine.games.doodleking.domain.DoodleStrokeData
+import com.kglabs28.yapnplay.appengine.games.doodleking.identity.DoodleKingConstants
+import kotlin.math.abs
+import kotlin.math.roundToInt
+
+/**
+ * The turn's drawing on this phone. The drawer's touches draw here at once
+ * and queue what to send ([takeOutgoing]); everyone else's board follows the
+ * drawer's messages ([apply]). [revision] changes with every change: the
+ * canvas reads it while drawing only, so drawing never recomposes the table.
+ * Lines grow in place ([DoodleLine]): a new point costs the same however
+ * long the line is.
+ */
+@Stable
+class DoodleBoard {
+    var revision by mutableIntStateOf(0)
+        private set
+    var drawingId: Int = 0
+        private set
+    private val lines = mutableListOf<DoodleLine>()
+    private val outgoing = mutableListOf<DoodleInkOp>()
+    /** Lines taken back with undo, newest last: redo puts them back. A new line forgets them. */
+    private val undone = mutableListOf<DoodleLine>()
+    /** The lines the last Clear took off, oldest first: Undo on an empty board puts them back. */
+    private val cleared = mutableListOf<DoodleLine>()
+    /** The points of the line being drawn not yet queued to send. */
+    private val unsent = mutableListOf<Int>()
+    private var nextId = 1
+    private var drawing = false
+
+    /** The pen the user draws with (the drawer's tool bar sets it). */
+    var colour: Int = 0
+    var size: Int = 1
+    var eraser: Boolean = false
+
+    val strokes: List<DoodleLine> get() = lines
+    val strokeCount: Int get() = lines.size
+
+    /** A new turn's drawing: the canvas starts empty. */
+    fun reset(id: Int) {
+        drawingId = id
+        lines.clear()
+        outgoing.clear()
+        unsent.clear()
+        undone.clear()
+        cleared.clear()
+        nextId = 1
+        drawing = false
+        revision++
+    }
+
+    // ── The user drawing (x, y from 0 to 1 across the canvas) ──
+
+    fun start(x: Float, y: Float) {
+        flushUnsent()
+        undone.clear()
+        val line = DoodleLine(nextId++, colour, size, eraser)
+        line.points += scale(x)
+        line.points += scale(y)
+        lines += line
+        unsent += line.points
+        drawing = true
+        revision++
+    }
+
+    fun extend(x: Float, y: Float) {
+        val line = lines.lastOrNull()?.takeIf { drawing } ?: return
+        val px = scale(x)
+        val py = scale(y)
+        // Points too close to the last one add nothing but data.
+        val n = line.points.size
+        if (n >= 2 && abs(line.points[n - 2] - px) + abs(line.points[n - 1] - py) < MIN_STEP) return
+        line.points += px
+        line.points += py
+        unsent += px
+        unsent += py
+        revision++
+    }
+
+    fun finish() {
+        drawing = false
+    }
+
+    /** The last line is taken back; on an empty board, what the last Clear took off comes back. */
+    fun undo() {
+        if (lines.isEmpty()) {
+            restoreCleared()
+            return
+        }
+        flushUnsent()
+        undone += lines.removeAt(lines.lastIndex)
+        drawing = false
+        outgoing += DoodleInkOp.Undo(drawingId)
+        revision++
+    }
+
+    /** The last line taken back comes back, sent again as a new line. */
+    fun redo() {
+        val line = undone.removeLastOrNull() ?: return
+        flushUnsent()
+        val again = DoodleLine(nextId++, line.colour, line.size, line.eraser).apply { points += line.points }
+        lines += again
+        drawing = false
+        queue(again, again.points)
+        revision++
+    }
+
+    /** The lines a Clear took off, drawn again (and sent again as new lines, so everyone sees them back). */
+    private fun restoreCleared() {
+        if (cleared.isEmpty()) return
+        flushUnsent()
+        cleared.forEach { old ->
+            val again = DoodleLine(nextId++, old.colour, old.size, old.eraser).apply { points += old.points }
+            lines += again
+            queue(again, again.points)
+        }
+        cleared.clear()
+        undone.clear()
+        drawing = false
+        revision++
+    }
+
+    fun clear() {
+        if (lines.isEmpty()) return
+        flushUnsent()
+        undone.clear()
+        // Kept aside, so Undo can bring them back.
+        cleared.clear()
+        cleared += lines
+        lines.clear()
+        drawing = false
+        outgoing += DoodleInkOp.Clear(drawingId)
+        revision++
+    }
+
+    /** What to send since last time, oldest first (the line being drawn: its new points in one part). */
+    fun takeOutgoing(): List<DoodleInkOp> {
+        flushUnsent()
+        return outgoing.toList().also { outgoing.clear() }
+    }
+
+    // ── The drawer's messages, on everyone else's phone ──
+
+    fun apply(op: DoodleInkOp) {
+        if (op.drawingId != drawingId) return
+        when (op) {
+            is DoodleInkOp.Part -> {
+                val last = lines.lastOrNull()
+                if (last != null && last.id == op.stroke.id) last.points += op.stroke.points else lines += DoodleLine.of(op.stroke)
+            }
+            is DoodleInkOp.Undo -> if (lines.isNotEmpty()) lines.removeAt(lines.lastIndex)
+            is DoodleInkOp.Clear -> lines.clear()
+            is DoodleInkOp.Whole -> {
+                lines.clear()
+                op.strokes.mapTo(lines, DoodleLine::of)
+            }
+        }
+        revision++
+    }
+
+    /** The line being drawn's new points become parts to send. */
+    private fun flushUnsent() {
+        val line = lines.lastOrNull() ?: return
+        if (unsent.isEmpty()) return
+        queue(line, unsent)
+        unsent.clear()
+    }
+
+    /** [points] of [line] to send, in parts no bigger than the server takes. */
+    private fun queue(line: DoodleLine, points: List<Int>) {
+        points.chunked(PART_VALUES).forEach {
+            outgoing += DoodleInkOp.Part(drawingId, DoodleStrokeData(line.id, line.colour, line.size, line.eraser, it))
+        }
+    }
+
+    private fun scale(v: Float): Int = (v.coerceIn(0f, 1f) * DoodleKingConstants.CANVAS_MAX).roundToInt()
+
+    private companion object {
+        /** Canvas units (of 4095) a point must move to be kept. */
+        const val MIN_STEP = 12
+        /** The most numbers (x,y pairs) one part may carry (the server's limit). */
+        const val PART_VALUES = 600
+    }
+}

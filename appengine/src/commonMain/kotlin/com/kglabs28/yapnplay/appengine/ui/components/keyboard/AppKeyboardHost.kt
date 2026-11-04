@@ -38,7 +38,8 @@ fun AppKeyboardHost(modifier: Modifier = Modifier, content: @Composable () -> Un
         BoxWithConstraints(modifier = modifier.fillMaxSize()) {
             val density = LocalDensity.current
             val request = controller.request
-            val keysTop = with(density) { (maxHeight - YapNPlayTheme.dimens.appKeyboardHeight - YapNPlayTheme.dimens.appKeyboardGap).toPx() }
+            val keysHeight = if (request?.compact == true) YapNPlayTheme.dimens.appKeyboardCompactHeight else YapNPlayTheme.dimens.appKeyboardHeight
+            val keysTop = with(density) { (maxHeight - keysHeight - YapNPlayTheme.dimens.appKeyboardGap).toPx() }
             val wanted = if (request == null) 0f else (controller.fieldBottom - keysTop).coerceAtLeast(0f)
             val lift by animateFloatAsState(wanted, tween(LIFT_MS), label = "keyboard-lift")
             SideEffect { controller.lift = lift }
@@ -68,7 +69,7 @@ fun AppKeyboardHost(modifier: Modifier = Modifier, content: @Composable () -> Un
                         .align(Alignment.BottomCenter)
                         .widthIn(max = YapNPlayTheme.dimens.appKeyboardMaxWidth)
                         .fillMaxWidth()
-                        .height(YapNPlayTheme.dimens.appKeyboardHeight),
+                        .height(keysHeight),
                 )
             }
             BlockBackPress(enabled = request != null, onBack = { controller.close() })

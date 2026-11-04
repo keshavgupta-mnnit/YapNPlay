@@ -217,7 +217,7 @@ data class CountdownStop(
     val at: Long,
 )
 
-enum class CountdownStopReason { CANCELLED, NOT_READY, LEFT, GAME_CHANGED, SETTINGS_CHANGED, START_FAILED }
+enum class CountdownStopReason { CANCELLED, NOT_READY, LEFT, GAME_CHANGED, SETTINGS_CHANGED, START_FAILED, UPDATE_NEEDED }
 
 /** One join request in the admin's Waiting List. */
 @Serializable

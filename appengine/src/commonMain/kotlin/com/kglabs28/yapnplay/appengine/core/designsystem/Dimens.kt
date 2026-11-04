@@ -442,6 +442,38 @@ class YapNPlayDimens {
     val adPillCompactBelow: Dp get() = 260.dp.scaled()
     /** The pill's round ends, badge and button corners, and the gaps inside it. */
     val adPillInset: Dp get() = 6.dp.scaled()
+    // Letter slots (a word to guess, one underlined box per letter).
+    val letterSlotMax: Dp get() = 22.dp.scaled()
+    val letterSlotGap: Dp get() = 3.dp.scaled()
+    val letterSlotLine: Dp get() = 2.dp.scaled()
+    /** The app's keyboard when a screen keeps more of itself in view (a game's guess). */
+    val appKeyboardCompactHeight: Dp get() = 176.dp.scaled()
+    // Doodle King.
+    /** The side columns (cards on the left; guesses and leaderboard on the right). */
+    val doodleSideWidth: Dp get() = 150.dp.scaled()
+    val doodleCardAvatar: Dp get() = 34.dp.scaled()
+    val doodleToolButton: Dp get() = 34.dp.scaled()
+    val doodleInkDot: Dp get() = 26.dp.scaled()
+    val doodleInputHeight: Dp get() = 30.dp.scaled()
+    val doodleCanvasRadius: Dp get() = 10.dp.scaled()
+    /** The board's glowing cyan rim. */
+    val doodleCanvasRim: Dp get() = 3.dp.scaled()
+    /** The board's one thin inner border, and the small space between it and the rim (the paper keeps the room). */
+    val doodleCanvasInnerRim: Dp get() = 2.dp.scaled()
+    val doodleCanvasGap: Dp get() = 5.dp.scaled()
+    val doodleStatusHeight: Dp get() = 22.dp.scaled()
+    val doodleRankRowHeight: Dp get() = 18.dp.scaled()
+    val doodlePickWidth: Dp get() = 420.dp.scaled()
+    val doodleWordButtonHeight: Dp get() = 44.dp.scaled()
+    /** The word's row under the user's card (always kept, so the card never changes height). */
+    val doodleWordPanelHeight: Dp get() = 36.dp.scaled()
+    /** The room under the board for the user's bar (tools / guess box / a watcher's buttons): fixed, so the board never resizes. */
+    val doodleBarHeight: Dp get() = 52.dp.scaled()
+    /** The left column: everyone's cards, the user's (with its mic) at the bottom. */
+    val doodleLeftWidth: Dp get() = 192.dp.scaled()
+    val doodleEnterWidth: Dp get() = 96.dp.scaled()
+    /** Pass beside the drawer's tools: narrow, so every tool shows on a phone. */
+    val doodlePassWidth: Dp get() = 64.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

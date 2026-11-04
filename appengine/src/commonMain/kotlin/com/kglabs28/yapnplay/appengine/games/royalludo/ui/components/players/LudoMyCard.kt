@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.LudoPlayerCardUi
 
-/** The user's own card, with Mic and Autoplay as round icons under the pill (Roll Dice is its own button). */
+/** The user's own card, with Mic and Autoplay as round icons beside it (Roll Dice is its own button). */
 @Composable
 fun LudoMyCard(
     card: LudoPlayerCardUi,

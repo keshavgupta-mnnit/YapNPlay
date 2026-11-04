@@ -49,6 +49,11 @@ object MessageType {
     const val SET_AUTOPLAY = "SetAutoplay"
     const val PROPOSE_END_MATCH = "ProposeEndMatch"
     const val CAST_END_VOTE = "CastEndVote"
+    /** Doodle King: the drawer's stroke parts, undo and clear; anyone asking for the whole drawing. */
+    const val DOODLE_STROKE = "DoodleStroke"
+    const val DOODLE_UNDO = "DoodleUndo"
+    const val DOODLE_CLEAR = "DoodleClear"
+    const val DOODLE_SYNC = "DoodleSync"
     const val VOTE_EXTENSION = "VoteExtension"
     const val SET_MIC = "SetMic"
     const val SET_PRESENCE = "SetPresence"

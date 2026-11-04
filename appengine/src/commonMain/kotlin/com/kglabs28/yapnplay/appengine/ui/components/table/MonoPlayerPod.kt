@@ -100,6 +100,8 @@ fun MonoPlayerPod(
     fanBeside: Boolean = false,
     /** Extra controls at the end of the pill (the local player's switches); null shows the speaker. */
     trailing: (@Composable RowScope.() -> Unit)? = null,
+    /** The user's own Mic / Auto, beside the whole seat. */
+    sideControls: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val dimens = YapNPlayTheme.dimens
     val avatar = if (compact) dimens.monoSeatAvatarCompact else dimens.monoSeatAvatar
@@ -107,7 +109,7 @@ fun MonoPlayerPod(
         if (fanBeside) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
                 Column(modifier = Modifier.weight(1f).heightIn(min = seatBoxHeight(avatar, dimens.seatTagSlot, dimens.zero))) {
-                    MonoSeatHeaderFor(card, avatar, trailing)
+                    MonoSeatHeaderFor(card, avatar, trailing, sideControls)
                     MonoSeatLabel(card, avatar)
                 }
                 // The fan's place is kept even when empty, so every top seat is as wide as the others.
@@ -122,7 +124,7 @@ fun MonoPlayerPod(
             // shifts inside. The user's own seat (no fan) reserves nothing here: its box (MonoLocalPod) does.
             modifier = if (showFan) Modifier.heightIn(min = seatBoxHeight(avatar, dimens.seatTagSlot, dimens.monoSeatFanCard * FAN_CARD_HEIGHT)) else Modifier,
         ) {
-            MonoSeatHeaderFor(card, avatar, trailing)
+            MonoSeatHeaderFor(card, avatar, trailing, sideControls)
             // The status right under the pill; the fan below it.
             MonoSeatLabel(card, avatar)
             if (showFan && card.cards > 0) {
@@ -155,7 +157,12 @@ fun MonoPlayerPod(
 
 /** The seat header for a MONO player: the shared arena header with their speaker (or [trailing]). */
 @Composable
-private fun MonoSeatHeaderFor(card: MonoPlayerPodUi, avatar: Dp, trailing: (@Composable RowScope.() -> Unit)?) {
+private fun MonoSeatHeaderFor(
+    card: MonoPlayerPodUi,
+    avatar: Dp,
+    trailing: (@Composable RowScope.() -> Unit)?,
+    sideControls: (@Composable RowScope.() -> Unit)?,
+) {
     ArenaSeatHeader(
         name = card.name,
         level = card.level,
@@ -169,6 +176,7 @@ private fun MonoSeatHeaderFor(card: MonoPlayerPodUi, avatar: Dp, trailing: (@Com
         avatar = avatar,
         seat = card.seat,
         isMe = card.isMe,
+        sideControls = sideControls,
         // The user's own seat says how many cards they hold (their hand lies along the bottom, not by the seat).
         details = if (card.isMe && card.cards > 0) {
             {
@@ -242,6 +250,13 @@ fun ArenaSeatHeader(
     isMe: Boolean = false,
     details: (@Composable ColumnScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
+    /** At the pill's right end, inside it and centred on it (a status icon). */
+    pillEnd: (@Composable RowScope.() -> Unit)? = null,
+    /**
+     * The user's own buttons (mic, autoplay) beside the whole seat, centred on it: a hair's gap
+     * from the seat, so every game lines its card and its buttons up the same way.
+     */
+    sideControls: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val gifts = LocalEmojiGiftTable.current
     if (gifts != null && seat != null) DisposableEffect(gifts, seat) { onDispose { gifts.anchors.forget(seat) } }
@@ -250,79 +265,105 @@ fun ArenaSeatHeader(
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
-    val pillHeight = avatar * PILL_SHARE
+    val pillHeight = seatPillHeight(avatar)
     val pillShape = RoundedCornerShape(percent = 50)
     // The breathing is read while drawing only: the seat isn't recomposed every frame.
     val glow = if (talking || talkingMuted) talkPulse() else null
     val shownTime = rememberTurnFraction(turnEndsAtMillis, turnTotalMs)
 
-    // The speaker / mute button sits outside the pill, at its right end, so the name keeps the pill's whole width.
+    // The user's own buttons beside the whole seat.
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(avatar),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Xxxs),
     ) {
-        Box(
+        // The speaker / mute button sits outside the pill, at its right end, so the name keeps the pill's whole width.
+        Row(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight()
-                .seatTalkGlow({ glow?.value ?: 0f }, pillHeight, muted = !talking)
-                .seatTimer(
-                    active = isTurn,
-                    fraction = { shownTime.value },
-                    tint = tint,
-                    pillHeight = pillHeight,
-                    width = dimens.monoSeatTimer,
-                ),
+                .height(avatar),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
         ) {
-            // The pill starts under the avatar's centre, so the avatar sits on its left end.
-            Row(
+            Box(
                 modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(start = avatar / 2)
-                    .fillMaxWidth()
-                    .height(pillHeight)
-                    .clip(pillShape)
-                    .background(Brush.verticalGradient(listOf(colors.ArenaGlassTop, colors.ArenaGlassBottom)))
-                    .border(dimens.hairline, colors.ArenaGlassRim, pillShape)
-                    .padding(start = avatar / 2 + Spacing.Xs, end = Spacing.Sm),
-                verticalAlignment = Alignment.CenterVertically,
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .seatTalkGlow({ glow?.value ?: 0f }, pillHeight, muted = !talking)
+                    .seatTimer(
+                        active = isTurn,
+                        fraction = { shownTime.value },
+                        tint = tint,
+                        pillHeight = pillHeight,
+                        width = dimens.monoSeatTimer,
+                    ),
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    ShrinkText(
-                        text = name,
-                        style = typography.label.copy(color = colors.TextPrimary, fontWeight = FontWeight.Bold),
-                    )
-                    details?.invoke(this)
-                }
-            }
-            ArenaSeatAvatar(
-                tint = tint,
-                level = level,
-                avatarId = avatarId,
-                size = avatar,
-                landed = seat?.let { gifts?.ui?.value?.landed?.get(it) },
-                modifier = Modifier.emojiGiftAnchor(gifts, seat, isMe).emojiGiftAvatarTap(gifts, seat, canGift),
-                badge = if (canGift && gifts != null && seat != null) {
-                    {
-                        EmojiGiftSeatButton(
-                            table = gifts,
-                            seat = seat,
-                            name = name,
-                            size = avatar * EMOJI_BADGE_SHARE,
-                            modifier = Modifier.align(Alignment.BottomEnd).offset(x = avatar * EMOJI_BADGE_OUT, y = avatar * EMOJI_BADGE_OUT),
+                // The pill starts under the avatar's centre, so the avatar sits on its left end.
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = avatar / 2)
+                        .fillMaxWidth()
+                        .height(pillHeight)
+                        .clip(pillShape)
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    colors.ArenaGlassTop,
+                                    colors.ArenaGlassBottom
+                                )
+                            )
                         )
+                        .border(dimens.hairline, colors.ArenaGlassRim, pillShape)
+                        .padding(start = avatar / 2 + Spacing.Xs, end = Spacing.Sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        ShrinkText(
+                            text = name,
+                            style = typography.label.copy(
+                                color = colors.TextPrimary,
+                                fontWeight = FontWeight.Bold
+                            ),
+                        )
+                        details?.invoke(this)
                     }
-                } else {
-                    null
-                },
-            )
+                    pillEnd?.invoke(this)
+                }
+                ArenaSeatAvatar(
+                    tint = tint,
+                    level = level,
+                    avatarId = avatarId,
+                    size = avatar,
+                    landed = seat?.let { gifts?.ui?.value?.landed?.get(it) },
+                    modifier = Modifier.emojiGiftAnchor(gifts, seat, isMe)
+                        .emojiGiftAvatarTap(gifts, seat, canGift),
+                    badge = if (canGift && gifts != null && seat != null) {
+                        {
+                            EmojiGiftSeatButton(
+                                table = gifts,
+                                seat = seat,
+                                name = name,
+                                size = avatar * EMOJI_BADGE_SHARE,
+                                modifier = Modifier.align(Alignment.BottomEnd).offset(
+                                    x = avatar * EMOJI_BADGE_OUT,
+                                    y = avatar * EMOJI_BADGE_OUT
+                                ),
+                            )
+                        }
+                    } else {
+                        null
+                    },
+                )
+            }
+            trailing?.invoke(this)
         }
-        trailing?.invoke(this)
+        sideControls?.invoke(this)
     }
 }
+
+/** How tall a seat's name pill is beside an avatar of [avatar] (for things drawn level with it). */
+fun seatPillHeight(avatar: Dp): Dp = avatar * PILL_SHARE
 
 /** The round avatar in the player's colour, with their level in a badge under it; an emoji that [landed] here covers the face. */
 @Composable

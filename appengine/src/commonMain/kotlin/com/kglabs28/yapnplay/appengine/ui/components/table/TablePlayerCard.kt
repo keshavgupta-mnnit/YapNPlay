@@ -1,28 +1,24 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.heightIn
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.coerceAtLeast
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
@@ -36,7 +32,8 @@ import com.kglabs28.yapnplay.appengine.core.designsystem.YapNPlayTheme
  * round the whole outline and a blue-pink glow shows while they talk;
  * [badge] ("1st", "Jail", "Away"…) sits under the pill. A tap
  * ([onClick]) and, on another person's card, a long press ([onLongPress],
- * add / remove friend). The user's own card adds [controls] under it.
+ * add / remove friend). The user's own card adds [sideControls] (Mic,
+ * Auto…) beside the whole seat, centred on it, in every game alike.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -54,12 +51,13 @@ fun TablePlayerCard(
     avatarSize: Dp = YapNPlayTheme.dimens.ludoCardAvatar,
     density: TableCardDensity = TableCardDensity.ROOMY,
     details: (@Composable ColumnScope.() -> Unit)? = null,
-    controls: (@Composable ColumnScope.() -> Unit)? = null,
+    /** At the name pill's right end, inside it (a status icon: drawing, guessed…). */
+    pillEnd: (@Composable RowScope.() -> Unit)? = null,
+    /** The user's own buttons beside the seat ([ArenaSeatSwitches] sizes itself to the card). */
+    sideControls: (@Composable RowScope.() -> Unit)? = null,
 ) {
-    val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
-    val typography = YapNPlayTheme.typography
-    val avatar = avatarSize.coerceAtLeast(dimens.monoSeatAvatarCompact)
+    val avatar = tableCardAvatar(avatarSize)
     val gap = if (density == TableCardDensity.ROOMY) Spacing.Sm else Spacing.Xs
     val press = when {
         // Another person (friend), or a bot's seat (the leader may offer it to a spectator).
@@ -67,9 +65,8 @@ fun TablePlayerCard(
         onClick != null -> Modifier.clickable(onClick = onClick)
         else -> Modifier
     }
-    // Room for the header, a tag and the user's switches, kept up front: the card stays put, the rest shifts inside.
-    val under = if (controls != null) seatSwitchSize(avatar) + Spacing.Xxs else YapNPlayTheme.dimens.zero
-    Column(modifier = modifier.heightIn(min = seatBoxHeight(avatar, YapNPlayTheme.dimens.seatTagSlot, under))) {
+    // Room for the header and a tag, kept up front: the card stays put, the tag shifts inside.
+    Column(modifier = modifier.heightIn(min = seatBoxHeight(avatar, dimens.seatTagSlot, dimens.zero))) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -90,6 +87,19 @@ fun TablePlayerCard(
                 seat = card.seat,
                 isMe = card.isMe,
                 details = details,
+                pillEnd = pillEnd,
+                // The switches sized to the card, a gap between them as dense as the card.
+                sideControls = sideControls?.let { side ->
+                    {
+                        CompositionLocalProvider(LocalSeatSwitchSize provides seatSwitchSize(avatar)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(gap),
+                                content = side,
+                            )
+                        }
+                    }
+                },
                 trailing = if (!card.isMe && card.canSpeak) {
                     {
                         TableMuteButton(
@@ -104,21 +114,15 @@ fun TablePlayerCard(
                     null
                 },
             )
-            // The tag (when one shows) right under the header; the switches below it.
+            // The tag (when one shows) right under the header.
             ArenaSeatTagSlot(text = badge, tint = badgeTint, avatar = avatar)
-            // The user's switches under the card, centred on it, sized to it and clear of the avatar's badge.
-            if (controls != null) {
-                CompositionLocalProvider(LocalSeatSwitchSize provides seatSwitchSize(avatar)) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(gap),
-                        content = controls,
-                    )
-                }
-            }
         }
     }
 }
+
+/** The avatar a table card really draws for [avatarSize]: never under the compact seat's (for sizing room beside it). */
+@Composable
+@ReadOnlyComposable
+fun tableCardAvatar(avatarSize: Dp): Dp = avatarSize.coerceAtLeast(YapNPlayTheme.dimens.monoSeatAvatarCompact)
 
 private const val FADED_ALPHA = 0.4f

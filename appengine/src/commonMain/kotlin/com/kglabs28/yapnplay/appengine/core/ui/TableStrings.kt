@@ -2,6 +2,17 @@ package com.kglabs28.yapnplay.appengine.core.ui
 
 /** Every game table: seats, players, history, leaderboard. */
 object TableStrings {
+    // The keep-playing vote at a game's limit (every table's).
+    const val extendTitle = "ROUNDS ARE OVER!"
+    fun extendBody(extra: String) = "Play $extra more? The game goes on if at least half of the players vote to continue."
+    fun extraRounds(n: Int) = if (n == 1) "1 round" else "$n rounds"
+    fun extraMinutes(n: Int) = "$n minutes"
+    const val extendContinue = "Continue"
+    const val extendEnd = "End game"
+    fun extendTally(yes: Int, total: Int) = "Votes to continue: $yes of $total"
+    fun extendYouVoted(keepPlaying: Boolean) = if (keepPlaying) "You voted to continue. Waiting for the others..." else "You voted to end. Waiting for the others..."
+    const val extendWatching = "The players are deciding whether to keep playing..."
+
     const val matchGoneTitle = "Game ended"
     const val matchGoneBody = "The game server restarted, so this game couldn't carry on. Start a new one from the Game Zone."
 

@@ -1,8 +1,12 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftLayer
 import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftViewModel
 import com.kglabs28.yapnplay.appengine.ui.components.table.seatButtonsRoom
+import com.kglabs28.yapnplay.appengine.ui.components.table.seatSwitchesRoom
+import com.kglabs28.yapnplay.appengine.ui.components.table.tableCardAvatar
 import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -24,14 +28,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -385,7 +386,7 @@ fun CityBazaarMatchContent(
                                 autoplay = state.autoplay,
                                 onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
                                 onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
-                            showAutoplay = state.myCard?.out != true,
+                                showAutoplay = state.myCard?.out != true,
                             )
                         }
                     }
@@ -542,26 +543,26 @@ private fun BoxScope.CityRoyale3dSeats(
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
-            // The card and its Mic / Auto buttons share one middle line; the taller dice stands on the bottom.
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-                TablePlayerCard(
-                    card = card,
-                    tint = card.colour.tint(),
-                    faded = card.out,
-                    badge = card.status,
-                    avatarSize = dimens.cbCardAvatar,
-                    density = TableCardDensity.DENSE,
-                    details = { CbCashLine(cash = card.cash, compact = false) },
-                    onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
-                    modifier = Modifier.width(dimens.cb3dSeatWidth).onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
-                )
+            // The card with its Mic / Auto beside it, as in every game; the taller dice stands on the bottom.
+            TablePlayerCard(
+                card = card,
+                tint = card.colour.tint(),
+                faded = card.out,
+                badge = card.status,
+                avatarSize = dimens.cbCardAvatar,
+                density = TableCardDensity.DENSE,
+                details = { CbCashLine(cash = card.cash, compact = false) },
+                onClick = { send(CityBazaarMatchIntent.PlayerClicked(card.seat)) },
+                modifier = Modifier
+                    .width(dimens.cb3dSeatWidth + seatSwitchesRoom(tableCardAvatar(dimens.cbCardAvatar)))
+                    .onGloballyPositioned { anchors[card.seat] = it.boundsInRoot().center },
+            ) {
                 ArenaSeatSwitches(
                     micOn = state.micOn,
                     autoplay = state.autoplay,
                     onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
                     onToggleAutoplay = { send(CityBazaarMatchIntent.ToggleAutoplay) },
                     showAutoplay = state.myCard?.out != true,
-                    gap = Spacing.Xs,
                 )
             }
             ArenaDiceButton(

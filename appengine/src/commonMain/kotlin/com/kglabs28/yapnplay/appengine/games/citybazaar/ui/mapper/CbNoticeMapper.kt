@@ -109,6 +109,7 @@ object CbNoticeMapper {
             MoneyReason.BUY -> CityBazaarStrings.cbTitleBought(tile)
             MoneyReason.BUILD -> CityBazaarStrings.cbTitleBuilt(tile)
             MoneyReason.SELL -> CityBazaarStrings.cbTitleSold(tile)
+            MoneyReason.SELL_BUILDING -> CityBazaarStrings.cbTitleSoldBuilding(tile)
             MoneyReason.AUCTION -> CityBazaarStrings.cbTitleAuction(tile)
             MoneyReason.BANKRUPTCY -> return null
         }
@@ -134,6 +135,7 @@ object CbNoticeMapper {
             MoneyReason.BUY -> CityBazaarStrings.cbYouBought(tile, amount)
             MoneyReason.BUILD -> CityBazaarStrings.cbYouBuilt(tile, amount)
             MoneyReason.SELL -> CityBazaarStrings.cbYouSold(tile, amount)
+            MoneyReason.SELL_BUILDING -> CityBazaarStrings.cbYouSoldBuilding(tile, amount)
             MoneyReason.AUCTION -> if (paying) CityBazaarStrings.cbYouAuctionPaid(amount) else CityBazaarStrings.cbYouAuctionGot(amount)
             MoneyReason.BANKRUPTCY -> return null
         }

@@ -30,9 +30,16 @@ decisions that win).
 ## Versioning
 
 `CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
-**0.10.0**. Patch: optional field / new message. Minor: new required
+**0.12.0**. Patch: optional field / new message. Minor: new required
 field, channel or game-interface member. Major: breaking change.
 Every bump is announced in `docs/decisions.md`.
+
+0.12.0 added: City Bazaar `MoneyMoved.reason` `SELL_BUILDING` (a house or the
+hotel sold to the bank, half the build cost). `SELL` now means a whole city or
+company sold. The app words the two differently ("sold a building" / "sold
+the city"); `BuildingSold` / `TileSold` / `Sold` are unchanged.
+
+0.11.0 added: emoji gifts (see "Emoji gifts" below).
 
 0.10.0 added: `RankedSeat.stake` (the entry each seat put in; the bank's for a
 CPU; 0 when free or unpaid). `RankedSeat.coinsWon` now shows every seat's

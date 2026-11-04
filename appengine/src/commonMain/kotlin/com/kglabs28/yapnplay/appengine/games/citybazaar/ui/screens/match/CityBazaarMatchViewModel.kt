@@ -957,7 +957,7 @@ class CityBazaarMatchViewModel(
         val GROUPED_REASONS = setOf(MoneyReason.CLUB, MoneyReason.REST, MoneyReason.CARD)
         const val MILLIS = 1_000L
         /** Money the dialogs already showed (buying, building, selling). */
-        val QUIET = setOf(MoneyReason.BUY, MoneyReason.BUILD, MoneyReason.SELL, MoneyReason.BANKRUPTCY)
+        val QUIET = setOf(MoneyReason.BUY, MoneyReason.BUILD, MoneyReason.SELL, MoneyReason.SELL_BUILDING, MoneyReason.BANKRUPTCY)
         /** Payments everyone is told about. */
         const val HISTORY_LIMIT = 150
         val PAYMENTS = setOf(MoneyReason.RENT, MoneyReason.TAX, MoneyReason.CLUB, MoneyReason.JAIL_FINE, MoneyReason.LATE_ROLL, MoneyReason.CARD, MoneyReason.AUCTION)

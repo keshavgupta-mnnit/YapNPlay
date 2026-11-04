@@ -371,3 +371,9 @@ start (`NOT_ENOUGH_READY`).
 - `androidApp/google-services.json` is committed. Firebase is linked; the
   API key restrictions are not set up yet. Security hardening is planned
   as its own task later.
+
+### City Royale: selling a building is its own money reason (contract 0.12.0)
+- `MoneyMoved.reason` gains `SELL_BUILDING` (a house or hotel sold to the
+  bank). `SELL` is now only a whole city or company sold, so the snackbar
+  and the history can say "sold a building" or "sold the city" instead of
+  "sold the property" for both.

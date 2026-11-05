@@ -33,7 +33,8 @@ class NativeAdLoader(
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     AppLog.d(TAG, "native: load failed code=${error.code} message=${error.message}")
                     if (error.code != AdRequest.ERROR_CODE_NETWORK_ERROR && error.code != AdRequest.ERROR_CODE_NO_FILL) {
-                        CrashReporter.record(IllegalStateException(error.message), "NativeAdLoader.load:" + error.code)
+                        // No ad to show (no fill, no network): normal, not an error.
+                        AppLog.d(LOG_ADS, "Native ad load failed: " + error.code + " " + error.message)
                     }
                     onFailed()
                 }
@@ -45,3 +46,5 @@ class NativeAdLoader(
 }
 
 private const val TAG = AppConstants.LOG_TAG_ADS
+
+private const val LOG_ADS = "Ads"

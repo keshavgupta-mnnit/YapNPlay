@@ -15,7 +15,6 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.AdsAppManagerHelper
-import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import java.lang.ref.WeakReference
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
@@ -106,7 +105,8 @@ class AdMobRewardedAds(
             override fun onAdFailedToLoad(error: LoadAdError) {
                 // No network or no ad to show is normal (ad blockers, a dropped connection): only real setup errors are reported.
                 if (error.code != AdRequest.ERROR_CODE_NETWORK_ERROR && error.code != AdRequest.ERROR_CODE_NO_FILL) {
-                    CrashReporter.record(IllegalStateException(error.message), "AdMobRewardedAds.preload:" + error.code)
+                    // No ad to show (no fill, no network): normal, not an error.
+                    AppLog.d(LOG_ADS, "Rewarded preload failed: " + error.code + " " + error.message)
                 }
                 loading = false
                 // "No fill" often clears up: try again a few times, waiting longer each time (a coins tap also retries).
@@ -153,7 +153,7 @@ class AdMobRewardedAds(
             }
             override fun onAdFailedToLoad(error: LoadAdError) {
                 AppLog.d(TAG, "load on demand failed: code=${error.code} message=${error.message}")
-                CrashReporter.record(IllegalStateException(error.message), "AdMobRewardedAds.load:" + error.code)
+                AppLog.d(LOG_ADS, "Rewarded load failed: " + error.code + " " + error.message)
                 if (cont.isActive) cont.resume(null)
             }
         })
@@ -170,7 +170,7 @@ class AdMobRewardedAds(
             }
             override fun onAdFailedToShowFullScreenContent(error: AdError) {
                 AppLog.d(TAG, "play failed: code=${error.code} message=${error.message}")
-                CrashReporter.record(IllegalStateException(error.message), "AdMobRewardedAds.show:" + error.code)
+                AppLog.d(LOG_ADS, "Rewarded show failed: " + error.code + " " + error.message)
                 if (cont.isActive) cont.resume(false)
             }
         }
@@ -188,3 +188,5 @@ private val RETRY_DELAYS_MS = longArrayOf(30_000L, 60_000L, 120_000L)
 
 /** How long an ad that wasn't ready may take to load when Watch Ad is tapped. */
 private const val LOAD_TIMEOUT_MS = 30_000L
+
+private const val LOG_ADS = "Ads"

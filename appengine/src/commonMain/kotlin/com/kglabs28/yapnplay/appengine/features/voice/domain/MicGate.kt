@@ -2,8 +2,9 @@ package com.kglabs28.yapnplay.appengine.features.voice.domain
 
 /**
  * The user's mic for one lobby or table: open while their mic is on and
- * the app is in front; with it off (app in front), it only listens for
- * talking on mute, so the seat can glow grey. Each change goes to [send] once.
+ * the app is in front. Muted (app in front), it is still listened to here on
+ * the phone, never sent, so the seat can glow grey for talking on mute.
+ * Each change goes to [send] once.
  */
 class MicGate(private val send: (open: Boolean, listenMuted: Boolean) -> Unit) {
     var open = false

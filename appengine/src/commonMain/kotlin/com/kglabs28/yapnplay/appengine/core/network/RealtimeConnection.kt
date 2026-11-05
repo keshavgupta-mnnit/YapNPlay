@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.core.network
 
+import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancel
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.protocol.Rejected
 import com.kglabs28.yapnplay.appengine.protocol.transport.Channel
@@ -62,6 +65,8 @@ class RealtimeConnection(
     private val _status = MutableStateFlow(ConnectionStatus.CONNECTING)
     /** A Retry tap: cuts the pause before the next try short. */
     private val retry = Outbox<Unit>(Outbox.CONFLATED)
+    /** The socket in use, so one that stopped answering can be dropped. */
+    private var live: DefaultClientWebSocketSession? = null
     /** The connect loop, started once on first use. */
     private val loop: Job by lazy { scope.launch { connectForever() } }
 
@@ -95,7 +100,14 @@ class RealtimeConnection(
             _connected.first { it }
             val envelope = Envelope(requestId, channel, type, json.encodeToJsonElement(serializer, value).jsonObject)
             outbox.send(json.encodeToString(Envelope.serializer(), envelope))
-            val answer = withTimeout(REPLY_TIMEOUT_MS) { reply.await() }
+            val answer = try {
+                withTimeout(REPLY_TIMEOUT_MS) { reply.await() }
+            } catch (e: TimeoutCancellationException) {
+                // No answer: the socket is most likely dead without knowing it. Drop it so the
+                // connect loop reconnects now and every table asks for its state again.
+                live?.cancel()
+                throw e
+            }
             if (answer.type == MessageType.REJECTED) {
                 val rejected = json.decodeFromJsonElement(Rejected.serializer(), answer.payload)
                 throw RealtimeRejectedException(rejected.code, rejected.message)
@@ -122,6 +134,7 @@ class RealtimeConnection(
                     header(APP_GAMES_HEADER, games().joinToString(","))
                 }) {
                     attempt = 0
+                    live = this
                     _connected.value = true
                     _status.value = ConnectionStatus.ONLINE
                     _connections.value += 1
@@ -132,6 +145,7 @@ class RealtimeConnection(
                         }
                     } finally {
                         writer.cancel()
+                        live = null
                     }
                 }
             } catch (e: Exception) {

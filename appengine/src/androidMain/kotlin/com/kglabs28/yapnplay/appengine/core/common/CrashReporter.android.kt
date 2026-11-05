@@ -1,7 +1,6 @@
 package com.kglabs28.yapnplay.appengine.core.common
 
 import android.util.Log
-import java.io.IOException
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 
 /**
@@ -14,8 +13,8 @@ actual object CrashReporter {
     actual fun record(exception: Throwable, context: String) {
         // Also in logcat (`adb logcat -s YapNPlay`), so failures show while testing.
         Log.w(LOG_TAG, context, exception)
-        // No network, a dropped connection, a timeout or the server's own "no": not bugs, so not reported.
-        if (ExpectedFailures.isExpected(exception) { it is IOException }) return
+        // The server's own "no", a 404 or a cancelled job: not bugs, so not reported.
+        if (ExpectedFailures.isExpected(exception)) return
         try {
             FirebaseCrashlytics.getInstance().setCustomKey("context", context)
             FirebaseCrashlytics.getInstance().recordException(exception)

@@ -10,10 +10,11 @@ class AdsAppManagerHelper(private val appManager: AppManager) {
     fun isEnabled(): Boolean = BuildInfo.isDebug || appManager.get(AppManagerKeys.Ads.ENABLED)
     /** The free-coins offer when the app opens (only while ads are on). */
     fun isLaunchOfferEnabled(): Boolean = isEnabled() && appManager.get(AppManagerKeys.Ads.LAUNCH_OFFER)
-    fun rewardedUnitId(): String = appManager.get(AppManagerKeys.Ads.REWARDED_UNIT_ID)
+    /** Debug builds always use Google's test unit: testing never makes requests or impressions on the real account. */
+    fun rewardedUnitId(): String = if (BuildInfo.isDebug) AppManagerKeys.Ads.REWARDED_UNIT_ID.default else appManager.get(AppManagerKeys.Ads.REWARDED_UNIT_ID)
     /** The ad pill over the game's top bar and under the connecting card (only while ads are on). */
     fun isNativeEnabled(): Boolean = isEnabled() && appManager.get(AppManagerKeys.Ads.NATIVE_ENABLED)
-    fun nativeUnitId(): String = appManager.get(AppManagerKeys.Ads.NATIVE_UNIT_ID)
+    fun nativeUnitId(): String = if (BuildInfo.isDebug) AppManagerKeys.Ads.NATIVE_UNIT_ID.default else appManager.get(AppManagerKeys.Ads.NATIVE_UNIT_ID)
     /** How long an all-game ad pill keeps one ad before the next (never under [MIN_REFRESH_MS]). */
     fun nativeRefreshMs(): Long = (appManager.get(AppManagerKeys.Ads.NATIVE_REFRESH_SECONDS) * MILLIS_PER_SECOND).coerceAtLeast(MIN_REFRESH_MS)
 

@@ -67,7 +67,9 @@ val coreModule = module {
             install(DefaultRequest) { url(config.serverBaseUrl()) }
             // An unreachable backend fails fast instead of leaving screens empty.
             install(HttpTimeout) { connectTimeoutMillis = CONNECT_TIMEOUT_MS }
-            install(WebSockets)
+            // A ping every few seconds: a connection the network dropped silently is noticed and
+            // reconnected, instead of moves waiting on a dead socket while voice still works.
+            install(WebSockets) { pingIntervalMillis = WS_PING_MS }
         }.also { client ->
             // Every call carries "Bearer <userId>.<secret>" except sign-up: guest, the phone's account
             // lookup and Play Games (which sends the saved one itself, never makes a guest just to send).
@@ -107,3 +109,4 @@ val coreModule = module {
 
 private const val BEARER = "Bearer "
 private const val CONNECT_TIMEOUT_MS = 10_000L
+private const val WS_PING_MS = 15_000L

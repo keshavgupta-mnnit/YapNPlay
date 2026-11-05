@@ -352,6 +352,7 @@ private fun TableMiddle(
                         speakerOn = state.speakerOn,
                         onToggleMic = { send(DoodleKingMatchIntent.ToggleMic(micGranted())) },
                         onToggleSpeaker = { send(DoodleKingMatchIntent.ToggleSpeaker) },
+                        modifier = Modifier.align(Alignment.BottomEnd),
                     )
                 } else {
                     controls()

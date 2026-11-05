@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.features.voice.data.remote
 
+import com.kglabs28.yapnplay.appengine.protocol.VoiceToken
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Clock
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import com.kglabs28.yapnplay.appengine.features.voice.domain.MySpeech
@@ -33,8 +37,8 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  * Live voice. Each screen that talks (lobby, match table) collects
  * [speakers] for its target; the newest one still open decides which
  * voice room the device is in, so closing a match drops back to the
- * lobby's room. A lobby and the matches started from it share one voice
- * room, so moving between them doesn't reconnect.
+ * lobby's room. A match has its own voice room (its players and
+ * spectators), apart from its lobby's, so the lobby never hears the table.
  *
  * The voice room is joined only while the screen wants it
  * ([setVoiceWanted]): another person is there and someone's mic is on.
@@ -134,6 +138,7 @@ class VoiceClientImpl(
             }
         }
         scope.launch { follow() }
+        scope.launch { prefetch() }
     }
 
     override fun setVoiceWanted(target: VoiceTarget, wanted: Boolean, talkers: Set<String>) {
@@ -141,14 +146,46 @@ class VoiceClientImpl(
         this.wanted.update { if (wanted) it + target else it - target }
     }
 
-    /** Keeps the device in the newest open screen's voice room, only while that screen wants it. */
+    /** Voice passes by target, fetched ahead (as a screen opens) so pressing the mic only has to connect. */
+    private val passes = mutableMapOf<VoiceTarget, VoiceToken>()
+    private val passLock = Mutex()
+
+    /** A pass for [target] that is still good for a while: the one fetched ahead, else a fresh one. */
+    private suspend fun pass(target: VoiceTarget): VoiceToken = passLock.withLock {
+        val now = Clock.System.now().toEpochMilliseconds()
+        passes[target]?.takeIf { it.expiresAt - now > PASS_MARGIN_MS } ?: tokens.token(target).also { passes[target] = it }
+    }
+
+    /** Fetches the pass of each screen that may talk as it opens (cheap, our own backend; no voice minutes). */
+    private suspend fun prefetch() {
+        activeTarget.collectLatest { target ->
+            target ?: return@collectLatest
+            try {
+                pass(target)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Fetched again when the voice room is really needed.
+            }
+        }
+    }
+
+    /**
+     * Keeps the device in the newest open screen's voice room, only while that screen wants it. A muted
+     * mic keeps the room (the user still hears everyone); it is left only once there is nothing to send
+     * or hear: mic off and speaker off, or mic off and every talker there muted on this phone.
+     */
     private suspend fun follow() {
         var joinedRoom: String? = null
-        combine(open.map { it.lastOrNull()?.target }, wanted) { target, want -> target?.takeIf { it in want } }
+        combine(open.map { it.lastOrNull()?.target }, wanted, micOpen, talkers, muted) { target, want, micIsOpen, heard, mutedIds ->
+            target?.takeIf { it in want && (micIsOpen || (heard[it].orEmpty() - mutedIds).isNotEmpty()) }
+        }
             .distinctUntilChanged().collectLatest { target ->
             if (target == null) {
-                // A screen handing over to the next one (lobby → match) shouldn't drop the call.
-                delay(LEAVE_GRACE_MS)
+                // Stays a little after the last mic/speaker need ends: a screen handing over (lobby → match)
+                // or a mic switched off and on again doesn't reconnect, and the wait stays short so no voice
+                // minutes are spent on a silent room.
+                delay(LINGER_MS)
                 engine.disconnect()
                 joinedRoom = null
                 return@collectLatest
@@ -158,7 +195,7 @@ class VoiceClientImpl(
             var reported = false
             while (true) {
                 try {
-                    val pass = tokens.token(target)
+                    val pass = pass(target)
                     val room = voiceRoomOf(pass.token)
                     if (!(engine.connected.value && room != null && room == joinedRoom)) {
                         joinedRoom = null
@@ -218,7 +255,10 @@ class VoiceClientImpl(
     }.getOrNull()
 
     private companion object {
-        const val LEAVE_GRACE_MS = 1_500L
+        /** Stay in the voice room this long after it stops being needed (re-enabling the mic is then instant). */
+        const val LINGER_MS = 15_000L
+        /** A fetched pass is used only while it has at least this long left. */
+        const val PASS_MARGIN_MS = 60_000L
         const val RETRY_MIN_MS = 2_000L
         const val RETRY_MAX_MS = 30_000L
         /** Someone with their mic on not received this long: rejoin. */

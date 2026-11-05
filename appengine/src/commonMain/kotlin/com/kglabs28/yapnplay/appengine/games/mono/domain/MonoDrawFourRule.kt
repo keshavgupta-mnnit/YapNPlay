@@ -9,3 +9,6 @@ import com.kglabs28.yapnplay.appengine.games.mono.identity.MonoConstants
  */
 fun MonoCard.heldBackByColour(hand: List<MonoCard>, colour: MonoConstants.Color?, anytime: Boolean): Boolean =
     this is MonoCard.PrismDrawFour && !anytime && colour != null && hand.any { it.playColor() == colour }
+
+/** The colour in play: the named one, else the face card's. */
+val MonoState.colourInPlay: MonoConstants.Color? get() = topCardColor ?: discardPile.lastOrNull()?.playColor()

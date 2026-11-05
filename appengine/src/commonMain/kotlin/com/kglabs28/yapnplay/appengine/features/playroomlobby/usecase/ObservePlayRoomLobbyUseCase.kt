@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.playroomlobby.usecase
 
+import com.kglabs28.yapnplay.appengine.features.nearby.usecase.GetMyPlayerIdUseCase
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.features.gamecatalog.repository.GameCatalogRepository
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.LobbyData
@@ -19,10 +20,12 @@ class ObservePlayRoomLobbyUseCase(
     private val lobbyRepository: PlayRoomLobbyRepository,
     private val catalogRepository: GameCatalogRepository,
     private val profileRepository: ProfileRepository,
+    /** Offline (a Nearby party) the profile can't be fetched: the account saved on the phone. */
+    private val myPlayerId: GetMyPlayerIdUseCase,
 ) {
 
     operator fun invoke(roomId: String): Flow<LobbyData> = flow {
-        val myUserId = (profileRepository.fetchProfileData() as? AppResult.Success)?.data?.userId.orEmpty()
+        val myUserId = (profileRepository.fetchProfileData() as? AppResult.Success)?.data?.userId ?: myPlayerId()
         val games = catalogRepository.getGames()
         emitAll(
             combine(

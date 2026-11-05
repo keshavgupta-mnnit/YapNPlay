@@ -112,7 +112,13 @@ class PlayRoomsViewModel(
     }
 
     private fun PlayRoomInvite.toUi(): GroupInviteUi =
-        GroupInviteUi(inviteId, roomName, icon, RoomStrings.groupInvitedBy(invitedBy.name, memberCount), invitedBy.avatarId)
+        GroupInviteUi(
+            inviteId = inviteId,
+            roomName = roomName,
+            icon = icon,
+            detail = if (temporary) RoomStrings.playNowInvitedBy(invitedBy.name) else RoomStrings.groupInvitedBy(invitedBy.name, memberCount),
+            inviterAvatarId = invitedBy.avatarId,
+        )
 
     private fun updateGroup(change: CreateGroupUi.() -> CreateGroupUi) {
         setState { copy(createGroup = createGroup?.change()) }
@@ -175,11 +181,19 @@ class PlayRoomsViewModel(
 
     /** Accepting joins the group (it appears in Your Rooms); the list closes once it's empty. */
     private suspend fun answer(inviteId: String, accept: Boolean) {
-        if (respondToInvite(inviteId, accept) is AppResult.Failure) {
+        val result = respondToInvite(inviteId, accept)
+        if (result is AppResult.Failure) {
             setState { copy(inviteError = RoomStrings.groupInviteFailed) }
             return
         }
         load()
+        // An invite to play now (Quick Play with friends): straight into its lobby.
+        val party = (result as? AppResult.Success)?.data?.takeIf { it.temporary }
+        if (party != null) {
+            setState { copy(invitesOpen = false) }
+            emitEffect(PlayRoomsEffect.OpenRoom(party.id))
+            return
+        }
         if (state.value.invites.isEmpty()) setState { copy(invitesOpen = false) }
     }
 

@@ -183,6 +183,7 @@ object RoomStrings {
     fun roomsInvites(count: Int) = if (count > 0) "INVITES ($count)" else "INVITES"
     const val groupInvitesTitle = "ROOM INVITES"
     fun groupInvitedBy(name: String, members: Int) = "Invited by $name · $members members"
+    fun playNowInvitedBy(name: String) = "$name wants to play now · Quick Play"
     const val groupAccept = "Accept"
     const val groupDecline = "Decline"
     const val groupNoInvites = "No room invites right now."

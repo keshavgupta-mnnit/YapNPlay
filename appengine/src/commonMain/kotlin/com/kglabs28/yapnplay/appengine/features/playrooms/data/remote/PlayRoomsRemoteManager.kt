@@ -51,6 +51,13 @@ class PlayRoomsRemoteManager(private val api: PlayRoomsApi) {
         AppResult.Failure(e.toJoinError())
     }
 
+    suspend fun createTempRoom(): AppResult<CreatedPlayRoom> = try {
+        AppResult.Success(api.createRoom(CreateRoom(temporary = true)).toCreated())
+    } catch (e: Exception) {
+        CrashReporter.record(e, "PlayRoomsRemoteManager.createTempRoom")
+        AppResult.Failure(e.toJoinError())
+    }
+
     /** The ids that got an invite. */
     suspend fun inviteToRoom(roomId: String, userIds: List<String>, userCodes: List<String> = emptyList()): AppResult<List<String>> = try {
         AppResult.Success(api.inviteToRoom(roomId, InviteToRoomBody(userIds, userCodes)).invited)

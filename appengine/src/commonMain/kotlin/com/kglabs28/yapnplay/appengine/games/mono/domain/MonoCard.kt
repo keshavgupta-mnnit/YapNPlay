@@ -1,16 +1,17 @@
 package com.kglabs28.yapnplay.appengine.games.mono.domain
 
 import com.kglabs28.yapnplay.appengine.games.mono.identity.MonoConstants
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class MonoCard {
-    data class NumberCard(val color: MonoConstants.Color, val number: Int) : MonoCard()
-    data class ReverseCard(val color: MonoConstants.Color) : MonoCard()
-    data class SkipCard(val color: MonoConstants.Color) : MonoCard()
-    data class DrawTwoCard(val color: MonoConstants.Color) : MonoCard()
-    object PrismColorWild : MonoCard()
-    object PrismDrawFour : MonoCard()
+    @Serializable @SerialName("NumberCard") data class NumberCard(val color: MonoConstants.Color, val number: Int) : MonoCard()
+    @Serializable @SerialName("ReverseCard") data class ReverseCard(val color: MonoConstants.Color) : MonoCard()
+    @Serializable @SerialName("SkipCard") data class SkipCard(val color: MonoConstants.Color) : MonoCard()
+    @Serializable @SerialName("DrawTwoCard") data class DrawTwoCard(val color: MonoConstants.Color) : MonoCard()
+    @Serializable @SerialName("PrismColorWild") object PrismColorWild : MonoCard()
+    @Serializable @SerialName("PrismDrawFour") object PrismDrawFour : MonoCard()
 
     fun colorName(): String = when (this) {
         is NumberCard -> when (color) { MonoConstants.Color.RED -> "Red"; MonoConstants.Color.GREEN -> "Green"; MonoConstants.Color.BLUE -> "Blue"; MonoConstants.Color.GOLD -> "Gold" }
@@ -32,9 +33,6 @@ sealed class MonoCard {
 
     fun isPrism(): Boolean = this is PrismColorWild || this is PrismDrawFour
 
-    /** A power card is every card that is not a number (No Power Finish: never the last card played). */
-    fun isPower(): Boolean = this !is NumberCard
-
     /** Cards this one makes the next player draw; 0 when it is not a draw card. */
     fun penaltyValue(): Int = when (this) {
         is DrawTwoCard -> 2
@@ -50,4 +48,7 @@ sealed class MonoCard {
         is PrismColorWild -> "PRISM"
         is PrismDrawFour -> "+4"
     }
+
+    /** A power card is every card that is not a number (No Power Finish: never the last card played). */
+    fun isPower(): Boolean = this !is NumberCard
 }

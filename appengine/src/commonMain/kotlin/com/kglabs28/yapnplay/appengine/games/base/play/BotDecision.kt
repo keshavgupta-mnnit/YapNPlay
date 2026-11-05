@@ -42,3 +42,33 @@ interface BotDecision<T> {
         const val TRACE_OPTIONS = 3
     }
 }
+
+/**
+ * One option's expected [gain] (future earnings, progress…), [cost] paid
+ * now, and [risk] (chance of a loss × its size). [note] says why, for the
+ * trace. Use [Evaluation.never] for an option a person would never take.
+ */
+data class Evaluation(
+    val gain: Double = 0.0,
+    val cost: Double = 0.0,
+    val risk: Double = 0.0,
+    val note: String = "",
+) {
+    fun value(riskWeight: Double): Double = gain - cost - risk * riskWeight
+
+    companion object {
+        fun never(note: String) = Evaluation(cost = Double.POSITIVE_INFINITY, note = note)
+        fun always(note: String) = Evaluation(gain = Double.POSITIVE_INFINITY, note = note)
+    }
+}
+
+/**
+ * Behind → take more risk, leading → less: [min] + ([max] − [min]) × how
+ * close the seat is to the leader (its score / the best score, 0–1).
+ */
+object Standing {
+    fun factor(myScore: Double, bestScore: Double, min: Double, max: Double): Double {
+        val share = if (bestScore <= 0) 1.0 else (myScore / bestScore).coerceIn(0.0, 1.0)
+        return min + (max - min) * share
+    }
+}

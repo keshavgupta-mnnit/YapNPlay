@@ -13,6 +13,9 @@ import com.kglabs28.yapnplay.appengine.resources.bg_home_main
 import com.kglabs28.yapnplay.appengine.resources.bg_leader_board
 import com.kglabs28.yapnplay.appengine.resources.bg_play_room_create
 import com.kglabs28.yapnplay.appengine.resources.ic_app_logo
+import com.kglabs28.yapnplay.appengine.resources.img_play_hub_friends
+import com.kglabs28.yapnplay.appengine.resources.img_play_hub_nearby
+import com.kglabs28.yapnplay.appengine.resources.img_play_hub_randoms
 import com.kglabs28.yapnplay.appengine.resources.ic_avatar_01
 import com.kglabs28.yapnplay.appengine.resources.ic_avatar_02
 import com.kglabs28.yapnplay.appengine.resources.ic_avatar_03
@@ -55,6 +58,9 @@ fun builtInPainter(image: BuiltInImage): Painter = painterResource(
         BuiltInImage.GAME_ARENA -> Res.drawable.bg_game_arena
         BuiltInImage.MONO_CARD_BACK -> Res.drawable.img_mono_card_back
         BuiltInImage.CREATE_ROOM_BACK -> Res.drawable.bg_play_room_create
+        BuiltInImage.PLAY_HUB_RANDOMS -> Res.drawable.img_play_hub_randoms
+        BuiltInImage.PLAY_HUB_FRIENDS -> Res.drawable.img_play_hub_friends
+        BuiltInImage.PLAY_HUB_NEARBY -> Res.drawable.img_play_hub_nearby
     },
 )
 

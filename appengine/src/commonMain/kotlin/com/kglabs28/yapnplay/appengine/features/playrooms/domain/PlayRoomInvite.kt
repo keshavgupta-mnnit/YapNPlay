@@ -10,4 +10,6 @@ data class PlayRoomInvite(
     val icon: PlayRoomIcon,
     val memberCount: Int,
     val invitedBy: Friend,
+    /** An invite to play now (Quick Play with friends): accepting opens its lobby straight away. */
+    val temporary: Boolean = false,
 )

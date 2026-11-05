@@ -33,7 +33,8 @@ fun RoomSnapshot.toLobbyRoom(now: Instant): LobbyRoom = LobbyRoom(
             speakerOn = member.speakerOn,
             isFriend = member.isFriend,
             isLeader = member.userId == room.leaderId,
-            isAdmin = member.userId == room.adminId,
+            // A Quick Play party has its leader only (the server keeps its admin = leader).
+            isAdmin = !room.temporary && member.userId == room.adminId,
             avatarId = member.avatarId,
         )
     },
@@ -49,4 +50,5 @@ fun RoomSnapshot.toLobbyRoom(now: Instant): LobbyRoom = LobbyRoom(
     countdownStop = room.countdownStop?.let {
         CountdownStopInfo(CountdownStopCause.valueOf(it.reason.name), it.byUserId, it.byName, now + (it.at - serverTime).milliseconds)
     },
+    temporary = room.temporary,
 )

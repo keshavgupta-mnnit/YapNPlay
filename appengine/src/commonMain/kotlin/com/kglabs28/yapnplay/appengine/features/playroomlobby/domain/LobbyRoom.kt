@@ -29,4 +29,6 @@ data class LobbyRoom(
     val waitingList: List<JoinRequest> = emptyList(),
     /** Why the last start countdown stopped, and who stopped it; null since one started. */
     val countdownStop: CountdownStopInfo? = null,
+    /** Quick Play with friends: one leader, anyone invites friends, gone once everyone left. */
+    val temporary: Boolean = false,
 )

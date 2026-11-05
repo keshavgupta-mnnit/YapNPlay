@@ -68,14 +68,16 @@ object LobbyRules {
      * Menu for tapping [target]: role hand-offs you hold, friend add/remove,
      * and — for the admin, who manages membership — remove from the room.
      */
-    fun menuOptions(me: LobbyMember, target: LobbyMember): List<MemberMenuOption> {
+    /** [temporary]: a Quick Play party has its leader only, so no admin options. */
+    fun menuOptions(me: LobbyMember, target: LobbyMember, temporary: Boolean = false): List<MemberMenuOption> {
         if (me.userId == target.userId) return emptyList()
+        val admin = me.isAdmin && !temporary
         return buildList {
             // Only someone online can take over picking the game.
             if (me.isLeader && target.online) add(MemberMenuOption.MAKE_LEADER)
-            if (me.isAdmin) add(MemberMenuOption.MAKE_ADMIN)
+            if (admin) add(MemberMenuOption.MAKE_ADMIN)
             add(if (target.isFriend) MemberMenuOption.REMOVE_FRIEND else MemberMenuOption.ADD_FRIEND)
-            if (me.isAdmin) add(MemberMenuOption.REMOVE_FROM_ROOM)
+            if (admin) add(MemberMenuOption.REMOVE_FROM_ROOM)
         }
     }
 }

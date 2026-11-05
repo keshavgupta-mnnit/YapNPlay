@@ -1,10 +1,9 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.utils
 
-import com.kglabs28.yapnplay.appengine.games.base.identity.GameIds
 import com.kglabs28.yapnplay.appengine.games.base.rules.HouseRuleOption
 
 // Identity and showcase (shared with the server's game list).
-const val ROYAL_LUDO_ID = GameIds.ROYAL_LUDO
+const val ROYAL_LUDO_ID = "royal-ludo"
 const val ROYAL_LUDO_DISPLAY_NAME = "Royal Ludo"
 val ROYAL_LUDO_TAGLINES = listOf("Roll", "Race", "Rule")
 
@@ -19,7 +18,7 @@ const val ROYAL_LUDO_PLAYERS = 4
 const val ROYAL_LUDO_QUICK_PLAY_SEATS = ROYAL_LUDO_PLAYERS
 
 /** Quick Play search window before empty seats fill with CPU players. */
-const val ROYAL_LUDO_SEARCH_SECONDS = 30L
+const val ROYAL_LUDO_SEARCH_SECONDS = 15L
 
 /** Seconds per turn before the bot plays it. */
 const val ROYAL_LUDO_TURN_SECONDS = 10L

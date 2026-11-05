@@ -21,6 +21,8 @@ data class PlayRoomLobbyState(
     val roomName: String = "",
     val isLeader: Boolean = false,
     val isAdmin: Boolean = false,
+    /** Quick Play with friends: no leaderboard, link or admin; anyone adds friends; leaving ends your part. */
+    val temporary: Boolean = false,
     val members: List<LobbyMemberUi> = emptyList(),
     val membersLabel: String = "",
     val games: List<GameCatalogItem> = emptyList(),
@@ -62,7 +64,34 @@ sealed interface LobbySheet {
 
     /** The group's new name, being typed. */
     data class EditName(val name: String) : LobbySheet
+
+    /**
+     * A Quick Play party's Add Friends: online friends (or, offline, the
+     * phones around) as rows with what they are doing and an Add button.
+     */
+    data class InvitePlayers(
+        val title: String,
+        val emptyText: String,
+        val rows: List<InviteRowUi> = emptyList(),
+        val loading: Boolean = true,
+        val error: String? = null,
+    ) : LobbySheet
 }
+
+/** One person who can be invited to the party, ready to draw. */
+data class InviteRowUi(
+    /** A friend's account id, or a nearby phone's link id. */
+    val id: String,
+    val name: String,
+    val avatarId: String,
+    /** "Online", "Playing a game", "In a room", "Invited"… */
+    val status: String,
+    val tone: InviteTone,
+    val canAdd: Boolean,
+)
+
+/** How the row's status reads: free (green), busy (gold), away (grey), or already asked / in (accent). */
+enum class InviteTone { FREE, BUSY, AWAY, DONE }
 
 /** One Waiting List entry, ready to draw. */
 data class WaitingRequestUi(val userId: String, val name: String)
@@ -159,6 +188,8 @@ sealed interface PlayRoomLobbyIntent : UiIntent {
     data class AddFriendCodeChanged(val code: String) : PlayRoomLobbyIntent
     data class ToggleInvite(val userId: String) : PlayRoomLobbyIntent
     data object SendInvites : PlayRoomLobbyIntent
+    /** Quick Play party: invite this one person now (friend id or nearby phone). */
+    data class InvitePlayer(val id: String) : PlayRoomLobbyIntent
     data object OpenEditName : PlayRoomLobbyIntent
     data class EditNameChanged(val name: String) : PlayRoomLobbyIntent
     data object SaveName : PlayRoomLobbyIntent

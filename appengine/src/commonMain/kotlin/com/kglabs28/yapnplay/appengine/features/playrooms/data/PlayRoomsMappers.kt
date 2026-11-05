@@ -23,6 +23,7 @@ fun RoomSummary.toDomain(): PlayRoom = PlayRoom(
     liveCount = onlineCount,
     isLeader = isLeader,
     icon = PlayRoomIcon.fromKey(icon),
+    temporary = temporary,
 )
 
 fun JoinRoomResult.toDomain(): JoinOutcome {
@@ -51,6 +52,7 @@ fun RoomInviteSummary.toDomain(): PlayRoomInvite = PlayRoomInvite(
     icon = PlayRoomIcon.fromKey(roomIcon),
     memberCount = memberCount,
     invitedBy = invitedBy.toDomain(),
+    temporary = temporary,
 )
 
 fun RoomInfo.toCreated(): CreatedPlayRoom = CreatedPlayRoom(roomId = id, name = name, code = code)

@@ -50,6 +50,16 @@ object YapNPlayColors {
     val HomeCardFrostBottom = Color(0x80302659)
     /** "FRIENDS" in the home card's title, and that card's rim (home design 2026-10). */
     val FriendsAccent = Color(0xFF9878E8)
+    /** Quick Play hub (design 2026-11): each way to play has its accent (title, rim), button and button rim. */
+    val PlayRandomsAccent = Color(0xFF3FE0C5)
+    val PlayRandomsCta = Color(0xFF2AA393)
+    val PlayRandomsCtaRim = Color(0xFF9DF5E6)
+    val PlayFriendsAccent = Color(0xFFC37BF5)
+    val PlayFriendsCta = Color(0xFFA453D8)
+    val PlayFriendsCtaRim = Color(0xFFE6B6FF)
+    val PlayNearbyAccent = Color(0xFFFF9F5A)
+    val PlayNearbyCta = Color(0xFFE5664B)
+    val PlayNearbyCtaRim = Color(0xFFFFC3A8)
     /** The XP level shield in the top bar: purple, lighter at the top. */
     val LevelShieldTop = Color(0xFF8848C0)
     val LevelShieldBottom = Color(0xFF5828B0)

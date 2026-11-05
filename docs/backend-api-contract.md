@@ -30,9 +30,24 @@ decisions that win).
 ## Versioning
 
 `CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
-**0.12.1**. Patch: optional field / new message. Minor: new required
+**0.12.3**. Patch: optional field / new message. Minor: new required
 field, channel or game-interface member. Major: breaking change.
 Every bump is announced in `docs/decisions.md`.
+
+0.12.3 added: `FriendSummary.activity` (`OFFLINE`, `ONLINE`, `IN_ROOM`,
+`PLAYING`), and the `PlayInvite(inviteId, roomId, roomName, from)` push on the
+ROOM channel, sent to a connected friend invited to a temporary room (the push
+notification still goes too). The app shows a popup; JOIN is the usual
+`POST /rooms/invites/{inviteId}/accept`.
+
+0.12.2 added: Quick Play with friends. Optional `temporary` (default false) on
+`CreateRoom`, `RoomInfo`, `RoomSummary` and `RoomInviteSummary`. A temporary room
+needs no name or invitees, has one leader (admin = leader; `RenameRoom` and
+`TransferAdmin` are refused), no Waiting List (`JoinRoom` by a non-member is
+NOT_FOUND), and is deleted when its last member leaves, or 30 s after nobody is
+online in it and no match of it is running. It is not counted toward
+`maxRoomsPerUser`; `/rooms/mine` lists it flagged and the app hides it. Its
+invite push reads "<name> wants to play with you now".
 
 0.12.1 added: Doodle King `DoodleKingPublicState.wordCategory` and `wordLanguage`
 (optional strings: the word's simple group — Animals, Food, Objects, Nature,

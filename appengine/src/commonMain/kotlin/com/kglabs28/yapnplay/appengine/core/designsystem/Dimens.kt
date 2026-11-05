@@ -324,6 +324,14 @@ class YapNPlayDimens {
     val homeHeaderIcon: Dp get() = 24.dp.scaled()
     val homePillarIcon: Dp get() = 14.dp.scaled()
     val homeCtaHeight: Dp get() = 28.dp.scaled()
+    /** Quick Play hub cards: header icon circle, status pill, the friends' stacked avatars (and their overlap), button. */
+    val playHubHeaderIcon: Dp get() = 28.dp.scaled()
+    val playHubPillHeight: Dp get() = 22.dp.scaled()
+    val playHubPillAvatar: Dp get() = 16.dp.scaled()
+    val playHubAvatarOverlap: Dp get() = 5.dp.scaled()
+    val playHubCtaHeight: Dp get() = 32.dp.scaled()
+    /** A party's Add Friends list: scrolls past this height. */
+    val lobbyInviteListMaxHeight: Dp get() = 220.dp.scaled()
     val homeBannerButtonHeight: Dp get() = 30.dp.scaled()
     /** The home cards' corners on their leaning edges (rounder than their outer ones). */
     val homeCardInnerRadius: Dp get() = 30.dp.scaled()

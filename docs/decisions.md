@@ -3,6 +3,57 @@
 `docs/project-report.md` is the original plan. These later decisions win
 where they disagree. Newest first. Every AI agent reads this file too.
 
+## 2026-11-05 — Quick Play hub and Quick Play with friends (contract 0.12.2)
+
+- **Quick Play opens a hub**, not the game catalog: the Games tab (and Home's
+  QUICK PLAY) shows three cards — Play With Randoms (the old game catalog,
+  with a back arrow to the hub), Play With Friends and Offline Nearby.
+- **Play With Friends = a temporary room** ("party"), made with
+  `CreateRoom(temporary = true)`: no name or invitees needed (the server names
+  it "<name>'s Party"). It reuses the Game Room lobby with these differences:
+  - **One leader, no admin.** The server keeps admin = leader; rename and a
+    separate admin are refused. The app shows no admin options, no waiting
+    list, no share link, no leaderboard.
+  - **Anyone adds friends** (Add Friends sits in the top bar). Accepting a
+    party invite opens its lobby at once. No joining by code.
+  - **Gone when everyone leaves.** Back in a party leaves it (LeaveRoom); the
+    last one out deletes it. If everyone just drops (connection, app killed),
+    the server waits 30 s for someone to return, then deletes it. A running
+    match keeps it alive (players come back to the lobby after).
+  - It never shows in Your Rooms and never counts toward the rooms-per-user limit.
+- **Add Friends in a party** (where Leaderboard is in a Game Room) lists people
+  one per row with what they are doing — Online, In a room, Playing a game,
+  Offline, Invited — and **Add +** at the end. Adding asks them at once.
+- **Play-now invites pop up anywhere** in the app except a room lobby or a
+  table (there they wait until the user leaves). JOIN opens the party's lobby;
+  "Not now" declines. Online they come as a `PlayInvite` push (contract 0.12.3).
+
+## 2026-11-05 — Offline Nearby play
+
+- **The Nearby card opens the same party lobby** as Play With Friends. The
+  phone that tapped it hosts: the party's room and its matches run on that
+  phone, with the backend's own game rules (`features/nearby/host/`, ported
+  from the backend's match sessions). Other phones talk to it over Google
+  Nearby Connections (Bluetooth + Wi-Fi, no internet), using the same
+  envelopes as the backend, so the lobby and every table work unchanged.
+- **The app's game engines were synced to the backend's** (`games/`), since a
+  hosting phone must play by the current rules. Online, the backend still
+  decides everything; offline the hosting phone is the referee.
+- **Add Friends lists phones around** that are findable: a phone is findable
+  while YapNPlay is open, Nearby permission is granted, and it isn't in a
+  party. Adding sends the invite over the radio; the popup appears on that
+  phone, and JOIN puts it in the host's lobby.
+- **No coins or XP offline.** No leagues, voice, emoji gifts or seat handover
+  either (those need the server). A lone host may play the CPUs.
+- **The host leaving ends the party** for everyone (the games run on that
+  phone); a guest leaving just leaves. A guest who drops off mid-match has
+  the bot play their seat after 20 s until they are back.
+- **No internet at launch opens the app anyway** (no "Can't reach YapNPlay"
+  block). Offline, Randoms and Friends show "Needs internet", the Rooms tab
+  says so too, and only Nearby works. A drop mid-session still shows
+  "Connection lost", now with **Continue offline**. The app asks for the
+  Nearby permission once when it finds itself offline.
+
 ## 2026-10-18 — profile and friends (contract 0.3.1)
 
 - **Friends are in scope** (the report listed them as post-POC). The

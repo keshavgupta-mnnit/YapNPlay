@@ -3,7 +3,15 @@ package com.kglabs28.yapnplay.appengine.ui.components.common
 import androidx.compose.runtime.Composable
 
 /** Runtime permissions the app asks for. */
-enum class AppPermission { MICROPHONE, NOTIFICATIONS }
+enum class AppPermission(
+    /** Asked for on the first launch (Nearby only when the user hosts or scans). */
+    val askedAtStartup: Boolean = true,
+) {
+    MICROPHONE,
+    NOTIFICATIONS,
+    /** Finding and linking phones around (Bluetooth, nearby Wi-Fi) for offline play. */
+    NEARBY(askedAtStartup = false),
+}
 
 /**
  * Check / ask / send-to-Settings for one permission, from a composable.

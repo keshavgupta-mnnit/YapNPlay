@@ -94,6 +94,8 @@ kotlin {
             implementation(libs.play.games.v2)
             // Rewarded ads (coins, lifting a play block).
             implementation(libs.play.services.ads)
+            // Offline Nearby play (Nearby Connections: Bluetooth and Wi-Fi between phones).
+            implementation(libs.play.services.nearby)
         }
     }
 }

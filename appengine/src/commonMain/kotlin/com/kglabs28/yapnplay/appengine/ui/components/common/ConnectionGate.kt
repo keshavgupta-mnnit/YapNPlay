@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import com.kglabs28.yapnplay.appengine.core.network.OfflineMode
 import com.kglabs28.yapnplay.appengine.ui.placeholders.HomeBackgroundArtwork
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -33,17 +34,20 @@ import com.kglabs28.yapnplay.appengine.appmanager.helpers.AdsAppManagerHelper
 import org.koin.compose.koinInject
 
 /**
- * Shows the app only once the backend answers, so no screen ever opens
- * empty. Before the first connection: a "Connecting…" card, or "Can't
- * reach YapNPlay" with Retry when it fails. Later drops cover the app
- * with "Connection lost" (after a short grace, so a quick reconnect
- * shows nothing) and clear by themselves when it is back. While ads are
- * on, the first "Connecting…" card stays at least [AD_HOLD_MS], so its ad is seen.
+ * Holds the app while the first connection is tried ("Connecting…"), so
+ * no screen opens empty. If the backend can't be reached the app opens
+ * anyway: offline only Nearby play works (the Quick Play hub says so).
+ * A drop later covers the app with "Connection lost" (after a short grace,
+ * so a quick reconnect shows nothing) with Retry and Continue offline; it
+ * clears by itself when the connection is back, and never covers a Nearby
+ * party. While ads are on, the first "Connecting…" card stays at least
+ * [AD_HOLD_MS], so its ad is seen.
  */
 @Composable
 fun ConnectionGate(
     modifier: Modifier = Modifier,
     realtime: RealtimeGateway = koinInject(),
+    offlineMode: OfflineMode = koinInject(),
     ads: AdsAppManagerHelper = koinInject(),
     content: @Composable () -> Unit,
 ) {
@@ -52,11 +56,19 @@ fun ConnectionGate(
     val status by realtime.status.collectAsState()
     var everOnline by rememberSaveable { mutableStateOf(false) }
     var showLost by remember { mutableStateOf(false) }
+    /** The user chose to carry on offline: no cover until the connection is back. */
+    var offlineChosen by remember { mutableStateOf(false) }
+    val inParty by offlineMode.active.collectAsState()
     LaunchedEffect(status) {
         showLost = false
         if (status == ConnectionStatus.ONLINE) {
             if (!everOnline && ads.isNativeEnabled()) delay(AD_HOLD_MS - shownAt.elapsedNow().inWholeMilliseconds)
             everOnline = true
+            offlineChosen = false
+        } else if (status == ConnectionStatus.OFFLINE && !everOnline) {
+            // No internet from the start: open the app; only Nearby play works.
+            everOnline = true
+            offlineChosen = true
         } else {
             delay(LOST_GRACE_MS)
             showLost = true
@@ -78,7 +90,7 @@ fun ConnectionGate(
             }
         } else {
             content()
-            if (showLost) {
+            if (showLost && !offlineChosen && !inParty) {
                 val colors = YapNPlayTheme.colors
                 Box(
                     modifier = Modifier
@@ -92,9 +104,10 @@ fun ConnectionGate(
                         title = Strings.connectionLost,
                         body = if (status == ConnectionStatus.OFFLINE) Strings.connectionOfflineBody else Strings.connectionLostBody,
                         onRetry = realtime::retryNow.takeIf { status == ConnectionStatus.OFFLINE },
+                        onContinueOffline = { offlineChosen = true },
                     )
                 }
-                BlockBackPress(enabled = true, onBack = {})
+                BlockBackPress(enabled = true, onBack = { offlineChosen = true })
             }
         }
     }

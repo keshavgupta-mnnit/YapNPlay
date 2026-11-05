@@ -14,6 +14,7 @@ import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosState
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosTurnState
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.MonoChaosView
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.buildMonoChaosDeck
+import com.kglabs28.yapnplay.appengine.games.monochaos.domain.canStackOnto
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.isPlayableOn
 import com.kglabs28.yapnplay.appengine.games.monochaos.domain.rules.MonoChaosRules
 import com.kglabs28.yapnplay.appengine.games.monochaos.identity.MonoChaosConstants
@@ -65,8 +66,8 @@ class MonoChaosEngine : Game {
 
         val drawPile = deck.subList(cardIndex, deck.size).toMutableList()
 
-        // The starting card is never a multi-colour card: keep flipping.
-        while (drawPile[0].isPrism()) drawPile.add(drawPile.removeAt(0))
+        // The starting card is always a number card (no action on the first player): keep flipping.
+        while (drawPile[0] !is MonoChaosCard.NumberCard) drawPile.add(drawPile.removeAt(0))
         val face = drawPile.removeAt(0)
 
         val firstSeat = random.nextInt(seatCount) + 1
@@ -85,14 +86,21 @@ class MonoChaosEngine : Game {
         if (s.phase == MonoChaosPhase.FINISHED) return rejected("MATCH_ENDED", "Match ended")
 
         // The MONO! window can shut from outside a seat's turn.
-        if (action is MonoChaosAction.ExpireMonoCall) return expireMonoCall(s, seat)
+        if (action is MonoChaosAction.ExpireMonoCall) return expireMonoCall(s, seat, random)
+        // The server ends the match early (the players voted to stop).
+        if (action is MonoChaosAction.EndMatch) return endMatch(s)
+        // MONO! and Caught can come from any seat at any moment.
+        if (action is MonoChaosAction.CallMono) return callMono(s, seat)
+        if (action is MonoChaosAction.Caught) return caught(s, seat, random).let { if (it is ApplyResult.Success) settle(it.state as MonoChaosState, it.events) else it }
 
         if (s.isEliminated(seat.value)) return rejected("SEAT_ELIMINATED", "Seat eliminated")
         if (seat.value != s.currentSeat) return rejected("NOT_YOUR_TURN", "Not your turn")
+        // Every move only in its own phase: a modified client can't draw or pass its way out of a penalty.
+        if (!allowedNow(s, action)) return rejected("BAD_PHASE", "Not allowed now")
 
-        return when (action) {
+        val result = when (action) {
             is MonoChaosAction.PlayCard -> playCard(s, seat, action.handIndex, random)
-            MonoChaosAction.DrawUntilPlayable -> drawUntilPlayable(s, seat, random)
+            MonoChaosAction.DrawUntilPlayable -> if (s.phase == MonoChaosPhase.AWAITING_ROULETTE_DRAW) rouletteStep(s, seat, random) else drawUntilPlayable(s, seat, random)
             is MonoChaosAction.ChooseColor -> chooseColor(s, seat, action.color, random)
             is MonoChaosAction.ChooseRouletteColor -> chooseRouletteColor(s, seat, action.color, random)
             MonoChaosAction.CallMono -> callMono(s, seat)
@@ -100,15 +108,113 @@ class MonoChaosEngine : Game {
             MonoChaosAction.AcceptStack -> acceptStack(s, seat, random)
             is MonoChaosAction.ChooseSwapTarget -> chooseSwapTarget(s, seat, action.seat, random)
             MonoChaosAction.Pass -> passTurn(s, seat)
-            MonoChaosAction.ExpireMonoCall -> rejected("BAD_REQUEST", "Handled above")
+            MonoChaosAction.ExpireMonoCall, MonoChaosAction.EndMatch -> rejected("BAD_REQUEST", "Handled above")
             else -> rejected("BAD_REQUEST", "Unknown action for MONO: Complete Chaos")
+        }
+        return if (result is ApplyResult.Success) settle(catchWindow(s, result.state as MonoChaosState, seat.value), result.events) else result
+    }
+
+    /**
+     * Play goes on after a seat empties its hand: it joins
+     * [MonoChaosState.finishOrder] and is skipped from then on (it only names
+     * the colour of a last wild). The match ends when one seat or none is
+     * still in play (not finished, not knocked out).
+     */
+    private fun settle(after: MonoChaosState, events: List<GameEvent>): ApplyResult {
+        var s = after
+        val out = events.toMutableList()
+        s.seats.map { it.value }.filter { it !in s.finishOrder && !s.isEliminated(it) && s.handForSeat(it).isEmpty() }.forEach { seat ->
+            s = s.copy(finishOrder = s.finishOrder + seat)
+            out += MonoChaosEvent.SeatFinished(SeatNumber(seat), s.finishOrder.size)
+        }
+        if (activeSeats(s).size <= 1) {
+            val ended = s.copy(
+                phase = MonoChaosPhase.FINISHED, catchSeat = null, catchNextSeat = null, catchClosedFor = emptySet(), monoWindowSeat = null,
+                turn = MonoChaosTurnState(SeatNumber(s.currentSeat), MonoChaosPhase.FINISHED.name),
+            )
+            return ApplyResult.Success(ended, out + MonoChaosEvent.MatchEnded(outcome(ended).ranking.map { it.seat.value }))
+        }
+        if (s.currentSeat !in activeSeats(s) && s.phase != MonoChaosPhase.AWAITING_COLOR_CHOICE) {
+            val next = nextActive(s, s.currentSeat)
+            val phase = if (s.phase == MonoChaosPhase.AWAITING_STACK_CHOICE) s.phase else MonoChaosPhase.AWAITING_PLAY
+            s = s.copy(currentSeat = next, phase = phase, drawnCardIndex = null, pendingSwapSeat = null, turn = MonoChaosTurnState(SeatNumber(next), phase.name))
+        }
+        return ApplyResult.Success(s, out)
+    }
+
+    /** The catch window, after every move (see the Standard engine): open for as long as the seat holds one card, whoever's turn it is. */
+    private fun catchWindow(before: MonoChaosState, after: MonoChaosState, actor: Int): MonoChaosState {
+        var s = after
+        s.catchSeat?.let { target ->
+            if (s.handForSeat(target).size != 1 || s.isEliminated(target)) s = s.copy(catchSeat = null, catchNextSeat = null, catchClosedFor = emptySet())
+        }
+        if (before.handForSeat(actor).size > 1 && s.handForSeat(actor).size == 1) {
+            s = s.copy(catchSeat = actor, catchNextSeat = null, catchClosedFor = emptySet(), monoCalledSeat = if (before.monoCalledSeat == actor) actor else null)
+        }
+        if (s.catchSeat != null && s.catchNextSeat == null && s.currentSeat != s.catchSeat) s = s.copy(catchNextSeat = s.currentSeat)
+        if (s.monoCalledSeat != null && s.monoCalledSeat != s.catchSeat && s.currentSeat != s.monoCalledSeat) s = s.copy(monoCalledSeat = null)
+        return s.copy(monoWindowSeat = s.catchSeat, monoCallWindowExpiry = 0)
+    }
+
+    /**
+     * Caught: the player on one card hadn't called (they draw the penalty and
+     * the window closes), or had (a wrong catch: the catcher draws, once per
+     * window). Either draw can knock the drawer out.
+     */
+    private fun caught(s: MonoChaosState, seat: SeatNumber, random: GameRandom): ApplyResult {
+        val target = s.catchSeat
+        if (seat.value == target || seat.value !in s.seats.map { it.value } || s.isEliminated(seat.value) || seat.value in s.finishOrder) return rejected("BAD_TARGET", "You can't catch yourself")
+        if (target != null && seat.value in s.catchClosedFor) return rejected("ALREADY_TRIED", "One try per player")
+        // Pressing CAUGHT with nobody to catch, or on a player who called MONO, is a wrong catch: the presser pays.
+        val falseCatch = target == null || s.monoCalledSeat == target
+        val drawer = if (falseCatch) seat.value else target
+        val penalty = if (falseCatch) s.monoChaosRules.mandatory.falseCatchPenaltyCards else s.monoChaosRules.mandatory.monoPenaltyCards
+        val events = mutableListOf<MonoChaosEvent>()
+        val drawn = drawPenalty(s, drawer, penalty, random)
+        var after = drawn.state
+        after = if (falseCatch) {
+            events += MonoChaosEvent.FalseCatch(seat, SeatNumber(target ?: seat.value), drawn.taken)
+            if (target == null) after else after.copy(catchClosedFor = s.catchClosedFor + seat.value)
+        } else {
+            events += MonoChaosEvent.MonoCaught(seat, SeatNumber(drawer), drawn.taken)
+            after.copy(catchSeat = null, catchNextSeat = null, catchClosedFor = emptySet(), monoWindowSeat = null, monoCallWindowExpiry = 0)
+        }
+        after = knockOut(after, drawer, events)
+        // A knockout here can leave the turn on a seat that is out, or one player standing.
+        val next = if (after.isEliminated(after.currentSeat)) nextActive(after, after.currentSeat) else after.currentSeat
+        return finishOrContinue(after.copy(currentSeat = next, turn = MonoChaosTurnState(SeatNumber(next), after.phase.name)), next, events)
+    }
+
+    /** Which moves the phase allows. */
+    private fun allowedNow(s: MonoChaosState, action: Action): Boolean {
+        val playing = s.phase == MonoChaosPhase.AWAITING_PLAY || s.phase == MonoChaosPhase.AWAITING_DRAW_UNTIL_PLAYABLE
+        return when (action) {
+            is MonoChaosAction.PlayCard -> playing || s.phase == MonoChaosPhase.AWAITING_STACK_CHOICE
+            MonoChaosAction.DrawUntilPlayable -> (playing && s.drawnCardIndex == null) || s.phase == MonoChaosPhase.AWAITING_ROULETTE_DRAW
+            MonoChaosAction.Pass -> playing && s.drawnCardIndex != null
+            is MonoChaosAction.StackDraw, MonoChaosAction.AcceptStack -> s.phase == MonoChaosPhase.AWAITING_STACK_CHOICE
+            is MonoChaosAction.ChooseColor -> s.phase == MonoChaosPhase.AWAITING_COLOR_CHOICE
+            is MonoChaosAction.ChooseRouletteColor -> s.phase == MonoChaosPhase.AWAITING_ROULETTE_COLOR
+            is MonoChaosAction.ChooseSwapTarget -> s.phase == MonoChaosPhase.AWAITING_SWAP_CHOICE
+            else -> true
         }
     }
 
     override fun currentActor(state: GameState) = SeatNumber((state as MonoChaosState).currentSeat)
 
+    /**
+     * Plays [seat]'s turn for them (a timeout, a bot's fallback). It ends the
+     * way every move does — a seat that empties its hand finishes, and the
+     * catch window moves on — exactly as through [apply].
+     */
     override fun autoplay(state: GameState, seat: SeatNumber, random: GameRandom): ApplyResult {
         val s = state as MonoChaosState
+        val result = autoMove(s, seat, random)
+        return if (result is ApplyResult.Success) settle(catchWindow(s, result.state as MonoChaosState, seat.value), result.events) else result
+    }
+
+    /** The move [autoplay] makes, before the end-of-move bookkeeping. */
+    private fun autoMove(s: MonoChaosState, seat: SeatNumber, random: GameRandom): ApplyResult {
         if (s.phase == MonoChaosPhase.FINISHED) return rejected("MATCH_ENDED", "Match ended")
         if (s.isEliminated(seat.value)) return rejected("SEAT_ELIMINATED", "Seat eliminated")
         if (seat.value != s.currentSeat) return rejected("NOT_YOUR_TURN", "Not your turn")
@@ -127,12 +233,10 @@ class MonoChaosEngine : Game {
             }
             MonoChaosPhase.AWAITING_COLOR_CHOICE -> chooseColor(s, seat, bestColour(s, seat.value), random)
             MonoChaosPhase.AWAITING_ROULETTE_COLOR -> chooseRouletteColor(s, seat, bestColour(s, seat.value), random)
-            // Only the server flips the Roulette card by card; this table draws it all at once.
-            MonoChaosPhase.AWAITING_ROULETTE_DRAW -> rejected("NOT_WAITING", "No roulette is flipping")
             MonoChaosPhase.AWAITING_STACK_CHOICE -> {
-                // Any draw card worth at least the last one stacks; colour does not matter.
+                // Any draw card worth at least the last one stacks, whatever its colour (as in [stackDraw]).
                 val stackable = s.handForSeat(seat.value).withIndex()
-                    .filter { (_, card) -> card.penaltyValue() >= s.stackTopValue && card.penaltyValue() > 0 }
+                    .filter { (_, card) -> card.canStackOnto(s.stackTopValue) }
                 if (stackable.isNotEmpty()) {
                     stackDraw(s, seat, stackable.maxByOrNull { it.value.penaltyValue() }!!.index, random)
                 } else {
@@ -141,6 +245,7 @@ class MonoChaosEngine : Game {
             }
             MonoChaosPhase.AWAITING_SWAP_CHOICE -> chooseSwapTarget(s, seat, swapPartner(s, seat.value), random)
             MonoChaosPhase.AWAITING_DRAW_UNTIL_PLAYABLE -> drawUntilPlayable(s, seat, random)
+            MonoChaosPhase.AWAITING_ROULETTE_DRAW -> rouletteStep(s, seat, random)
             MonoChaosPhase.FINISHED -> rejected("MATCH_ENDED", "Match ended")
         }
     }
@@ -150,7 +255,7 @@ class MonoChaosEngine : Game {
         if (seat.value !in s.seats.map { it.value }) return s
         val newSeats = s.seats.filter { it.value != seat.value }
         val newHands = s.hands - seat.value
-        val remaining = newSeats.filter { !s.isEliminated(it.value) }
+        val remaining = newSeats.filter { !s.isEliminated(it.value) && it.value !in s.finishOrder }
         var newCurrentSeat = s.currentSeat
         if (seat.value == s.currentSeat) {
             newCurrentSeat = remaining.firstOrNull()?.value ?: newSeats.firstOrNull()?.value ?: s.currentSeat
@@ -198,19 +303,29 @@ class MonoChaosEngine : Game {
 
     override fun isFinished(state: GameState) = (state as MonoChaosState).phase == MonoChaosPhase.FINISHED
 
+    /**
+     * Finished seats in the order they finished, then everyone still holding
+     * cards by fewest cards (a tie: whoever plays sooner from the current
+     * turn), then knocked-out seats (the latest knockout higher).
+     */
     override fun outcome(state: GameState): MatchOutcome {
         val s = state as MonoChaosState
-        val ranking = mutableListOf<RankedSeat>()
-        val winner = s.seats.firstOrNull { !s.isEliminated(it.value) && s.cardCountForSeat(it.value) == 0 }
-            ?: s.seats.lastOrNull { !s.isEliminated(it.value) }
-        if (winner != null) ranking.add(RankedSeat(winner, SeatStatus.FINISHED, 1))
-        s.seats
-            .map { it.value }
-            .filter { it != winner?.value && !s.isEliminated(it) }
-            .sortedBy { s.cardCountForSeat(it) }
-            .forEach { ranking.add(RankedSeat(SeatNumber(it), SeatStatus.FINISHED, ranking.size + 1)) }
-        s.eliminatedSeats.sorted().forEach { ranking.add(RankedSeat(SeatNumber(it), SeatStatus.REMOVED, ranking.size + 1)) }
+        val holding = s.seats.map { it.value }
+            .filter { it !in s.finishOrder && !s.isEliminated(it) }
+            .sortedWith(compareBy({ s.cardCountForSeat(it) }, { turnDistance(s, it) }))
+        val ranking = (s.finishOrder + holding).mapIndexed { i, seat -> RankedSeat(SeatNumber(seat), SeatStatus.FINISHED, i + 1) }.toMutableList()
+        s.eliminatedSeats.toList().asReversed().filter { it !in s.finishOrder }
+            .forEach { ranking.add(RankedSeat(SeatNumber(it), SeatStatus.REMOVED, ranking.size + 1)) }
         return MatchOutcome(ranking)
+    }
+
+    /** Turns until [seat] plays, counted from the current seat in the direction of play. */
+    private fun turnDistance(s: MonoChaosState, seat: Int): Int {
+        val seats = s.seats.map { it.value }
+        val n = seats.size
+        val from = seats.indexOf(s.currentSeat).coerceAtLeast(0)
+        val at = seats.indexOf(seat)
+        return if (s.reversed) (from - at + n) % n else (at - from + n) % n
     }
 
     private fun playCard(s: MonoChaosState, seat: SeatNumber, handIndex: Int, random: GameRandom): ApplyResult {
@@ -247,17 +362,8 @@ class MonoChaosEngine : Game {
 
         events += MonoChaosEvent.CardPlayed(seat, card, card.playColor())
 
-        // The last card wins before any swap, pass or penalty can happen.
-        if (newHand.isEmpty()) {
-            return ApplyResult.Success(
-                played.copy(
-                    phase = MonoChaosPhase.FINISHED,
-                    currentSeat = seat.value,
-                    turn = MonoChaosTurnState(seat, MonoChaosPhase.FINISHED.name),
-                ),
-                events + MonoChaosEvent.SeatFinished(seat, 1) + MonoChaosEvent.MatchEnded(listOf(seat.value)),
-            )
-        }
+        // A last card still takes effect (the seat finishes in [settle]); only a swap or pass is skipped.
+        val lastCard = newHand.isEmpty()
 
         val victim = nextActive(played, seat.value)
 
@@ -287,17 +393,24 @@ class MonoChaosEngine : Game {
                 ApplyResult.Success(openStack(played, victim, card.penaltyValue()), events)
 
             is MonoChaosCard.DiscardAllCard -> {
-                val colour = card.color!!
-                val kept = newHand.filter { it.playColor() != colour }
-                val discarded = newHand.size - kept.size
-                val after = played.copy(
-                    hands = played.hands + (seat.value to kept),
+                val colour = card.color
+                val gone = newHand.filter { it.playColor() == colour }
+                var after = played.copy(
+                    hands = played.hands + (seat.value to newHand.filter { it.playColor() != colour }),
+                    discardPile = played.discardPile.dropLast(1) + gone + card,
                     topCardColor = colour,
                     phase = MonoChaosPhase.AWAITING_PLAY,
                     currentSeat = victim,
                     turn = MonoChaosTurnState(SeatNumber(victim), MonoChaosPhase.AWAITING_PLAY.name),
                 )
-                if (discarded > 0) events += MonoChaosEvent.CardsDrawn(seat, discarded)
+                if (gone.isNotEmpty()) events += MonoChaosEvent.CardsDiscarded(seat, gone.size)
+                // Shedding the whole hand this way finishes too ([settle]).
+                val left = after.cardCountForSeat(seat.value)
+                after = when {
+                    left == 1 -> after.copy(monoWindowSeat = seat.value, monoCallWindowExpiry = WINDOW_OPEN, monoCalledSeat = null)
+                    after.monoWindowSeat == seat.value -> after.copy(monoWindowSeat = null, monoCallWindowExpiry = 0)
+                    else -> after
+                }
                 finishOrContinue(after, victim, events)
             }
 
@@ -342,7 +455,7 @@ class MonoChaosEngine : Game {
             }
 
             is MonoChaosCard.NumberCard -> when {
-                card.number == SEVEN && s.monoChaosRules.house.sevenSwap -> ApplyResult.Success(
+                card.number == SEVEN && s.monoChaosRules.house.sevenSwap && !lastCard -> ApplyResult.Success(
                     played.copy(
                         phase = MonoChaosPhase.AWAITING_SWAP_CHOICE,
                         pendingSwapSeat = seat.value,
@@ -351,15 +464,18 @@ class MonoChaosEngine : Game {
                     ),
                     events,
                 )
-                card.number == ZERO && s.monoChaosRules.house.zeroPass -> {
-                    val passed = passAllHands(played.copy(topCardColor = card.color))
+                card.number == ZERO && s.monoChaosRules.house.zeroPass && !lastCard -> {
+                    var passed = passAllHands(played.copy(topCardColor = card.color))
                     events += MonoChaosEvent.HandsPassed(if (passed.reversed) COUNTER else CLOCKWISE)
+                    // Anyone handed 25+ cards is out at once.
+                    activeSeats(passed).forEach { passed = knockOut(passed, it, events) }
+                    val victimAfter = if (passed.isEliminated(victim)) nextActive(passed, seat.value) else victim
                     val after = passed.copy(
                         phase = MonoChaosPhase.AWAITING_PLAY,
-                        currentSeat = victim,
-                        turn = MonoChaosTurnState(SeatNumber(victim), MonoChaosPhase.AWAITING_PLAY.name),
+                        currentSeat = victimAfter,
+                        turn = MonoChaosTurnState(SeatNumber(victimAfter), MonoChaosPhase.AWAITING_PLAY.name),
                     )
-                    finishOrContinue(after, victim, events)
+                    finishOrContinue(after, victimAfter, events)
                 }
                 else -> ApplyResult.Success(
                     played.copy(
@@ -375,24 +491,9 @@ class MonoChaosEngine : Game {
         }
     }
 
-    /** Ends the match when only one seat is left standing. */
-    private fun finishOrContinue(s: MonoChaosState, next: Int, events: MutableList<MonoChaosEvent>): ApplyResult {
-        val standing = activeSeats(s)
-        if (standing.size <= 1) {
-            val winner = standing.firstOrNull() ?: next
-            events += MonoChaosEvent.SeatFinished(SeatNumber(winner), 1)
-            events += MonoChaosEvent.MatchEnded(listOf(winner))
-            return ApplyResult.Success(
-                s.copy(
-                    phase = MonoChaosPhase.FINISHED,
-                    currentSeat = winner,
-                    turn = MonoChaosTurnState(SeatNumber(winner), MonoChaosPhase.FINISHED.name),
-                ),
-                events,
-            )
-        }
-        return ApplyResult.Success(s, events)
-    }
+    /** The move's result; [settle] ends the match when one seat or none is left in play. */
+    @Suppress("UNUSED_PARAMETER")
+    private fun finishOrContinue(s: MonoChaosState, next: Int, events: MutableList<MonoChaosEvent>): ApplyResult = ApplyResult.Success(s, events)
 
     /** Puts [value] on the table for [victim], who may stack onto it. */
     private fun openStack(s: MonoChaosState, victim: Int, value: Int): MonoChaosState = s.copy(
@@ -418,10 +519,14 @@ class MonoChaosEngine : Game {
         val events = mutableListOf<MonoChaosEvent>(MonoChaosEvent.ColorChosen(seat, color))
 
         if (reverses) chosen = chosen.copy(reversed = !chosen.reversed)
+        // The next player in the new direction takes it: with two players, always the other one.
         val victim = nextActive(chosen, seat.value)
 
         if (penalty > 0) {
-            return ApplyResult.Success(openStack(chosen, victim, penalty), events)
+            // A stacked wild card carries the whole stack on; a fresh one opens it at its own value.
+            val stacked = s.activeStackPenalty > 0
+            val opened = openStack(chosen, victim, if (stacked) s.activeStackPenalty else penalty)
+            return ApplyResult.Success(if (stacked) opened.copy(stackTopValue = penalty) else opened, events)
         }
         return ApplyResult.Success(
             chosen.copy(
@@ -433,48 +538,47 @@ class MonoChaosEngine : Game {
     }
 
     /**
-     * The Roulette: flip cards until one of the chosen colour appears. All
-     * of them join the victim's hand, the colour becomes live, and the
-     * victim loses their turn. Multi-colour cards never match.
+     * The Roulette: the victim names a colour, then flips cards from the deck
+     * one at a time ([rouletteStep]) until that colour comes up, as at a real
+     * table. Multi-colour cards never match.
      */
     private fun chooseRouletteColor(s: MonoChaosState, seat: SeatNumber, color: Color, random: GameRandom): ApplyResult {
         if (s.phase != MonoChaosPhase.AWAITING_ROULETTE_COLOR) {
             return rejected("NOT_WAITING", "Not choosing a roulette colour")
         }
-        val events = mutableListOf<MonoChaosEvent>()
-        var drawPile = s.drawPile
-        var discard = s.discardPile
-        val flipped = mutableListOf<MonoChaosCard>()
-
-        while (true) {
-            if (drawPile.isEmpty() && discard.size > 1) {
-                val face = discard.last()
-                drawPile = discard.dropLast(1).shuffled(random)
-                discard = listOf(face)
-            }
-            if (drawPile.isEmpty()) break
-            val card = drawPile.first()
-            drawPile = drawPile.drop(1)
-            flipped += card
-            if (card.playColor() == color) break
-        }
-
-        val newHand = s.handForSeat(seat.value) + flipped
-        var after = s.copy(
-            hands = s.hands + (seat.value to newHand),
-            drawPile = drawPile,
-            discardPile = discard,
-            topCardColor = color,
-            phase = MonoChaosPhase.AWAITING_PLAY,
+        val flipping = s.copy(
+            phase = MonoChaosPhase.AWAITING_ROULETTE_DRAW,
+            rouletteColor = color,
             turnCounter = s.turnCounter + 1,
             lastActionSeat = seat.value,
+            turn = MonoChaosTurnState(seat, MonoChaosPhase.AWAITING_ROULETTE_DRAW.name),
         )
-        events += MonoChaosEvent.RouletteColorChosen(seat, color)
-        if (flipped.isNotEmpty()) events += MonoChaosEvent.CardsDrawn(seat, flipped.size)
+        return ApplyResult.Success(flipping, listOf<MonoChaosEvent>(MonoChaosEvent.RouletteColorChosen(seat, color)))
+    }
 
+    /**
+     * One flip of the Roulette: the top card of the deck joins the victim's
+     * hand. When it is the named colour (or the deck runs dry, or the victim
+     * is knocked out) the colour becomes live and the victim's turn is over;
+     * otherwise they flip again.
+     */
+    private fun rouletteStep(s: MonoChaosState, seat: SeatNumber, random: GameRandom): ApplyResult {
+        val color = s.rouletteColor ?: return rejected("NOT_WAITING", "No roulette is on")
+        val drawn = drawOne(s, random)
+        val events = mutableListOf<MonoChaosEvent>()
+        var after = drawn.state.copy(turnCounter = s.turnCounter + 1, lastActionSeat = seat.value)
+        drawn.card?.let { card ->
+            after = after.copy(hands = after.hands + (seat.value to after.handForSeat(seat.value) + card))
+            events += MonoChaosEvent.CardDrawn(seat, card)
+        }
         after = knockOut(after, seat.value, events)
-        val next = if (after.isEliminated(seat.value)) nextActive(after, seat.value) else nextActive(after, seat.value)
+        val done = drawn.card == null || drawn.card.playColor() == color || after.isEliminated(seat.value)
+        if (!done) return ApplyResult.Success(after, events)
+        val next = nextActive(after, seat.value)
+        events += MonoChaosEvent.TurnPassed(seat)
         val ready = after.copy(
+            topCardColor = color,
+            rouletteColor = null,
             currentSeat = next,
             phase = MonoChaosPhase.AWAITING_PLAY,
             turn = MonoChaosTurnState(SeatNumber(next), MonoChaosPhase.AWAITING_PLAY.name),
@@ -482,46 +586,41 @@ class MonoChaosEngine : Game {
         return finishOrContinue(ready, next, events)
     }
 
-    private fun drawUntilPlayable(s: MonoChaosState, seat: SeatNumber, random: GameRandom): ApplyResult {
-        val events = mutableListOf<MonoChaosEvent>()
+    /** The deck's top card (the discard pile, all but its top, reshuffled in first when the deck is empty); null when none is left. */
+    private fun drawOne(s: MonoChaosState, random: GameRandom): DrawnOne {
         var drawPile = s.drawPile
         var discard = s.discardPile
-        val hand = s.handForSeat(seat.value).toMutableList()
-        var drawn = 0
-        var playableIndex: Int? = null
-
-        while (true) {
-            if (drawPile.isEmpty() && discard.size > 1) {
-                val face = discard.last()
-                drawPile = discard.dropLast(1).shuffled(random)
-                discard = listOf(face)
-            }
-            if (drawPile.isEmpty()) break
-            val card = drawPile.first()
-            drawPile = drawPile.drop(1)
-            hand += card
-            drawn++
-            if (hand.size >= KNOCKOUT_THRESHOLD) break
-            if (card.isPlayableOn(discard.lastOrNull(), s.topCardColor)) {
-                playableIndex = hand.lastIndex
-                break
-            }
+        if (drawPile.isEmpty() && discard.size > 1) {
+            val face = discard.last()
+            drawPile = discard.dropLast(1).shuffled(random)
+            discard = listOf(face)
         }
+        val card = drawPile.firstOrNull()
+        return DrawnOne(s.copy(drawPile = drawPile.drop(if (card == null) 0 else 1), discardPile = discard), card)
+    }
 
-        if (drawn > 0) events += MonoChaosEvent.CardsDrawn(seat, drawn)
-
-        var after = s.copy(
+    /**
+     * Draw until you can play, one card at a time as at a real table: each
+     * step adds one card. If it can be played, the player plays it (or
+     * passes); if not, it is still their draw and the next step adds another.
+     * Reaching the knockout size, or a dry deck, ends the turn.
+     */
+    private fun drawUntilPlayable(s: MonoChaosState, seat: SeatNumber, random: GameRandom): ApplyResult {
+        val drawn = drawOne(s, random)
+        val events = mutableListOf<MonoChaosEvent>()
+        val hand = s.handForSeat(seat.value) + listOfNotNull(drawn.card)
+        drawn.card?.let { events += MonoChaosEvent.CardDrawn(seat, it) }
+        var after = drawn.state.copy(
             hands = s.hands + (seat.value to hand),
-            drawPile = drawPile,
-            discardPile = discard,
             turnCounter = s.turnCounter + 1,
             lastActionSeat = seat.value,
             lastActionCard = null,
         )
         after = knockOut(after, seat.value, events)
+        val playable = drawn.card?.isPlayableOn(after.discardPile.lastOrNull(), after.topCardColor) == true
 
         // Knocked out, or the deck is dry: the turn passes.
-        if (after.isEliminated(seat.value) || playableIndex == null) {
+        if (after.isEliminated(seat.value) || drawn.card == null) {
             val next = nextActive(after, seat.value)
             events += MonoChaosEvent.TurnPassed(seat)
             val ready = after.copy(
@@ -532,13 +631,13 @@ class MonoChaosEngine : Game {
             )
             return finishOrContinue(ready, next, events)
         }
-
-        // A playable card is in hand: play it (or pass), with the clock running.
+        // The card fits: play it (or pass), with the clock running. It doesn't: draw again.
+        val phase = if (playable) MonoChaosPhase.AWAITING_PLAY else MonoChaosPhase.AWAITING_DRAW_UNTIL_PLAYABLE
         return ApplyResult.Success(
             after.copy(
-                phase = MonoChaosPhase.AWAITING_PLAY,
-                drawnCardIndex = playableIndex,
-                turn = MonoChaosTurnState(seat, MonoChaosPhase.AWAITING_PLAY.name),
+                phase = phase,
+                drawnCardIndex = if (playable) hand.lastIndex else null,
+                turn = MonoChaosTurnState(seat, phase.name),
             ),
             events,
         )
@@ -551,12 +650,36 @@ class MonoChaosEngine : Game {
         if (card.penaltyValue() < s.stackTopValue || card.penaltyValue() <= 0) {
             return rejected("BAD_STACK", "Cannot stack this card")
         }
-        // Stacking ignores colour: any draw card of equal or higher value goes on (No Mercy rule).
+        // Any draw card of equal or higher value stacks, whatever its colour (+2 < +4 = Wild Reverse +4 < +6 < +10).
 
         val newHand = hand.toMutableList().apply { removeAt(handIndex) }
         val total = s.activeStackPenalty + card.penaltyValue()
-        val victim = nextActive(s, seat.value)
-        val after = s.copy(
+        // A wild draw card (+4 Reverse, +6, +10) lets its player name the colour, stacked or not:
+        // the stack waits for the choice, then moves on ([chooseColor]).
+        if (card.playColor() == null) {
+            var choosing = s.copy(
+                hands = s.hands + (seat.value to newHand),
+                discardPile = s.discardPile + card,
+                currentSeat = seat.value,
+                phase = MonoChaosPhase.AWAITING_COLOR_CHOICE,
+                activeStackPenalty = total,
+                stackTopValue = card.penaltyValue(),
+                turnCounter = s.turnCounter + 1,
+                lastActionSeat = seat.value,
+                lastActionCard = card,
+                turn = MonoChaosTurnState(seat, MonoChaosPhase.AWAITING_COLOR_CHOICE.name),
+            )
+            choosing = when {
+                newHand.size == 1 -> choosing.copy(monoWindowSeat = seat.value, monoCallWindowExpiry = WINDOW_OPEN, monoCalledSeat = null)
+                s.monoWindowSeat == seat.value -> choosing.copy(monoWindowSeat = null, monoCallWindowExpiry = 0)
+                else -> choosing
+            }
+            return ApplyResult.Success(choosing, listOf<MonoChaosEvent>(MonoChaosEvent.StackDraw(seat, card, total)))
+        }
+        val reverses = card is MonoChaosCard.PrismReverseDrawFour
+        val turned = if (reverses) s.copy(reversed = !s.reversed) else s
+        val victim = nextActive(turned, seat.value)
+        var after = turned.copy(
             hands = s.hands + (seat.value to newHand),
             discardPile = s.discardPile + card,
             currentSeat = victim,
@@ -569,43 +692,28 @@ class MonoChaosEngine : Game {
             lastActionCard = card,
             turn = MonoChaosTurnState(SeatNumber(victim), MonoChaosPhase.AWAITING_STACK_CHOICE.name),
         )
-        return ApplyResult.Success(
-            after,
-            listOf(MonoChaosEvent.StackDraw(seat, card, total)),
-        )
+        // Stacking a card can leave one card: the MONO! window opens.
+        after = when {
+            newHand.size == 1 -> after.copy(monoWindowSeat = seat.value, monoCallWindowExpiry = WINDOW_OPEN, monoCalledSeat = null)
+            s.monoWindowSeat == seat.value -> after.copy(monoWindowSeat = null, monoCallWindowExpiry = 0)
+            else -> after
+        }
+        val events = listOf<MonoChaosEvent>(MonoChaosEvent.StackDraw(seat, card, total))
+        return ApplyResult.Success(after, events)
     }
 
     private fun acceptStack(s: MonoChaosState, seat: SeatNumber, random: GameRandom): ApplyResult {
         if (s.activeStackPenalty <= 0) return rejected("NO_STACK", "No penalty to accept")
-        val penalty = s.activeStackPenalty
         val events = mutableListOf<MonoChaosEvent>()
-
-        var drawPile = s.drawPile
-        var discard = s.discardPile
-        val taken = mutableListOf<MonoChaosCard>()
-        repeat(penalty) {
-            if (drawPile.isEmpty() && discard.size > 1) {
-                val face = discard.last()
-                drawPile = discard.dropLast(1).shuffled(random)
-                discard = listOf(face)
-            }
-            if (drawPile.isNotEmpty()) {
-                taken += drawPile.first()
-                drawPile = drawPile.drop(1)
-            }
-        }
-
-        var after = s.copy(
-            hands = s.hands + (seat.value to s.handForSeat(seat.value) + taken),
-            drawPile = drawPile,
-            discardPile = discard,
+        val drawn = drawPenalty(s, seat.value, s.activeStackPenalty, random)
+        var after = drawn.state.copy(
             phase = MonoChaosPhase.AWAITING_PLAY,
             activeStackPenalty = 0,
             stackTopValue = 0,
             turnCounter = s.turnCounter + 1,
             lastActionSeat = seat.value,
         )
-        events += MonoChaosEvent.StackAccepted(seat, penalty)
+        events += MonoChaosEvent.StackAccepted(seat, drawn.taken)
         after = knockOut(after, seat.value, events)
 
         val next = nextActive(after, seat.value)
@@ -619,7 +727,7 @@ class MonoChaosEngine : Game {
 
     private fun chooseSwapTarget(s: MonoChaosState, seat: SeatNumber, target: Int, random: GameRandom): ApplyResult {
         if (s.phase != MonoChaosPhase.AWAITING_SWAP_CHOICE) return rejected("NOT_WAITING", "Not choosing a swap partner")
-        if (target == seat.value || target !in s.seats.map { it.value } || s.isEliminated(target)) {
+        if (target == seat.value || target !in activeSeats(s)) {
             return rejected("BAD_TARGET", "Choose an opponent")
         }
         val events = mutableListOf<MonoChaosEvent>(MonoChaosEvent.HandSwapped(seat, SeatNumber(target)))
@@ -662,7 +770,7 @@ class MonoChaosEngine : Game {
     private fun knockOut(s: MonoChaosState, seat: Int, events: MutableList<MonoChaosEvent>): MonoChaosState {
         if (!s.monoChaosRules.house.knockoutEnabled) return s
         if (s.isEliminated(seat)) return s
-        if (s.handForSeat(seat).size < KNOCKOUT_THRESHOLD) return s
+        if (s.handForSeat(seat).size < s.monoChaosRules.mandatory.knockoutThreshold) return s
         events += MonoChaosEvent.PlayerEliminated(SeatNumber(seat))
         return s.copy(
             hands = s.hands + (seat to emptyList()),
@@ -671,46 +779,52 @@ class MonoChaosEngine : Game {
         )
     }
 
+    /** MONO!: on your own turn with two cards (before playing), or while your own catch window is open. */
     private fun callMono(s: MonoChaosState, seat: SeatNumber): ApplyResult {
-        if (s.monoWindowSeat != seat.value || s.monoCallWindowExpiry == 0L) {
-            return rejected("WINDOW_CLOSED", "No MONO! window open for you")
-        }
-        if (s.cardCountForSeat(seat.value) != 1) return rejected("NOT_ONE_CARD", "Call MONO! with one card")
-        return ApplyResult.Success(
-            s.copy(monoCalledSeat = seat.value, monoWindowSeat = null, monoCallWindowExpiry = 0),
-            listOf(MonoChaosEvent.MonoCalled(seat)),
-        )
+        val me = seat.value
+        val before = me == s.currentSeat && s.phase == MonoChaosPhase.AWAITING_PLAY && s.cardCountForSeat(me) == 2
+        val after = s.catchSeat == me && s.cardCountForSeat(me) == 1
+        if (!before && !after) return rejected("CANT_CALL", "No MONO! to call")
+        if (s.monoCalledSeat == me) return rejected("ALREADY_CALLED", "Already called")
+        return ApplyResult.Success(s.copy(monoCalledSeat = me), listOf(MonoChaosEvent.MonoCalled(seat)))
     }
 
-    private fun expireMonoCall(s: MonoChaosState, seat: SeatNumber): ApplyResult {
+    /** The players voted to stop: ranked as at any other end (fewest cards first, knocked-out seats last). */
+    private fun endMatch(s: MonoChaosState): ApplyResult {
+        val ended = s.copy(phase = MonoChaosPhase.FINISHED, turn = MonoChaosTurnState(SeatNumber(s.currentSeat), MonoChaosPhase.FINISHED.name))
+        return ApplyResult.Success(ended, listOf(MonoChaosEvent.MatchEnded(outcome(ended).ranking.map { it.seat.value })))
+    }
+
+    private fun expireMonoCall(s: MonoChaosState, seat: SeatNumber, random: GameRandom): ApplyResult {
         if (s.monoWindowSeat != seat.value || s.monoCallWindowExpiry == 0L) {
             return ApplyResult.Success(s, emptyList())
         }
         val closed = s.copy(monoWindowSeat = null, monoCallWindowExpiry = 0)
-        val penalty = s.monoChaosRules.mandatory.monoPenaltyCards
-        var drawPile = closed.drawPile
-        var discard = closed.discardPile
-        val cards = mutableListOf<MonoChaosCard>()
-        repeat(penalty) {
-            if (drawPile.isEmpty() && discard.size > 1) {
-                val face = discard.last()
-                drawPile = discard.dropLast(1).shuffled(DefaultGameRandom())
-                discard = listOf(face)
-            }
-            if (drawPile.isNotEmpty()) {
-                cards += drawPile.first()
-                drawPile = drawPile.drop(1)
-            }
-        }
-        val events = mutableListOf<MonoChaosEvent>(MonoChaosEvent.MonoMissed(seat, cards.size))
-        var after = closed.copy(
-            hands = closed.hands + (seat.value to closed.handForSeat(seat.value) + cards),
-            drawPile = drawPile,
-            discardPile = discard,
-        )
-        after = knockOut(after, seat.value, events)
+        val drawn = drawPenalty(closed, seat.value, s.monoChaosRules.mandatory.monoPenaltyCards, random)
+        val events = mutableListOf<MonoChaosEvent>(MonoChaosEvent.MonoMissed(seat, drawn.taken))
+        val after = knockOut(drawn.state, seat.value, events)
         return ApplyResult.Success(after, events)
     }
+
+    /**
+     * Hands [seat] up to [count] penalty cards, one at a time. The draw stops
+     * the moment the hand reaches the knockout size: that player is out at
+     * once and takes no more cards.
+     */
+    private fun drawPenalty(s: MonoChaosState, seat: Int, count: Int, random: GameRandom): PenaltyDraw {
+        var state = s
+        var taken = 0
+        while (taken < count && !atKnockout(state, seat)) {
+            val drawn = drawOne(state, random)
+            val card = drawn.card ?: break
+            state = drawn.state.copy(hands = drawn.state.hands + (seat to drawn.state.handForSeat(seat) + card))
+            taken++
+        }
+        return PenaltyDraw(state, taken)
+    }
+
+    private fun atKnockout(s: MonoChaosState, seat: Int): Boolean =
+        s.monoChaosRules.house.knockoutEnabled && s.handForSeat(seat).size >= s.monoChaosRules.mandatory.knockoutThreshold
 
     /** The Rule of 0: every hand moves one seat along the direction of play. */
     private fun passAllHands(s: MonoChaosState): MonoChaosState {
@@ -720,25 +834,32 @@ class MonoChaosEngine : Game {
         return s.copy(hands = s.hands + moved)
     }
 
+    /** Seats still in play: not knocked out, not finished. */
     private fun activeSeats(s: MonoChaosState): List<Int> =
-        s.seats.map { it.value }.filter { !s.isEliminated(it) }
+        s.seats.map { it.value }.filter { !s.isEliminated(it) && it !in s.finishOrder }
 
     private fun nextActive(s: MonoChaosState, from: Int): Int = advance(s, from, 1)
 
     private fun previousActive(s: MonoChaosState, from: Int): Int = advance(s, from, -1)
 
-    /** [steps] active seats on from [from]; negative walks backwards. */
+    /** [steps] seats still in play on from [from] (which may itself be out); negative walks backwards. */
     private fun advance(s: MonoChaosState, from: Int, steps: Int): Int {
         val active = activeSeats(s)
         if (active.isEmpty()) return from
-        val start = active.indexOf(from).takeIf { it >= 0 } ?: 0
-        val size = active.size
-        var index = start
+        val seats = s.seats.map { it.value }
+        val n = seats.size
+        var index = seats.indexOf(from).takeIf { it >= 0 } ?: return active.first()
         val direction = if (s.reversed) -steps else steps
-        repeat(kotlin.math.abs(direction)) {
-            index = ((index + if (direction > 0) 1 else -1) % size + size) % size
+        val step = if (direction > 0) 1 else -1
+        val count = kotlin.math.abs(direction)
+        var moved = 0
+        var guard = 0
+        while (moved < count && guard < n * (count + 1)) {
+            index = ((index + step) % n + n) % n
+            if (seats[index] in active) moved++
+            guard++
         }
-        return active[index]
+        return seats[index]
     }
 
     /** The seat [seat] most wants to trade hands with (largest hand). */
@@ -772,7 +893,6 @@ class MonoChaosEngine : Game {
     private companion object {
         const val SEVEN = 7
         const val ZERO = 0
-        const val KNOCKOUT_THRESHOLD = MonoChaosConstants.KNOCKOUT_THRESHOLD
         const val CLOCKWISE = "clockwise"
         const val COUNTER = "counter-clockwise"
         /** The engine does not own a clock; the host stamps this deadline. */

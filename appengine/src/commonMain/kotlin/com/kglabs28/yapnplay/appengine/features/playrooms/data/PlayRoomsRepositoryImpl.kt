@@ -26,8 +26,10 @@ class PlayRoomsRepositoryImpl(
         withContext(dispatchers.io) {
             when (val result = remote.fetchMyRooms()) {
                 is AppResult.Success -> {
-                    local.saveRooms(result.data)
-                    result
+                    // Quick Play parties are not Game Rooms: never listed.
+                    val rooms = result.data.filterNot { it.temporary }
+                    local.saveRooms(rooms)
+                    AppResult.Success(rooms)
                 }
                 is AppResult.Failure -> {
                     val cached = local.rooms()
@@ -50,6 +52,9 @@ class PlayRoomsRepositoryImpl(
 
     override suspend fun createRoom(name: String?, icon: String, inviteUserIds: List<String>): AppResult<CreatedPlayRoom> =
         withContext(dispatchers.io) { remote.createRoom(name, icon, inviteUserIds) }
+
+    override suspend fun createTempRoom(): AppResult<CreatedPlayRoom> =
+        withContext(dispatchers.io) { remote.createTempRoom() }
 
     override suspend fun inviteToRoom(roomId: String, userIds: List<String>, userCodes: List<String>): AppResult<List<String>> =
         withContext(dispatchers.io) { remote.inviteToRoom(roomId, userIds, userCodes) }

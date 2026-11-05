@@ -13,6 +13,18 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" tools:node="remove" />
     <!-- Room activity notifications (Android 13+ asks at launch). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Offline Nearby play (Nearby Connections), asked only when the user hosts or scans.
+         Bluetooth and Wi-Fi to find and link phones; location only on Android 12 and older. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="32" />
 
     <!-- appCategory "game": Android 16 (target 36) ignores the landscape lock on tablets and
          foldables for other apps; games keep it, so YapNPlay stays landscape everywhere. -->

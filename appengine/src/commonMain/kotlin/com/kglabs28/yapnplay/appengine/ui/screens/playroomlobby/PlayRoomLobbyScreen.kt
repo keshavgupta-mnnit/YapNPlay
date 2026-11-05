@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,6 +47,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyPrimaryButton
 import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyTopBar
 import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyRoomMenu
 import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyAddFriendsDialog
+import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyInvitePlayersDialog
 import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyEditNameDialog
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -123,11 +126,15 @@ fun PlayRoomLobbyScreen(
                 roomName = state.roomName,
                 menuOpen = menuOpen,
                 onBack = { send(PlayRoomLobbyIntent.Back) },
-                onLeaderboard = { send(PlayRoomLobbyIntent.OpenLeaderboard) },
+                // A Quick Play party has no leaderboard: anyone adds friends from the bar instead.
+                actionText = if (state.temporary) RoomStrings.lobbyAddFriends else RoomStrings.lobbyLeaderboard,
+                actionIcon = if (state.temporary) Icons.Rounded.PersonAdd else Icons.Rounded.EmojiEvents,
+                onAction = { send(if (state.temporary) PlayRoomLobbyIntent.OpenAddFriends else PlayRoomLobbyIntent.OpenLeaderboard) },
                 onMenu = { menuOpen = !menuOpen },
             ) {
                 LobbyRoomMenu(
                     isAdmin = state.isAdmin,
+                    canShareLink = !state.temporary,
                     onDismiss = { menuOpen = false },
                     onWaitingList = { send(PlayRoomLobbyIntent.OpenWaitingList) },
                     onShareLink = { send(PlayRoomLobbyIntent.ShareLink) },
@@ -262,6 +269,11 @@ fun PlayRoomLobbyScreen(
                     sheet = sheet,
                     onNameChange = { send(PlayRoomLobbyIntent.EditNameChanged(it)) },
                     onSave = { send(PlayRoomLobbyIntent.SaveName) },
+                    onClose = { send(PlayRoomLobbyIntent.DismissSheet) },
+                )
+                is LobbySheet.InvitePlayers -> LobbyInvitePlayersDialog(
+                    sheet = sheet,
+                    onAdd = { send(PlayRoomLobbyIntent.InvitePlayer(it)) },
                     onClose = { send(PlayRoomLobbyIntent.DismissSheet) },
                 )
                 null -> Unit

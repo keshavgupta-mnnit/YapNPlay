@@ -115,6 +115,15 @@ object AppConstants {
     /** Home QUICK PLAY button width as a share of its card. */
     const val HOME_CTA_WIDTH_FRACTION = 0.74f
 
+    /** Quick Play hub card button width as a share of its card. */
+    const val PLAY_HUB_CTA_WIDTH_FRACTION = 0.78f
+
+    /** Friends' faces shown in the hub's "N Friends Online" pill (the rest are only counted). */
+    const val PLAY_HUB_MAX_FACES = 4
+
+    /** The Nearby scan's list width as a share of the screen. */
+    const val NEARBY_SCAN_WIDTH_FRACTION = 0.6f
+
     /**
      * Rooms tab split. Columns are 60:40 (create/join left, lists right);
      * inside each column the cards keep the design's height ratio.

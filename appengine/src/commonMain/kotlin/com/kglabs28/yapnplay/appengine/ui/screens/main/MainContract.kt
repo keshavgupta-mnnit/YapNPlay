@@ -28,6 +28,12 @@ data class MainState(
     /** "+100": the daily bonus the server just added, until the user collects it; null otherwise. */
     val dailyBonus: String? = null,
     val selectedTab: AppNavTab = AppNavTab.HOME,
+    /** Games tab: the game catalog (Play With Randoms) is open instead of the Quick Play hub. */
+    val randomsOpen: Boolean = false,
+    /** The backend can be reached; offline only the Games tab's Nearby play works. */
+    val reachable: Boolean = true,
+    /** "Needs internet" over the app (something online was tapped while offline). */
+    val needsInternetShown: Boolean = false,
     /** Bell history, newest first (at most 10). */
     val notifications: List<NotificationUi> = emptyList(),
     val unreadNotifications: Int = 0,
@@ -42,7 +48,11 @@ data class MainState(
     val settings: AppSettingsUi? = null,
     /** Back was pressed here: "Exit YapNPlay?" is showing. */
     val exitAsked: Boolean = false,
-) : UiState
+) : UiState {
+    /** The whole background is frosted for the game catalog; the hub's own glass cards keep it clear. */
+    val frostedBackground: Boolean
+        get() = selectedTab.frostedBackground && (selectedTab != AppNavTab.GAMES || randomsOpen)
+}
 
 /** The "your game is still on" dialog. */
 data class RejoinUi(val matchId: String, val gameId: String, val title: String)
@@ -63,6 +73,10 @@ data class NotificationUi(
 sealed interface MainIntent : UiIntent {
     data object CollectDailyBonus : MainIntent
     data class SelectTab(val tab: AppNavTab) : MainIntent
+    /** Quick Play hub → Play With Randoms: the game catalog. */
+    data object OpenRandoms : MainIntent
+    /** Back from the game catalog to the Quick Play hub. */
+    data object CloseRandoms : MainIntent
     data object LoadProfile : MainIntent
     data object OpenSettings : MainIntent
     /** Bell tapped: opens or closes the drop-down. */
@@ -78,6 +92,7 @@ sealed interface MainIntent : UiIntent {
     /** A friend link was opened: send its owner a friend request. */
     data class AddFriendFromLink(val userCode: String) : MainIntent
     data object DismissFriendLink : MainIntent
+    data object DismissNeedsInternet : MainIntent
     /** System Back on the main screen: ask before closing the app. */
     data object AskExit : MainIntent
     data object DismissExit : MainIntent

@@ -19,6 +19,11 @@ data class CreateRoom(
     val name: String? = null,
     val icon: String? = null,
     val inviteUserIds: List<String> = emptyList(),
+    /**
+     * 0.12.2: Quick Play with friends. No name or invitees needed; one leader,
+     * any member invites friends, no joining by code, deleted once everyone left.
+     */
+    val temporary: Boolean = false,
 )
 
 /** Join a room by its six-character code. Also used to re-enter a room you already belong to. */
@@ -204,6 +209,8 @@ data class RoomInfo(
     val waitingList: List<JoinRequestInfo> = emptyList(),
     /** Why the last start countdown stopped without a match, and who stopped it; null since a countdown started. */
     val countdownStop: CountdownStop? = null,
+    /** 0.12.2: a Quick Play with friends room (see CreateRoom.temporary); its admin is always the leader. */
+    val temporary: Boolean = false,
 )
 
 /** A start countdown that stopped without a match: everyone is told why and by whom. */
@@ -260,6 +267,19 @@ data class JoinApproved(
 )
 
 /** Tells clients a match is about to start. */
+/**
+ * 0.12.3: a friend invited the user to play now (a Quick Play party), pushed
+ * on the ROOM channel while connected; the app asks at once, and accepting
+ * the invite opens that lobby.
+ */
+@Serializable
+data class PlayInvite(
+    val inviteId: String,
+    val roomId: String,
+    val roomName: String,
+    val from: FriendSummary,
+)
+
 @Serializable
 data class MatchStarting(
     val matchId: String,

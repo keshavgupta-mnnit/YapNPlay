@@ -27,6 +27,8 @@ import com.kglabs28.yapnplay.appengine.core.audio.GameAudio
 import com.kglabs28.yapnplay.appengine.features.voice.LiveKitVoiceEngine
 import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceEngine
 import org.koin.android.ext.koin.androidContext
+import com.kglabs28.yapnplay.appengine.features.nearby.transport.GoogleNearbyTransport
+import com.kglabs28.yapnplay.appengine.features.nearby.transport.NearbyTransport
 import org.koin.dsl.module
 
 /** Android platform services: local stores (SharedPreferences), game audio, the mic level, live voice and rewarded ads. */
@@ -42,6 +44,7 @@ val platformAppManagerModule = module {
     single<AppVersionProvider> { AndroidAppVersionProvider(androidContext()) }
     single<MicLevelMonitor> { AndroidMicLevelMonitor(androidContext()) }
     single<VoiceEngine> { LiveKitVoiceEngine(androidContext()) }
+    single<NearbyTransport> { GoogleNearbyTransport(androidContext()) }
     // Made at start, so it sees the first screen resume (it needs the visible Activity to play).
     single<RewardedAds>(createdAtStart = true) { AdMobRewardedAds(androidApplication(), get()) }
     // Started with the app, so the first ad pill (the connecting card's) has an ad as soon as possible.

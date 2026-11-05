@@ -5,6 +5,26 @@ package com.kglabs28.yapnplay.appengine.core.ui
  * never inline a word where the user can see it.
  */
 object Strings {
+    // ── Quick Play hub (randoms, friends, offline nearby) ──
+    const val playHubRandomsTitle = "PLAY WITH "
+    const val playHubRandomsAccent = "RANDOMS"
+    const val playHubRandomsStatus = "Players worldwide"
+    const val playHubRandomsBody = "Instant matchmaking with players online around the world"
+    const val playHubRandomsButton = "Find Match"
+    const val playHubFriendsTitle = "PLAY WITH "
+    const val playHubFriendsAccent = "FRIENDS"
+    fun playHubFriendsOnline(count: Int) = if (count == 1) "1 Friend Online" else "$count Friends Online"
+    const val playHubFriendsBody = "Quickly spin up a temporary room with your online crew"
+    const val playHubFriendsButton = "Setup Temp Room"
+    const val playHubNearbyTitle = "OFFLINE "
+    const val playHubNearbyAccent = "NEARBY"
+    const val playHubNearbyStatus = "No internet needed"
+    const val playHubNearbyBody = "Play in close proximity with zero internet using Nearby connection"
+    const val playHubNearbyButton = "Scan Nearby"
+    const val playHubPartyFailedTitle = "Room not ready"
+    const val playHubPartyFailedBody = "Couldn't set up the room. Check your connection and try again."
+    const val playHubBack = "Back to Quick Play"
+
     /** e.g. v1.0.13(29): the version name and, in brackets, the version code. */
     fun appVersion(version: String, code: Long) = "v$version($code)"
 
@@ -35,6 +55,7 @@ object Strings {
     const val connectionOffline = "Can't reach YapNPlay"
     const val connectionOfflineBody = "Check your internet connection. We'll keep trying."
     const val connectionLost = "Connection lost"
+    const val connectionContinueOffline = "Continue offline"
     const val connectionLostBody = "Reconnecting… your game will carry on when you're back."
     const val connectionRetry = "Retry"
     /** The badge on every ad, so it never passes for the app's own content. */

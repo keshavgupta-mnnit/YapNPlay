@@ -1,5 +1,10 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
+import com.kglabs28.yapnplay.appengine.core.ui.NearbyStrings
+import com.kglabs28.yapnplay.appengine.features.nearby.usecase.InviteNearbyPlayerUseCase
+import com.kglabs28.yapnplay.appengine.features.nearby.usecase.IsNearbyRoomUseCase
+import com.kglabs28.yapnplay.appengine.features.nearby.usecase.LeaveNearbyUseCase
+import com.kglabs28.yapnplay.appengine.features.nearby.usecase.ObserveNearbyUseCase
 import kotlin.time.Duration.Companion.milliseconds
 import com.kglabs28.yapnplay.appengine.features.playroomlobby.domain.CountdownStopInfo
 import com.kglabs28.yapnplay.appengine.features.voice.domain.MySpeech
@@ -62,6 +67,10 @@ class PlayRoomLobbyViewModel(
     private val getRoomLeaderboard: GetRoomLeaderboardUseCase,
     private val getPendingInvites: GetRoomPendingInvitesUseCase,
     private val setVoiceWanted: SetVoiceWantedUseCase,
+    private val isNearbyRoom: IsNearbyRoomUseCase,
+    private val observeNearby: ObserveNearbyUseCase,
+    private val inviteNearby: InviteNearbyPlayerUseCase,
+    private val leaveNearby: LeaveNearbyUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<PlayRoomLobbyState, PlayRoomLobbyIntent, PlayRoomLobbyEffect>(PlayRoomLobbyState(), dispatchers) {
 
@@ -81,6 +90,10 @@ class PlayRoomLobbyViewModel(
     private var tickJob: Job? = null
     /** The countdown stop already told (each is shown once). */
     private var toldStop: CountdownStopInfo? = null
+    /** Keeps the party's Add Friends rows live while it is open. */
+    private var inviteJob: Job? = null
+    /** Friends invited from the open Add Friends (each once). */
+    private val invitedNow = mutableSetOf<String>()
 
     override suspend fun handleIntent(intent: PlayRoomLobbyIntent) {
         when (intent) {
@@ -128,14 +141,13 @@ class PlayRoomLobbyViewModel(
             }
             PlayRoomLobbyIntent.ShowRuleSheet -> showModal(LobbyModal.RuleSheet)
             PlayRoomLobbyIntent.LeaveClicked -> showModal(LobbyModal.LeaveConfirm)
-            PlayRoomLobbyIntent.ConfirmLeave -> {
-                showModal(null)
-                send(LobbyCommand.LeaveRoom)
-                emitEffect(PlayRoomLobbyEffect.Close)
-            }
+            PlayRoomLobbyIntent.ConfirmLeave -> leave()
             PlayRoomLobbyIntent.CancelCountdown -> send(LobbyCommand.CancelCountdown)
             PlayRoomLobbyIntent.DismissModal -> showModal(null)
-            PlayRoomLobbyIntent.Back -> {
+            // A Quick Play party is only the people in it: going back leaves it (the last one out ends it).
+            PlayRoomLobbyIntent.Back -> if (data?.room?.temporary == true) {
+                leave()
+            } else {
                 send(LobbyCommand.ExitLobby)
                 emitEffect(PlayRoomLobbyEffect.Close)
             }
@@ -162,12 +174,16 @@ class PlayRoomLobbyViewModel(
                 }
             }
             PlayRoomLobbyIntent.SendInvites -> sendInvites()
+            is PlayRoomLobbyIntent.InvitePlayer -> invitePlayer(intent.id)
             PlayRoomLobbyIntent.OpenEditName -> setState { copy(sheet = LobbySheet.EditName(roomName)) }
             is PlayRoomLobbyIntent.EditNameChanged -> setState {
                 copy(sheet = (sheet as? LobbySheet.EditName)?.copy(name = intent.name.take(AppConstants.MAX_ROOM_NAME_LENGTH)))
             }
             PlayRoomLobbyIntent.SaveName -> saveName()
-            PlayRoomLobbyIntent.DismissSheet -> setState { copy(sheet = null) }
+            PlayRoomLobbyIntent.DismissSheet -> {
+                inviteJob?.cancel()
+                setState { copy(sheet = null) }
+            }
         }
     }
 
@@ -192,6 +208,16 @@ class PlayRoomLobbyViewModel(
     private suspend fun send(command: LobbyCommand) {
         roomId?.let { sendCommand(it, command) }
     }
+
+    private suspend fun leave() {
+        showModal(null)
+        send(LobbyCommand.LeaveRoom)
+        // A Nearby party: this phone is out of it (the host's leaving ends it for everyone).
+        if (nearby()) leaveNearby()
+        emitEffect(PlayRoomLobbyEffect.Close)
+    }
+
+    private fun nearby(): Boolean = roomId?.let(isNearbyRoom::invoke) == true
 
     private fun selectedGameId(): String = data?.room?.selectedGameId.orEmpty()
 
@@ -253,12 +279,59 @@ class PlayRoomLobbyViewModel(
         val d = data ?: return
         val me = me() ?: return
         val target = d.room.members.firstOrNull { it.userId == userId } ?: return
-        val options = LobbyRules.menuOptions(me, target)
+        val options = LobbyRules.menuOptions(me, target, d.room.temporary)
         if (options.isNotEmpty()) showModal(LobbyModal.MemberMenu(target.userId, target.name, options))
     }
 
-    /** Add Friends: the user's friends who aren't in the group yet, online first; those already invited wait at the end. */
+    /** Add Friends: a party lists people to invite one by one; a Game Room keeps its pick-and-send dialog. */
     private suspend fun openAddFriends() {
+        if (data?.room?.temporary == true) openInvitePlayers() else openGroupAddFriends()
+    }
+
+    /** A party's Add Friends: the phones around (Nearby) or online friends, live while open. */
+    private suspend fun openInvitePlayers() {
+        val id = roomId ?: return
+        inviteJob?.cancel()
+        val members = state.value.members.map { it.userId }.toSet()
+        if (nearby()) {
+            setState { copy(sheet = LobbySheet.InvitePlayers(NearbyStrings.addTitleNearby, NearbyStrings.addEmptyNearby, loading = false)) }
+            inviteJob = scope.launch {
+                observeNearby().collect { s ->
+                    updateInvitePlayers { copy(rows = InviteRowsMapper.fromPeers(s.peers, state.value.members.map { it.userId }.toSet())) }
+                }
+            }
+            return
+        }
+        setState { copy(sheet = LobbySheet.InvitePlayers(NearbyStrings.addTitleOnline, NearbyStrings.addEmptyOnline)) }
+        invitedNow.clear()
+        invitedNow += (getPendingInvites(id) as? AppResult.Success)?.data.orEmpty()
+        val friends = (getFriends() as? AppResult.Success)?.data.orEmpty()
+        updateInvitePlayers { copy(rows = InviteRowsMapper.fromFriends(friends, members, invitedNow), loading = false) }
+    }
+
+    /** Add + on one row: a nearby phone gets the invite over the radio, a friend through the server (and a popup). */
+    private suspend fun invitePlayer(id: String) {
+        val roomId = roomId ?: return
+        if (nearby()) {
+            inviteNearby(id)
+            return
+        }
+        if (id in invitedNow) return
+        invitedNow += id
+        updateInvitePlayers { copy(rows = rows.map { if (it.id == id) it.copy(status = NearbyStrings.statusInvited, tone = InviteTone.DONE, canAdd = false) else it }, error = null) }
+        if (inviteFriends(roomId, listOf(id), emptyList()) is AppResult.Failure) {
+            invitedNow -= id
+            val friends = (getFriends() as? AppResult.Success)?.data.orEmpty()
+            updateInvitePlayers { copy(rows = InviteRowsMapper.fromFriends(friends, state.value.members.map { it.userId }.toSet(), invitedNow), error = NearbyStrings.addFailed) }
+        }
+    }
+
+    private fun updateInvitePlayers(change: LobbySheet.InvitePlayers.() -> LobbySheet.InvitePlayers) {
+        setState { copy(sheet = (sheet as? LobbySheet.InvitePlayers)?.change() ?: sheet) }
+    }
+
+    /** A Game Room's Add Friends: the user's friends who aren't in the group yet, online first; those already invited wait at the end. */
+    private suspend fun openGroupAddFriends() {
         setState { copy(sheet = LobbySheet.AddFriends()) }
         val members = state.value.members.map { it.userId }.toSet()
         val pending = roomId?.let { (getPendingInvites(it) as? AppResult.Success)?.data }.orEmpty()
@@ -327,6 +400,7 @@ class PlayRoomLobbyViewModel(
                 roomName = room.name,
                 isLeader = me?.isLeader == true,
                 isAdmin = me?.isAdmin == true,
+                temporary = room.temporary,
                 members = LobbyRules.sortMembers(room.members, d.myUserId).map { it.toUi(d) },
                 membersLabel = RoomStrings.lobbyPlayersOnline(room.members.count { it.online }, room.members.size),
                 games = d.games,

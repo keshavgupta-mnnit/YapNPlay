@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.foundation.layout.Row
+import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +47,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.moderation.PenaltyCard
 @Composable
 fun GameZoneScreen(
     onOpenMatch: (gameId: String, matchId: String) -> Unit,
+    /** Back to the Quick Play hub (the round arrow at the bottom start). */
+    onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GameZoneViewModel? = null,
 ) {
@@ -104,7 +109,14 @@ fun GameZoneScreen(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
-            OnlineCountPill(label = state.onlineLabel, modifier = Modifier.align(Alignment.CenterStart).revealWhen(state.loaded))
+            Row(
+                modifier = Modifier.align(Alignment.CenterStart),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
+            ) {
+                GlassIconButton(imageVector = Icons.Rounded.ChevronLeft, contentDescription = Strings.playHubBack, onClick = onBack)
+                OnlineCountPill(label = state.onlineLabel, modifier = Modifier.revealWhen(state.loaded))
+            }
             ViewModeToggle(
                 isGrid = state.viewMode == GamePickerViewMode.GRID,
                 onToggle = { viewModel?.onIntent(GameZoneIntent.ToggleViewMode) },

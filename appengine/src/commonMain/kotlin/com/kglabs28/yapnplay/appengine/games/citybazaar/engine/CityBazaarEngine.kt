@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.engine
 
+import com.kglabs28.yapnplay.appengine.games.citybazaar.engine.action.ExtendMatch
+import com.kglabs28.yapnplay.appengine.games.citybazaar.engine.action.ReachTimeLimit
 import com.kglabs28.yapnplay.appengine.games.base.Game
 import com.kglabs28.yapnplay.appengine.games.base.identity.GameId
 import com.kglabs28.yapnplay.appengine.games.base.identity.SeatNumber
@@ -63,9 +65,8 @@ class CityBazaarEngine : Game {
     override val maxSpectators: Int? = null
     override val turnPolicy: TurnPolicy = TurnPolicy.Sequential
     /** CPU seats: buys, builds and bids. */
+    /** CPU seats, away and bot-held seats. */
     override val bot = CityBazaarBot(CityBazaarBotProfile.CPU)
-    /** A player's Autoplay: buys, builds and bids like a person would. */
-    val autoplayBot = CityBazaarBot(CityBazaarBotProfile.AUTOPLAY)
     /** Timed-out turns: rolls and moves, sells only to pay. */
     val cautiousBot = CityBazaarBot(CityBazaarBotProfile.CAUTIOUS)
 
@@ -77,7 +78,7 @@ class CityBazaarEngine : Game {
             "last one solvent wins, or the richest when time or rounds run out."
 
     override fun start(rules: GameRules, seatCount: Int, random: GameRandom): GameState {
-        require(seatCount in 2..CITY_BAZAAR_MAX_PLAYERS) { "City Bazaar needs 2-6 seats" }
+        require(seatCount in 2..CITY_BAZAAR_MAX_PLAYERS) { "City Royale needs 2-6 seats" }
         val cbRules = rules as? CityBazaarRules ?: CityBazaarRules.STANDARD
         val seats = (1..seatCount).toList()
         return CityBazaarState(
@@ -99,6 +100,11 @@ class CityBazaarEngine : Game {
         val turn = CityBazaarTurn(s, random)
         // Any player may bid; everything else is the current seat's (or the server's on their behalf).
         if (action is PlaceBid) return if (s.phase == CityBazaarPhase.AUCTION && turn.bid(me)) turn.result() else reject("ILLEGAL_ACTION", "Can't bid now")
+        // At the limit the match layer runs the vote; the engine only extends or ends.
+        if (action is ExtendMatch) {
+            return if (s.phase == CityBazaarPhase.EXTENSION_VOTE) turn.apply { extend(action.extraRounds, action.extraMinutes) }.result() else reject("ILLEGAL_ACTION", "Not at the limit")
+        }
+        if (action is ReachTimeLimit) return if (s.phase == CityBazaarPhase.ROLL) turn.apply { reachTimeLimit() }.result() else reject("ILLEGAL_ACTION", "Mid-turn")
         if (me != s.currentSeat) return reject("NOT_YOUR_TURN", "Not your turn")
         val ok = when (action) {
             is RollDice -> when (s.phase) {
@@ -110,8 +116,8 @@ class CityBazaarEngine : Game {
             DeclineTile -> (s.phase == CityBazaarPhase.BUY).also { if (it) turn.decided() }
             is BuildOnTile -> (s.phase == CityBazaarPhase.BUILD && action.tile == s.pendingTile && turn.build(me, action.tile)).also { if (it) turn.decided() }
             SkipBuild -> (s.phase == CityBazaarPhase.BUILD).also { if (it) turn.decided() }
-            PayJailFine -> s.phase == CityBazaarPhase.JAIL_CHOICE && turn.payJailFine(me)
-            StayInJail -> (s.phase == CityBazaarPhase.JAIL_CHOICE).also { if (it) turn.stayInJail(me) }
+            PayJailFine -> s.phase in JAIL_DECISION && turn.payJailFine(me)
+            StayInJail -> (s.phase in JAIL_DECISION).also { if (it) turn.stayInJail(me) }
             is SellBuilding -> (s.phase == CityBazaarPhase.DEBT && turn.sellBuilding(me, action.tile)).also { if (it) turn.settleDebtIfPossible() }
             // House rule "debt_auction" (on by default): a city sold to pay a debt goes up for auction first.
             is SellTile -> if (s.cbRules.house.debtAuction) {
@@ -121,10 +127,10 @@ class CityBazaarEngine : Game {
             }
             is StartAuction -> s.phase == CityBazaarPhase.DEBT && turn.startAuction(me, action.tile)
             CloseAuction -> s.phase == CityBazaarPhase.AUCTION && turn.closeAuction()
-            DeclareBankruptcy -> (s.phase == CityBazaarPhase.DEBT).also { if (it) turn.bankrupt(me, s.debt?.payees.orEmpty()) }
+            DeclareBankruptcy -> (s.phase == CityBazaarPhase.DEBT).also { if (it) turn.giveUp(me, s.debt?.payees.orEmpty()) }
             LateRollFine -> (s.phase == CityBazaarPhase.ROLL || s.phase == CityBazaarPhase.JAIL_ROLL).also { if (it) turn.lateRollFine(me) }
             EndMatch -> true.also { turn.finish() }
-            else -> return reject("BAD_REQUEST", "Unknown action for City Bazaar")
+            else -> return reject("BAD_REQUEST", "Unknown action for City Royale")
         }
         return if (ok) turn.result() else reject("ILLEGAL_ACTION", "Not allowed now")
     }
@@ -133,6 +139,9 @@ class CityBazaarEngine : Game {
 
     /** A CPU seat's move. */
     override fun autoplay(state: GameState, seat: SeatNumber, random: GameRandom): ApplyResult = playWith(bot, state, seat, random)
+
+    /** Plays one step of [seat]'s turn with [player] (e.g. a player's Autoplay profile). */
+    fun playAs(player: CityBazaarBot, state: GameState, seat: SeatNumber, random: GameRandom): ApplyResult = playWith(player, state, seat, random)
 
     /**
      * Time ran out: roll and move, decline buying and
@@ -188,3 +197,6 @@ class CityBazaarEngine : Game {
         }
     }
 }
+
+/** Just jailed: roll for doubles, or pay the fine / take half rent straight away. */
+private val JAIL_DECISION = setOf(CityBazaarPhase.JAIL_ROLL, CityBazaarPhase.JAIL_CHOICE)

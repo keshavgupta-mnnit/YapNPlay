@@ -18,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.HowToReg
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PersonAdd
@@ -42,7 +41,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 
 /**
  * Lobby top bar: round back, the group's name at the start of its pill, then
- * Leaderboard and a round ⋮ that opens [LobbyRoomMenu] (everything else
+ * one action pill ([actionText]: Leaderboard in a Game Room, Add Friends in a
+ * Quick Play party) and a round ⋮ that opens [LobbyRoomMenu] (everything else
  * the room offers lives there).
  */
 @Composable
@@ -50,7 +50,9 @@ fun LobbyTopBar(
     roomName: String,
     menuOpen: Boolean,
     onBack: () -> Unit,
-    onLeaderboard: () -> Unit,
+    actionText: String,
+    actionIcon: ImageVector,
+    onAction: () -> Unit,
     onMenu: () -> Unit,
     modifier: Modifier = Modifier,
     menu: @Composable () -> Unit = {},
@@ -86,7 +88,7 @@ fun LobbyTopBar(
             )
         }
         // As tall as the room name's pill beside it.
-        GlassPillButton(text = RoomStrings.lobbyLeaderboard, onClick = onLeaderboard, leadingIcon = Icons.Rounded.EmojiEvents, height = dimens.lobbyBarHeight)
+        GlassPillButton(text = actionText, onClick = onAction, leadingIcon = actionIcon, height = dimens.lobbyBarHeight)
         Box {
             GlassIconButton(
                 imageVector = Icons.Rounded.MoreVert,
@@ -101,11 +103,13 @@ fun LobbyTopBar(
 
 /**
  * The ⋮ menu under the top bar's last button: Waiting List (admins),
- * Share Link, Add Friends, Edit Name (admins) and, last, Leave Room in red.
+ * Share Link ([canShareLink]: not in a Quick Play party, which has no code
+ * to join by), Add Friends, Edit Name (admins) and, last, Leave Room in red.
  */
 @Composable
 fun LobbyRoomMenu(
     isAdmin: Boolean,
+    canShareLink: Boolean,
     onDismiss: () -> Unit,
     onWaitingList: () -> Unit,
     onShareLink: () -> Unit,
@@ -129,7 +133,7 @@ fun LobbyRoomMenu(
                 .padding(vertical = Spacing.Xs),
         ) {
             if (isAdmin) LobbyMenuItem(Icons.Rounded.HowToReg, RoomStrings.lobbyWaitingList, colors.TextPrimary) { onDismiss(); onWaitingList() }
-            LobbyMenuItem(Icons.Rounded.Share, RoomStrings.lobbyShareLink, colors.TextPrimary) { onDismiss(); onShareLink() }
+            if (canShareLink) LobbyMenuItem(Icons.Rounded.Share, RoomStrings.lobbyShareLink, colors.TextPrimary) { onDismiss(); onShareLink() }
             LobbyMenuItem(Icons.Rounded.PersonAdd, RoomStrings.lobbyAddFriends, colors.TextPrimary) { onDismiss(); onAddFriends() }
             if (isAdmin) LobbyMenuItem(Icons.Rounded.Edit, RoomStrings.lobbyEditName, colors.TextPrimary) { onDismiss(); onEditName() }
             LobbyMenuItem(Icons.AutoMirrored.Rounded.Logout, RoomStrings.lobbyLeaveRoom, colors.Error) { onDismiss(); onLeave() }

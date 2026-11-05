@@ -14,6 +14,9 @@ import com.kglabs28.yapnplay.appengine.core.network.SessionProvider
 import com.kglabs28.yapnplay.appengine.core.network.MatchChannel
 import com.kglabs28.yapnplay.appengine.core.network.RealtimeConnection
 import com.kglabs28.yapnplay.appengine.core.network.RealtimeGateway
+import com.kglabs28.yapnplay.appengine.core.network.OfflineMode
+import com.kglabs28.yapnplay.appengine.core.network.SwitchingRealtimeGateway
+import com.kglabs28.yapnplay.appengine.features.nearby.data.OfflineRealtimeGateway
 import com.kglabs28.yapnplay.appengine.games.base.play.DefaultGameRandom
 import com.kglabs28.yapnplay.appengine.games.base.play.GameRandom
 import io.ktor.client.HttpClient
@@ -95,7 +98,9 @@ val coreModule = module {
     // The socket: the real-time match connection to the backend.
     single<RealtimeGateway> {
         val config = get<AppManagerHelper>()
-        RealtimeConnection(get(), get(), get(), get(APP_SCOPE), baseUrl = { config.serverBaseUrl() }, games = { get<GameRegistry>().games.map { it.id.value } })
+        val backend = RealtimeConnection(get(), get(), get(), get(APP_SCOPE), baseUrl = { config.serverBaseUrl() }, games = { get<GameRegistry>().games.map { it.id.value } })
+        // During Nearby play every table talks to the hosting phone instead (see nearbyModule).
+        SwitchingRealtimeGateway(backend, get<OfflineRealtimeGateway>(), get<OfflineMode>(), get(APP_SCOPE))
     }
     single { MatchChannel(get()) }
 }

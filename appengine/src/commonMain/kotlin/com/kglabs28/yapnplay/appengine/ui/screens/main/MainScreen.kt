@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.core.ui.NearbyStrings
 import com.kglabs28.yapnplay.appengine.core.designsystem.MotionTokens
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.draw.clipToBounds
@@ -48,6 +49,8 @@ import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppTopBar
 import com.kglabs28.yapnplay.appengine.ui.placeholders.CozyHomeBackground
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneScreen
+import com.kglabs28.yapnplay.appengine.ui.screens.playhub.PlayHubScreen
+import com.kglabs28.yapnplay.appengine.ui.screens.playhub.PlayHubViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsIntent
 import com.kglabs28.yapnplay.appengine.ui.screens.playrooms.PlayRoomsScreen
@@ -78,6 +81,7 @@ fun MainScreen(
     onInvitesShown: () -> Unit = {},
     viewModel: MainViewModel? = null,
     gameZoneViewModel: GameZoneViewModel? = null,
+    playHubViewModel: PlayHubViewModel? = null,
     playRoomsViewModel: PlayRoomsViewModel? = null,
     welcomeViewModel: WelcomeViewModel? = null,
 ) {
@@ -131,6 +135,9 @@ fun MainScreen(
             onFriendCodeConsumed()
         }
     }
+    BlockingOverlay(visible = state.needsInternetShown, onDismiss = { viewModel?.onIntent(MainIntent.DismissNeedsInternet) }) {
+        ModalCard(title = NearbyStrings.needsInternet, subtitle = NearbyStrings.offlineBanner, onClose = { viewModel?.onIntent(MainIntent.DismissNeedsInternet) })
+    }
     state.friendLink?.let { link ->
         BlockingOverlay(visible = true, onDismiss = { viewModel?.onIntent(MainIntent.DismissFriendLink) }) {
             ModalCard(title = ProfileStrings.profileFriendLinkTitle, subtitle = link.message, onClose = { viewModel?.onIntent(MainIntent.DismissFriendLink) })
@@ -182,7 +189,7 @@ fun MainScreen(
     }
     CozyHomeBackground(
         modifier = modifier,
-        frosted = state.selectedTab.frostedBackground,
+        frosted = state.frostedBackground,
     ) {
       Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -261,10 +268,21 @@ fun MainScreen(
                             playRoomsViewModel?.onIntent(PlayRoomsIntent.CreateRoom)
                         }
                     )
-                    AppNavTab.GAMES -> GameZoneScreen(
-                        onOpenMatch = onOpenMatch,
-                        viewModel = gameZoneViewModel,
-                    )
+                    AppNavTab.GAMES -> if (state.randomsOpen) {
+                        // Back (the system's or the catalog's own) returns to the hub; a search or dialog takes it first.
+                        BlockBackPress(enabled = true, onBack = { viewModel?.onIntent(MainIntent.CloseRandoms) })
+                        GameZoneScreen(
+                            onOpenMatch = onOpenMatch,
+                            onBack = { viewModel?.onIntent(MainIntent.CloseRandoms) },
+                            viewModel = gameZoneViewModel,
+                        )
+                    } else {
+                        PlayHubScreen(
+                            onOpenRandoms = { viewModel?.onIntent(MainIntent.OpenRandoms) },
+                            onOpenRoom = onOpenRoom,
+                            viewModel = playHubViewModel,
+                        )
+                    }
                     AppNavTab.ROOMS -> PlayRoomsScreen(
                         onOpenRoom = onOpenRoom,
                         onCreateRoom = onCreateRoom,

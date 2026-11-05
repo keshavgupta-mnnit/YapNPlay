@@ -20,6 +20,9 @@ interface PlayRoomsRepository {
     /** Creates a group (no name: the server picks one) and invites [inviteUserIds]. */
     suspend fun createRoom(name: String?, icon: String, inviteUserIds: List<String>): AppResult<CreatedPlayRoom>
 
+    /** Quick Play with friends: a temporary room led by the user (no name, no invitees needed). */
+    suspend fun createTempRoom(): AppResult<CreatedPlayRoom>
+
     /** Invites friends into a group the user belongs to; the ids that got an invite. */
     suspend fun inviteToRoom(roomId: String, userIds: List<String>, userCodes: List<String> = emptyList()): AppResult<List<String>>
 

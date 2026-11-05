@@ -30,6 +30,10 @@ package com.kglabs28.yapnplay.appengine.protocol.transport
  * 0.10.0 — MatchEnded RankedSeat: coinsWon is every seat's place share
  * (CPUs and leavers too, shown not credited); new stake (the entry put
  * in); CPUs show the flat completion bonus.
+ * 0.12.3 — FriendSummary.activity (OFFLINE, ONLINE, IN_ROOM, PLAYING); PlayInvite push (ROOM channel)
+ * when a friend invites the user to a Quick Play party.
+ * 0.12.2 — Quick Play with friends: CreateRoom.temporary, RoomInfo.temporary, RoomSummary.temporary,
+ * RoomInviteSummary.temporary (a room with one leader, deleted once everyone has left its lobby).
  * 0.12.1 — Doodle King: DoodleKingPublicState.wordCategory / wordLanguage (the word's group and
  * language, shown to the guessers); words are at most 6 letters.
  * 0.12.0 — City Royale: MoneyMoved.reason SELL_BUILDING (a house or hotel sold to the bank);
@@ -38,4 +42,4 @@ package com.kglabs28.yapnplay.appengine.protocol.transport
  * channel, EmojiGift (MatchRelay) to the whole table, `GET
  * /coins/emoji-gifts` (EmojiGiftPrices).
  */
-const val CONTRACT_VERSION: String = "0.12.1"
+const val CONTRACT_VERSION: String = "0.12.3"

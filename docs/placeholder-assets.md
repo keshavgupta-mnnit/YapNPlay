@@ -24,6 +24,16 @@ and the game player cards. The spectator tray still uses the person glyph.
 | 1 | `GameArt.kt` (`royal-ludo`) | Royal Ludo carousel art | Dedicated Royal Ludo art (uses the home game-zone art today) |
 | 2 | `GameArt.kt` (other keys) | Card Clash, Island Quest, Block Merge, Carrom Strike, Doodle Dash, Quiz Quest, Word Wars | Art per game when each game is built |
 
+## Quick Play hub (`ui/screens/playhub/`)
+| # | File | Meaning | Real art needed |
+|---|---|---|---|
+| 1 | `img_play_hub_randoms.png` | Play With Randoms card | Globe with dice and cards, sound waves |
+| 2 | `img_play_hub_friends.png` | Play With Friends card | Rooftop lounge with fire pit and chat bubbles |
+| 3 | `img_play_hub_nearby.png` | Offline Nearby card | Two phones linked with Wi-Fi / Bluetooth waves |
+
+The three files are copies of older card art; replace them in
+`composeResources/drawable` with the same names.
+
 ## RoomsScreen (`ui/screens/rooms/`)
 | # | File / Component | Meaning | Real art needed |
 |---|---|---|---|

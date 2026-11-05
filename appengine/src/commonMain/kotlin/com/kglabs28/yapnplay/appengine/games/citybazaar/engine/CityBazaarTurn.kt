@@ -27,9 +27,24 @@ internal class CityBazaarTurn(private var s: CityBazaarState, private val random
     /** The turn passed on during this action (nothing else may move it on). */
     private var ended = false
 
-    fun result(): ApplyResult = ApplyResult.Success(s, events.toList())
+    fun result(): ApplyResult = ApplyResult.Success(withBankTotals(), events.toList())
 
-    fun state(): CityBazaarState = s
+    fun state(): CityBazaarState = withBankTotals()
+
+    /** Adds this action's money to and from the bank to the match totals (once). */
+    private var banked = false
+
+    private fun withBankTotals(): CityBazaarState {
+        if (!banked) {
+            banked = true
+            val money = events.filterIsInstance<MoneyMoved>()
+            s = s.copy(
+                bankReceived = s.bankReceived + money.filter { it.to == null }.sumOf { it.amount.toLong() },
+                bankPaid = s.bankPaid + money.filter { it.from == null }.sumOf { it.amount.toLong() },
+            )
+        }
+        return s
+    }
 
     // ---------------- rolling and moving ----------------
 
@@ -40,7 +55,7 @@ internal class CityBazaarTurn(private var s: CityBazaarState, private val random
         settle()
     }
 
-    /** In jail: doubles free you (you move next turn); 3 misses and you choose fine or half rent. */
+    /** Just jailed: doubles free you (you move next turn); 3 misses and you choose fine or half rent. */
     fun jailRoll() {
         val seat = s.currentSeat
         val (d1, d2) = dice(seat)
@@ -158,7 +173,8 @@ internal class CityBazaarTurn(private var s: CityBazaarState, private val random
         if (from != JAIL_TILE) events += TokenMoved(seat, from, JAIL_TILE, 0, jump = true)
         events += SentToJail(seat)
         s = s.copy(positions = s.positions + (seat to JAIL_TILE), jailed = s.jailed + seat)
-        if (seat == s.currentSeat) nextTurn()
+        // Decided right now, on this turn: roll for doubles, pay the fine or take half rent.
+        if (seat == s.currentSeat) s = s.copy(phase = CityBazaarPhase.JAIL_ROLL, jailTriesLeft = JAIL_TRIES)
     }
 
     private fun leaveJail(seat: Int, how: String) {
@@ -216,13 +232,22 @@ internal class CityBazaarTurn(private var s: CityBazaarState, private val random
 
     private fun pay(seat: Int, total: Int, payees: Map<Int, Int>, reason: MoneyReason, tile: Int?) {
         var cash = s.cash + (seat to s.cashOf(seat) - total)
+        var bySeat = s.rentBySeat
+        var byTile = s.rentByTile
+        var paidBySeat = s.rentPaidBySeat
         payees.forEach { (to, amount) ->
             cash = cash + (to to (cash[to] ?: 0) + amount)
             events += MoneyMoved(seat, to, amount, reason, tile)
+            // Rent totals for the result screen: what each owner and each tile earned.
+            if (reason == MoneyReason.RENT) {
+                bySeat = bySeat + (to to (bySeat[to] ?: 0) + amount)
+                if (tile != null) byTile = byTile + (tile to (byTile[tile] ?: 0) + amount)
+                paidBySeat = paidBySeat + (seat to (paidBySeat[seat] ?: 0) + amount)
+            }
         }
         val toBank = total - payees.values.sum()
         if (toBank > 0) events += MoneyMoved(seat, null, toBank, reason, tile)
-        s = s.copy(cash = cash)
+        s = s.copy(cash = cash, rentBySeat = bySeat, rentByTile = byTile, rentPaidBySeat = paidBySeat)
     }
 
     /** Sells to the bank (as the bot would) until [seat] has [amount] or nothing is left. */
@@ -244,7 +269,11 @@ internal class CityBazaarTurn(private var s: CityBazaarState, private val random
         return true
     }
 
-    /** A bare tile back to the bank at half its price. */
+    /**
+     * A bare tile back to the bank at half its price. A city with buildings
+     * sells them first, one at a time (hotel → 3 houses → … → bare city);
+     * other cities don't matter.
+     */
     fun sellTile(seat: Int, tile: Int): Boolean {
         if (s.owners[tile] != seat || s.level(tile) > 0) return false
         val amount = CityBazaarEconomy.tileResale(tile)
@@ -301,6 +330,24 @@ internal class CityBazaarTurn(private var s: CityBazaarState, private val random
         pay(seat, debt.total, debt.payees, debt.reason, debt.tile)
         s = s.copy(debt = null, phase = CityBazaarPhase.ROLL)
         settle()
+    }
+
+    /**
+     * The player in debt gives up. With debt auctions on, every city they
+     * still own goes up for auction first, one at a time (its houses sold
+     * back to the bank), never straight to the bank; only once none is left
+     * and the debt still isn't covered are they bankrupt.
+     */
+    fun giveUp(seat: Int, payees: Map<Int, Int>) {
+        val next = s.owners.filter { it.value == seat }.keys.firstOrNull()
+        if (s.cbRules.house.debtAuction && next != null) {
+            while (s.level(next) > 0) sellBuilding(seat, next)
+            // Selling the houses may already cover it: then the city stays theirs.
+            settleDebtIfPossible()
+            if (s.debt == null) return
+            if (startAuction(seat, next)) return
+        }
+        bankrupt(seat, payees)
     }
 
     /** Everything goes to the bank; what's left of the cash goes to [payees]; out of the match. */
@@ -387,26 +434,57 @@ internal class CityBazaarTurn(private var s: CityBazaarState, private val random
                 break
             }
         }
+        // Jail was decided on the turn it happened: the next turn starts free.
+        if (s.inJail(seat)) leaveJail(seat, "SERVED")
         s = s.copy(
             currentSeat = seat,
             round = round,
             skipNext = skip,
             // Half rent lasts until the player's own next turn.
             halfRent = s.halfRent - seat,
-            phase = if (s.inJail(seat)) CityBazaarPhase.JAIL_ROLL else CityBazaarPhase.ROLL,
-            jailTriesLeft = if (s.inJail(seat)) JAIL_TRIES else 0,
+            phase = CityBazaarPhase.ROLL,
+            jailTriesLeft = 0,
             pendingTile = null,
             debt = null,
             auction = null,
         )
         val limit = s.cbRules.house.roundLimit
-        if (limit != null && round > limit) return finish()
+        if (limit != null && round > limit) {
+            // 2+ still in: they vote to keep going instead of the match just ending.
+            if (s.active.size < 2) return finish()
+            s = s.copy(phase = CityBazaarPhase.EXTENSION_VOTE, limitHit = CityBazaarLimit.ROUNDS)
+            return
+        }
         events += TurnPassed(seat)
+    }
+
+    // ---------------- at the limit ----------------
+
+    /** The time is up (between turns): 2+ still in vote to go on, else it ends. */
+    fun reachTimeLimit() {
+        if (s.active.size < 2) return finish()
+        s = s.copy(phase = CityBazaarPhase.EXTENSION_VOTE, limitHit = CityBazaarLimit.TIME)
+        ended = true
+    }
+
+    /** They voted to keep going: more rounds or minutes, and play resumes. */
+    fun extend(extraRounds: Int, extraMinutes: Int) {
+        val house = s.cbRules.house
+        val hit = s.limitHit
+        val rules = when (hit) {
+            CityBazaarLimit.ROUNDS -> house.copy(roundLimit = (house.roundLimit ?: s.round) + extraRounds)
+            CityBazaarLimit.TIME -> house.copy(timeLimitMinutes = (house.timeLimitMinutes ?: 0) + extraMinutes)
+            null -> house
+        }
+        s = s.copy(cbRules = s.cbRules.copy(house = rules), limitHit = null, phase = CityBazaarPhase.ROLL)
+        ended = true
+        // At the round limit the next player was already chosen: their turn starts now.
+        if (hit == CityBazaarLimit.ROUNDS) events += TurnPassed(s.currentSeat)
     }
 
     fun finish() {
         ended = true
-        s = s.copy(phase = CityBazaarPhase.FINISHED, pendingTile = null, debt = null, auction = null)
+        s = s.copy(phase = CityBazaarPhase.FINISHED, pendingTile = null, debt = null, auction = null, limitHit = null)
         events += MatchEnded(CityBazaarEngine.ranking(s))
     }
 
@@ -418,7 +496,7 @@ internal class CityBazaarTurn(private var s: CityBazaarState, private val random
     private companion object {
         val WAITING = setOf(
             CityBazaarPhase.BUY, CityBazaarPhase.BUILD, CityBazaarPhase.DEBT,
-            CityBazaarPhase.AUCTION, CityBazaarPhase.JAIL_CHOICE, CityBazaarPhase.FINISHED,
+            CityBazaarPhase.AUCTION, CityBazaarPhase.JAIL_ROLL, CityBazaarPhase.JAIL_CHOICE, CityBazaarPhase.FINISHED,
         )
     }
 }

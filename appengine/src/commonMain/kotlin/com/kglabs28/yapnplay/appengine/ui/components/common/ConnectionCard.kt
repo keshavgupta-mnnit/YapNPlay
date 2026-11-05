@@ -41,10 +41,17 @@ import com.kglabs28.yapnplay.appengine.ui.components.home.HomeCenterLogo
 /**
  * The connection card (connecting, can't reach, connection lost): the app
  * logo, a glowing spinner while trying (a Wi-Fi-off mark when offline), the
- * message, and Retry when offline.
+ * message, and Retry when offline ([onContinueOffline]: carry on to the
+ * app, where only Nearby play works).
  */
 @Composable
-fun ConnectionCard(title: String, body: String, onRetry: (() -> Unit)?, modifier: Modifier = Modifier) {
+fun ConnectionCard(
+    title: String,
+    body: String,
+    onRetry: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+    onContinueOffline: (() -> Unit)? = null,
+) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
@@ -70,6 +77,9 @@ fun ConnectionCard(title: String, body: String, onRetry: (() -> Unit)?, modifier
         BasicText(text = body, style = typography.label.copy(color = colors.TextSecondary, textAlign = TextAlign.Center))
         onRetry?.let {
             GlassPillButton(text = Strings.connectionRetry, onClick = it, leadingIcon = Icons.Rounded.Refresh, accent = colors.Cyan)
+        }
+        onContinueOffline?.let {
+            GlassPillButton(text = Strings.connectionContinueOffline, onClick = it, leadingIcon = Icons.Rounded.WifiOff, accent = colors.PlayNearbyAccent)
         }
     }
 }

@@ -24,6 +24,8 @@ import com.kglabs28.yapnplay.appengine.core.audio.SilentMicLevelMonitor
 import com.kglabs28.yapnplay.appengine.core.audio.SilentGameAudio
 import com.kglabs28.yapnplay.appengine.features.voice.SilentVoiceEngine
 import com.kglabs28.yapnplay.appengine.features.voice.data.remote.VoiceEngine
+import com.kglabs28.yapnplay.appengine.features.nearby.transport.NearbyTransport
+import com.kglabs28.yapnplay.appengine.features.nearby.transport.NoNearbyTransport
 import org.koin.dsl.module
 
 /** JVM local stores (in memory): appmanager config, notification history. */
@@ -40,4 +42,5 @@ val platformAppManagerModule = module {
     single<MicLevelMonitor> { SilentMicLevelMonitor() }
     single<VoiceEngine> { SilentVoiceEngine() }
     single<RewardedAds> { NoRewardedAds() }
+    single<NearbyTransport> { NoNearbyTransport() }
 }

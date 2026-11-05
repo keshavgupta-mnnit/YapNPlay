@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.connection.usecase.ObserveBackendReachableUseCase
 import com.kglabs28.yapnplay.appengine.games.doodleking.identity.DoodleKingDescriptor
 import com.kglabs28.yapnplay.appengine.features.connection.usecase.ObserveConnectionQualityUseCase
 import com.kglabs28.yapnplay.appengine.core.network.PingProbe
@@ -39,6 +40,7 @@ val gamesModule = module {
     // The connection badge on every table.
     single { PingProbe(get()) }
     factory { ObserveConnectionQualityUseCase(get()) }
+    factory { ObserveBackendReachableUseCase(get()) }
     single {
         GameRegistry(
             listOf(

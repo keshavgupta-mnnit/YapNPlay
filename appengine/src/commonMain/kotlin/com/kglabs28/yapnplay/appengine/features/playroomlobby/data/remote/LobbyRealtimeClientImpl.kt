@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.playroomlobby.data.remote
 
+import com.kglabs28.yapnplay.appengine.core.network.OfflineMode
 import com.kglabs28.yapnplay.appengine.protocol.SetLeague
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.core.network.RealtimeGateway
@@ -49,6 +50,8 @@ class LobbyRealtimeClientImpl(
     private val rooms: PlayRoomsApi,
     private val profile: ProfileApi,
     private val voice: VoiceClient,
+    /** During Nearby play the party's room is entered by its id (no server to look the code up). */
+    private val offline: OfflineMode,
 ) : LobbyRealtimeClient {
 
     override fun observeRoom(roomId: String): Flow<RoomSnapshot> = channelFlow {
@@ -59,7 +62,7 @@ class LobbyRealtimeClientImpl(
                 .filter { it.room.id == roomId }
                 .collect { send(it) }
         }
-        val code = rooms.getMyRooms().rooms.firstOrNull { it.roomId == roomId }?.code ?: return@channelFlow
+        val code = if (offline.active.value) roomId else rooms.getMyRooms().rooms.firstOrNull { it.roomId == roomId }?.code ?: return@channelFlow
         realtime.connections.collect { count ->
             if (count > 0) {
                 runCatching { realtime.request(Channel.ROOM, MessageType.JOIN_ROOM, JoinRoom.serializer(), JoinRoom(code)) }

@@ -23,6 +23,8 @@ data class PlayRoomLobbyState(
     val isAdmin: Boolean = false,
     /** Quick Play with friends: no leaderboard, link or admin; anyone adds friends; leaving ends your part. */
     val temporary: Boolean = false,
+    /** The leader's Save as Room / Update Room on an online party; null when not shown. */
+    val saveRoom: SaveRoomButtonUi? = null,
     val members: List<LobbyMemberUi> = emptyList(),
     val membersLabel: String = "",
     val games: List<GameCatalogItem> = emptyList(),
@@ -65,6 +67,9 @@ sealed interface LobbySheet {
     /** The group's new name, being typed. */
     data class EditName(val name: String) : LobbySheet
 
+    /** Save as Room: the new Game Room's name, being typed. */
+    data class SaveRoom(val name: String) : LobbySheet
+
     /**
      * A Quick Play party's Add Friends: online friends (or, offline, the
      * phones around) as rows with what they are doing and an Add button.
@@ -77,6 +82,9 @@ sealed interface LobbySheet {
         val error: String? = null,
     ) : LobbySheet
 }
+
+/** The party leader's button: Save as Room (2+ people here), then Update Room when someone new joined. */
+data class SaveRoomButtonUi(val label: String, val enabled: Boolean)
 
 /** One person who can be invited to the party, ready to draw. */
 data class InviteRowUi(
@@ -140,6 +148,8 @@ sealed interface LobbyModal {
     /** The admin's Waiting List; its entries come from the state, so it stays live. */
     data object WaitingList : LobbyModal
     data object LeaveConfirm : LobbyModal
+    /** Something the leader asked for didn't work (the message says what). */
+    data class Failed(val message: String) : LobbyModal
     data class Countdown(val title: String, val canCancel: Boolean) : LobbyModal
     /** The countdown stopped without a match: why and who ("Ravi cancelled the start."). */
     data class CountdownStopped(val message: String) : LobbyModal
@@ -190,6 +200,10 @@ sealed interface PlayRoomLobbyIntent : UiIntent {
     data object SendInvites : PlayRoomLobbyIntent
     /** Quick Play party: invite this one person now (friend id or nearby phone). */
     data class InvitePlayer(val id: String) : PlayRoomLobbyIntent
+    /** Leader of an online party: Save as Room (asks the name) or Update Room (adds the newcomers at once). */
+    data object SaveRoomClicked : PlayRoomLobbyIntent
+    data class SaveRoomNameChanged(val name: String) : PlayRoomLobbyIntent
+    data object ConfirmSaveRoom : PlayRoomLobbyIntent
     data object OpenEditName : PlayRoomLobbyIntent
     data class EditNameChanged(val name: String) : PlayRoomLobbyIntent
     data object SaveName : PlayRoomLobbyIntent

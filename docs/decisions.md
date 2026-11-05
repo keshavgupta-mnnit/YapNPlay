@@ -24,6 +24,15 @@ where they disagree. Newest first. Every AI agent reads this file too.
 - **Add Friends in a party** (where Leaderboard is in a Game Room) lists people
   one per row with what they are doing — Online, In a room, Playing a game,
   Offline, Invited — and **Add +** at the end. Adding asks them at once.
+- **A party's lobby has no ⋮ menu.** Back (the arrow or the phone's) asks
+  "Leave?" first. Add Friends is on the bar for **everyone**; it lists only
+  online friends, and Add + shows only for someone free (not playing, not in
+  a room lobby, not already invited or in the party).
+- **Save as Room** (leader, online parties only, 2+ people): asks a name and
+  makes a Game Room with everyone in the party added at once, no invites. The
+  party carries on; after that the button shows only as **Update Room** while
+  someone in the party isn't in the saved room, and adds them directly
+  (`SaveRoom(name?)`, contract 0.12.4).
 - **Play-now invites pop up anywhere** in the app except a room lobby or a
   table (there they wait until the user leaves). JOIN opens the party's lobby;
   "Not now" declines. Online they come as a `PlayInvite` push (contract 0.12.3).
@@ -39,6 +48,9 @@ where they disagree. Newest first. Every AI agent reads this file too.
 - **The app's game engines were synced to the backend's** (`games/`), since a
   hosting phone must play by the current rules. Online, the backend still
   decides everything; offline the hosting phone is the referee.
+- **Anyone in a Nearby party can add.** The host is the phone that finds
+  others, so it shares that list with its guests; a guest's Add asks the host
+  to send the invite.
 - **Add Friends lists phones around** that are findable: a phone is findable
   while YapNPlay is open, Nearby permission is granted, and it isn't in a
   party. Adding sends the invite over the radio; the popup appears on that

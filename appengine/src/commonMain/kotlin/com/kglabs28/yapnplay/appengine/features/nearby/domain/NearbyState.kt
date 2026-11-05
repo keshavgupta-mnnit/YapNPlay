@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.nearby.domain
 
+import kotlinx.serialization.Serializable
+
 /**
  * Nearby play as this phone sees it: whether it hosts a party or is a
  * guest in one, the phones around that can be invited (host), an invite
@@ -9,7 +11,7 @@ data class NearbyState(
     val role: NearbyRole = NearbyRole.IDLE,
     /** The party's room id while hosting or a guest; null otherwise. */
     val roomId: String? = null,
-    /** Phones around, free to be invited (the host's Add Friends list). */
+    /** Phones around, free to be invited (the party's Add Friends list; guests get it from the host). */
     val peers: List<NearbyPeer> = emptyList(),
     /** Someone nearby invited this phone; null when nothing waits. */
     val incoming: NearbyInvite? = null,
@@ -28,7 +30,8 @@ enum class NearbyRole {
     GUEST,
 }
 
-/** A phone around, as the host's invite list shows it. */
+/** A phone around, as the party's invite list shows it (the host shares it with its guests). */
+@Serializable
 data class NearbyPeer(
     val endpointId: String,
     val player: NearbyPlayer,
@@ -36,6 +39,7 @@ data class NearbyPeer(
 )
 
 /** Where the host's invite to one phone stands. */
+@Serializable
 enum class PeerInvite { NONE, INVITING, INVITED, JOINED, DECLINED }
 
 /** An invite from a phone nearby to its party. */

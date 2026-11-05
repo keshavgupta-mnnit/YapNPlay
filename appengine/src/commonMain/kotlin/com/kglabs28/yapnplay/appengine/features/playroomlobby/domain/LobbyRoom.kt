@@ -31,4 +31,8 @@ data class LobbyRoom(
     val countdownStop: CountdownStopInfo? = null,
     /** Quick Play with friends: one leader, anyone invites friends, gone once everyone left. */
     val temporary: Boolean = false,
+    /** The Game Room this party was saved as, or null. */
+    val savedRoomId: String? = null,
+    /** People here who aren't in the saved room yet. */
+    val savedRoomMissing: Int = 0,
 )

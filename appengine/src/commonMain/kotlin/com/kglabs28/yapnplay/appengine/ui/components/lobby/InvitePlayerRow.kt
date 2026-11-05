@@ -23,7 +23,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.profile.PresetAvatar
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.InviteRowUi
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.InviteTone
 
-/** One person to invite to the party: avatar, name, what they are doing, and Add + at the end. */
+/** One person to invite to the party: avatar, name, what they are doing, and Add + at the end (only when they can be added). */
 @Composable
 fun InvitePlayerRow(
     row: InviteRowUi,
@@ -53,12 +53,13 @@ fun InvitePlayerRow(
             ShrinkText(text = row.name, style = typography.label.copy(color = colors.TextPrimary))
             ShrinkText(text = row.status, style = typography.caption.copy(color = toneColor))
         }
-        GlassPillButton(
-            text = NearbyStrings.addButton,
-            onClick = onAdd,
-            leadingIcon = Icons.Rounded.Add,
-            accent = colors.PlayFriendsCta,
-            enabled = row.canAdd,
-        )
+        if (row.canAdd) {
+            GlassPillButton(
+                text = NearbyStrings.addButton,
+                onClick = onAdd,
+                leadingIcon = Icons.Rounded.Add,
+                accent = colors.PlayFriendsCta,
+            )
+        }
     }
 }

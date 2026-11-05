@@ -30,9 +30,16 @@ decisions that win).
 ## Versioning
 
 `CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
-**0.12.3**. Patch: optional field / new message. Minor: new required
+**0.12.4**. Patch: optional field / new message. Minor: new required
 field, channel or game-interface member. Major: breaking change.
 Every bump is announced in `docs/decisions.md`.
+
+0.12.4 added: `SaveRoom(name?)` on the ROOM channel (leader of a temporary room;
+Ack): with a name, a new Game Room with every party member added at once (the
+leader its leader and admin; needs 2+ people); with no name, the party's
+newcomers are added to that room. The party stays temporary.
+`RoomInfo.savedRoomId` and `RoomInfo.savedRoomMissing` (people in the party not
+in the saved room yet).
 
 0.12.3 added: `FriendSummary.activity` (`OFFLINE`, `ONLINE`, `IN_ROOM`,
 `PLAYING`), and the `PlayInvite(inviteId, roomId, roomName, from)` push on the

@@ -24,6 +24,9 @@ import com.kglabs28.yapnplay.appengine.games.base.GameRegistry
 import com.kglabs28.yapnplay.appengine.protocol.transport.CONTRACT_VERSION
 import com.kglabs28.yapnplay.appengine.protocol.transport.Envelope
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,6 +65,8 @@ class NearbyRepositoryImpl(
     private val guestLinks = mutableMapOf<String, String>()
     /** Guest: the host's link. */
     private var hostLink: String? = null
+    /** Host: shares the phones around with every guest whenever the list changes. */
+    private var peersJob: Job? = null
     private var findable = false
 
     init {
@@ -101,12 +106,19 @@ class NearbyRepositoryImpl(
         mode.set(true)
         gateway.linkUp()
         _state.value = NearbyState(role = NearbyRole.HOSTING, roomId = room.roomId)
+        peersJob = scope.launch {
+            _state.map { it.peers }.distinctUntilChanged().collect { peers -> guestLinks.values.forEach { send(it, NearbyFrame.Peers(peers)) } }
+        }
         if (!transport.discover()) _state.update { it.copy(problem = NearbyProblem.RADIO_FAILED) }
         return room.roomId
     }
 
     override suspend fun invite(endpointId: String) {
-        if (party == null) return
+        // A guest asks the host, who sees the phones around and sends the invite.
+        if (party == null) {
+            hostLink?.takeIf { _state.value.role == NearbyRole.GUEST }?.let { send(it, NearbyFrame.AskInvite(endpointId)) }
+            return
+        }
         setPeer(endpointId, PeerInvite.INVITING)
         if (!transport.connect(endpointId, NearbyEndpointName.encode(identity.me()))) setPeer(endpointId, PeerInvite.NONE)
     }
@@ -138,6 +150,8 @@ class NearbyRepositoryImpl(
             hosted.close()
         }
         val wasInParty = _state.value.role != NearbyRole.IDLE
+        peersJob?.cancel()
+        peersJob = null
         party = null
         me = null
         guestLinks.clear()
@@ -224,6 +238,8 @@ class NearbyRepositoryImpl(
             } else if (endpointId == hostLink) {
                 gateway.receive(frame.envelope)
             }
+            is NearbyFrame.Peers -> if (endpointId == hostLink) _state.update { it.copy(peers = frame.peers) }
+            is NearbyFrame.AskInvite -> if (hosted != null && endpointId in guestLinks.values) invite(frame.endpointId)
             is NearbyFrame.Closed -> if (endpointId == hostLink) {
                 stopWith(
                     when (frame.reason) {
@@ -254,6 +270,7 @@ class NearbyRepositoryImpl(
         hosted.admit(accept.player)
         setPeer(endpointId, PeerInvite.JOINED)
         send(endpointId, NearbyFrame.Welcome(hosted.room.roomId))
+        send(endpointId, NearbyFrame.Peers(_state.value.peers))
     }
 
     /** Guest: the host let this phone in; its lobby opens next. */

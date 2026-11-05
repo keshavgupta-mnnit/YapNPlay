@@ -121,6 +121,9 @@ object AppConstants {
     /** Friends' faces shown in the hub's "N Friends Online" pill (the rest are only counted). */
     const val PLAY_HUB_MAX_FACES = 4
 
+    /** Quick Play hub card art: zoomed past the picture's clear margin on a phone. */
+    const val PLAY_HUB_ART_ZOOM = 1.45f
+
     /** The Nearby scan's list width as a share of the screen. */
     const val NEARBY_SCAN_WIDTH_FRACTION = 0.6f
 

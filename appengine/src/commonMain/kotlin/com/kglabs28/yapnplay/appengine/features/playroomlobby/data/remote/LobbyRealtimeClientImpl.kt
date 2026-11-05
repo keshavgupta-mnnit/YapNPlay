@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.playroomlobby.data.remote
 
+import com.kglabs28.yapnplay.appengine.protocol.SaveRoom
 import com.kglabs28.yapnplay.appengine.core.network.OfflineMode
 import com.kglabs28.yapnplay.appengine.protocol.SetLeague
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
@@ -97,6 +98,7 @@ class LobbyRealtimeClientImpl(
             is LobbyCommand.DeclineJoin -> room(MessageType.DECLINE_JOIN, DeclineJoin.serializer(), DeclineJoin(command.userId))
             LobbyCommand.ExitLobby -> room(MessageType.EXIT_LOBBY, ExitLobby.serializer(), ExitLobby)
             LobbyCommand.LeaveRoom -> room(MessageType.LEAVE_ROOM, LeaveRoom.serializer(), LeaveRoom)
+            is LobbyCommand.SaveRoom -> room(MessageType.SAVE_ROOM, SaveRoom.serializer(), SaveRoom(command.name))
             // A member card's "Add Friend" sends a friend request to that person; "Remove" ends the friendship.
             is LobbyCommand.SetFriend ->
                 if (command.friend) profile.sendFriendRequest(SendFriendRequestBody(userId = command.userId)) else profile.removeFriend(command.userId)

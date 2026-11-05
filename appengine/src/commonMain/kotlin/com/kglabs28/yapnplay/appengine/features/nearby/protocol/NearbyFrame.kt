@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.nearby.protocol
 
+import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyPeer
 import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyPlayer
 import com.kglabs28.yapnplay.appengine.protocol.transport.Envelope
 import kotlinx.serialization.SerialName
@@ -36,6 +37,16 @@ sealed interface NearbyFrame {
     @Serializable
     @SerialName("message")
     data class Message(val envelope: Envelope) : NearbyFrame
+
+    /** Host → guests: the phones around it can invite, so anyone in the party can add them. */
+    @Serializable
+    @SerialName("peers")
+    data class Peers(val peers: List<NearbyPeer>) : NearbyFrame
+
+    /** Guest → host: please invite the phone [endpointId] from the shared list. */
+    @Serializable
+    @SerialName("ask_invite")
+    data class AskInvite(val endpointId: String) : NearbyFrame
 
     /** The host turned the guest away or ended the party. */
     @Serializable

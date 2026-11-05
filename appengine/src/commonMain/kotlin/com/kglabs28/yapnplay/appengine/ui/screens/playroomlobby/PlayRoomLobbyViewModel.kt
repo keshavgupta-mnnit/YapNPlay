@@ -144,9 +144,9 @@ class PlayRoomLobbyViewModel(
             PlayRoomLobbyIntent.ConfirmLeave -> leave()
             PlayRoomLobbyIntent.CancelCountdown -> send(LobbyCommand.CancelCountdown)
             PlayRoomLobbyIntent.DismissModal -> showModal(null)
-            // A Quick Play party is only the people in it: going back leaves it (the last one out ends it).
+            // A Quick Play party is only the people in it: going back leaves it, after asking (the last one out ends it).
             PlayRoomLobbyIntent.Back -> if (data?.room?.temporary == true) {
-                leave()
+                showModal(LobbyModal.LeaveConfirm)
             } else {
                 send(LobbyCommand.ExitLobby)
                 emitEffect(PlayRoomLobbyEffect.Close)
@@ -175,6 +175,11 @@ class PlayRoomLobbyViewModel(
             }
             PlayRoomLobbyIntent.SendInvites -> sendInvites()
             is PlayRoomLobbyIntent.InvitePlayer -> invitePlayer(intent.id)
+            PlayRoomLobbyIntent.SaveRoomClicked -> saveRoomClicked()
+            is PlayRoomLobbyIntent.SaveRoomNameChanged -> setState {
+                copy(sheet = (sheet as? LobbySheet.SaveRoom)?.copy(name = intent.name.take(AppConstants.MAX_ROOM_NAME_LENGTH)))
+            }
+            PlayRoomLobbyIntent.ConfirmSaveRoom -> confirmSaveRoom()
             PlayRoomLobbyIntent.OpenEditName -> setState { copy(sheet = LobbySheet.EditName(roomName)) }
             is PlayRoomLobbyIntent.EditNameChanged -> setState {
                 copy(sheet = (sheet as? LobbySheet.EditName)?.copy(name = intent.name.take(AppConstants.MAX_ROOM_NAME_LENGTH)))
@@ -218,6 +223,38 @@ class PlayRoomLobbyViewModel(
     }
 
     private fun nearby(): Boolean = roomId?.let(isNearbyRoom::invoke) == true
+
+    /** Not saved yet: ask the room's name (the party's to start with). Saved: add the newcomers at once. */
+    private suspend fun saveRoomClicked() {
+        val room = data?.room ?: return
+        if (state.value.saveRoom?.enabled != true) return
+        if (room.savedRoomId == null) {
+            setState { copy(sheet = LobbySheet.SaveRoom(room.name.take(AppConstants.MAX_ROOM_NAME_LENGTH))) }
+        } else {
+            saveRoom(null)
+        }
+    }
+
+    private suspend fun confirmSaveRoom() {
+        val name = (state.value.sheet as? LobbySheet.SaveRoom)?.name?.trim().orEmpty()
+        if (name.isEmpty()) return
+        setState { copy(sheet = null) }
+        saveRoom(name)
+    }
+
+    /** The server makes (or tops up) the Game Room with everyone here; the next snapshot updates the button. */
+    private suspend fun saveRoom(name: String?) {
+        val id = roomId ?: return
+        if (sendCommand(id, LobbyCommand.SaveRoom(name)) is AppResult.Failure) showModal(LobbyModal.Failed(RoomStrings.lobbySaveRoomFailed))
+    }
+
+    /** The leader's button on an online party: Save as Room with 2+ people, then Update Room only while someone new isn't in it. */
+    private fun saveRoomButton(room: LobbyRoom, me: LobbyMember?): SaveRoomButtonUi? = when {
+        !room.temporary || me?.isLeader != true || nearby() -> null
+        room.savedRoomId == null -> SaveRoomButtonUi(RoomStrings.lobbySaveRoom, enabled = room.members.size > 1)
+        room.savedRoomMissing > 0 -> SaveRoomButtonUi(RoomStrings.lobbyUpdateRoom, enabled = true)
+        else -> null
+    }
 
     private fun selectedGameId(): String = data?.room?.selectedGameId.orEmpty()
 
@@ -401,6 +438,7 @@ class PlayRoomLobbyViewModel(
                 isLeader = me?.isLeader == true,
                 isAdmin = me?.isAdmin == true,
                 temporary = room.temporary,
+                saveRoom = saveRoomButton(room, me),
                 members = LobbyRules.sortMembers(room.members, d.myUserId).map { it.toUi(d) },
                 membersLabel = RoomStrings.lobbyPlayersOnline(room.members.count { it.online }, room.members.size),
                 games = d.games,

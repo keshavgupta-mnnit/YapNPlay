@@ -51,4 +51,6 @@ fun RoomSnapshot.toLobbyRoom(now: Instant): LobbyRoom = LobbyRoom(
         CountdownStopInfo(CountdownStopCause.valueOf(it.reason.name), it.byUserId, it.byName, now + (it.at - serverTime).milliseconds)
     },
     temporary = room.temporary,
+    savedRoomId = room.savedRoomId,
+    savedRoomMissing = room.savedRoomMissing,
 )

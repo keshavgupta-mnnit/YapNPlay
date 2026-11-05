@@ -33,4 +33,6 @@ sealed interface LobbyCommand {
     data object ExitLobby : LobbyCommand
     /** Leave room: give up membership. */
     data object LeaveRoom : LobbyCommand
+    /** Leader of a Quick Play party: save it as a Game Room named [name] (null: add the newcomers to the saved one). */
+    data class SaveRoom(val name: String?) : LobbyCommand
 }

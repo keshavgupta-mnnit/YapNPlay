@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,22 +41,20 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 
 /**
- * Lobby top bar: round back, the group's name at the start of its pill, then
- * one action pill ([actionText]: Leaderboard in a Game Room, Add Friends in a
- * Quick Play party) and a round ⋮ that opens [LobbyRoomMenu] (everything else
- * the room offers lives there).
+ * Lobby top bar: round back, the group's name at the start of its pill,
+ * then the room's [actions] (pills as tall as the bar: Leaderboard in a Game
+ * Room; Make Permanent and Add Friends in a Quick Play party) and, when the
+ * room has one ([onMenu] not null), a round ⋮ that opens [menu].
  */
 @Composable
 fun LobbyTopBar(
     roomName: String,
     menuOpen: Boolean,
     onBack: () -> Unit,
-    actionText: String,
-    actionIcon: ImageVector,
-    onAction: () -> Unit,
-    onMenu: () -> Unit,
+    onMenu: (() -> Unit)?,
     modifier: Modifier = Modifier,
     menu: @Composable () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -87,9 +86,8 @@ fun LobbyTopBar(
                 style = typography.cardTitle.copy(color = colors.TextPrimary),
             )
         }
-        // As tall as the room name's pill beside it.
-        GlassPillButton(text = actionText, onClick = onAction, leadingIcon = actionIcon, height = dimens.lobbyBarHeight)
-        Box {
+        actions()
+        if (onMenu != null) Box {
             GlassIconButton(
                 imageVector = Icons.Rounded.MoreVert,
                 contentDescription = RoomStrings.lobbyMore,

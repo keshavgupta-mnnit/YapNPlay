@@ -182,6 +182,11 @@ fun LobbyModalContent(
             modifier = modifier,
             actions = { DarkButton(RoomStrings.lobbyStartStoppedOk, onDismiss) },
         )
+        is LobbyModal.Failed -> ModalCard(
+            title = modal.message,
+            modifier = modifier,
+            actions = { DarkButton(RoomStrings.lobbyStartStoppedOk, onDismiss) },
+        )
     }
 }
 

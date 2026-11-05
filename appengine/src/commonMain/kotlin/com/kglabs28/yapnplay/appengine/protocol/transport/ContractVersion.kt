@@ -30,6 +30,8 @@ package com.kglabs28.yapnplay.appengine.protocol.transport
  * 0.10.0 — MatchEnded RankedSeat: coinsWon is every seat's place share
  * (CPUs and leavers too, shown not credited); new stake (the entry put
  * in); CPUs show the flat completion bonus.
+ * 0.12.4 — SaveRoom(name?) (ROOM channel): the leader saves a Quick Play party as a Game Room with
+ * everyone in it (null name: add newcomers); RoomInfo.savedRoomId / savedRoomMissing.
  * 0.12.3 — FriendSummary.activity (OFFLINE, ONLINE, IN_ROOM, PLAYING); PlayInvite push (ROOM channel)
  * when a friend invites the user to a Quick Play party.
  * 0.12.2 — Quick Play with friends: CreateRoom.temporary, RoomInfo.temporary, RoomSummary.temporary,
@@ -42,4 +44,4 @@ package com.kglabs28.yapnplay.appengine.protocol.transport
  * channel, EmojiGift (MatchRelay) to the whole table, `GET
  * /coins/emoji-gifts` (EmojiGiftPrices).
  */
-const val CONTRACT_VERSION: String = "0.12.3"
+const val CONTRACT_VERSION: String = "0.12.4"

@@ -9,25 +9,28 @@ import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendActivity
 /** Turns friends or nearby phones into the party's Add Friends rows: free ones first. */
 object InviteRowsMapper {
 
-    /** Friends not in the party yet; [invited] already asked (no second Add). */
+    /**
+     * Online friends not in the party yet. Only someone free can be added: one
+     * playing a game or in a room lobby shows why not, and one already asked
+     * ([invited]) shows "Invited".
+     */
     fun fromFriends(friends: List<Friend>, members: Set<String>, invited: Set<String>): List<InviteRowUi> =
-        friends.filter { it.userId !in members }
+        friends.filter { it.online && it.userId !in members }
             .map { friend ->
                 val asked = friend.userId in invited
                 val (status, tone) = when {
                     asked -> NearbyStrings.statusInvited to InviteTone.DONE
                     friend.activity == FriendActivity.PLAYING -> NearbyStrings.statusPlaying to InviteTone.BUSY
                     friend.activity == FriendActivity.IN_ROOM -> NearbyStrings.statusInRoom to InviteTone.BUSY
-                    friend.online -> NearbyStrings.statusOnline to InviteTone.FREE
-                    else -> NearbyStrings.statusOffline to InviteTone.AWAY
+                    else -> NearbyStrings.statusOnline to InviteTone.FREE
                 }
-                InviteRowUi(friend.userId, friend.name, friend.avatarId, status, tone, canAdd = !asked)
+                InviteRowUi(friend.userId, friend.name, friend.avatarId, status, tone, canAdd = tone == InviteTone.FREE)
             }
             .sortedWith(compareBy({ it.tone.ordinal }, { it.name.lowercase() }))
 
-    /** Phones around that can be asked (the people already in the party are left out). */
+    /** Phones around that can be asked (anyone already in the party is left out). */
     fun fromPeers(peers: List<NearbyPeer>, members: Set<String>): List<InviteRowUi> =
-        peers.filter { it.player.userId !in members || it.invite == PeerInvite.JOINED }
+        peers.filter { it.player.userId !in members && it.invite != PeerInvite.JOINED }
             .map { peer ->
                 val (status, tone) = when (peer.invite) {
                     PeerInvite.NONE -> NearbyStrings.statusNearby to InviteTone.FREE

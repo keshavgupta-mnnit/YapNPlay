@@ -230,7 +230,7 @@ server re-validates and seats:
 3. sends `MatchStarting(matchId)` to everyone; seated players open the
    game window, everyone else can watch.
 Examples: Royal Ludo (4–4) with 2 ready + botFill → 2 humans + 2 bots;
-without botFill it can't start. UNO-style
+without botFill it can't start. MONO-style
 (4–8) with 2 ready + botFill → 2 humans + 2 bots; with 5 ready → 5
 humans.
 

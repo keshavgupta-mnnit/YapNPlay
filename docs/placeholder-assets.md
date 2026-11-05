@@ -14,7 +14,7 @@ and the game player cards. The spectator tray still uses the person glyph.
 |---|---|---|---|
 | 1 | `HomeUserProfilePill.kt` | User avatar | Real user avatar profile image |
 | 2 | `HomeCenterLogo.kt` | YapNPlay header logo | Vector logo asset with mascot |
-| 3 | `GameZoneGraphic.kt` | 3D Gaming Orbit | 3D Ludo board, UNO cards, playing cards & 3D dice model |
+| 3 | `GameZoneGraphic.kt` | 3D Gaming Orbit | 3D Ludo board, MONO cards, playing cards & 3D dice model |
 | 4 | `SocialNetworkOrbitGraphic.kt` | Social Friend Avatars | Real friend avatar images & +Invite Friends node |
 | 5 | `HomeHeaderBar.kt` | Notification & Settings | Vector Bell & Gear icons |
 

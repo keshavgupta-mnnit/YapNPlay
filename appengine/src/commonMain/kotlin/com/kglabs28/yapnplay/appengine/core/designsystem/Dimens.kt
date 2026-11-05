@@ -322,7 +322,7 @@ class YapNPlayDimens {
     val homeBarIcon: Dp get() = 14.dp.scaled()
     /** Home's cards (design): the header's and the pillars' icon circles, and the buttons. */
     val homeHeaderIcon: Dp get() = 24.dp.scaled()
-    val homePillarIcon: Dp get() = 14.dp.scaled()
+    val homePillarIcon: Dp get() = 20.dp.scaled()
     val homeCtaHeight: Dp get() = 28.dp.scaled()
     /** Quick Play hub cards: header icon circle, status pill, the friends' stacked avatars (and their overlap), button. */
     val playHubHeaderIcon: Dp get() = 28.dp.scaled()

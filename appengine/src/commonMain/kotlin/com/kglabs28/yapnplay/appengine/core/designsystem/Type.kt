@@ -150,9 +150,9 @@ class YapNPlayTypography(
     val topBarValue: TextStyle
         get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.SemiBold, fontSize = 11.scaledSp, lineHeight = 13.scaledSp)
     val homePillarTitle: TextStyle
-        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.SemiBold, fontSize = 7.2f.scaledSp, lineHeight = 9.6f.scaledSp)
+        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Bold, fontSize = 10.scaledSp, lineHeight = 12.scaledSp)
     val homePillarText: TextStyle
-        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Normal, fontSize = 7.2f.scaledSp, lineHeight = 9.6f.scaledSp)
+        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Normal, fontSize = 8.5f.scaledSp, lineHeight = 10.5f.scaledSp)
     val homeBannerText: TextStyle
         get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Normal, fontSize = 10.scaledSp, lineHeight = 13.scaledSp)
     val homeBannerButton: TextStyle

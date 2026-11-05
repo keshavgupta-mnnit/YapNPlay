@@ -359,7 +359,7 @@ it; the app only reports that it went to the background or came back.
   talk**, because voice follows the room, not the match.
 - **What they don't get:** a seat, any action (the server rejects them),
   or hidden information. Each game's `viewFor` builds the spectator view
-  from public data only — UNO-style games show card counts, never hands.
+  from public data only — MONO-style games show card counts, never hands.
   A "spectators see all hands" house rule could come later; default off.
 - **Counting:** spectators never count toward `minPlayers`, `maxPlayers`
   or bot fill. A game may cap them with `maxSpectators` (Royal Ludo:
@@ -391,7 +391,7 @@ Every game declares **minPlayers / maxPlayers** (rooms) and a separate
 
 Examples: Royal Ludo is **4–4** (min = max = 4, Quick Play 4): every
 table has 4 players — random → humans + CPU; two friends in a room →
-they need bot fill on (2 bots join), otherwise Start isn't allowed. UNO-style (4–8): two
+they need bot fill on (2 bots join), otherwise Start isn't allowed. MONO-style (4–8): two
 friends with bot fill on → 2 bots join (to reach 4); five friends → no
 bots; eight friends → all play; two friends with bot fill off → can't
 start (`NOT_ENOUGH_READY`).

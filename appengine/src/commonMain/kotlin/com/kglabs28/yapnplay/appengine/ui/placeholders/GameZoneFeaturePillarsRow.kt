@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.placeholders
 
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
+import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.WifiTethering
 import com.kglabs28.yapnplay.appengine.ui.components.common.IconCircle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -9,11 +12,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Groups
-import androidx.compose.material.icons.rounded.People
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,8 +25,8 @@ import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 
 /**
- * Three feature pillars in the "ENTER GAME ZONE" card, split by thin
- * vertical dividers.
+ * The three ways to play, as pillars in the "ENTER GAME ZONE" card (the
+ * Quick Play hub's cards, in their colours), split by thin vertical dividers.
  */
 @Composable
 fun GameZoneFeaturePillarsRow(
@@ -40,27 +40,30 @@ fun GameZoneFeaturePillarsRow(
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
         FeaturePillarItem(
+            icon = Icons.Rounded.Language,
+            iconTint = colors.PlayRandomsAccent,
+            title = Strings.homeFeatureRandoms,
+            subtitle = Strings.homeFeatureRandomsSub,
+            // Only the width it needs (an equal third pushed the last one into the card's leaning edge).
+            modifier = Modifier.weight(1f, fill = false),
+        )
+        PillarDivider()
+        FeaturePillarItem(
             icon = Icons.Rounded.Groups,
-            iconTint = colors.FeatureIconPurple,
-            title = Strings.homeFeaturePopularGames,
-            subtitle = Strings.homeFeaturePopularGamesSub,
-            modifier = Modifier.weight(1f),
+            iconTint = colors.PlayFriendsAccent,
+            title = Strings.homeFeatureFriends,
+            subtitle = Strings.homeFeatureFriendsSub,
+            // Only the width it needs (an equal third pushed the last one into the card's leaning edge).
+            modifier = Modifier.weight(1f, fill = false),
         )
         PillarDivider()
         FeaturePillarItem(
-            icon = Icons.Rounded.Settings,
-            iconTint = colors.FeatureIconGreen,
-            title = Strings.homeFeatureHouseRules,
-            subtitle = Strings.homeFeatureHouseRulesSub,
-            modifier = Modifier.weight(1f),
-        )
-        PillarDivider()
-        FeaturePillarItem(
-            icon = Icons.Rounded.People,
-            iconTint = colors.FeatureIconGreen,
-            title = Strings.homeFeatureRealPeople,
-            subtitle = Strings.homeFeatureRealPeopleSub,
-            modifier = Modifier.weight(1f),
+            icon = Icons.Rounded.WifiTethering,
+            iconTint = colors.PlayNearbyAccent,
+            title = Strings.homeFeatureNearby,
+            subtitle = Strings.homeFeatureNearbySub,
+            // Only the width it needs (an equal third pushed the last one into the card's leaning edge).
+            modifier = Modifier.weight(1f, fill = false),
         )
     }
 }
@@ -93,19 +96,10 @@ private fun FeaturePillarItem(
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xxs),
     ) {
         IconCircle(imageVector = icon, fill = iconTint.copy(alpha = PILLAR_ICON_FILL), tint = iconTint, size = YapNPlayTheme.dimens.homePillarIcon, iconSize = YapNPlayTheme.dimens.homePillarIcon * PILLAR_ICON_SHARE)
-        Column {
-            BasicText(
-                text = title,
-                style = typography.homePillarTitle.copy(
-                    color = colors.TextPrimary,
-                ),
-                maxLines = 1,
-            )
-            BasicText(
-                text = subtitle,
-                style = typography.homePillarText.copy(color = colors.HomeTextSoft),
-                maxLines = 1,
-            )
+        // Shrinks to fit a narrow card instead of being cut off.
+        Column(modifier = Modifier.weight(1f, fill = false)) {
+            ShrinkText(text = title, style = typography.homePillarTitle.copy(color = iconTint))
+            ShrinkText(text = subtitle, style = typography.homePillarText.copy(color = colors.HomeTextSoft))
         }
     }
 }

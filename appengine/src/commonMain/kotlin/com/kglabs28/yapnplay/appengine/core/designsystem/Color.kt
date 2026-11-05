@@ -72,7 +72,6 @@ object YapNPlayColors {
 
     // Home feature pillars
     val FeatureIconPurple = Color(0xFF933CF6)
-    val FeatureIconGreen = Color(0xFF22E7B7)
 
     // Green call-to-action (Quick Play, Create New Room)
     val CtaGreenStart = Color(0xFF03F0C6)

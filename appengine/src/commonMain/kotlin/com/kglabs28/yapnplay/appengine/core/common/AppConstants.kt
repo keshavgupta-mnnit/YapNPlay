@@ -115,6 +115,9 @@ object AppConstants {
     /** Home QUICK PLAY button width as a share of its card. */
     const val HOME_CTA_WIDTH_FRACTION = 0.74f
 
+    /** How much of the Game Zone card's lean the feature points keep clear of (they sit low on the card). */
+    const val HOME_PILLARS_LEAN_SHARE = 0.35f
+
     /** Quick Play hub card button width as a share of its card. */
     const val PLAY_HUB_CTA_WIDTH_FRACTION = 0.78f
 

@@ -4,8 +4,6 @@ import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
 import com.kglabs28.yapnplay.appengine.features.connection.usecase.ObserveBackendReachableUseCase
 import com.kglabs28.yapnplay.appengine.features.seathandover.usecase.SendSeatCommandUseCase
 import com.kglabs28.yapnplay.appengine.features.seathandover.domain.SeatCommand
-import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.TimeZone
 import com.kglabs28.yapnplay.appengine.core.common.YapNPlayError
 import com.kglabs28.yapnplay.appengine.core.ui.ProfileStrings
 import com.kglabs28.yapnplay.appengine.features.profile.presentation.ProfileUiMapper
@@ -72,6 +70,8 @@ class MainViewModel(
     private var history: List<AppNotification> = emptyList()
 
     init {
+        // An open coins offer follows the app's one ad-ready state (greyed out lights up as an ad loads).
+        scope.launch { isAdReady.changes.collect { ready -> setState { copy(coinsOffer = coinsOffer?.withAdReady(ready)) } } }
         // Offline: Rooms needs the server; the Games tab (Nearby play) still works.
         scope.launch { observeReachable().collect { setState { copy(reachable = it) } } }
         // Name and avatar follow edits made on the Profile screen.
@@ -209,21 +209,13 @@ class MainViewModel(
      * Once per app launch, after the daily bonus (if any) is collected: offer
      * free coins for a rewarded ad, only if one is ready (or comes in within
      * [LAUNCH_AD_WAIT]) and the server says it can pay now (not waiting out
-     * the gap between ads). Missed then, it is not offered later in this launch;
-     * the coins "+" offers the same any time an ad is ready.
+     * the gap between ads). No ad: nothing shows at launch. Missed then, it is
+     * not offered later in this launch; the coins "+" offers the same any time.
      */
     private suspend fun offerCoinsOnLaunch() {
         if (!startupGate.ready.value || observeDailyBonus().value > 0 || state.value.coinsOffer != null || !state.value.profileLoaded) return
         if (!adsConfig.isLaunchOfferEnabled() || !launchCoinsOffer.takeIfDue()) return
-        if (!isAdReady.await(LAUNCH_AD_WAIT)) {
-            // No ad can load (an ad blocker or Private DNS): the greyed-out card says why, at most once a day.
-            val today = clock.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
-            if (state.value.coinsOffer == null && launchCoinsOffer.takeNoAdNoticeIfDue(today)) {
-                setState { copy(coinsOffer = CoinsOfferUi(CoinsStrings.getCoinsTitle, CoinsStrings.getCoinsBody, adReady = false)) }
-                refreshAdLimits()
-            }
-            return AppLog.d(AppConstants.LOG_TAG_ADS, "home: launch offer, no ad ready")
-        }
+        if (!isAdReady.await(LAUNCH_AD_WAIT)) return AppLog.d(AppConstants.LOG_TAG_ADS, "home: launch offer skipped, no ad ready")
         if (state.value.coinsOffer != null) return
         // Only when the server says an ad can pay now (no cooldown, ads left today); unsure, it waits for a tap on the coins.
         val status = (getAdLimitStatus() as? AppResult.Success)?.data

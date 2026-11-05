@@ -32,10 +32,11 @@ interface VoiceClient {
     val mySpeech: StateFlow<MySpeech>
 
     /**
-     * Opens (publishes to the voice room) or closes the user's mic; closed with
-     * [listenMuted], only its level is read, to tell them they're talking on mute.
+     * Opens (publishes to the voice room) or closes the user's mic at [target]; closed with
+     * [listenMuted], only its level is read, to tell them they're talking on mute. Each lobby
+     * and table keeps its own: the one in front decides (a match closing doesn't close the lobby's).
      */
-    fun setMicOpen(open: Boolean, listenMuted: Boolean)
+    fun setMicOpen(target: VoiceTarget, open: Boolean, listenMuted: Boolean)
 
     /**
      * Whether [target]'s screen needs its voice room now (someone to talk with, a mic on); the device joins only then.

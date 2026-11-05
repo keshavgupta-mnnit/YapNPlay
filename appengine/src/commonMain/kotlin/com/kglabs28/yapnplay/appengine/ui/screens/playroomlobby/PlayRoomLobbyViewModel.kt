@@ -85,7 +85,7 @@ class PlayRoomLobbyViewModel(
     private var micSwitch = false
     /** The user speaking into their mic, whether it's listening, and whether the room is on screen. */
     private var mySpeech = MySpeech.SILENT
-    private val micGate = MicGate { open, listenMuted -> setMicOpen(open, listenMuted) }
+    private val micGate = MicGate { open, listenMuted -> roomId?.let { setMicOpen.room(it, open, listenMuted) } }
     private var foreground = true
     private var tickJob: Job? = null
     /** The countdown stop already told (each is shown once). */

@@ -2,7 +2,11 @@ package com.kglabs28.yapnplay.appengine.features.voice.usecase
 
 import com.kglabs28.yapnplay.appengine.features.voice.domain.VoiceRepository
 
-/** Opens the user's mic while it's on at the table (and the app is in front), closes it otherwise; closed in front, it listens for talking on mute. */
+/**
+ * Opens the user's mic at one lobby or table while it's on there (and the app is in front), closes it
+ * otherwise; closed in front, it listens for talking on mute. Each screen keeps its own state.
+ */
 class SetMicOpenUseCase(private val repository: VoiceRepository) {
-    operator fun invoke(open: Boolean, listenMuted: Boolean) = repository.setMicOpen(open, listenMuted)
+    fun room(roomId: String, open: Boolean, listenMuted: Boolean) = repository.setRoomMicOpen(roomId, open, listenMuted)
+    fun match(matchId: String, open: Boolean, listenMuted: Boolean) = repository.setMatchMicOpen(matchId, open, listenMuted)
 }

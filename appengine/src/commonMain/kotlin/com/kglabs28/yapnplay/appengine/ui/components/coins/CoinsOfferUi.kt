@@ -26,4 +26,7 @@ data class CoinsOfferUi(
 ) {
     /** The coins the next ad pays; null when today's ads are used up. */
     val nextReward: Int? get() = rewards.getOrNull(adsWatched)
+
+    /** Follows the app's ad-ready state; kept as it is while an ad plays (that ad is no longer "ready"). */
+    fun withAdReady(ready: Boolean): CoinsOfferUi = if (watchingAd) this else copy(adReady = ready)
 }

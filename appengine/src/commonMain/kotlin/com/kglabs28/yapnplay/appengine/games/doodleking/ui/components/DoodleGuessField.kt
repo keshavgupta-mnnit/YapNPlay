@@ -82,6 +82,9 @@ fun DoodleGuessField(
     }
     val submit by rememberUpdatedState(onSubmit)
     val read by rememberUpdatedState(current)
+    // The open keyboard always types against the latest hint: a letter given mid-word counts at once,
+    // so the guess goes the moment the last hidden letter is typed (not one letter later).
+    val latestChange by rememberUpdatedState(change)
     val rim = when {
         guessed || tone == DoodleGuessResult.RIGHT -> colors.ReadyGreen
         tone != null -> colors.Error
@@ -97,7 +100,7 @@ fun DoodleGuessField(
     Row(
         modifier = modifier
             .glassPill(glowColor = rim, surface = colors.RoomsInput, shape = RoundedCornerShape(YapNPlayTheme.dimens.cbRowRadius))
-            .then(if (guessed) Modifier else Modifier.clickable(role = Role.Button) { open(keyboard, owner, pattern, letters, { read() }, change) { submit() } })
+            .then(if (guessed) Modifier else Modifier.clickable(role = Role.Button) { open(keyboard, owner, pattern, letters, { read() }, { latestChange(it) }) { submit() } })
             .padding(horizontal = Spacing.Sm),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),

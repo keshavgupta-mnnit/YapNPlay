@@ -65,6 +65,13 @@ class GameZoneViewModel(
     /** The last league list, to tell a locked row from an open one. */
     private var lastLeagues: CoinLeagues? = null
 
+    init {
+        // An open coins offer or penalty follows the app's one ad-ready state, as it changes.
+        scope.launch {
+            isAdReady.changes.collect { ready -> setState { copy(coinsOffer = coinsOffer?.withAdReady(ready), penalty = penalty?.withAdReady(ready)) } }
+        }
+    }
+
     override suspend fun handleIntent(intent: GameZoneIntent) {
         when (intent) {
             GameZoneIntent.Load -> load()

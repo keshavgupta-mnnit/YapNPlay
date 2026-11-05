@@ -93,7 +93,7 @@ class MatchMonoChaosViewModel(
     private var mutedTalkers: Set<String> = emptySet()
     /** The app-wide mic switch this table follows. */
     private var micSwitch = false
-    private val micGate = MicGate { open, listenMuted -> setMicOpen(open, listenMuted) }
+    private val micGate = MicGate { open, listenMuted -> if (matchId.isNotEmpty()) setMicOpen.match(matchId, open, listenMuted) }
     private var foreground = true
     private var mutedForMe: Set<String> = emptySet()
     private var speakerOn = true

@@ -30,7 +30,10 @@ data class GameZoneState(
 ) : UiState
 
 /** The user's play block, ready to show. */
-data class PenaltyUi(val title: String, val body: String, val watchingAd: Boolean, val adOffered: Boolean = false)
+data class PenaltyUi(val title: String, val body: String, val watchingAd: Boolean, val adOffered: Boolean = false) {
+    /** Follows the app's ad-ready state; kept as it is while an ad plays. */
+    fun withAdReady(ready: Boolean): PenaltyUi = if (watchingAd) this else copy(adOffered = ready)
+}
 
 /** A running search, already formatted for display. */
 data class QuickPlaySearchUi(

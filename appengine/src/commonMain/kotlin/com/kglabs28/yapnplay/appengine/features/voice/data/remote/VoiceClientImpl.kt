@@ -84,8 +84,22 @@ class VoiceClientImpl(
         micSwitch.value = on
     }
 
-    private val micOpen = MutableStateFlow(false)
-    private val listenMuted = MutableStateFlow(false)
+    /** Screens currently wanting voice, oldest first. */
+    private val open = MutableStateFlow<List<Entry>>(emptyList())
+
+    private class Entry(val target: VoiceTarget)
+
+    override val activeTarget: Flow<VoiceTarget?> get() = open.map { it.lastOrNull()?.target }.distinctUntilChanged()
+
+    private data class MicState(val open: Boolean, val listenMuted: Boolean)
+
+    /** Each lobby's and table's own mic, so a screen closing never closes the one underneath. */
+    private val micStates = MutableStateFlow<Map<VoiceTarget, MicState>>(emptyMap())
+    /** The mic of the screen in front. */
+    private val frontMic: StateFlow<MicState> =
+        combine(activeTarget, micStates) { target, states -> target?.let { states[it] } ?: MicState(open = false, listenMuted = false) }
+            .stateIn(scope, SharingStarted.Eagerly, MicState(open = false, listenMuted = false))
+    private val micOpen: StateFlow<Boolean> = frontMic.map { it.open }.distinctUntilChanged().stateIn(scope, SharingStarted.Eagerly, false)
 
     override val mySpeech: StateFlow<MySpeech> =
         combine(engine.connected, engine.localSpeaking, mic.speaking, micOpen) { connected, voice, level, open ->
@@ -96,17 +110,9 @@ class VoiceClientImpl(
             }
         }.stateIn(scope, SharingStarted.Eagerly, MySpeech.SILENT)
 
-    override fun setMicOpen(open: Boolean, listenMuted: Boolean) {
-        micOpen.value = open
-        this.listenMuted.value = listenMuted
+    override fun setMicOpen(target: VoiceTarget, open: Boolean, listenMuted: Boolean) {
+        micStates.update { it + (target to MicState(open, listenMuted)) }
     }
-
-    /** Screens currently wanting voice, oldest first. */
-    private val open = MutableStateFlow<List<Entry>>(emptyList())
-
-    private class Entry(val target: VoiceTarget)
-
-    override val activeTarget: Flow<VoiceTarget?> get() = open.map { it.lastOrNull()?.target }.distinctUntilChanged()
 
     /** Targets whose screen needs voice now (someone to talk with, a mic on). Declared before init, which reads it. */
     private val wanted = MutableStateFlow<Set<VoiceTarget>>(emptySet())
@@ -127,7 +133,7 @@ class VoiceClientImpl(
         // The open mic goes to the voice room when there is one, else only its level is read.
         // Closed, its level is still read (never sent) while the screen asks, to catch talking on mute.
         scope.launch {
-            combine(micOpen, listenMuted, engine.connected) { o, l, c -> Triple(o, l, c) }.collect { (o, listen, connected) ->
+            combine(frontMic, engine.connected) { m, c -> Triple(m.open, m.listenMuted, c) }.collect { (o, listen, connected) ->
                 if (o && connected) {
                     mic.stop()
                     engine.setMicEnabled(true)

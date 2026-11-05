@@ -70,7 +70,7 @@ class DoodleKingMatchViewModel(
     private val board = DoodleBoard()
     /** Voice only while another person is here and someone's mic is on. */
     private val voiceNeed = VoiceNeed { wanted, talkers -> matchId?.let { voice.setVoiceWanted.match(it, wanted, talkers) } }
-    private val micGate = MicGate { open, listenMuted -> setMicOpen(open, listenMuted) }
+    private val micGate = MicGate { open, listenMuted -> matchId?.let { setMicOpen.match(it, open, listenMuted) } }
     private var speaking: Set<String> = emptySet()
     private var mutedForMe: Set<String> = emptySet()
     private var mutedTalkers: Set<String> = emptySet()

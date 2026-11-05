@@ -100,7 +100,7 @@ class RoyalLudoMatchViewModel(
     private var mutedTalkers: Set<String> = emptySet()
     /** The app-wide mic switch the table follows. */
     private var micSwitch = false
-    private val micGate = MicGate { open, listenMuted -> setMicOpen(open, listenMuted) }
+    private val micGate = MicGate { open, listenMuted -> matchId?.let { setMicOpen.match(it, open, listenMuted) } }
     private var mutedForMe: Set<String> = emptySet()
     private var speakerOn = true
     /** Progress shown per seat (lags the server while events animate). */

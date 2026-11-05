@@ -1,5 +1,6 @@
     package com.kglabs28.yapnplay.appengine.features.coins.usecase
 
+import kotlinx.coroutines.flow.StateFlow
 import com.kglabs28.yapnplay.appengine.core.ads.RewardedAds
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
@@ -13,6 +14,9 @@ import kotlin.time.Duration
  */
 class IsRewardedAdReadyUseCase(private val ads: RewardedAds) {
     operator fun invoke(): Boolean = ads.isReady()
+
+    /** The app's one ad-ready state, as it changes: every open coins offer follows it. */
+    val changes: StateFlow<Boolean> get() = ads.readiness
 
     suspend fun await(timeout: Duration): Boolean {
         if (invoke()) return true

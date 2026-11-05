@@ -14,7 +14,8 @@ class VoiceRepositoryImpl(private val client: VoiceClient) : VoiceRepository {
     override val micOn: StateFlow<Boolean> get() = client.micOn
     override fun setMicOn(on: Boolean) = client.setMicOn(on)
     override val mySpeech: StateFlow<MySpeech> get() = client.mySpeech
-    override fun setMicOpen(open: Boolean, listenMuted: Boolean) = client.setMicOpen(open, listenMuted)
+    override fun setRoomMicOpen(roomId: String, open: Boolean, listenMuted: Boolean) = client.setMicOpen(VoiceTarget.Room(roomId), open, listenMuted)
+    override fun setMatchMicOpen(matchId: String, open: Boolean, listenMuted: Boolean) = client.setMicOpen(VoiceTarget.Match(matchId), open, listenMuted)
     override fun setRoomVoiceWanted(roomId: String, wanted: Boolean, talkers: Set<String>) = client.setVoiceWanted(VoiceTarget.Room(roomId), wanted, talkers)
     override fun setMatchVoiceWanted(matchId: String, wanted: Boolean, talkers: Set<String>) = client.setVoiceWanted(VoiceTarget.Match(matchId), wanted, talkers)
 }

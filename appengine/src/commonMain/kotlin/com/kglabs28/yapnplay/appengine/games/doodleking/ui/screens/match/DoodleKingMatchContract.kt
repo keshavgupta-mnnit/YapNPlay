@@ -46,6 +46,8 @@ data class DoodleKingMatchState(
     val eraser: Boolean = false,
     /** The word as guessers see it (`_` per hidden letter): the guess box's letter slots. */
     val hint: String = "",
+    /** The word's language and group as one tag ("Hinglish · Food"), from the server; empty when there is none. */
+    val wordTag: String = "",
     /** The word under the user's card, as letter slots: the drawer's word, the guessed word, or the hint. */
     val myWord: String = "",
     /** The user has guessed it: their word shows in green. */

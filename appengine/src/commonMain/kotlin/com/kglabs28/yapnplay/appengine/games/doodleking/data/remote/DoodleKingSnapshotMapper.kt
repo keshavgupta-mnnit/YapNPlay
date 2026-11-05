@@ -73,6 +73,8 @@ class DoodleKingSnapshotMapper(private val json: Json) {
             word = state.word,
             options = state.options,
             hint = state.hint,
+            wordCategory = state.wordCategory,
+            wordLanguage = state.wordLanguage,
             feed = state.feed.map { DoodleFeedLine(DoodleFeedKind.entries.firstOrNull { k -> k.name == it.kind } ?: DoodleFeedKind.GUESS, it.seat, it.text, it.points) },
             drawingId = state.drawingId,
             strokeCount = state.strokeCount,

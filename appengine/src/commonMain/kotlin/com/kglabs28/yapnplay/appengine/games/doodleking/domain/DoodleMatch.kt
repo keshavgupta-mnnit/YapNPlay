@@ -27,6 +27,9 @@ data class DoodleMatch(
     val word: String?,
     val options: List<String>,
     val hint: String,
+    /** What the word is ("Food") and its language ("Hinglish"), from the server; empty until a word is picked. */
+    val wordCategory: String = "",
+    val wordLanguage: String = "",
     val feed: List<DoodleFeedLine>,
     val drawingId: Int,
     val strokeCount: Int,

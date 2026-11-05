@@ -731,8 +731,8 @@ class CityBazaarMatchViewModel(
         } else {
             null
         }
-        // A running auction asks every player who can bid higher (not the owner, the highest bidder, anyone short
-        // of the next bid, or watchers); a pass hides it only until the next bid.
+        // A running auction shows to every player (so nobody stares at a frozen table); only those who can bid
+        // higher get the buttons. A pass hides it for that player only until the next bid.
         val auction = m.auction?.takeIf { !playing && shownMe != null && !shownMe.bankrupt && !passedOn(it) }?.let { a ->
             CbPromptMapper.auction(m, a, shownMe!!, CbFormat.countdown((a.endsAt - now).inWholeSeconds))
         }

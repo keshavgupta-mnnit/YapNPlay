@@ -363,6 +363,7 @@ class DoodleKingMatchViewModel(
                 spectatorCount = m.spectators.size.takeIf { it > 0 }?.toString().orEmpty(),
                 elapsed = DoodleTableMapper.elapsed(now - m.startedAt),
                 status = DoodleTableMapper.status(m),
+                wordTag = listOf(m.wordLanguage, m.wordCategory).filter { it.isNotEmpty() }.joinToString(TAG_SEPARATOR),
                 // Under the user's card: their word while they draw, the word once they guessed it, else the hint.
                 myWord = when {
                     m.iAmDrawing -> m.word.orEmpty()
@@ -410,6 +411,8 @@ class DoodleKingMatchViewModel(
         const val TICK_MS = 1_000L
         const val SYNC_GAP_MS = 3_000L
         const val URGENT_SECONDS = 10L
+        /** Between the language and the group in the word tag ("Hinglish · Food"). */
+        const val TAG_SEPARATOR = " · "
         const val SIZES = 3
         val GUESS_ANSWERS = setOf(DoodleFeedKind.GUESS, DoodleFeedKind.CLOSE, DoodleFeedKind.CORRECT)
     }

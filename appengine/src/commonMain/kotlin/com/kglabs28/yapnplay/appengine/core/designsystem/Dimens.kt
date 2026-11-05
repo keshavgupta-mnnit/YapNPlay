@@ -282,6 +282,8 @@ class YapNPlayDimens {
     val cbStackOffset: Dp get() = 3.dp.scaled()
     val cbToastWidth: Dp get() = 300.dp.scaled()
     val cbAssetCardWidth: Dp get() = 108.dp.scaled()
+    /** The sell dialog's cities and buildings: taller than this and they scroll. */
+    val cbAssetsMaxHeight: Dp get() = 200.dp.scaled()
     val cbHeaderChip: Dp get() = 14.dp.scaled()
     val cbControlHeight: Dp get() = 34.dp.scaled()
     /** 3D City Royale: a seat card round the board and its avatar, My Properties in the bottom bar. */

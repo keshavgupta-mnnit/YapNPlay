@@ -195,7 +195,7 @@ enum class CbNoticeArt { MONEY, LUCK, CHEST, JAIL, REST, FREED, BANKRUPT }
 data class CbToastUi(val id: Long, val title: String, val rows: List<CbSheetRowUi>, val gain: Boolean)
 
 /** Something the user can sell: the top building of a city, or a bare city. */
-data class CbAssetUi(val id: String, val tile: Int, val name: String, val group: CityGroup?, val kind: TileKind, val action: String, val value: String)
+data class CbAssetUi(val id: String, val tile: Int, val name: String, val group: CityGroup?, val kind: TileKind, val action: String, val value: String, val enabled: Boolean = true)
 
 data class CbResultRowUi(val place: String, val name: String, val colour: CityBazaarColour, val worth: String)
 
@@ -256,7 +256,10 @@ sealed interface CbModal {
     /** Raise money: pick what to sell; a single bare city can go to auction instead. */
     data class Debt(
         val body: String,
+        /** The user's cities and companies; a city with buildings is [CbAssetUi.enabled] = false until they are sold. */
         val assets: List<CbAssetUi>,
+        /** Their houses and hotels, one step per built city (empty: the section is not shown). */
+        val buildings: List<CbAssetUi>,
         val selected: Set<String>,
         val tracker: String,
         val enough: Boolean,
@@ -268,7 +271,8 @@ sealed interface CbModal {
      * A city up for auction, shown like the buy prompt: its rents and costs,
      * the list [oldPrice] crossed out before the current [price] (the bid),
      * its [owner] (the seller), the [leader] line, the user's balance after
-     * bidding, and the question ([body]). Only shown to players who can bid higher.
+     * bidding, and the question ([body]). Shown to every player; only those who
+     * can bid higher ([canBid]) see their balance and the PASS / BID buttons.
      */
     data class Auction(
         val tile: Int,
@@ -286,6 +290,7 @@ sealed interface CbModal {
         val cost: String,
         val remaining: String,
         val bidLabel: String,
+        val canBid: Boolean,
         val countdown: String,
     ) : CbModal
 

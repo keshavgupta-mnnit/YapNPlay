@@ -30,9 +30,16 @@ decisions that win).
 ## Versioning
 
 `CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
-**0.12.0**. Patch: optional field / new message. Minor: new required
+**0.12.1**. Patch: optional field / new message. Minor: new required
 field, channel or game-interface member. Major: breaking change.
 Every bump is announced in `docs/decisions.md`.
+
+0.12.1 added: Doodle King `DoodleKingPublicState.wordCategory` and `wordLanguage`
+(optional strings: the word's simple group — Animals, Food, Objects, Nature,
+Places, Body, Fun — and its language, English or Hinglish; sent to everyone while
+the word is drawn and at the reveal, empty otherwise). The app shows them as a
+tag ("Hinglish · Food") so the word is easier to guess. Words are now at most
+6 letters, with the common Hinglish spellings (hookah, not hukka).
 
 0.12.0 added: City Bazaar `MoneyMoved.reason` `SELL_BUILDING` (a house or the
 hotel sold to the bank, half the build cost). `SELL` now means a whole city or

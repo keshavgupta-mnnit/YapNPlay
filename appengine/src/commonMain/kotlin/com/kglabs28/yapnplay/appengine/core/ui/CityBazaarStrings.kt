@@ -61,6 +61,11 @@ object CityBazaarStrings {
     const val cbDebtTitle = "INSUFFICIENT BALANCE!"
     fun cbDebtBody(deficit: String) = "Deficit: pay $deficit. Sell buildings (hotel first), then sell a city to the bank or auction it."
     const val cbSellHouse = "Sell 1 house"
+    /** A building row in the sell dialog: what one sale takes off a city with [houses] houses. */
+    fun cbSellOneOf(houses: Int) = if (houses == 1) "Sell the house" else "Sell 1 of $houses houses"
+    const val cbSellCitiesTitle = "Cities"
+    const val cbSellBuildingsTitle = "Buildings"
+    const val cbSellBuildingsFirst = "Sell its buildings first"
     const val cbSellHotel = "Sell the hotel"
     const val cbSellProperty = "Sell city"
     const val cbAuctionProperty = "Auction city"

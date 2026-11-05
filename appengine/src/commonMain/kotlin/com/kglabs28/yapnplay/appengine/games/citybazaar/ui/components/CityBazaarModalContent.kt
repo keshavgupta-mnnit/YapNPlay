@@ -42,7 +42,10 @@ import com.kglabs28.yapnplay.appengine.ui.components.moderation.ReportVoteCard
 import com.kglabs28.yapnplay.appengine.ui.components.seat.SeatPickerDialog
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tileHeaderTint
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board.tint
-import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbAssetCard
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbAssetRow
+import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbAssetSectionTitle
+import androidx.compose.foundation.layout.heightIn
+import com.kglabs28.yapnplay.appengine.ui.components.common.verticalScrollWithBar
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbGlassAction
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbDialogFrame
 import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs.CbDialogNote
@@ -104,19 +107,17 @@ fun CityBazaarModalContent(
             },
         ) {
             CbDialogNote(text = modal.body)
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
+            // Cities, then (only if they have any) their buildings; a city with buildings is locked until those are sold.
+            Column(
+                modifier = Modifier.fillMaxWidth().heightIn(max = YapNPlayTheme.dimens.cbAssetsMaxHeight).verticalScrollWithBar(),
+                verticalArrangement = Arrangement.spacedBy(Spacing.Xxs),
             ) {
-                modal.assets.forEach { asset ->
-                    CbAssetCard(
-                        name = asset.name,
-                        header = tileHeaderTint(asset.group, asset.kind),
-                        line = asset.action,
-                        value = asset.value,
-                        selected = asset.id in modal.selected,
-                        onClick = { actions.onToggleSale(asset.id) },
-                    )
+                val showHeadings = modal.buildings.isNotEmpty()
+                if (showHeadings) CbAssetSectionTitle(CityBazaarStrings.cbSellCitiesTitle)
+                CbAssetRow(assets = modal.assets, selected = modal.selected, onToggle = actions.onToggleSale)
+                if (showHeadings) {
+                    CbAssetSectionTitle(CityBazaarStrings.cbSellBuildingsTitle)
+                    CbAssetRow(assets = modal.buildings, selected = modal.selected, onToggle = actions.onToggleSale)
                 }
             }
             BasicText(text = modal.tracker, style = typography.label.copy(color = if (modal.enough) colors.CbGain else colors.CbLoss))

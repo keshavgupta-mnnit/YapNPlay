@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.kglabs28.yapnplay.appengine.core.designsystem.Spacing
@@ -31,7 +32,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 /**
  * A small rate-card tile in a sideways list: the tile's group colour on
  * top, its name, a line ("Sell 1 house", "Hotel · ₹2,000") and a value.
- * Picked shows a tick and a cyan border.
+ * Picked shows a tick and a cyan border. A card that is not [enabled] is
+ * dimmed and takes no tap (its [line] says why).
  */
 @Composable
 fun CbAssetCard(
@@ -42,19 +44,20 @@ fun CbAssetCard(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val typography = YapNPlayTheme.typography
     val shape = RoundedCornerShape(dimens.cbRowRadius)
-    Box(modifier = modifier.width(dimens.cbAssetCardWidth)) {
+    Box(modifier = modifier.width(dimens.cbAssetCardWidth).graphicsLayer { alpha = if (enabled) 1f else LOCKED_ALPHA }) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(shape)
                 .background(colors.RoomsSmallButton)
                 .border(if (selected) dimens.seatTileSelectedBorder else dimens.hairline, if (selected) colors.Cyan else colors.IconMuted, shape)
-                .clickable(onClick = onClick),
+                .clickable(enabled = enabled, onClick = onClick),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xxxs),
         ) {
             Box(Modifier.fillMaxWidth().height(dimens.cbHeaderChip).background(header))
@@ -81,3 +84,4 @@ fun CbAssetCard(
 }
 
 private const val TICK_SHARE = 0.7f
+private const val LOCKED_ALPHA = 0.45f

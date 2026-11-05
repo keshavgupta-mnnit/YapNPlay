@@ -377,3 +377,12 @@ start (`NOT_ENOUGH_READY`).
   bank). `SELL` is now only a whole city or company sold, so the snackbar
   and the history can say "sold a building" or "sold the city" instead of
   "sold the property" for both.
+
+### Doodle King: shorter words, categories and a language tag (contract 0.12.1)
+- Words are at most 6 letters (spaces don't count): longer ones were too hard to
+  draw and guess in the time. Hinglish words use the common spellings.
+- Each word has one of a few simple categories and a language; the server sends
+  both and the app shows them as a tag next to the status line. The word list
+  stays on the server.
+- The guess box shows the whole word (hint letters in place, typed letters in
+  the hidden ones) and sends the guess by itself when the last hidden letter is typed.

@@ -13,4 +13,6 @@ data class PlayRoom(
     /** Whether the signed-in user leads this room right now (crown). */
     val isLeader: Boolean,
     val icon: PlayRoomIcon,
+    /** A Quick Play with friends room: it never shows in Your Rooms. */
+    val temporary: Boolean = false,
 )

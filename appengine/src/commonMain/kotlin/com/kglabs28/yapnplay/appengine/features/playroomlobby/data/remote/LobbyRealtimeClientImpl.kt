@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.playroomlobby.data.remote
 
+import com.kglabs28.yapnplay.appengine.protocol.SaveRoom
+import com.kglabs28.yapnplay.appengine.core.network.OfflineMode
 import com.kglabs28.yapnplay.appengine.protocol.SetLeague
 import com.kglabs28.yapnplay.appengine.core.common.CrashReporter
 import com.kglabs28.yapnplay.appengine.core.network.RealtimeGateway
@@ -49,6 +51,8 @@ class LobbyRealtimeClientImpl(
     private val rooms: PlayRoomsApi,
     private val profile: ProfileApi,
     private val voice: VoiceClient,
+    /** During Nearby play the party's room is entered by its id (no server to look the code up). */
+    private val offline: OfflineMode,
 ) : LobbyRealtimeClient {
 
     override fun observeRoom(roomId: String): Flow<RoomSnapshot> = channelFlow {
@@ -59,7 +63,7 @@ class LobbyRealtimeClientImpl(
                 .filter { it.room.id == roomId }
                 .collect { send(it) }
         }
-        val code = rooms.getMyRooms().rooms.firstOrNull { it.roomId == roomId }?.code ?: return@channelFlow
+        val code = if (offline.active.value) roomId else rooms.getMyRooms().rooms.firstOrNull { it.roomId == roomId }?.code ?: return@channelFlow
         realtime.connections.collect { count ->
             if (count > 0) {
                 runCatching { realtime.request(Channel.ROOM, MessageType.JOIN_ROOM, JoinRoom.serializer(), JoinRoom(code)) }
@@ -94,6 +98,7 @@ class LobbyRealtimeClientImpl(
             is LobbyCommand.DeclineJoin -> room(MessageType.DECLINE_JOIN, DeclineJoin.serializer(), DeclineJoin(command.userId))
             LobbyCommand.ExitLobby -> room(MessageType.EXIT_LOBBY, ExitLobby.serializer(), ExitLobby)
             LobbyCommand.LeaveRoom -> room(MessageType.LEAVE_ROOM, LeaveRoom.serializer(), LeaveRoom)
+            is LobbyCommand.SaveRoom -> room(MessageType.SAVE_ROOM, SaveRoom.serializer(), SaveRoom(command.name))
             // A member card's "Add Friend" sends a friend request to that person; "Remove" ends the friendship.
             is LobbyCommand.SetFriend ->
                 if (command.friend) profile.sendFriendRequest(SendFriendRequestBody(userId = command.userId)) else profile.removeFriend(command.userId)

@@ -73,6 +73,8 @@ class DoodleKingSnapshotMapper(private val json: Json) {
             word = state.word,
             options = state.options,
             hint = state.hint,
+            wordCategory = state.wordCategory,
+            wordLanguage = state.wordLanguage,
             feed = state.feed.map { DoodleFeedLine(DoodleFeedKind.entries.firstOrNull { k -> k.name == it.kind } ?: DoodleFeedKind.GUESS, it.seat, it.text, it.points) },
             drawingId = state.drawingId,
             strokeCount = state.strokeCount,
@@ -83,7 +85,7 @@ class DoodleKingSnapshotMapper(private val json: Json) {
             endVote = snapshot.endVote?.let { MatchEndVote(it.proposerSeat, toLocal(it.endsAt), it.voters, it.yes, it.no) },
             keepPlaying = snapshot.extensionVote?.let { MatchKeepPlayingVote(toLocal(it.endsAt), it.voters, it.yes, it.no, it.extraRounds, it.extraMinutes) },
         )
-        val events = snapshot.events.mapNotNull { event ->
+        val events = snapshot.events.filterNot { it[TYPE]?.jsonPrimitive?.contentOrNull in SHARED_EVENTS }.mapNotNull { event ->
             runCatching {
                 when (val e = json.decodeFromJsonElement(DoodleKingWireEvent.serializer(), event)) {
                     is DoodleKingWireEvent.Guessed -> DoodleEvent.Guessed(e.seat, e.points)
@@ -112,4 +114,7 @@ class DoodleKingSnapshotMapper(private val json: Json) {
         val DRAWING_TYPES = setOf(MessageType.DOODLE_STROKE, MessageType.DOODLE_UNDO, MessageType.DOODLE_CLEAR, DRAWING)
         const val DRAWING = "DoodleDrawing"
     }
+
+/** Every game's vote results (shown from the snapshot's own vote state), not Doodle King events. */
+private val SHARED_EVENTS = setOf("ExtensionVoted", "EndVoted")
 }

@@ -25,9 +25,9 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import com.kglabs28.yapnplay.appengine.ui.components.table.arenaGlass
 
 /**
- * Under the canvas, one pill, centred: the drawer's name in their seat's
- * colour, what they're doing in white (a brush while they draw), then the
- * clock and the time left (red in its last seconds).
+ * Under the canvas, at its start: the drawer's name in their seat's colour,
+ * what they're doing in white (a brush while they draw), then the clock and
+ * the time left (red in its last seconds).
  */
 @Composable
 fun DoodleStatusPill(status: DoodleStatusUi, timeLeft: String, urgent: Boolean, seatTint: (Int) -> Color, modifier: Modifier = Modifier) {

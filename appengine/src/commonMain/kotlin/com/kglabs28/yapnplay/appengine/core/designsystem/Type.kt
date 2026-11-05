@@ -144,12 +144,15 @@ class YapNPlayTypography(
     /** A home card's subtitle, over two lines. */
     val zoneSubtitle: TextStyle
         get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Normal, fontSize = 8.scaledSp, lineHeight = 10.scaledSp)
+    /** A Quick Play hub card's two-line description, centred under its art. */
+    val playHubDescription: TextStyle
+        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Normal, fontSize = 11.scaledSp, lineHeight = 14.scaledSp)
     val topBarValue: TextStyle
         get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.SemiBold, fontSize = 11.scaledSp, lineHeight = 13.scaledSp)
     val homePillarTitle: TextStyle
-        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.SemiBold, fontSize = 7.2f.scaledSp, lineHeight = 9.6f.scaledSp)
+        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Bold, fontSize = 10.scaledSp, lineHeight = 12.scaledSp)
     val homePillarText: TextStyle
-        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Normal, fontSize = 7.2f.scaledSp, lineHeight = 9.6f.scaledSp)
+        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Normal, fontSize = 8.5f.scaledSp, lineHeight = 10.5f.scaledSp)
     val homeBannerText: TextStyle
         get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Normal, fontSize = 10.scaledSp, lineHeight = 13.scaledSp)
     val homeBannerButton: TextStyle

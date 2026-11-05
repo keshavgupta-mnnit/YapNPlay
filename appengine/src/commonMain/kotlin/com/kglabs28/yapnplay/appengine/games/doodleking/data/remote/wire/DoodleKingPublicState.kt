@@ -15,6 +15,9 @@ data class DoodleKingPublicState(
     val word: String? = null,
     val options: List<String> = emptyList(),
     val hint: String = "",
+    /** The word's group and language ("Food", "Hinglish"), for everyone while it is drawn and at the reveal. */
+    val wordCategory: String = "",
+    val wordLanguage: String = "",
     val seats: List<DoodleSeatState> = emptyList(),
     val feed: List<DoodleFeedEntry> = emptyList(),
     val drawingId: Int = 0,

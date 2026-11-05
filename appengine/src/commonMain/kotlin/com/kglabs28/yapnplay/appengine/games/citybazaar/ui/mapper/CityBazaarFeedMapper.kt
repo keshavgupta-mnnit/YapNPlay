@@ -77,6 +77,7 @@ object CityBazaarFeedMapper {
                 val text = when (event.reason) {
                     MoneyReason.BUY -> CityBazaarStrings.cbFeedBought(name(from), tile(event.tile), amount)
                     MoneyReason.SELL -> CityBazaarStrings.cbFeedSold(name(to), tile(event.tile), amount)
+                    MoneyReason.SELL_BUILDING -> CityBazaarStrings.cbFeedSoldBuilding(name(to), tile(event.tile), amount)
                     MoneyReason.RENT -> CityBazaarStrings.cbFeedRent(name(from), name(to), amount, tile(event.tile))
                     MoneyReason.TAX -> CityBazaarStrings.cbFeedTax(name(from), amount, tile(event.tile))
                     MoneyReason.CLUB -> when {

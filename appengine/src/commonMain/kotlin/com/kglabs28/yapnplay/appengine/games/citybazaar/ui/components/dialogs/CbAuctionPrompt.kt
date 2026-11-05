@@ -27,7 +27,8 @@ import com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match.CbModal
  * the left, the city's name card (its price crossed out, the current bid
  * beside it) and picture on the right with who owns it, the highest
  * bidder and the user's balance after bidding; then the question big in
- * the middle and glowing PASS / BID. Only players who can bid higher see it.
+ * the middle and glowing PASS / BID. Everyone sees it; only players who can
+ * bid higher get their balance strip and the buttons.
  */
 @Composable
 fun CbAuctionPrompt(modal: CbModal.Auction, onPass: () -> Unit, onBid: () -> Unit, modifier: Modifier = Modifier) {
@@ -43,9 +44,13 @@ fun CbAuctionPrompt(modal: CbModal.Auction, onPass: () -> Unit, onBid: () -> Uni
         countdown = modal.countdown,
         width = YapNPlayTheme.dimens.promptWideWidth,
         modifier = modifier,
-        buttons = {
-            CbNeonButton(text = CityBazaarStrings.cbPass.uppercase(), color = colors.Error, onClick = onPass, modifier = Modifier.weight(1f))
-            CbNeonButton(text = modal.bidLabel, color = colors.CbGain, onClick = onBid, icon = Icons.Rounded.Gavel, modifier = Modifier.weight(1f))
+        buttons = if (modal.canBid) {
+            {
+                CbNeonButton(text = CityBazaarStrings.cbPass.uppercase(), color = colors.Error, onClick = onPass, modifier = Modifier.weight(1f))
+                CbNeonButton(text = modal.bidLabel, color = colors.CbGain, onClick = onBid, icon = Icons.Rounded.Gavel, modifier = Modifier.weight(1f))
+            }
+        } else {
+            null
         },
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
@@ -54,7 +59,7 @@ fun CbAuctionPrompt(modal: CbModal.Auction, onPass: () -> Unit, onBid: () -> Uni
                 CbPromptArt(tile = modal.tile, name = modal.name, price = modal.price, oldPrice = modal.oldPrice, tint = tint, withHouse = false)
                 BasicText(text = modal.owner, style = typography.label.copy(color = colors.TextSecondary, textAlign = TextAlign.Center))
                 BasicText(text = modal.leader, style = typography.label.copy(color = colors.CbCash, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center))
-                CbBalanceStrip(cash = modal.cash, changeLabel = CityBazaarStrings.cbYourBidLabel, change = modal.cost, remaining = modal.remaining)
+                if (modal.canBid) CbBalanceStrip(cash = modal.cash, changeLabel = CityBazaarStrings.cbYourBidLabel, change = modal.cost, remaining = modal.remaining)
             }
         }
         BasicText(

@@ -5,6 +5,7 @@ import com.kglabs28.yapnplay.appengine.ui.screens.emojigift.EmojiGiftViewModel
 import com.kglabs28.yapnplay.appengine.ui.placeholders.DoodleKingArtwork
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleGuessFeedback
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleStatusPill
+import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleTagPill
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleCardMarkIcon
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import androidx.compose.material.icons.rounded.Schedule
@@ -223,7 +224,8 @@ private fun DoodleKingTable(state: DoodleKingMatchState, send: (DoodleKingMatchI
     val phoneKeys = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     val typing = guessing && (appKeys || phoneKeys)
     // The hint's letters go with what's typed.
-    val submit = { if (guess.isNotBlank()) send(DoodleKingMatchIntent.SendGuess(DoodleGuessSlots.guess(state.hint, guess))) }
+    val sendGuess = { text: String -> if (text.isNotBlank()) send(DoodleKingMatchIntent.SendGuess(DoodleGuessSlots.guess(state.hint, text))) }
+    val submit = { sendGuess(guess) }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         // The app's keys cover the bottom: the strip fits right above them (a hair of space only), so nothing needs lifting.
         val room = if (typing && appKeys) maxHeight - dimens.appKeyboardCompactHeight else maxHeight
@@ -264,6 +266,7 @@ private fun DoodleKingTable(state: DoodleKingMatchState, send: (DoodleKingMatchI
                                 toneId = -1
                             },
                             onSubmitGuess = submit,
+                            onCompleteGuess = { sendGuess(it) },
                             keyboardOwner = owner,
                             guessTone = feedback?.takeIf { it.id == toneId }?.kind,
                             send = send,
@@ -337,7 +340,11 @@ private fun TableMiddle(
                 DoodleCanvasView(board = state.board, canDraw = state.barMode == DoodleBarMode.DRAW, modifier = Modifier.fillMaxSize())
                 state.reveal?.let { DoodleRevealCard(reveal = it, seatTint = seatTint) }
             }
-            DoodleStatusPill(status = state.status, timeLeft = state.timeLeft, urgent = state.timeUrgent, seatTint = seatTint)
+            // Under the board: who is drawing and the time at its start, the word's tag in its own pill at its end.
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                DoodleStatusPill(status = state.status, timeLeft = state.timeLeft, urgent = state.timeUrgent, seatTint = seatTint)
+                if (state.wordTag.isNotEmpty()) DoodleTagPill(tag = state.wordTag)
+            }
             Box(modifier = Modifier.fillMaxWidth().height(dimens.doodleBarHeight), contentAlignment = Alignment.TopCenter) {
                 if (state.spectating) {
                     TableSpectatorVoiceButtons(
@@ -345,6 +352,7 @@ private fun TableMiddle(
                         speakerOn = state.speakerOn,
                         onToggleMic = { send(DoodleKingMatchIntent.ToggleMic(micGranted())) },
                         onToggleSpeaker = { send(DoodleKingMatchIntent.ToggleSpeaker) },
+                        modifier = Modifier.align(Alignment.BottomEnd),
                     )
                 } else {
                     controls()
@@ -367,7 +375,10 @@ private fun TypingStrip(state: DoodleKingMatchState, seatTint: (Int) -> Color, m
     Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
         Column(modifier = Modifier.weight(STRIP_BOARD_WEIGHT).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
             DoodleCanvasView(board = state.board, canDraw = false, modifier = Modifier.weight(1f).fillMaxWidth())
-            TimeChip(timeLeft = state.timeLeft, urgent = state.timeUrgent)
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                TimeChip(timeLeft = state.timeLeft, urgent = state.timeUrgent)
+                if (state.wordTag.isNotEmpty()) DoodleTagPill(tag = state.wordTag)
+            }
         }
         Column(modifier = Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
             DoodleFeedPanel(rows = state.feed, seatTint = seatTint, modifier = Modifier.weight(1f).fillMaxWidth())

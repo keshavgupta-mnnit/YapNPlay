@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.emojigift
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.edgeGlow
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.ui.unit.Dp
 import com.kglabs28.yapnplay.appengine.ui.components.ads.AdPill
@@ -23,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -60,7 +60,7 @@ fun EmojiGiftPicker(
     val gridWidth = EmojiGiftSizing.width(tile, columns, Spacing.Xs)
     Column(
         modifier = modifier
-            .shadow(elevation = dimens.promptGlow, shape = shape, ambientColor = colors.ArenaDrawRim, spotColor = colors.ArenaDrawRim)
+            .edgeGlow(colors.ArenaDrawRim, shape, dimens.promptGlow)
             .clip(shape)
             .background(Brush.verticalGradient(listOf(colors.ArenaDrawFillBottom, colors.ArenaGlassBottom)))
             .border(dimens.borderThin, colors.ArenaDrawRim, shape)

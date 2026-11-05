@@ -406,8 +406,17 @@ fun CityBazaarMatchContent(
                         onOpen = { send(CityBazaarMatchIntent.OpenStack(it)) },
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    if (!state.spectating) {
-                        Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.weight(1f))
+                    if (state.spectating) {
+                        // A spectator's mic and speaker, where the dice would be.
+                        TableSpectatorVoiceButtons(
+                            micOn = state.micOn,
+                            speakerOn = state.speakerOn,
+                            onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
+                            onToggleSpeaker = { send(CityBazaarMatchIntent.ToggleSpeaker) },
+                            modifier = Modifier.align(Alignment.End),
+                        )
+                    } else {
                         // Roll Dice: the big dice at the bottom right.
                         ArenaDiceButton(
                             label = state.rollLabel,
@@ -417,15 +426,6 @@ fun CityBazaarMatchContent(
                         )
                     }
                 }
-            }
-            if (state.spectating) {
-                TableSpectatorVoiceButtons(
-                    micOn = state.micOn,
-                    speakerOn = state.speakerOn,
-                    onToggleMic = { send(CityBazaarMatchIntent.ToggleMic(micGranted())) },
-                    onToggleSpeaker = { send(CityBazaarMatchIntent.ToggleSpeaker) },
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                )
             }
             state.panel?.let { panel ->
                 CityBazaarSidePanel(

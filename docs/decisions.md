@@ -3,6 +3,69 @@
 `docs/project-report.md` is the original plan. These later decisions win
 where they disagree. Newest first. Every AI agent reads this file too.
 
+## 2026-11-05 — Quick Play hub and Quick Play with friends (contract 0.12.2)
+
+- **Quick Play opens a hub**, not the game catalog: the Games tab (and Home's
+  QUICK PLAY) shows three cards — Play With Randoms (the old game catalog,
+  with a back arrow to the hub), Play With Friends and Offline Nearby.
+- **Play With Friends = a temporary room** ("party"), made with
+  `CreateRoom(temporary = true)`: no name or invitees needed (the server names
+  it "<name>'s Party"). It reuses the Game Room lobby with these differences:
+  - **One leader, no admin.** The server keeps admin = leader; rename and a
+    separate admin are refused. The app shows no admin options, no waiting
+    list, no share link, no leaderboard.
+  - **Anyone adds friends** (Add Friends sits in the top bar). Accepting a
+    party invite opens its lobby at once. No joining by code.
+  - **Gone when everyone leaves.** Back in a party leaves it (LeaveRoom); the
+    last one out deletes it. If everyone just drops (connection, app killed),
+    the server waits 30 s for someone to return, then deletes it. A running
+    match keeps it alive (players come back to the lobby after).
+  - It never shows in Your Rooms and never counts toward the rooms-per-user limit.
+- **Add Friends in a party** (where Leaderboard is in a Game Room) lists people
+  one per row with what they are doing — Online, In a room, Playing a game,
+  Offline, Invited — and **Add +** at the end. Adding asks them at once.
+- **A party's lobby has no ⋮ menu.** Back (the arrow or the phone's) asks
+  "Leave?" first. Add Friends is on the bar for **everyone**; it lists only
+  online friends, and Add + shows only for someone free (not playing, not in
+  a room lobby, not already invited or in the party).
+- **Save as Room** (leader, online parties only, 2+ people): asks a name and
+  makes a Game Room with everyone in the party added at once, no invites. The
+  party carries on; after that the button shows only as **Update Room** while
+  someone in the party isn't in the saved room, and adds them directly
+  (`SaveRoom(name?)`, contract 0.12.4).
+- **Play-now invites pop up anywhere** in the app except a room lobby or a
+  table (there they wait until the user leaves). JOIN opens the party's lobby;
+  "Not now" declines. Online they come as a `PlayInvite` push (contract 0.12.3).
+
+## 2026-11-05 — Offline Nearby play
+
+- **The Nearby card opens the same party lobby** as Play With Friends. The
+  phone that tapped it hosts: the party's room and its matches run on that
+  phone, with the backend's own game rules (`features/nearby/host/`, ported
+  from the backend's match sessions). Other phones talk to it over Google
+  Nearby Connections (Bluetooth + Wi-Fi, no internet), using the same
+  envelopes as the backend, so the lobby and every table work unchanged.
+- **The app's game engines were synced to the backend's** (`games/`), since a
+  hosting phone must play by the current rules. Online, the backend still
+  decides everything; offline the hosting phone is the referee.
+- **Anyone in a Nearby party can add.** The host is the phone that finds
+  others, so it shares that list with its guests; a guest's Add asks the host
+  to send the invite.
+- **Add Friends lists phones around** that are findable: a phone is findable
+  while YapNPlay is open, Nearby permission is granted, and it isn't in a
+  party. Adding sends the invite over the radio; the popup appears on that
+  phone, and JOIN puts it in the host's lobby.
+- **No coins or XP offline.** No leagues, voice, emoji gifts or seat handover
+  either (those need the server). A lone host may play the CPUs.
+- **The host leaving ends the party** for everyone (the games run on that
+  phone); a guest leaving just leaves. A guest who drops off mid-match has
+  the bot play their seat after 20 s until they are back.
+- **No internet at launch opens the app anyway** (no "Can't reach YapNPlay"
+  block). Offline, Randoms and Friends show "Needs internet", the Rooms tab
+  says so too, and only Nearby works. A drop mid-session still shows
+  "Connection lost", now with **Continue offline**. The app asks for the
+  Nearby permission once when it finds itself offline.
+
 ## 2026-10-18 — profile and friends (contract 0.3.1)
 
 - **Friends are in scope** (the report listed them as post-POC). The
@@ -296,7 +359,7 @@ it; the app only reports that it went to the background or came back.
   talk**, because voice follows the room, not the match.
 - **What they don't get:** a seat, any action (the server rejects them),
   or hidden information. Each game's `viewFor` builds the spectator view
-  from public data only — UNO-style games show card counts, never hands.
+  from public data only — MONO-style games show card counts, never hands.
   A "spectators see all hands" house rule could come later; default off.
 - **Counting:** spectators never count toward `minPlayers`, `maxPlayers`
   or bot fill. A game may cap them with `maxSpectators` (Royal Ludo:
@@ -328,7 +391,7 @@ Every game declares **minPlayers / maxPlayers** (rooms) and a separate
 
 Examples: Royal Ludo is **4–4** (min = max = 4, Quick Play 4): every
 table has 4 players — random → humans + CPU; two friends in a room →
-they need bot fill on (2 bots join), otherwise Start isn't allowed. UNO-style (4–8): two
+they need bot fill on (2 bots join), otherwise Start isn't allowed. MONO-style (4–8): two
 friends with bot fill on → 2 bots join (to reach 4); five friends → no
 bots; eight friends → all play; two friends with bot fill off → can't
 start (`NOT_ENOUGH_READY`).
@@ -371,3 +434,18 @@ start (`NOT_ENOUGH_READY`).
 - `androidApp/google-services.json` is committed. Firebase is linked; the
   API key restrictions are not set up yet. Security hardening is planned
   as its own task later.
+
+### City Royale: selling a building is its own money reason (contract 0.12.0)
+- `MoneyMoved.reason` gains `SELL_BUILDING` (a house or hotel sold to the
+  bank). `SELL` is now only a whole city or company sold, so the snackbar
+  and the history can say "sold a building" or "sold the city" instead of
+  "sold the property" for both.
+
+### Doodle King: shorter words, categories and a language tag (contract 0.12.1)
+- Words are at most 6 letters (spaces don't count): longer ones were too hard to
+  draw and guess in the time. Hinglish words use the common spellings.
+- Each word has one of a few simple categories and a language; the server sends
+  both and the app shows them as a tag next to the status line. The word list
+  stays on the server.
+- The guess box shows the whole word (hint letters in place, typed letters in
+  the hidden ones) and sends the guess by itself when the last hidden letter is typed.

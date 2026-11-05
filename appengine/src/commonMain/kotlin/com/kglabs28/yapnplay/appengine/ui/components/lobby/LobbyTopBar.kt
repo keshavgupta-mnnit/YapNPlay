@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.HowToReg
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PersonAdd
@@ -41,19 +41,20 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassPillButton
 
 /**
- * Lobby top bar: round back, the group's name at the start of its pill, then
- * Leaderboard and a round ⋮ that opens [LobbyRoomMenu] (everything else
- * the room offers lives there).
+ * Lobby top bar: round back, the group's name at the start of its pill,
+ * then the room's [actions] (pills as tall as the bar: Leaderboard in a Game
+ * Room; Make Permanent and Add Friends in a Quick Play party) and, when the
+ * room has one ([onMenu] not null), a round ⋮ that opens [menu].
  */
 @Composable
 fun LobbyTopBar(
     roomName: String,
     menuOpen: Boolean,
     onBack: () -> Unit,
-    onLeaderboard: () -> Unit,
-    onMenu: () -> Unit,
+    onMenu: (() -> Unit)?,
     modifier: Modifier = Modifier,
     menu: @Composable () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -85,9 +86,8 @@ fun LobbyTopBar(
                 style = typography.cardTitle.copy(color = colors.TextPrimary),
             )
         }
-        // As tall as the room name's pill beside it.
-        GlassPillButton(text = RoomStrings.lobbyLeaderboard, onClick = onLeaderboard, leadingIcon = Icons.Rounded.EmojiEvents, height = dimens.lobbyBarHeight)
-        Box {
+        actions()
+        if (onMenu != null) Box {
             GlassIconButton(
                 imageVector = Icons.Rounded.MoreVert,
                 contentDescription = RoomStrings.lobbyMore,
@@ -101,11 +101,13 @@ fun LobbyTopBar(
 
 /**
  * The ⋮ menu under the top bar's last button: Waiting List (admins),
- * Share Link, Add Friends, Edit Name (admins) and, last, Leave Room in red.
+ * Share Link ([canShareLink]: not in a Quick Play party, which has no code
+ * to join by), Add Friends, Edit Name (admins) and, last, Leave Room in red.
  */
 @Composable
 fun LobbyRoomMenu(
     isAdmin: Boolean,
+    canShareLink: Boolean,
     onDismiss: () -> Unit,
     onWaitingList: () -> Unit,
     onShareLink: () -> Unit,
@@ -129,7 +131,7 @@ fun LobbyRoomMenu(
                 .padding(vertical = Spacing.Xs),
         ) {
             if (isAdmin) LobbyMenuItem(Icons.Rounded.HowToReg, RoomStrings.lobbyWaitingList, colors.TextPrimary) { onDismiss(); onWaitingList() }
-            LobbyMenuItem(Icons.Rounded.Share, RoomStrings.lobbyShareLink, colors.TextPrimary) { onDismiss(); onShareLink() }
+            if (canShareLink) LobbyMenuItem(Icons.Rounded.Share, RoomStrings.lobbyShareLink, colors.TextPrimary) { onDismiss(); onShareLink() }
             LobbyMenuItem(Icons.Rounded.PersonAdd, RoomStrings.lobbyAddFriends, colors.TextPrimary) { onDismiss(); onAddFriends() }
             if (isAdmin) LobbyMenuItem(Icons.Rounded.Edit, RoomStrings.lobbyEditName, colors.TextPrimary) { onDismiss(); onEditName() }
             LobbyMenuItem(Icons.AutoMirrored.Rounded.Logout, RoomStrings.lobbyLeaveRoom, colors.Error) { onDismiss(); onLeave() }

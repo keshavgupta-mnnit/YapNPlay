@@ -135,22 +135,33 @@ object CbPromptMapper {
     fun jailChoice(me: CityBazaarPlayer, countdown: String): CbModal.JailChoice = CbModal.JailChoice(me.cash >= JAIL_FINE, countdown)
 
     /**
-     * What the user can sell to pay a debt, one step per city in reverse of
-     * building: a built city offers its top building to the bank (a hotel
-     * goes back to 3 houses, then house by house); a bare city offers itself
-     * (up for auction under the house rule, else to the bank). The user picks
-     * any city's step.
+     * The cities and companies the user can sell to pay a debt: a bare one
+     * offers itself (up for auction under the house rule, else to the bank);
+     * a city with buildings is locked until they are all sold (see [buildings]).
      */
     fun assets(match: CityBazaarMatch, seat: Int): List<CbAssetUi> =
         match.owners.filter { it.value == seat }.keys.sorted().map { tile ->
             val spec = CityBazaarBoard.tile(tile)
-            val level = match.levels[tile] ?: 0
-            if (level > 0) {
-                CbAssetUi(BUILDING + tile, tile, spec.name, spec.group, spec.kind, if (level >= HOTEL_LEVEL) CityBazaarStrings.cbSellHotel else CityBazaarStrings.cbSellHouse, CbFormat.plus(spec.buildCost / RESALE_DIVISOR))
+            if ((match.levels[tile] ?: 0) > 0) {
+                CbAssetUi(TILE + tile, tile, spec.name, spec.group, spec.kind, CityBazaarStrings.cbSellBuildingsFirst, "", enabled = false)
             } else {
                 val label = if (match.debtAuction) CityBazaarStrings.cbAuctionProperty else CityBazaarStrings.cbSellProperty
                 CbAssetUi(TILE + tile, tile, spec.name, spec.group, spec.kind, label, CbFormat.plus(spec.price / RESALE_DIVISOR))
             }
+        }
+
+    /**
+     * The user's buildings, one step per built city in reverse of building: the
+     * top building goes to the bank (a hotel back to 3 houses, then house by
+     * house) for half its build cost. Empty when they have none.
+     */
+    fun buildings(match: CityBazaarMatch, seat: Int): List<CbAssetUi> =
+        match.owners.filter { it.value == seat }.keys.sorted().mapNotNull { tile ->
+            val level = match.levels[tile] ?: 0
+            if (level <= 0) return@mapNotNull null
+            val spec = CityBazaarBoard.tile(tile)
+            val line = if (level >= HOTEL_LEVEL) CityBazaarStrings.cbSellHotel else CityBazaarStrings.cbSellOneOf(level)
+            CbAssetUi(BUILDING + tile, tile, spec.name, spec.group, spec.kind, line, CbFormat.plus(spec.buildCost / RESALE_DIVISOR))
         }
 
     fun assetValue(id: String): Int {
@@ -169,6 +180,7 @@ object CbPromptMapper {
         return CbModal.Debt(
             body = CityBazaarStrings.cbDebtBody(CbFormat.rupees(deficit)),
             assets = assets(match, me.seat),
+            buildings = buildings(match, me.seat),
             selected = selected,
             tracker = CityBazaarStrings.cbSelectedValue(CbFormat.rupees(picked), CbFormat.rupees(deficit)),
             enough = picked >= deficit,
@@ -180,11 +192,13 @@ object CbPromptMapper {
     /**
      * The auction prompt for [viewer], like the buy prompt: the city's rents
      * and costs, its price crossed out before the bid, owner, highest bidder
-     * and balance after bidding. Only for someone who can bid higher: null
-     * for the owner, the highest bidder and anyone who can't afford the next bid.
+     * and balance after bidding. Everyone in the game sees it, so nobody is
+     * left looking at a frozen table; only someone who can bid higher
+     * ([CbModal.Auction.canBid]: not the owner, not the highest bidder, with
+     * enough money) gets the balance strip and the PASS / BID buttons.
      */
-    fun auction(match: CityBazaarMatch, auction: CityBazaarAuctionInfo, viewer: CityBazaarPlayer, countdown: String): CbModal.Auction? {
-        if (viewer.seat == auction.sellerSeat || viewer.seat == auction.leaderSeat || viewer.cash < auction.nextBid) return null
+    fun auction(match: CityBazaarMatch, auction: CityBazaarAuctionInfo, viewer: CityBazaarPlayer, countdown: String): CbModal.Auction {
+        val canBid = viewer.seat != auction.sellerSeat && viewer.seat != auction.leaderSeat && viewer.cash >= auction.nextBid
         val spec = CityBazaarBoard.tile(auction.tile)
         val seller = match.player(auction.sellerSeat)?.name.orEmpty()
         val leader = auction.leaderSeat?.let { match.player(it)?.name }
@@ -206,6 +220,7 @@ object CbPromptMapper {
             cost = CbFormat.minus(auction.nextBid),
             remaining = CbFormat.rupees(viewer.cash - auction.nextBid),
             bidLabel = CityBazaarStrings.cbBid(CbFormat.rupees(auction.nextBid)),
+            canBid = canBid,
             countdown = countdown,
         )
     }

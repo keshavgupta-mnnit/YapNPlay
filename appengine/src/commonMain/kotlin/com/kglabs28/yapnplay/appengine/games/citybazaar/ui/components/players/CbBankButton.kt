@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.players
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.edgeGlow
 import com.kglabs28.yapnplay.appengine.core.ui.CityBazaarStrings
 import com.kglabs28.yapnplay.appengine.core.designsystem.AppBrushes
 import androidx.compose.foundation.background
@@ -16,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -36,7 +36,7 @@ fun CbBankButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             // Gold light around the black button.
-            .shadow(elevation = dimens.bankButtonGlow, shape = shape, ambientColor = gold, spotColor = gold)
+            .edgeGlow(gold, shape, dimens.bankButtonGlow)
             .clip(shape)
             .background(AppBrushes.bankButton)
             .border(dimens.borderThin, Brush.verticalGradient(listOf(gold, gold.copy(alpha = RIM_BOTTOM_ALPHA))), shape)

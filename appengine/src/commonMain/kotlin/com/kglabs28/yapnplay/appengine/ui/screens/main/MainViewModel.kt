@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.main
 
+import com.kglabs28.yapnplay.appengine.navigation.AppNavTab
+import com.kglabs28.yapnplay.appengine.features.connection.usecase.ObserveBackendReachableUseCase
 import com.kglabs28.yapnplay.appengine.features.seathandover.usecase.SendSeatCommandUseCase
 import com.kglabs28.yapnplay.appengine.features.seathandover.domain.SeatCommand
 import kotlinx.datetime.toLocalDateTime
@@ -63,12 +65,15 @@ class MainViewModel(
     private val startupGate: StartupGate,
     private val sendFriendRequest: SendFriendRequestUseCase,
     private val sendSeatCommand: SendSeatCommandUseCase,
+    private val observeReachable: ObserveBackendReachableUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<MainState, MainIntent, MainEffect>(MainState(), dispatchers) {
 
     private var history: List<AppNotification> = emptyList()
 
     init {
+        // Offline: Rooms needs the server; the Games tab (Nearby play) still works.
+        scope.launch { observeReachable().collect { setState { copy(reachable = it) } } }
         // Name and avatar follow edits made on the Profile screen.
         scope.launch {
             observeMyProfile().collect { profile ->
@@ -96,7 +101,13 @@ class MainViewModel(
 
     override suspend fun handleIntent(intent: MainIntent) {
         when (intent) {
-            is MainIntent.SelectTab -> setState { copy(selectedTab = intent.tab) }
+            // Every way into the Games tab (top bar, Home's QUICK PLAY) lands on the Quick Play hub.
+            is MainIntent.SelectTab -> setState {
+                if (intent.tab == AppNavTab.ROOMS && !reachable) copy(needsInternetShown = true) else copy(selectedTab = intent.tab, randomsOpen = false)
+            }
+            MainIntent.DismissNeedsInternet -> setState { copy(needsInternetShown = false) }
+            MainIntent.OpenRandoms -> setState { copy(randomsOpen = true) }
+            MainIntent.CloseRandoms -> setState { copy(randomsOpen = false) }
             MainIntent.CollectDailyBonus -> {
                 collectDailyBonus()
                 offerCoinsOnLaunch()

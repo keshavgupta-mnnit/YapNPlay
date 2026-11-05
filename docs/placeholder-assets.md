@@ -14,7 +14,7 @@ and the game player cards. The spectator tray still uses the person glyph.
 |---|---|---|---|
 | 1 | `HomeUserProfilePill.kt` | User avatar | Real user avatar profile image |
 | 2 | `HomeCenterLogo.kt` | YapNPlay header logo | Vector logo asset with mascot |
-| 3 | `GameZoneGraphic.kt` | 3D Gaming Orbit | 3D Ludo board, UNO cards, playing cards & 3D dice model |
+| 3 | `GameZoneGraphic.kt` | 3D Gaming Orbit | 3D Ludo board, MONO cards, playing cards & 3D dice model |
 | 4 | `SocialNetworkOrbitGraphic.kt` | Social Friend Avatars | Real friend avatar images & +Invite Friends node |
 | 5 | `HomeHeaderBar.kt` | Notification & Settings | Vector Bell & Gear icons |
 
@@ -23,6 +23,16 @@ and the game player cards. The spectator tray still uses the person glyph.
 |---|---|---|---|
 | 1 | `GameArt.kt` (`royal-ludo`) | Royal Ludo carousel art | Dedicated Royal Ludo art (uses the home game-zone art today) |
 | 2 | `GameArt.kt` (other keys) | Card Clash, Island Quest, Block Merge, Carrom Strike, Doodle Dash, Quiz Quest, Word Wars | Art per game when each game is built |
+
+## Quick Play hub (`ui/screens/playhub/`)
+| # | File | Meaning | Real art needed |
+|---|---|---|---|
+| 1 | `img_play_hub_randoms.png` | Play With Randoms card | Globe with dice and cards, sound waves |
+| 2 | `img_play_hub_friends.png` | Play With Friends card | Rooftop lounge with fire pit and chat bubbles |
+| 3 | `img_play_hub_nearby.png` | Offline Nearby card | Two phones linked with Wi-Fi / Bluetooth waves |
+
+The three files are copies of older card art; replace them in
+`composeResources/drawable` with the same names.
 
 ## RoomsScreen (`ui/screens/rooms/`)
 | # | File / Component | Meaning | Real art needed |

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.edgeGlow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -42,7 +42,7 @@ fun DailyBonusDialog(amount: String, onCollect: () -> Unit, modifier: Modifier =
     Column(
         modifier = modifier
             .width(dimens.dailyBonusWidth)
-            .shadow(elevation = dimens.promptGlow, shape = shape, ambientColor = colors.Gold, spotColor = colors.Gold)
+            .edgeGlow(colors.Gold, shape, dimens.promptGlow)
             .clip(shape)
             .background(colors.Background.copy(alpha = BASE))
             .background(Brush.verticalGradient(listOf(colors.Gold.copy(alpha = GLOW_TOP), Color.Transparent)))
@@ -56,7 +56,7 @@ fun DailyBonusDialog(amount: String, onCollect: () -> Unit, modifier: Modifier =
             Box(
                 modifier = Modifier
                     .size(dimens.dailyBonusCoin)
-                    .shadow(elevation = dimens.promptGlow, shape = CircleShape, ambientColor = colors.Gold, spotColor = colors.Gold)
+                    .edgeGlow(colors.Gold, CircleShape, dimens.promptGlow)
                     .background(Brush.radialGradient(listOf(colors.Gold, colors.Warning)), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
@@ -69,7 +69,7 @@ fun DailyBonusDialog(amount: String, onCollect: () -> Unit, modifier: Modifier =
             modifier = Modifier
                 .fillMaxWidth()
                 .height(dimens.neonButtonHeight)
-                .shadow(elevation = dimens.neonButtonGlow, shape = CircleShape, ambientColor = colors.Gold, spotColor = colors.Gold)
+                .edgeGlow(colors.Gold, CircleShape, dimens.neonButtonGlow)
                 .clip(CircleShape)
                 .background(Brush.horizontalGradient(listOf(colors.Gold, colors.Warning)))
                 .clickable(role = Role.Button, onClick = onCollect),

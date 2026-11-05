@@ -93,7 +93,8 @@ private fun GameZoneContent(onEnterGameZone: () -> Unit, slant: Dp) {
             GameZoneGraphic()
         }
 
-        GameZoneFeaturePillarsRow()
+        // Near the bottom the card is narrower by part of its lean: the points keep clear of that edge.
+        GameZoneFeaturePillarsRow(modifier = Modifier.padding(end = slant * AppConstants.HOME_PILLARS_LEAN_SHARE))
 
         PillButton(
             text = Strings.homeQuickPlay,

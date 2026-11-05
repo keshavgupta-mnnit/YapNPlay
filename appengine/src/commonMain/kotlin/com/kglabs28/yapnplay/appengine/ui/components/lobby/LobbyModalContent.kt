@@ -134,9 +134,9 @@ fun LobbyModalContent(
                 }
             }
         }
-        LobbyModal.LeaveConfirm -> ModalCard(
-            title = RoomStrings.lobbyLeaveTitle,
-            subtitle = RoomStrings.lobbyLeaveBody,
+        is LobbyModal.LeaveConfirm -> ModalCard(
+            title = modal.title,
+            subtitle = modal.body,
             modifier = modifier,
             actions = {
                 DarkButton(RoomStrings.lobbyStay, onDismiss)
@@ -179,6 +179,11 @@ fun LobbyModalContent(
         is LobbyModal.CountdownStopped -> ModalCard(
             title = RoomStrings.lobbyStartStopped,
             subtitle = modal.message,
+            modifier = modifier,
+            actions = { DarkButton(RoomStrings.lobbyStartStoppedOk, onDismiss) },
+        )
+        is LobbyModal.Failed -> ModalCard(
+            title = modal.message,
             modifier = modifier,
             actions = { DarkButton(RoomStrings.lobbyStartStoppedOk, onDismiss) },
         )

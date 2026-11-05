@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
 import com.kglabs28.yapnplay.appengine.core.ui.RoomStrings
+import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.material.icons.rounded.PersonAdd
+import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,7 +49,8 @@ import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyPrimaryButton
 import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyTopBar
 import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyRoomMenu
 import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyAddFriendsDialog
-import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyEditNameDialog
+import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyInvitePlayersDialog
+import com.kglabs28.yapnplay.appengine.ui.components.lobby.LobbyNameDialog
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,6 +97,9 @@ fun PlayRoomLobbyScreen(
         }
     }
 
+    // A Quick Play party: the phone's Back asks before leaving, like the bar's back arrow.
+    BlockBackPress(enabled = state.temporary, onBack = { send(PlayRoomLobbyIntent.Back) })
+
     // Started/stopped covers both leaving the screen and the app going to the background.
     LifecycleStartEffect(viewModel) {
         send(PlayRoomLobbyIntent.ScreenVisible(true))
@@ -123,11 +131,31 @@ fun PlayRoomLobbyScreen(
                 roomName = state.roomName,
                 menuOpen = menuOpen,
                 onBack = { send(PlayRoomLobbyIntent.Back) },
-                onLeaderboard = { send(PlayRoomLobbyIntent.OpenLeaderboard) },
-                onMenu = { menuOpen = !menuOpen },
-            ) {
+                // A Quick Play party has no ⋮: Back asks before leaving, and Add Friends is on the bar.
+                onMenu = if (state.temporary) null else ({ menuOpen = !menuOpen }),
+                actions = {
+                    val barHeight = dimens.lobbyBarHeight
+                    if (state.temporary) {
+                        state.saveRoom?.let { save ->
+                            GlassPillButton(
+                                text = save.label,
+                                onClick = { send(PlayRoomLobbyIntent.SaveRoomClicked) },
+                                leadingIcon = Icons.Rounded.PushPin,
+                                accent = colors.StartButtonGlow,
+                                contentColor = colors.StartButtonSub,
+                                enabled = save.enabled,
+                                height = barHeight,
+                            )
+                        }
+                        GlassPillButton(text = RoomStrings.lobbyAddFriends, onClick = { send(PlayRoomLobbyIntent.OpenAddFriends) }, leadingIcon = Icons.Rounded.PersonAdd, height = barHeight)
+                    } else {
+                        GlassPillButton(text = RoomStrings.lobbyLeaderboard, onClick = { send(PlayRoomLobbyIntent.OpenLeaderboard) }, leadingIcon = Icons.Rounded.EmojiEvents, height = barHeight)
+                    }
+                },
+                menu = {
                 LobbyRoomMenu(
                     isAdmin = state.isAdmin,
+                    canShareLink = !state.temporary,
                     onDismiss = { menuOpen = false },
                     onWaitingList = { send(PlayRoomLobbyIntent.OpenWaitingList) },
                     onShareLink = { send(PlayRoomLobbyIntent.ShareLink) },
@@ -135,7 +163,8 @@ fun PlayRoomLobbyScreen(
                     onEditName = { send(PlayRoomLobbyIntent.OpenEditName) },
                     onLeave = { send(PlayRoomLobbyIntent.LeaveClicked) },
                 )
-            }
+                },
+            )
 
             // Left: members, then START + Mic + Speaker under them. Right:
             // the game area, full height down to the bottom.
@@ -258,10 +287,25 @@ fun PlayRoomLobbyScreen(
                     onSend = { send(PlayRoomLobbyIntent.SendInvites) },
                     onClose = { send(PlayRoomLobbyIntent.DismissSheet) },
                 )
-                is LobbySheet.EditName -> LobbyEditNameDialog(
-                    sheet = sheet,
+                is LobbySheet.EditName -> LobbyNameDialog(
+                    title = RoomStrings.lobbyEditNameTitle,
+                    buttonText = RoomStrings.lobbyEditNameSave,
+                    name = sheet.name,
                     onNameChange = { send(PlayRoomLobbyIntent.EditNameChanged(it)) },
                     onSave = { send(PlayRoomLobbyIntent.SaveName) },
+                    onClose = { send(PlayRoomLobbyIntent.DismissSheet) },
+                )
+                is LobbySheet.SaveRoom -> LobbyNameDialog(
+                    title = RoomStrings.lobbySaveRoomTitle,
+                    buttonText = RoomStrings.lobbySaveRoomButton,
+                    name = sheet.name,
+                    onNameChange = { send(PlayRoomLobbyIntent.SaveRoomNameChanged(it)) },
+                    onSave = { send(PlayRoomLobbyIntent.ConfirmSaveRoom) },
+                    onClose = { send(PlayRoomLobbyIntent.DismissSheet) },
+                )
+                is LobbySheet.InvitePlayers -> LobbyInvitePlayersDialog(
+                    sheet = sheet,
+                    onAdd = { send(PlayRoomLobbyIntent.InvitePlayer(it)) },
                     onClose = { send(PlayRoomLobbyIntent.DismissSheet) },
                 )
                 null -> Unit
@@ -274,6 +318,7 @@ fun PlayRoomLobbyScreen(
         val dismissable = modal is LobbyModal.MemberMenu ||
             modal is LobbyModal.ConfirmMemberAction ||
             modal is LobbyModal.CountdownStopped ||
+            modal is LobbyModal.Failed ||
             modal == LobbyModal.RuleSheet
         BlockingOverlay(
             visible = modal != null,

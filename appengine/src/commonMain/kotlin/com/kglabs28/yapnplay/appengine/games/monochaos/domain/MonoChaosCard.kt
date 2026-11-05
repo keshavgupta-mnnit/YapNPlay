@@ -1,23 +1,24 @@
 package com.kglabs28.yapnplay.appengine.games.monochaos.domain
 
 import com.kglabs28.yapnplay.appengine.games.monochaos.identity.MonoChaosConstants
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class MonoChaosCard {
-    data class NumberCard(val color: MonoChaosConstants.Color, val number: Int) : MonoChaosCard()
-    data class ReverseCard(val color: MonoChaosConstants.Color) : MonoChaosCard()
-    data class SkipCard(val color: MonoChaosConstants.Color) : MonoChaosCard()
-    data class DrawTwoCard(val color: MonoChaosConstants.Color) : MonoChaosCard()
-    data class ColoredDrawFourCard(val color: MonoChaosConstants.Color) : MonoChaosCard()
-    data class DiscardAllCard(val color: MonoChaosConstants.Color) : MonoChaosCard()
-    data class SkipEveryoneCard(val color: MonoChaosConstants.Color) : MonoChaosCard()
-    object PrismColorWild : MonoChaosCard()
-    object PrismDrawFour : MonoChaosCard()
-    object PrismReverseDrawFour : MonoChaosCard()
-    object PrismDrawSix : MonoChaosCard()
-    object PrismDrawTen : MonoChaosCard()
-    object PrismColorRoulette : MonoChaosCard()
+    @Serializable @SerialName("NumberCard") data class NumberCard(val color: MonoChaosConstants.Color, val number: Int) : MonoChaosCard()
+    @Serializable @SerialName("ReverseCard") data class ReverseCard(val color: MonoChaosConstants.Color) : MonoChaosCard()
+    @Serializable @SerialName("SkipCard") data class SkipCard(val color: MonoChaosConstants.Color) : MonoChaosCard()
+    @Serializable @SerialName("DrawTwoCard") data class DrawTwoCard(val color: MonoChaosConstants.Color) : MonoChaosCard()
+    @Serializable @SerialName("ColoredDrawFourCard") data class ColoredDrawFourCard(val color: MonoChaosConstants.Color) : MonoChaosCard()
+    @Serializable @SerialName("DiscardAllCard") data class DiscardAllCard(val color: MonoChaosConstants.Color) : MonoChaosCard()
+    @Serializable @SerialName("SkipEveryoneCard") data class SkipEveryoneCard(val color: MonoChaosConstants.Color) : MonoChaosCard()
+    @Serializable @SerialName("PrismColorWild") object PrismColorWild : MonoChaosCard()
+    @Serializable @SerialName("PrismDrawFour") object PrismDrawFour : MonoChaosCard()
+    @Serializable @SerialName("PrismReverseDrawFour") object PrismReverseDrawFour : MonoChaosCard()
+    @Serializable @SerialName("PrismDrawSix") object PrismDrawSix : MonoChaosCard()
+    @Serializable @SerialName("PrismDrawTen") object PrismDrawTen : MonoChaosCard()
+    @Serializable @SerialName("PrismColorRoulette") object PrismColorRoulette : MonoChaosCard()
 
     fun colorName(): String = when (this) {
         is NumberCard -> when (color) { MonoChaosConstants.Color.RED -> "Red"; MonoChaosConstants.Color.GREEN -> "Green"; MonoChaosConstants.Color.BLUE -> "Blue"; MonoChaosConstants.Color.GOLD -> "Gold" }

@@ -8,8 +8,8 @@ import io.ktor.client.request.post
 
 /**
  * Voice passes from the backend (`POST …/voice-token`). A room's lobby
- * and the matches started from it share one voice room; a Quick Play
- * table has its own. The backend decides which.
+ * has one voice room and every match its own (players and spectators
+ * only). The backend decides which.
  */
 class VoiceTokenApi(private val client: HttpClient) {
     suspend fun token(target: VoiceTarget): VoiceToken = when (target) {

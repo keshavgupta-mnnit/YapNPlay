@@ -36,6 +36,8 @@ fun DoodleControls(
     guess: String,
     onGuessChange: (String) -> Unit,
     onSubmitGuess: () -> Unit,
+    /** Every hidden letter is typed: send the guess now. */
+    onCompleteGuess: (String) -> Unit,
     keyboardOwner: Any,
     guessTone: DoodleGuessResult?,
     send: (DoodleKingMatchIntent) -> Unit,
@@ -93,6 +95,7 @@ fun DoodleControls(
                     guessed = state.barMode == DoodleBarMode.GUESSED,
                     owner = keyboardOwner,
                     onSubmit = onSubmitGuess,
+                    onComplete = onCompleteGuess,
                     prompt = state.feedback?.message ?: DoodleStrings.dkGuessHint,
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                 )

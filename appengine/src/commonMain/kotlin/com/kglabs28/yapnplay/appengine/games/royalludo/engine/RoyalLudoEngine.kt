@@ -1,7 +1,5 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.engine
 
-import com.kglabs28.yapnplay.appengine.games.royalludo.utils.PROGRESS_FINISH
-import com.kglabs28.yapnplay.appengine.games.royalludo.utils.PROGRESS_IN_BASE
 import com.kglabs28.yapnplay.appengine.games.base.Game
 import com.kglabs28.yapnplay.appengine.games.base.identity.*
 import com.kglabs28.yapnplay.appengine.games.elements.dice.mechanics.RollDice
@@ -68,14 +66,17 @@ class RoyalLudoEngine : Game {
 
     override fun currentActor(state: GameState) = SeatNumber((state as RoyalLudoState).currentSeat)
 
-    override fun autoplay(state: GameState, seat: SeatNumber, random: GameRandom): ApplyResult {
+    override fun autoplay(state: GameState, seat: SeatNumber, random: GameRandom): ApplyResult = autoplayWith(bot, state, seat, random)
+
+    /** Plays [seat]'s step with [player] (its values come from the runtime settings). */
+    fun autoplayWith(player: RoyalLudoBot, state: GameState, seat: SeatNumber, random: GameRandom): ApplyResult {
         val s = state as RoyalLudoState
         if (s.phase == Phase.FINISHED) return ApplyResult.Rejected(TypedRejection("MATCH_ENDED", "Match ended"))
         if (seat.value != s.currentSeat) return ApplyResult.Rejected(TypedRejection("NOT_YOUR_TURN", "Not your turn"))
         return when (s.phase) {
             // Same fair, independent roll as a player's own.
             Phase.AWAITING_ROLL -> handleRoll(s, random)
-            Phase.AWAITING_MOVE -> bot.bestPiece(s)?.let { handleMove(s, it) }
+            Phase.AWAITING_MOVE -> player.bestPiece(s)?.let { handleMove(s, it) }
                 ?: ApplyResult.Rejected(TypedRejection("NO_LEGAL_MOVE", "No legal move"))
             Phase.FINISHED -> ApplyResult.Rejected(TypedRejection("MATCH_ENDED", "Match ended"))
         }
@@ -132,7 +133,10 @@ class RoyalLudoEngine : Game {
         val ranking = mutableListOf<RankedSeat>()
         for ((index, seat) in s.finishingOrder.withIndex())
             ranking.add(RankedSeat(SeatNumber(seat), SeatStatus.FINISHED, index + 1))
-        for (seat in s.seats.map { it.value }.filter { it !in s.finishingOrder })
+        // Not finished (an early end): the furthest along first.
+        val unfinished = s.seats.map { it.value }.filter { it !in s.finishingOrder }
+            .sortedByDescending { seat -> s.piecesForSeat(seat).sumOf { it.coerceAtLeast(0) } }
+        for (seat in unfinished)
             ranking.add(RankedSeat(SeatNumber(seat), SeatStatus.FINISHED, ranking.size + 1))
         for (seat in s.removalOrder.reversed())
             ranking.add(RankedSeat(SeatNumber(seat), SeatStatus.REMOVED, ranking.size + 1))
@@ -236,7 +240,10 @@ class RoyalLudoEngine : Game {
         val finished = newProgress == PROGRESS_FINISH
         if (finished) events.add(PieceFinished(s.currentSeat, piece))
 
+        val allFinished = newPieces[s.currentSeat]!!.all { it == PROGRESS_FINISH }
         val extraTurn = when {
+            // All pieces home: this seat is done, no extra turn.
+            allFinished -> false
             captured && s.ludoRules.house.extraTurnOnCapture -> true
             finished && s.ludoRules.house.extraTurnOnHome -> true
             roll == 6 && s.ludoRules.house.extraTurnOnSix -> true
@@ -244,21 +251,14 @@ class RoyalLudoEngine : Game {
         }
         if (extraTurn) events.add(ExtraTurn(s.currentSeat, when { captured -> "CAPTURE"; finished -> "HOME"; else -> "SIX" }))
 
-        val allFinished = newPieces[s.currentSeat]!!.all { it == PROGRESS_FINISH }
-        var newFinishingOrder = if (allFinished && s.currentSeat !in s.finishingOrder) {
+        val newFinishingOrder = if (allFinished && s.currentSeat !in s.finishingOrder) {
             events.add(SeatFinished(s.currentSeat, s.finishingOrder.size + 1))
             s.finishingOrder + s.currentSeat
         } else s.finishingOrder
 
-        val activeSeats = s.seats.map { it.value }.filter { it !in newFinishingOrder && it !in s.removalOrder }
+        val activeSeats = s.seats.map { it.value }.filter { it !in newFinishingOrder }
+        // Second-to-last finished: the one left takes last place and the match ends.
         val matchOver = activeSeats.size <= 1
-        if (matchOver && activeSeats.isNotEmpty()) {
-            val lastSeat = activeSeats.first()
-            if (lastSeat !in newFinishingOrder) {
-                newFinishingOrder = newFinishingOrder + lastSeat
-                events.add(SeatFinished(lastSeat, newFinishingOrder.size))
-            }
-        }
 
         val nextSeat = if (!extraTurn && !matchOver) nextActiveSeat(s, newFinishingOrder) else s.currentSeat
         val newState = s.copy(
@@ -272,7 +272,7 @@ class RoyalLudoEngine : Game {
             // A new seat's turn starts from this board.
             turnStartPieces = if (nextSeat != s.currentSeat) newPieces else s.turnStartPieces,
         )
-        val finalEvents = if (matchOver) events + MatchEnded(newFinishingOrder + s.removalOrder) else events
+        val finalEvents = if (matchOver) events + MatchEnded(newFinishingOrder + activeSeats + s.removalOrder.reversed()) else events
         return ApplyResult.Success(newState, finalEvents)
     }
 

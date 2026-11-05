@@ -30,9 +30,45 @@ decisions that win).
 ## Versioning
 
 `CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
-**0.10.0**. Patch: optional field / new message. Minor: new required
+**0.12.4**. Patch: optional field / new message. Minor: new required
 field, channel or game-interface member. Major: breaking change.
 Every bump is announced in `docs/decisions.md`.
+
+0.12.4 added: `SaveRoom(name?)` on the ROOM channel (leader of a temporary room;
+Ack): with a name, a new Game Room with every party member added at once (the
+leader its leader and admin; needs 2+ people); with no name, the party's
+newcomers are added to that room. The party stays temporary.
+`RoomInfo.savedRoomId` and `RoomInfo.savedRoomMissing` (people in the party not
+in the saved room yet).
+
+0.12.3 added: `FriendSummary.activity` (`OFFLINE`, `ONLINE`, `IN_ROOM`,
+`PLAYING`), and the `PlayInvite(inviteId, roomId, roomName, from)` push on the
+ROOM channel, sent to a connected friend invited to a temporary room (the push
+notification still goes too). The app shows a popup; JOIN is the usual
+`POST /rooms/invites/{inviteId}/accept`.
+
+0.12.2 added: Quick Play with friends. Optional `temporary` (default false) on
+`CreateRoom`, `RoomInfo`, `RoomSummary` and `RoomInviteSummary`. A temporary room
+needs no name or invitees, has one leader (admin = leader; `RenameRoom` and
+`TransferAdmin` are refused), no Waiting List (`JoinRoom` by a non-member is
+NOT_FOUND), and is deleted when its last member leaves, or 30 s after nobody is
+online in it and no match of it is running. It is not counted toward
+`maxRoomsPerUser`; `/rooms/mine` lists it flagged and the app hides it. Its
+invite push reads "<name> wants to play with you now".
+
+0.12.1 added: Doodle King `DoodleKingPublicState.wordCategory` and `wordLanguage`
+(optional strings: the word's simple group — Animals, Food, Objects, Nature,
+Places, Body, Fun — and its language, English or Hinglish; sent to everyone while
+the word is drawn and at the reveal, empty otherwise). The app shows them as a
+tag ("Hinglish · Food") so the word is easier to guess. Words are now at most
+6 letters, with the common Hinglish spellings (hookah, not hukka).
+
+0.12.0 added: City Bazaar `MoneyMoved.reason` `SELL_BUILDING` (a house or the
+hotel sold to the bank, half the build cost). `SELL` now means a whole city or
+company sold. The app words the two differently ("sold a building" / "sold
+the city"); `BuildingSold` / `TileSold` / `Sold` are unchanged.
+
+0.11.0 added: emoji gifts (see "Emoji gifts" below).
 
 0.10.0 added: `RankedSeat.stake` (the entry each seat put in; the bank's for a
 CPU; 0 when free or unpaid). `RankedSeat.coinsWon` now shows every seat's
@@ -194,7 +230,7 @@ server re-validates and seats:
 3. sends `MatchStarting(matchId)` to everyone; seated players open the
    game window, everyone else can watch.
 Examples: Royal Ludo (4–4) with 2 ready + botFill → 2 humans + 2 bots;
-without botFill it can't start. UNO-style
+without botFill it can't start. MONO-style
 (4–8) with 2 ready + botFill → 2 humans + 2 bots; with 5 ready → 5
 humans.
 

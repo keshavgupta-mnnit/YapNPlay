@@ -95,14 +95,36 @@ class LiveKitVoiceEngine(private val context: Context) : VoiceEngine {
         scope.launch { room?.let(::applyMutes) }
     }
 
+    /**
+     * On: published at once, tried again a few times in quick succession while the
+     * room finishes setting up ("publisher is not configured yet" right after joining).
+     * Off: the track is only muted, nothing is sent; the voice room stays joined (the
+     * user still hears everyone) and turning the mic on again is instant.
+     */
     private fun applyMic() {
         scope.launch {
             micLock.withLock {
                 val current = room?.takeIf { isConnected.value } ?: return@withLock
-                runCatching { current.localParticipant.setMicrophoneEnabled(micWanted) }
-                    .onFailure { CrashReporter.record(it, "LiveKitVoiceEngine.mic") }
+                if (micWanted) publishMic(current) else muteMic(current)
             }
         }
+    }
+
+    private suspend fun publishMic(current: Room) {
+        var last: Throwable? = null
+        repeat(MIC_TRIES) {
+            if (current !== room || !micWanted) return
+            val result = runCatching { current.localParticipant.setMicrophoneEnabled(true) }
+            if (result.isSuccess) return
+            last = result.exceptionOrNull()
+            delay(MIC_RETRY_MS)
+        }
+        last?.let { CrashReporter.record(it, "LiveKitVoiceEngine.mic") }
+    }
+
+    private suspend fun muteMic(current: Room) {
+        runCatching { current.localParticipant.setMicrophoneEnabled(false) }
+            .onFailure { CrashReporter.record(it, "LiveKitVoiceEngine.muteMic") }
     }
 
     private fun onEvent(source: Room, event: RoomEvent) {
@@ -172,3 +194,6 @@ class LiveKitVoiceEngine(private val context: Context) : VoiceEngine {
 
 /** How often a wanted mic is checked to really be going out. */
 private const val MIC_CHECK_MS = 5_000L
+/** Publishing the mic right after joining: tries, and the pause between them. */
+private const val MIC_TRIES = 6
+private const val MIC_RETRY_MS = 250L

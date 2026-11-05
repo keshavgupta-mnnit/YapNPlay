@@ -282,6 +282,8 @@ class YapNPlayDimens {
     val cbStackOffset: Dp get() = 3.dp.scaled()
     val cbToastWidth: Dp get() = 300.dp.scaled()
     val cbAssetCardWidth: Dp get() = 108.dp.scaled()
+    /** The sell dialog's cities and buildings: taller than this and they scroll. */
+    val cbAssetsMaxHeight: Dp get() = 200.dp.scaled()
     val cbHeaderChip: Dp get() = 14.dp.scaled()
     val cbControlHeight: Dp get() = 34.dp.scaled()
     /** 3D City Royale: a seat card round the board and its avatar, My Properties in the bottom bar. */
@@ -320,8 +322,19 @@ class YapNPlayDimens {
     val homeBarIcon: Dp get() = 14.dp.scaled()
     /** Home's cards (design): the header's and the pillars' icon circles, and the buttons. */
     val homeHeaderIcon: Dp get() = 24.dp.scaled()
-    val homePillarIcon: Dp get() = 14.dp.scaled()
+    val homePillarIcon: Dp get() = 20.dp.scaled()
     val homeCtaHeight: Dp get() = 28.dp.scaled()
+    /** Quick Play hub cards: header icon circle, status pill, the friends' stacked avatars (and their overlap), button. */
+    val playHubHeaderIcon: Dp get() = 28.dp.scaled()
+    val playHubPillHeight: Dp get() = 22.dp.scaled()
+    val playHubPillAvatar: Dp get() = 16.dp.scaled()
+    val playHubAvatarOverlap: Dp get() = 5.dp.scaled()
+    val playHubCtaHeight: Dp get() = 32.dp.scaled()
+    /** A party's Add Friends list: scrolls past this height. */
+    val lobbyInviteListMaxHeight: Dp get() = 220.dp.scaled()
+    /** The Nearby checklist: a row's least height, and its round tick / cross / ">" badges. */
+    val nearbyCheckRow: Dp get() = 32.dp.scaled()
+    val nearbyCheckBadge: Dp get() = 20.dp.scaled()
     val homeBannerButtonHeight: Dp get() = 30.dp.scaled()
     /** The home cards' corners on their leaning edges (rounder than their outer ones). */
     val homeCardInnerRadius: Dp get() = 30.dp.scaled()

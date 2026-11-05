@@ -26,7 +26,11 @@ import com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match.RoyalLud
 import com.kglabs28.yapnplay.appengine.core.common.DeepLink
 import com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby.PlayRoomLobbyScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.gamezone.GameZoneViewModel
+import com.kglabs28.yapnplay.appengine.ui.screens.playhub.PlayHubViewModel
 import com.kglabs28.yapnplay.appengine.ui.screens.main.MainScreen
+import com.kglabs28.yapnplay.appengine.ui.screens.playinvite.PlayInviteScreen
+import com.kglabs28.yapnplay.appengine.ui.screens.playinvite.PlayInviteViewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
 import com.kglabs28.yapnplay.appengine.ui.screens.mono.MatchMonoChaosScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.mono.MatchMonoScreen
 import com.kglabs28.yapnplay.appengine.ui.screens.profile.ProfileScreen
@@ -98,6 +102,21 @@ fun YapNPlayNavHost(
     }
 
     val matchRooms: GetMatchRoomUseCase = koinInject()
+    // A play-now invite waits while the user is in a lobby or at a table.
+    val destination = screen?.destination
+    val popupAllowed = destination != null && TABLE_OR_LOBBY.none { destination.hasRoute(it) }
+    val playInviteViewModel: PlayInviteViewModel = koinInject()
+    PlayInviteScreen(
+        popupAllowed = popupAllowed,
+        onOpenRoom = { roomId ->
+            navController.navigate(RoomLobby(roomId)) {
+                popUpTo<Main>()
+                launchSingleTop = true
+            }
+        },
+        onPartyEnded = { navController.popBackStack<Main>(inclusive = false) },
+        viewModel = playInviteViewModel,
+    )
     NavHost(
         navController = navController,
         startDestination = Main,
@@ -108,6 +127,7 @@ fun YapNPlayNavHost(
             // data survive a trip to another screen and back.
             val mainViewModel: MainViewModel = entry.rememberScreenViewModel()
             val gameZoneViewModel: GameZoneViewModel = entry.rememberScreenViewModel()
+            val playHubViewModel: PlayHubViewModel = entry.rememberScreenViewModel()
             val playRoomsViewModel: PlayRoomsViewModel = entry.rememberScreenViewModel()
             val welcomeViewModel: WelcomeViewModel = entry.rememberScreenViewModel()
             MainScreen(
@@ -127,6 +147,7 @@ fun YapNPlayNavHost(
                 onInvitesShown = { pendingShowInvites = false },
                 viewModel = mainViewModel,
                 gameZoneViewModel = gameZoneViewModel,
+                playHubViewModel = playHubViewModel,
                 playRoomsViewModel = playRoomsViewModel,
                 welcomeViewModel = welcomeViewModel,
             )
@@ -211,3 +232,13 @@ fun YapNPlayNavHost(
         }
     }
 }
+
+/** Screens where a play-now invite waits instead of popping up: a lobby and every table. */
+private val TABLE_OR_LOBBY = listOf(
+    RoomLobby::class,
+    RoyalLudoMatch::class,
+    CityBazaarMatch::class,
+    DoodleKingMatch::class,
+    MonoMatchRoute::class,
+    MonoChaosMatchRoute::class,
+)

@@ -115,6 +115,24 @@ object AppConstants {
     /** Home QUICK PLAY button width as a share of its card. */
     const val HOME_CTA_WIDTH_FRACTION = 0.74f
 
+    /** How much of the Game Zone card's lean the feature points keep clear of (they sit low on the card). */
+    const val HOME_PILLARS_LEAN_SHARE = 0.35f
+
+    /** Quick Play hub card button width as a share of its card. */
+    const val PLAY_HUB_CTA_WIDTH_FRACTION = 0.78f
+
+    /** Friends' faces shown in the hub's "N Friends Online" pill (the rest are only counted). */
+    const val PLAY_HUB_MAX_FACES = 4
+
+    /** Quick Play hub card art: zoomed past the picture's clear margin on a phone. */
+    const val PLAY_HUB_ART_ZOOM = 1.23f
+
+    /** The Nearby scan's list width as a share of the screen. */
+    const val NEARBY_SCAN_WIDTH_FRACTION = 0.6f
+
+    /** How often the open "Get ready for Nearby" checklist checks again (a switch flipped from the quick settings). */
+    const val NEARBY_READY_RECHECK_MS = 1_000L
+
     /**
      * Rooms tab split. Columns are 60:40 (create/join left, lists right);
      * inside each column the cards keep the design's height ratio.

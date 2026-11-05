@@ -18,14 +18,14 @@ import org.koin.dsl.module
 
 /** Play-room lobby over the backend's ROOM WebSocket channel. */
 val playRoomLobbyModule = module {
-    single<LobbyRealtimeClient> { LobbyRealtimeClientImpl(get(), get(), get(), get()) }
+    single<LobbyRealtimeClient> { LobbyRealtimeClientImpl(get(), get(), get(), get(), get()) }
     single<PlayRoomLobbyRepository> { PlayRoomLobbyRepositoryImpl(get(), get(), get()) }
     single<RoomLeaderboardRepository> { RoomLeaderboardRepositoryImpl(get(), get()) }
     factory { GetRoomLeaderboardUseCase(get()) }
     single<RoomPendingInvitesRepository> { RoomPendingInvitesRepositoryImpl(get(), get()) }
     factory { GetRoomPendingInvitesUseCase(get()) }
-    factory { ObservePlayRoomLobbyUseCase(get(), get(), get()) }
+    factory { ObservePlayRoomLobbyUseCase(get(), get(), get(), get()) }
     factory { SendLobbyCommandUseCase(get()) }
     factory { ObserveMatchStartingUseCase(get()) }
-    factory { PlayRoomLobbyViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { PlayRoomLobbyViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

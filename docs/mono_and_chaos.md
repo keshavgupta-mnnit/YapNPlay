@@ -13,8 +13,8 @@ We are building two multiplayer shedding card games inside our 16:9 landscape mo
 ## 2. Brand Terminology & Visual Design System
 
 ### 2.1 Copyright-Safe Terminology Mapping
-Never use trademarked terms like "UNO", "No Mercy" in the UI or codebase displays:
-- **"UNO!" Callout** $\rightarrow$ **`MONO!`**
+Never use other card games' trademarked names ("No Mercy" or the classic game's own name) in the UI or codebase displays:
+- **The one-card-left callout** $\rightarrow$ **`MONO!`**
 - **"Wild" Card Category** $\rightarrow$ **`WILD`** (e.g., *Wild Card*, *Wild +4*, *Wild Reverse +4*, *Wild +6*, *Wild +10*, *Wild Roulette*).
 - **Color Palette (Dark Jewel-Tone Glass — No Bright Neon Backgrounds):**
   - **Outer Card Base:** Smoked Obsidian Black Glass (`#101218` at 90% opacity) with a metallic bevel edge.

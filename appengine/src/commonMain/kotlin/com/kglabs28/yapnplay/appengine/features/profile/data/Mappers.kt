@@ -2,6 +2,7 @@ package com.kglabs28.yapnplay.appengine.features.profile.data
 
 import com.kglabs28.yapnplay.appengine.features.profile.domain.BlockedUser
 import com.kglabs28.yapnplay.appengine.features.profile.domain.Friend
+import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendActivity
 import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequest
 import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequestOutcome
 import com.kglabs28.yapnplay.appengine.features.profile.domain.UserProfile
@@ -34,6 +35,7 @@ fun FriendSummary.toDomain(): Friend = Friend(
     online = online,
     userCode = userCode,
     avatarId = avatarId,
+    activity = FriendActivity.valueOf(activity.name),
 )
 
 fun FriendRequestSummary.toDomain(): FriendRequest = FriendRequest(requestId, from.toDomain())

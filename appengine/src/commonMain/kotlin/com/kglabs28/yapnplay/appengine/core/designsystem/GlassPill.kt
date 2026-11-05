@@ -5,25 +5,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.Shape
 
 /**
  * [glassPanel] for small controls (top bar pills, round buttons): the
- * same glow and lit border, a more see-through [surface] so the art
- * shows through, plus a sheen across the top half for the shine.
+ * same lit border (no glow around it), a more see-through [surface] so
+ * the art shows through, plus a sheen across the top half for the shine.
  */
 @Composable
 fun Modifier.glassPill(
     glowColor: Color,
     surface: Color,
     shape: Shape = YapNPlayTheme.shapes.pill,
-    /**
-     * The solid colour the pill sits on, when known: the glass is then
-     * mixed over it and drawn solid, so the glow's shadow under it can't
-     * show through as a box (big keys on a tablet).
-     */
-    backdrop: Color? = null,
 ): Modifier {
     val colors = YapNPlayTheme.colors
     val glass = surface.copy(alpha = 0.55f)
@@ -31,7 +24,10 @@ fun Modifier.glassPill(
         .glassPanel(
             glowColor = glowColor,
             shape = shape,
-            surface = backdrop?.let { glass.compositeOver(it) } ?: glass,
+            surface = glass,
+            // Pills and round buttons: just the rim. A glow round a small control looks busy, and
+            // where a screen's edge cuts it off it reads as a square behind the button.
+            glow = false,
         )
         .background(
             Brush.verticalGradient(

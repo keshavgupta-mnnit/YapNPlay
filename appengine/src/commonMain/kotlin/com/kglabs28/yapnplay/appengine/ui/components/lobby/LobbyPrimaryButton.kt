@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.edgeGlow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.semantics.Role
@@ -60,7 +60,7 @@ fun LobbyPrimaryButton(
             .height(dimens.lobbyStartHeight)
             .then(
                 if (lit) {
-                    Modifier.shadow(dimens.glowBlur, outerShape, ambientColor = colors.StartButtonGlow, spotColor = colors.StartButtonGlow)
+                    Modifier.edgeGlow(colors.StartButtonGlow, outerShape, dimens.glowBlur)
                 } else {
                     Modifier
                 },

@@ -731,8 +731,8 @@ class CityBazaarMatchViewModel(
         } else {
             null
         }
-        // A running auction asks every player who can bid higher (not the owner, the highest bidder, anyone short
-        // of the next bid, or watchers); a pass hides it only until the next bid.
+        // A running auction shows to every player (so nobody stares at a frozen table); only those who can bid
+        // higher get the buttons. A pass hides it for that player only until the next bid.
         val auction = m.auction?.takeIf { !playing && shownMe != null && !shownMe.bankrupt && !passedOn(it) }?.let { a ->
             CbPromptMapper.auction(m, a, shownMe!!, CbFormat.countdown((a.endsAt - now).inWholeSeconds))
         }
@@ -957,7 +957,7 @@ class CityBazaarMatchViewModel(
         val GROUPED_REASONS = setOf(MoneyReason.CLUB, MoneyReason.REST, MoneyReason.CARD)
         const val MILLIS = 1_000L
         /** Money the dialogs already showed (buying, building, selling). */
-        val QUIET = setOf(MoneyReason.BUY, MoneyReason.BUILD, MoneyReason.SELL, MoneyReason.BANKRUPTCY)
+        val QUIET = setOf(MoneyReason.BUY, MoneyReason.BUILD, MoneyReason.SELL, MoneyReason.SELL_BUILDING, MoneyReason.BANKRUPTCY)
         /** Payments everyone is told about. */
         const val HISTORY_LIMIT = 150
         val PAYMENTS = setOf(MoneyReason.RENT, MoneyReason.TAX, MoneyReason.CLUB, MoneyReason.JAIL_FINE, MoneyReason.LATE_ROLL, MoneyReason.CARD, MoneyReason.AUCTION)

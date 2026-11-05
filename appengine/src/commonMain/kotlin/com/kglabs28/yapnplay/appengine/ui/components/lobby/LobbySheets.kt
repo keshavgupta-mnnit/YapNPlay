@@ -103,10 +103,15 @@ fun LobbyAddFriendsDialog(
     }
 }
 
-/** Edit Name, from the ⋮ menu (admins): the group's name and SAVE. */
+/**
+ * A room name and its button: Edit Name (admins, from the ⋮ menu) and a
+ * party's Save as Room ([title], [buttonText]).
+ */
 @Composable
-fun LobbyEditNameDialog(
-    sheet: LobbySheet.EditName,
+fun LobbyNameDialog(
+    title: String,
+    buttonText: String,
+    name: String,
     onNameChange: (String) -> Unit,
     onSave: () -> Unit,
     onClose: () -> Unit,
@@ -114,14 +119,14 @@ fun LobbyEditNameDialog(
 ) {
     val colors = YapNPlayTheme.colors
     ModalCard(
-        title = RoomStrings.lobbyEditNameTitle,
+        title = title,
         onClose = onClose,
         modifier = modifier,
         actions = {
             PillButton(
-                text = RoomStrings.lobbyEditNameSave,
+                text = buttonText,
                 onClick = onSave,
-                enabled = sheet.name.isNotBlank(),
+                enabled = name.isNotBlank(),
                 gradient = listOf(colors.CtaGreenStart, colors.CtaGreenMid, colors.CtaGreenEnd),
                 contentColor = colors.CtaGreenContent,
                 trailingIcon = null,
@@ -129,7 +134,7 @@ fun LobbyEditNameDialog(
         },
     ) {
         ProfileTextField(
-            value = sheet.name,
+            value = name,
             onValueChange = onNameChange,
             hint = RoomStrings.groupNameHint,
             maxLength = AppConstants.MAX_ROOM_NAME_LENGTH,

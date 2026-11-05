@@ -7,101 +7,136 @@ import android.os.SystemClock
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.nativead.NativeAd
 import com.kglabs28.yapnplay.appengine.appmanager.helpers.AdsAppManagerHelper
-import kotlin.coroutines.resume
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Native ads loaded ahead of time, so an ad pill shows one the moment it
- * appears (a dialog that is up for a few seconds still gets its ad). Up to
- * [POOL_SIZE] wait ready from the app's start; each one taken is replaced.
- * An ad kept too long is dropped (AdMob's expire after an hour). A load that
- * fails is tried again a few times, waiting longer each time. Everything
- * runs on the main thread, as AdMob needs.
+ * The app's native ad: ONE ad at a time, shared by every ad pill, instead of
+ * a fresh ad per pill. A pill that is up for a second (a dialog) shows the
+ * current ad and costs no request; a new ad is requested only when the
+ * current one is older than the refresh time AND a refreshing pill (a game
+ * table) is on screen. One spare is kept loaded so a swap is instant.
+ *
+ * Why: requesting a new ad for every pill made thousands of requests that
+ * were never shown, and AdMob answers an app that over-requests with a low
+ * match rate. An ad may sit in one view at a time, so when two pills are up
+ * (a dialog over a table) the newest one shows it ([holder]).
+ * Everything runs on the main thread, as AdMob needs.
  */
 class NativeAdPool(private val application: Application, private val config: AdsAppManagerHelper) {
 
-    private class Ready(val ad: NativeAd, val loadedAt: Long)
+    private val _current = MutableStateFlow<NativeAd?>(null)
+    /** The ad on screen now (null until the first loads). */
+    val current: StateFlow<NativeAd?> = _current.asStateFlow()
 
-    private val ready = ArrayDeque<Ready>()
-    private val waiters = ArrayDeque<CancellableContinuation<NativeAd>>()
-    private var loading = 0
+    private val _holder = MutableStateFlow<Any?>(null)
+    /** The pill showing [current]: the newest one on screen. */
+    val holder: StateFlow<Any?> = _holder.asStateFlow()
+
+    private class Viewer(val token: Any, val refreshes: Boolean)
+
+    private val viewers = mutableListOf<Viewer>()
+    private var shownSince = 0L
+    private var spare: NativeAd? = null
+    private var spareSince = 0L
+    private var loading = false
     private var failures = 0
     private var started = false
     private val main = Handler(Looper.getMainLooper())
+    private val refreshTick = Runnable { refreshIfDue() }
 
     init {
         main.post {
             // AdMob starts before the first load (loading before it is up can fail).
             MobileAds.initialize(application) {
                 started = true
-                fill()
+                // One ad ready for the first pill (the connecting card's), not more.
+                load()
             }
         }
     }
 
-    /** The next ad to show: one waiting at once, else the next to load. The caller destroys it when done. */
-    suspend fun next(): NativeAd = withContext(Dispatchers.Main) {
-        dropStale()
-        val waiting = ready.removeFirstOrNull()
-        if (waiting != null) {
-            fill()
-            waiting.ad
-        } else {
-            suspendCancellableCoroutine { waiter ->
-                waiters.add(waiter)
-                waiter.invokeOnCancellation { main.post { waiters.remove(waiter) } }
-                fill()
-            }
-        }
+    /** A pill came on screen ([refreshes]: it stays up all game and keeps the ad fresh). */
+    fun show(token: Any, refreshes: Boolean) = main.post {
+        viewers.removeAll { it.token === token }
+        viewers += Viewer(token, refreshes)
+        _holder.value = token
+        if (_current.value == null) useSpareOrLoad()
+        scheduleRefresh()
     }
 
-    /** Loads until the pool (and everyone waiting) is served. */
-    private fun fill() {
-        if (!started || !config.isNativeEnabled()) return
-        while (ready.size + loading < POOL_SIZE + waiters.size) load()
+    /** A pill left the screen. */
+    fun hide(token: Any) = main.post {
+        viewers.removeAll { it.token === token }
+        _holder.value = viewers.lastOrNull()?.token
+        if (viewers.none { it.refreshes }) main.removeCallbacks(refreshTick)
+    }
+
+    /** The current ad is old enough and a table pill is up: the spare (or a new one) takes over. */
+    private fun refreshIfDue() {
+        if (viewers.none { it.refreshes }) return
+        if (age() >= config.nativeRefreshMs()) useSpareOrLoad()
+        scheduleRefresh()
+    }
+
+    private fun scheduleRefresh() {
+        main.removeCallbacks(refreshTick)
+        if (viewers.none { it.refreshes }) return
+        main.postDelayed(refreshTick, (config.nativeRefreshMs() - age()).coerceAtLeast(MIN_TICK_MS))
+    }
+
+    private fun useSpareOrLoad() {
+        val ready = spare?.takeIf { SystemClock.elapsedRealtime() - spareSince < MAX_AGE_MS }
+        spare?.takeIf { it !== ready }?.destroy()
+        spare = null
+        if (ready != null) swap(ready) else load()
+    }
+
+    private fun swap(ad: NativeAd) {
+        val old = _current.value
+        _current.value = ad
+        shownSince = SystemClock.elapsedRealtime()
+        // Destroyed a moment later, once the pill has drawn the new one.
+        old?.let { main.postDelayed({ it.destroy() }, DESTROY_DELAY_MS) }
+        // The next one ready for the next refresh (only tables refresh, at most once a minute).
+        if (viewers.any { it.refreshes }) load()
     }
 
     private fun load() {
-        loading++
+        if (!started || loading || !config.isNativeEnabled()) return
+        if (_current.value != null && spare != null) return
+        loading = true
         NativeAdLoader(
             context = application,
             unitId = config.nativeUnitId(),
             onLoaded = { ad ->
-                loading--
+                loading = false
                 failures = 0
-                deliver(ad)
+                if (_current.value == null) {
+                    swap(ad)
+                } else {
+                    spare?.destroy()
+                    spare = ad
+                    spareSince = SystemClock.elapsedRealtime()
+                }
             },
             onFailed = {
-                loading--
+                loading = false
                 failures++
-                // "No fill" often clears up: a few retries, waiting longer each time; then the next demand tries again.
-                RETRY_DELAYS_MS.getOrNull(failures - 1)?.let { main.postDelayed({ fill() }, it) }
+                // Tried again only while someone is looking, waiting longer each time.
+                if (viewers.isNotEmpty()) RETRY_DELAYS_MS.getOrNull(failures - 1)?.let { main.postDelayed({ load() }, it) }
             },
         ).load()
     }
 
-    /** To the longest waiting pill, else into the pool. */
-    private fun deliver(ad: NativeAd) {
-        while (waiters.isNotEmpty()) {
-            val waiter = waiters.removeFirst()
-            if (waiter.isActive) return waiter.resume(ad)
-        }
-        ready.addLast(Ready(ad, SystemClock.elapsedRealtime()))
-    }
-
-    private fun dropStale() {
-        val now = SystemClock.elapsedRealtime()
-        while (ready.isNotEmpty() && now - ready.first().loadedAt > MAX_AGE_MS) ready.removeFirst().ad.destroy()
-    }
+    private fun age(): Long = if (_current.value == null) Long.MAX_VALUE else SystemClock.elapsedRealtime() - shownSince
 
     private companion object {
-        /** Ads kept ready: one for the screen and one for a dialog that may open over it. */
-        const val POOL_SIZE = 2
-        /** Shown well within AdMob's one hour. */
+        /** A spare is used only well within AdMob's one hour. */
         const val MAX_AGE_MS = 50 * 60_000L
-        val RETRY_DELAYS_MS = longArrayOf(15_000L, 30_000L, 60_000L)
+        const val DESTROY_DELAY_MS = 2_000L
+        const val MIN_TICK_MS = 1_000L
+        val RETRY_DELAYS_MS = longArrayOf(30_000L, 60_000L, 120_000L)
     }
 }

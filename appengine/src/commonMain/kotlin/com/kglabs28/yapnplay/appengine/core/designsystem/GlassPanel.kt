@@ -6,7 +6,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -30,11 +29,14 @@ fun Modifier.glassPanel(
     /** A rim of its own (e.g. a neon gradient) instead of the lit-from-above one; null keeps that. */
     rimBrush: Brush? = null,
     rimWidth: Dp = YapNPlayTheme.dimens.hairline,
+    /** A faint glow outside the edge (cards); small controls (pills, round buttons) show just their rim. */
+    glow: Boolean = true,
 ): Modifier {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     return this
-        .shadow(dimens.glowBlur, shape, spotColor = glowColor.copy(alpha = 0.35f))
+        // Outside the edge only (an elevation shadow would show through the glass as a box), and faint.
+        .then(if (glow) Modifier.edgeGlow(glowColor.copy(alpha = CARD_GLOW_ALPHA), shape, dimens.glowBlur) else Modifier)
         .clip(shape)
         .background(surfaceBrush)
         .border(
@@ -51,3 +53,6 @@ fun Modifier.glassPanel(
             shape,
         )
 }
+
+/** How strong a card's glow is (share of its glow colour): a hint, not a halo. */
+private const val CARD_GLOW_ALPHA = 0.22f

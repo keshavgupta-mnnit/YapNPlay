@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.edgeGlow
 import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -52,7 +52,7 @@ fun CbPromptFrame(
     Column(
         modifier = modifier
             .width(width)
-            .shadow(elevation = dimens.promptGlow, shape = shape, ambientColor = accent, spotColor = accent)
+            .edgeGlow(accent, shape, dimens.promptGlow)
             .clip(shape)
             // Solid dark glass (the blurred table mustn't show through), frosted on top.
             .background(colors.Background.copy(alpha = BASE_ALPHA))

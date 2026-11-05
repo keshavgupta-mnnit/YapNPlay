@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.edgeGlow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.semantics.Role
@@ -53,7 +53,7 @@ fun CutCornerButton(
             .height(dimens.cutButtonHeight)
             .widthIn(min = dimens.cutButtonMinWidth)
             .then(
-                if (glowing) Modifier.shadow(dimens.glowBlur, outerShape, ambientColor = colors.StartButtonGlow, spotColor = colors.StartButtonGlow) else Modifier,
+                if (glowing) Modifier.edgeGlow(colors.StartButtonGlow, outerShape, dimens.glowBlur) else Modifier,
             )
             .border(dimens.hairline, rim.copy(alpha = OUTLINE_ALPHA), outerShape)
             .padding(gap),

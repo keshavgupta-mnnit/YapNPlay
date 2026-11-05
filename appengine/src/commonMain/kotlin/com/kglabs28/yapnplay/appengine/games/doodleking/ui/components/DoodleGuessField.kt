@@ -50,6 +50,8 @@ fun DoodleGuessField(
     guessed: Boolean,
     owner: Any,
     onSubmit: () -> Unit,
+    /** The last letter is in (every hidden letter filled): send it at once, with the text as it now is. */
+    onComplete: (String) -> Unit,
     modifier: Modifier = Modifier,
     /** The last answer, shown in the empty box in its colour (the table's own words). */
     prompt: String = DoodleStrings.dkGuessHint,
@@ -60,7 +62,11 @@ fun DoodleGuessField(
     val system by keyboardChoice.useSystem.collectAsState()
     // The phone's keyboard types the whole word; the app's types only the hidden letters (the hint's stay put).
     val letters = (if (system) pattern.count { it == '_' || it.isLetterOrDigit() } else DoodleGuessSlots.blanks(pattern)).coerceAtLeast(1)
-    val change: (String) -> Unit = { onValueChange(it.filter(Char::isLetterOrDigit).take(letters)) }
+    val change: (String) -> Unit = { raw ->
+        val text = raw.filter(Char::isLetterOrDigit).take(letters)
+        onValueChange(text)
+        if (!guessed && text.length >= letters) onComplete(text)
+    }
     if (system) {
         ProfileTextField(
             value = value,
@@ -85,6 +91,9 @@ fun DoodleGuessField(
     // The same plain box all turn (the word's slots are under the user's card and on the keyboard): what's typed,
     // or the prompt, or the last answer while it's empty, with the keyboard icon at the end.
     val answer = tone != null && value.isEmpty()
+    // Hint letters given: the box shows the whole word (them in place, what's typed in the rest).
+    val given = pattern.any { it != '_' && it.isLetterOrDigit() }
+    val shown = DoodleGuessSlots.display(pattern, value)
     Row(
         modifier = modifier
             .glassPill(glowColor = rim, surface = colors.RoomsInput, shape = RoundedCornerShape(YapNPlayTheme.dimens.cbRowRadius))
@@ -95,13 +104,13 @@ fun DoodleGuessField(
     ) {
         BasicText(
             text = when {
-                value.isNotEmpty() -> value.uppercase()
+                value.isNotEmpty() || given -> shown
                 answer -> prompt
                 else -> DoodleStrings.dkGuessHint
             },
             style = YapNPlayTheme.typography.label.copy(
                 color = when {
-                    value.isNotEmpty() -> colors.TextPrimary
+                    value.isNotEmpty() || given -> colors.TextPrimary
                     answer -> rim
                     else -> colors.RoomsPlaceholderDigits
                 },

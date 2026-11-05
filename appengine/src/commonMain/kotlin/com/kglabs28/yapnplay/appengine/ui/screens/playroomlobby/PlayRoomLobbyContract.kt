@@ -21,6 +21,10 @@ data class PlayRoomLobbyState(
     val roomName: String = "",
     val isLeader: Boolean = false,
     val isAdmin: Boolean = false,
+    /** Quick Play with friends: no leaderboard, link or admin; anyone adds friends; leaving ends your part. */
+    val temporary: Boolean = false,
+    /** The leader's Save as Room / Update Room on an online party; null when not shown. */
+    val saveRoom: SaveRoomButtonUi? = null,
     val members: List<LobbyMemberUi> = emptyList(),
     val membersLabel: String = "",
     val games: List<GameCatalogItem> = emptyList(),
@@ -62,7 +66,40 @@ sealed interface LobbySheet {
 
     /** The group's new name, being typed. */
     data class EditName(val name: String) : LobbySheet
+
+    /** Save as Room: the new Game Room's name, being typed. */
+    data class SaveRoom(val name: String) : LobbySheet
+
+    /**
+     * A Quick Play party's Add Friends: online friends (or, offline, the
+     * phones around) as rows with what they are doing and an Add button.
+     */
+    data class InvitePlayers(
+        val title: String,
+        val emptyText: String,
+        val rows: List<InviteRowUi> = emptyList(),
+        val loading: Boolean = true,
+        val error: String? = null,
+    ) : LobbySheet
 }
+
+/** The party leader's button: Save as Room (2+ people here), then Update Room when someone new joined. */
+data class SaveRoomButtonUi(val label: String, val enabled: Boolean)
+
+/** One person who can be invited to the party, ready to draw. */
+data class InviteRowUi(
+    /** A friend's account id, or a nearby phone's link id. */
+    val id: String,
+    val name: String,
+    val avatarId: String,
+    /** "Online", "Playing a game", "In a room", "Invited"… */
+    val status: String,
+    val tone: InviteTone,
+    val canAdd: Boolean,
+)
+
+/** How the row's status reads: free (green), busy (gold), away (grey), or already asked / in (accent). */
+enum class InviteTone { FREE, BUSY, AWAY, DONE }
 
 /** One Waiting List entry, ready to draw. */
 data class WaitingRequestUi(val userId: String, val name: String)
@@ -110,7 +147,10 @@ sealed interface LobbyModal {
     data object RuleSheet : LobbyModal
     /** The admin's Waiting List; its entries come from the state, so it stays live. */
     data object WaitingList : LobbyModal
-    data object LeaveConfirm : LobbyModal
+    /** "Leave?" before going: a Game Room's membership question, or a party's plain one. */
+    data class LeaveConfirm(val title: String, val body: String) : LobbyModal
+    /** Something the leader asked for didn't work (the message says what). */
+    data class Failed(val message: String) : LobbyModal
     data class Countdown(val title: String, val canCancel: Boolean) : LobbyModal
     /** The countdown stopped without a match: why and who ("Ravi cancelled the start."). */
     data class CountdownStopped(val message: String) : LobbyModal
@@ -159,6 +199,12 @@ sealed interface PlayRoomLobbyIntent : UiIntent {
     data class AddFriendCodeChanged(val code: String) : PlayRoomLobbyIntent
     data class ToggleInvite(val userId: String) : PlayRoomLobbyIntent
     data object SendInvites : PlayRoomLobbyIntent
+    /** Quick Play party: invite this one person now (friend id or nearby phone). */
+    data class InvitePlayer(val id: String) : PlayRoomLobbyIntent
+    /** Leader of an online party: Save as Room (asks the name) or Update Room (adds the newcomers at once). */
+    data object SaveRoomClicked : PlayRoomLobbyIntent
+    data class SaveRoomNameChanged(val name: String) : PlayRoomLobbyIntent
+    data object ConfirmSaveRoom : PlayRoomLobbyIntent
     data object OpenEditName : PlayRoomLobbyIntent
     data class EditNameChanged(val name: String) : PlayRoomLobbyIntent
     data object SaveName : PlayRoomLobbyIntent

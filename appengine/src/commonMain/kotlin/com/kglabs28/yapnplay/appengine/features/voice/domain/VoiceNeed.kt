@@ -4,7 +4,8 @@ package com.kglabs28.yapnplay.appengine.features.voice.domain
  * Whether one lobby or table needs its voice room: only when another
  * person is there (bots don't talk), and either the user's mic is on (to
  * be heard) or their speaker is on while someone else's mic is on (to
- * hear). Alone, speaker off with the mic off, or nobody's mic on: the
+ * hear). Muting the mic alone keeps the voice room (the user still hears
+ * everyone). Alone, speaker off with the mic off, or nobody's mic on: the
  * device stays out of the voice room. Also who should be audible (the
  * others with their mic on), so voice can notice someone it isn't
  * receiving. Each change goes to [send] once.

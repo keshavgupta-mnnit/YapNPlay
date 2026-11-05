@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.board
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.edgeGlow
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -21,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.graphics.graphicsLayer
@@ -64,7 +64,7 @@ fun CbMoneyFlight(flight: CbMoneyFlightUi, from: Offset, to: Offset, modifier: M
                 scaleX = grow
                 scaleY = grow
             }
-            .shadow(elevation = dimens.bankButtonGlow, shape = CircleShape, ambientColor = colors.Gold, spotColor = colors.Gold)
+            .edgeGlow(colors.Gold, CircleShape, dimens.bankButtonGlow)
             .background(colors.Background, CircleShape)
             .border(dimens.borderThin, colors.Gold, CircleShape)
             .padding(horizontal = Spacing.Sm, vertical = Spacing.Xxs),

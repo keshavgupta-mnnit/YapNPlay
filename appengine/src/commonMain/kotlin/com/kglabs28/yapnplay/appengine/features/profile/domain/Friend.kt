@@ -10,4 +10,6 @@ data class Friend(
     val online: Boolean,
     val userCode: String = "",
     val avatarId: String = "",
+    /** What they are doing now: shown on the play-now invite list. */
+    val activity: FriendActivity = FriendActivity.OFFLINE,
 )

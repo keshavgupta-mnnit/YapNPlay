@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.doodleking.ui.components
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.edgeGlow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -12,7 +13,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.graphics.Path
@@ -55,7 +55,7 @@ fun DoodleCanvasView(board: DoodleBoard, canDraw: Boolean, modifier: Modifier = 
     // The same board for the drawer and the guessers: a glowing cyan rim, a little space, one thin inner border, then the paper.
     Box(
         modifier = modifier
-            .shadow(dimens.neonGlow, shape, ambientColor = cyan, spotColor = cyan)
+            .edgeGlow(cyan, shape, dimens.neonGlow)
             .clip(shape)
             .background(DoodleInk.PAPER)
             .border(dimens.doodleCanvasRim, cyan, shape)

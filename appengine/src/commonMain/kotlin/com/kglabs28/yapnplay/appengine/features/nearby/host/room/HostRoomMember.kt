@@ -15,6 +15,9 @@ data class HostRoomMember(
     val readyAt: Long? = null,
     val watching: Boolean = false,
     val micOn: Boolean = false,
-    val speakerOn: Boolean = true,
+    /** Off to start with: a Nearby party begins quiet. */
+    val speakerOn: Boolean = false,
     val talkingMuted: Boolean = false,
+    /** How well their phone could host (HostFitness): the party hands over to the best. */
+    val fitness: Int = 0,
 )

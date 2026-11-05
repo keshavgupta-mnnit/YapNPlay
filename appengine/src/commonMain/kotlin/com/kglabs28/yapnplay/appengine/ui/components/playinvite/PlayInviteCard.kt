@@ -28,7 +28,8 @@ fun PlayInviteCard(
         subtitle = invite.body,
         modifier = modifier,
         actions = {
-            GlassPillButton(text = NearbyStrings.inviteDecline, onClick = onDecline, enabled = enabled)
+            // Two equal halves, like every other dialog.
+            GlassPillButton(text = NearbyStrings.inviteDecline, onClick = onDecline, enabled = enabled, modifier = Modifier.weight(1f))
             PillButton(
                 text = NearbyStrings.inviteAccept,
                 onClick = onAccept,
@@ -37,6 +38,7 @@ fun PlayInviteCard(
                 rimColor = colors.PlayFriendsCtaRim,
                 glassFill = colors.PlayFriendsCta,
                 enabled = enabled,
+                modifier = Modifier.weight(1f),
             )
         },
     ) {

@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.ui.components.voice.LocalVoiceEnabled
+import com.kglabs28.yapnplay.appengine.ui.components.voice.voiceSwitch
+import com.kglabs28.yapnplay.appengine.ui.components.voice.voiceTap
 import com.kglabs28.yapnplay.appengine.core.designsystem.edgeGlow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,11 +48,14 @@ fun LobbyVoiceToggle(
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     val shape = RoundedCornerShape(dimens.rowRadius)
+    // No voice (no internet): greyed out.
+    val voice = LocalVoiceEnabled.current
     val tone = if (on) accent else colors.TextDisabled
     val pill = YapNPlayTheme.shapes.pill
 
     Column(
         modifier = modifier
+            .voiceSwitch(voice)
             .size(width = dimens.voiceToggleWidth, height = dimens.voiceToggleHeight)
             .then(if (on) Modifier.edgeGlow(accent, shape, dimens.neonGlow) else Modifier)
             .clip(shape)
@@ -59,7 +65,7 @@ fun LobbyVoiceToggle(
                 ),
             )
             .border(dimens.borderThin, tone, shape)
-            .clickable(role = Role.Switch, onClick = onToggle)
+            .clickable(role = Role.Switch, onClick = voiceTap(voice, onToggle))
             .padding(Spacing.Xxs),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly,

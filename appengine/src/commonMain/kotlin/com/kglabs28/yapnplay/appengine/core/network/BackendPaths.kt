@@ -37,6 +37,7 @@ object BackendPaths {
     fun block(userId: String) = "$BLOCKS/$userId"
     fun roomVoiceToken(roomId: String) = "/rooms/$roomId/voice-token"
     fun matchVoiceToken(matchId: String) = "/matches/$matchId/voice-token"
+    fun nearbyVoiceToken(partyId: String) = "/nearby/$partyId/voice-token"
 
     /** ws:// (or wss://) form of the backend address [baseUrl], for the WebSocket. */
     fun webSocketUrl(baseUrl: String): String = baseUrl

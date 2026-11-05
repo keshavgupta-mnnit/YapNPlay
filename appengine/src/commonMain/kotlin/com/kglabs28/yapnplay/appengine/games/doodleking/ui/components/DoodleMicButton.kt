@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.games.doodleking.ui.components
 
+import com.kglabs28.yapnplay.appengine.ui.components.voice.voiceSwitch
+import com.kglabs28.yapnplay.appengine.ui.components.voice.voiceTap
+import com.kglabs28.yapnplay.appengine.ui.components.voice.LocalVoiceEnabled
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.MicOff
@@ -14,6 +17,7 @@ import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
 @Composable
 fun DoodleMicButton(micOn: Boolean, locked: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
     val colors = YapNPlayTheme.colors
+    val voice = LocalVoiceEnabled.current
     val tint = when {
         locked -> colors.IconMuted
         micOn -> colors.ReadyGreen
@@ -22,10 +26,10 @@ fun DoodleMicButton(micOn: Boolean, locked: Boolean, onToggle: () -> Unit, modif
     GlassIconButton(
         imageVector = if (micOn && !locked) Icons.Rounded.Mic else Icons.Rounded.MicOff,
         contentDescription = if (locked) DoodleStrings.dkMicLocked else RoomStrings.lobbyMic,
-        onClick = onToggle,
+        onClick = voiceTap(voice, onToggle),
         size = YapNPlayTheme.dimens.doodleToolButton,
         tint = tint,
         glowColor = tint,
-        modifier = modifier,
+        modifier = modifier.voiceSwitch(voice),
     )
 }

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.nearby.domain.HostFitness
 import com.kglabs28.yapnplay.appengine.core.common.InMemoryKeyboardPreference
 import com.kglabs28.yapnplay.appengine.core.common.KeyboardPreference
 import com.kglabs28.yapnplay.appengine.core.network.NoDeviceIdentity
@@ -40,4 +41,8 @@ val platformAppManagerModule = module {
     single<VoiceEngine> { SilentVoiceEngine() }
     single<RewardedAds> { NoRewardedAds() }
     single<NearbyTransport> { NoNearbyTransport() }
+    single<HostFitness> { HostFitness { DESKTOP_FITNESS } }
 }
+
+/** Desktop previews never host Nearby play. */
+private const val DESKTOP_FITNESS = 0

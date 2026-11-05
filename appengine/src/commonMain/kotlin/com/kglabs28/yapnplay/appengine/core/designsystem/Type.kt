@@ -3,6 +3,7 @@ package com.kglabs28.yapnplay.appengine.core.designsystem
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 
 /**
  * YapNPlay type scale. Sizes match the approved design list at 1.0.
@@ -157,4 +158,17 @@ class YapNPlayTypography(
         get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.Normal, fontSize = 10.scaledSp, lineHeight = 13.scaledSp)
     val homeBannerButton: TextStyle
         get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.SemiBold, fontSize = 11.scaledSp, lineHeight = 13.scaledSp)
+    /** Doodle King's guess box: the word (hint letters and what's typed) big, spaced and centred. */
+    val doodleGuessWord: TextStyle
+        get() = TextStyle(
+            fontFamily = headlineFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 17.scaledSp,
+            lineHeight = 20.scaledSp,
+            letterSpacing = 3.scaledSp,
+            textAlign = TextAlign.Center,
+        )
+    /** Doodle King's guess box prompt ("Enter your guess"), centred. */
+    val doodleGuessPrompt: TextStyle
+        get() = TextStyle(fontFamily = bodyFamily, fontWeight = FontWeight.SemiBold, fontSize = 14.scaledSp, lineHeight = 17.scaledSp, textAlign = TextAlign.Center)
 }

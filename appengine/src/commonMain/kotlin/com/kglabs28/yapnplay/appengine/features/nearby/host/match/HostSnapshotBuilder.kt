@@ -4,6 +4,7 @@ import com.kglabs28.yapnplay.appengine.protocol.EndVoteInfo
 import com.kglabs28.yapnplay.appengine.protocol.ExtensionVoteInfo
 import com.kglabs28.yapnplay.appengine.protocol.MatchSeatStatus
 import com.kglabs28.yapnplay.appengine.protocol.MatchSnapshot
+import com.kglabs28.yapnplay.appengine.protocol.SeatPresence
 import com.kglabs28.yapnplay.appengine.protocol.SeatInfo
 import com.kglabs28.yapnplay.appengine.protocol.SpectatorInfo
 import com.kglabs28.yapnplay.appengine.protocol.TurnInfo
@@ -44,18 +45,29 @@ class HostSnapshotBuilder(private val state: HostMatchState) {
         )
     }
 
-    private fun HostMatchSeat.toWire() = SeatInfo(
-        seat = seat,
-        colour = colour,
-        controllerUserId = userId,
-        status = MatchSeatStatus.ACTIVE,
-        connected = connected,
-        autoPlay = autoplay,
-        consecutiveMisses = 0,
-        cpu = cpu,
-        displayName = displayName,
-        micOn = micOn,
-        presence = presence,
-        avatarId = avatarId,
-    )
+    private fun HostMatchSeat.toWire(): SeatInfo {
+        // A seat its owner gave up mid-game is a CPU's from then on, and shows as one (the leaver still ranks last).
+        val cpuNumber = cpuNumberIfGivenUp()
+        return SeatInfo(
+            seat = seat,
+            colour = colour,
+            controllerUserId = cpuNumber?.let(HostCpu::userId) ?: userId,
+            status = MatchSeatStatus.ACTIVE,
+            connected = connected || cpuNumber != null,
+            autoPlay = autoplay,
+            consecutiveMisses = 0,
+            cpu = cpu || cpuNumber != null,
+            displayName = cpuNumber?.let(HostCpu::name) ?: displayName,
+            micOn = micOn && cpuNumber == null,
+            presence = if (cpuNumber != null) SeatPresence.PLAYING else presence,
+            avatarId = cpuNumber?.let(HostCpu::avatar) ?: avatarId,
+        )
+    }
+
+    /** The CPU number of a seat given up mid-game (after the table's own CPUs), or null. */
+    private fun HostMatchSeat.cpuNumberIfGivenUp(): Int? {
+        if (!left || outBeforeLeaving) return null
+        val givenUp = state.seats.filter { it.left && !it.outBeforeLeaving }
+        return state.seats.count { it.cpu } + givenUp.indexOfFirst { it.seat == seat } + 1
+    }
 }

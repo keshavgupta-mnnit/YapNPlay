@@ -21,5 +21,6 @@ fun KeepPlayingDialog(vote: KeepPlayingUi, onVote: (keepPlaying: Boolean) -> Uni
         countdown = vote.countdown,
         footer = listOfNotNull(vote.tally, vote.status),
         showActions = vote.canVote,
+        voters = vote.voters,
     )
 }

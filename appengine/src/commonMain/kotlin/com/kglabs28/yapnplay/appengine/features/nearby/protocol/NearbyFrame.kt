@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.nearby.protocol
 
+import com.kglabs28.yapnplay.appengine.features.nearby.host.match.HostMatchSave
 import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyPeer
 import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyPlayer
 import com.kglabs28.yapnplay.appengine.protocol.transport.Envelope
@@ -21,7 +22,12 @@ sealed interface NearbyFrame {
     /** Invitee → host: yes, with who I am. */
     @Serializable
     @SerialName("accept")
-    data class Accept(val player: NearbyPlayer, val contract: String) : NearbyFrame
+    data class Accept(val player: NearbyPlayer, val contract: String, val fitness: Int = 0) : NearbyFrame
+
+    /** Guest → host, now and then: how well this phone could host (battery changes). */
+    @Serializable
+    @SerialName("fitness")
+    data class Fitness(val score: Int) : NearbyFrame
 
     /** Invitee → host: no thanks. */
     @Serializable
@@ -47,6 +53,37 @@ sealed interface NearbyFrame {
     @Serializable
     @SerialName("ask_invite")
     data class AskInvite(val endpointId: String) : NearbyFrame
+
+    /**
+     * Host → guests: I'm leaving; [newHostId] hosts the party from now on (the one in
+     * the lobby longest). They host [roomId] again with the same settings; the others
+     * reconnect to them and are let straight back in.
+     */
+    @Serializable
+    @SerialName("handover")
+    data class Handover(
+        val roomId: String,
+        val roomName: String,
+        val newHostId: String,
+        /** Who takes over, in order ([newHostId] first): should two phones ever both host, the later one steps down. */
+        val order: List<String> = emptyList(),
+        val members: List<NearbyPlayer>,
+        val selectedGame: String?,
+        val houseRules: Map<String, Boolean>,
+        val botFill: Boolean,
+        /** Who is leaving (their seat at a running match is given up). */
+        val fromHostId: String = "",
+    ) : NearbyFrame
+
+    /**
+     * Host → guests, after each change: who would take over ([party]) and, for that
+     * one phone only, the running match whole ([match]). [hostNow] is the host's clock
+     * as it sent this, so the next host can run on the same timeline. If the host's
+     * phone goes without a word (closed, out of range), the party goes on from here.
+     */
+    @Serializable
+    @SerialName("shadow")
+    data class Shadow(val party: Handover, val match: HostMatchSave?, val hostNow: Long) : NearbyFrame
 
     /** The host turned the guest away or ended the party. */
     @Serializable

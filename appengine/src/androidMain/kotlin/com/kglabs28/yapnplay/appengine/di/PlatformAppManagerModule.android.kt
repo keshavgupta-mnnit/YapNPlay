@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.nearby.domain.HostFitness
+import com.kglabs28.yapnplay.appengine.features.nearby.AndroidHostFitness
 import com.kglabs28.yapnplay.appengine.core.common.AndroidKeyboardPreference
 import com.kglabs28.yapnplay.appengine.core.common.KeyboardPreference
 import com.kglabs28.yapnplay.appengine.core.network.AndroidDeviceIdentity
@@ -42,6 +44,7 @@ val platformAppManagerModule = module {
     single<MicLevelMonitor> { AndroidMicLevelMonitor(androidContext()) }
     single<VoiceEngine> { LiveKitVoiceEngine(androidContext()) }
     single<NearbyTransport> { GoogleNearbyTransport(androidContext()) }
+    single<HostFitness> { AndroidHostFitness(androidContext()) }
     // Made at start, so it sees the first screen resume (it needs the visible Activity to play).
     single<RewardedAds>(createdAtStart = true) { AdMobRewardedAds(androidApplication(), get()) }
     // Started with the app, so the first ad pill (the connecting card's) has an ad as soon as possible.

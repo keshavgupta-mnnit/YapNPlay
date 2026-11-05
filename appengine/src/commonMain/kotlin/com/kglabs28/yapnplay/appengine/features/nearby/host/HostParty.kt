@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.nearby.host
 
+import com.kglabs28.yapnplay.appengine.features.nearby.host.match.HostMatchSave
+import com.kglabs28.yapnplay.appengine.features.nearby.protocol.NearbyFrame
 import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyPlayer
 import com.kglabs28.yapnplay.appengine.features.nearby.host.match.HostMatch
 import com.kglabs28.yapnplay.appengine.features.nearby.host.match.HostMatchChannel
@@ -45,8 +47,10 @@ class HostParty(
     private val deliver: (userId: String, envelope: Envelope) -> Unit,
     /** A guest left the lobby: their phone is let go. */
     private val onGuestLeft: (userId: String) -> Unit,
-    /** The host left the lobby: the party is over for everyone. */
+    /** The host left the lobby: someone else takes over the party (or it ends, nobody left). */
     private val onHostLeft: () -> Unit,
+    /** The party or its match changed: the next host's copy is due. */
+    private val onChanged: () -> Unit = {},
 ) {
     private val lock = Mutex()
     private val matches = mutableMapOf<String, HostMatch>()
@@ -60,6 +64,18 @@ class HostParty(
         room.add(player)
         publish()
     }
+
+    /** A guest's phone told how well it could host now. */
+    suspend fun fitness(userId: String, score: Int) = lock.withLock {
+        room.setFitness(userId, score)
+        onChanged()
+    }
+
+    /** A match is being played (hosting doesn't move to a better phone then). */
+    fun matchRunning(): Boolean = matches.values.any { !it.isFinished }
+
+    /** [userId]'s host score, as last told. */
+    fun fitnessOf(userId: String): Int = room.fitnessOf(userId)
 
     /** True when there is no room for another person. */
     suspend fun isFull(): Boolean = lock.withLock { room.isFull }
@@ -87,6 +103,41 @@ class HostParty(
                 envelopes.rejected(request, ErrorCode.BAD_REQUEST, BAD_REQUEST)
             }
         }
+
+    /** The host is leaving: who takes over, with the party as it is (null: nobody [reachable] is here). */
+    suspend fun handover(leaving: String, reachable: Set<String>, staying: Boolean = false): NearbyFrame.Handover? = lock.withLock {
+        val order = room.successionOrder(leaving, reachable)
+        val next = order.firstOrNull() ?: return@withLock null
+        NearbyFrame.Handover(
+            roomId = room.roomId,
+            roomName = room.name,
+            newHostId = next,
+            order = order,
+            // A host handing over to a better phone stays in the party (it rejoins as a guest).
+            members = room.players().filter { staying || it.userId != leaving },
+            selectedGame = room.selectedGame,
+            houseRules = room.houseRules,
+            botFill = room.botFill,
+            fromHostId = leaving,
+        )
+    }
+
+    /** The match being played, whole, for the next host (null: none running). */
+    suspend fun matchSave(): HostMatchSave? = matches.values.firstOrNull { !it.isFinished }?.save()
+
+    /** Taken over from [gone], mid-game: the match carries on here. */
+    suspend fun restoreMatch(save: HostMatchSave, gone: String) {
+        val match = lock.withLock {
+            val restored = starter.restore(save, gone, scope, deliver, ::finished, onChanged) ?: return@withLock null
+            matches.values.forEach { it.stop() }
+            matches.clear()
+            matches[restored.matchId] = restored
+            room.matchInProgress = restored.matchId
+            publish()
+            restored
+        }
+        match?.resume()
+    }
 
     /** The party ends: matches stop. */
     fun close() {
@@ -172,7 +223,7 @@ class HostParty(
     private suspend fun startMatch(deadline: Long) {
         val started = lock.withLock {
             val plan = room.countdownElapsed(deadline)
-            val match = plan?.let { starter.start(room.roomId, it, scope, deliver, ::finished) }
+            val match = plan?.let { starter.start(room.roomId, it, scope, deliver, ::finished, onChanged) }
             if (plan != null && match == null) room.failedToStart()
             if (match != null) {
                 matches.values.forEach { it.stop() }
@@ -212,6 +263,7 @@ class HostParty(
         room.touch()
         val push = envelopes.push(Channel.ROOM, MessageType.ROOM_SNAPSHOT, RoomSnapshot.serializer(), room.snapshot())
         room.onlineIds().forEach { deliver(it, push) }
+        onChanged()
     }
 
     private companion object {

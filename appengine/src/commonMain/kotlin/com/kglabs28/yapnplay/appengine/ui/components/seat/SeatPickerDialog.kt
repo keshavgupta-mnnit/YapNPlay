@@ -53,9 +53,11 @@ fun SeatPickerDialog(
     footer: List<String> = emptyList(),
     /** False hides the two buttons (a vote the user can't take part in). */
     showActions: Boolean = true,
+    /** A vote's voters, under the choice each picked (left: the second button's, right: the main one's). */
+    voters: VoteVotersUi? = null,
 ) {
     // Always on the app's blurred modal layer, wherever a game puts it.
-    OnModalLayer { SeatPickerDialogContent(title = title, message = message, options = options, selectedIndex = selectedIndex, onSelect = onSelect, secondaryLabel = secondaryLabel, onSecondary = onSecondary, primaryLabel = primaryLabel, onPrimary = onPrimary, modifier = modifier, countdown = countdown, primaryEnabled = primaryEnabled, footer = footer, showActions = showActions) }
+    OnModalLayer { SeatPickerDialogContent(title = title, message = message, options = options, selectedIndex = selectedIndex, onSelect = onSelect, secondaryLabel = secondaryLabel, onSecondary = onSecondary, primaryLabel = primaryLabel, onPrimary = onPrimary, modifier = modifier, countdown = countdown, primaryEnabled = primaryEnabled, footer = footer, showActions = showActions, voters = voters) }
 }
 
 @Composable
@@ -76,6 +78,8 @@ private fun SeatPickerDialogContent(
     footer: List<String> = emptyList(),
     /** False hides the two buttons (a vote the user can't take part in). */
     showActions: Boolean = true,
+    /** A vote's voters, under the choice each picked (left: the second button's, right: the main one's). */
+    voters: VoteVotersUi? = null,
 ) {
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
@@ -136,6 +140,10 @@ private fun SeatPickerDialogContent(
             // The START MATCH design: dark glass for the second choice, glowing gold for the main one.
             CutCornerButton(text = secondaryLabel, onClick = onSecondary, lit = false)
             CutCornerButton(text = primaryLabel, onClick = onPrimary, enabled = primaryEnabled)
+        }
+        // Who voted for what, once there is a vote to show.
+        voters?.takeIf { it.yes.isNotEmpty() || it.no.isNotEmpty() }?.let {
+            VoteVotersRow(leftLabel = secondaryLabel, left = it.no, rightLabel = primaryLabel, right = it.yes)
         }
     }
 }

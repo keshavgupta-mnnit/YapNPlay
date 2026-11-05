@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.VoterUi
 import com.kglabs28.yapnplay.appengine.core.mvi.playTableUpdate
 import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.games.mono.domain.heldBackByColour
@@ -377,7 +378,7 @@ class MatchMonoViewModel(
             copy(
                 leaveDialog = leave.ui(now, m.spectators.map { it.name }, m.me != null, roomMatch = m.roomId != null, outOfGame = m.me?.seat?.let { it in m.finishedSeats } == true),
                 // The end-game vote comes first: play is paused until it is decided.
-                sheet = m.endVote?.let { TableSheetUi.EndVote(EndVoteUiMapper.of(it, m.me?.seat, m.player(it.proposerSeat)?.name.orEmpty(), MonoStrings.monoEndRanking, now)) }
+                sheet = m.endVote?.let { TableSheetUi.EndVote(EndVoteUiMapper.of(it, m.me?.seat, m.player(it.proposerSeat)?.name.orEmpty(), MonoStrings.monoEndRanking, now) { seat -> m.player(seat)?.let { p -> VoterUi(p.name, p.avatarId.orEmpty()) } }) }
                     ?: sheets.current(now),
                 // A seat dialog waits for the table's own sheets and votes.
                 seatModal = seats.modal(MonoUiMapper.seatTable(m), now).takeIf { m.endVote == null && m.continueVote == null && sheets.current(now) == null },
@@ -413,7 +414,7 @@ class MatchMonoViewModel(
                 autoplay = me?.autoplay == true,
                 talking = talkers,
                 mutedTalkers = greyTalkers,
-                vote = MonoUiMapper.vote(m.continueVote, me?.seat, now),
+                vote = MonoUiMapper.vote(m.continueVote, me?.seat, now) { seat -> m.player(seat)?.let { VoterUi(it.name, it.avatarId.orEmpty()) } },
                 // The finisher's banner shows first; the board follows once it has had its moment.
                 finishBanner = banner?.takeIf { now - it.second < BANNER_TIME }?.first,
                 bannerIsColour = bannerIsColour,

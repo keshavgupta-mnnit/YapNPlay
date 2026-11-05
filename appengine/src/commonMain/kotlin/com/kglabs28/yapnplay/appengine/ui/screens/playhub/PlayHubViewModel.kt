@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playhub
 
+import com.kglabs28.yapnplay.appengine.core.common.TextUtils
+import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.GetOnlinePlayerCountUseCase
 import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyHostResult
 import com.kglabs28.yapnplay.appengine.features.nearby.presentation.NearbyCheck
 import com.kglabs28.yapnplay.appengine.features.nearby.presentation.NearbyReadyChecklist
@@ -27,6 +29,7 @@ class PlayHubViewModel(
     private val hostNearbyParty: HostNearbyPartyUseCase,
     private val observeReachable: ObserveBackendReachableUseCase,
     private val checklist: NearbyReadyChecklist,
+    private val getOnlineCount: GetOnlinePlayerCountUseCase,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<PlayHubState, PlayHubIntent, PlayHubEffect>(PlayHubState(), dispatchers) {
 
@@ -68,6 +71,13 @@ class PlayHubViewModel(
             scope.launch { observeReachable().collect { setState { copy(online = it) } } }
         }
         loadFriends()
+        loadPlayersOnline()
+    }
+
+    /** Everyone online now, on the Play with Randoms card. */
+    private suspend fun loadPlayersOnline() {
+        val online = (getOnlineCount() as? AppResult.Success)?.data ?: return
+        setState { copy(playersOnlineLabel = Strings.playHubPlayersOnline(TextUtils.groupedThousands(online))) }
     }
 
     /** The Nearby permission, as last known. */

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine
 
+import com.kglabs28.yapnplay.appengine.ui.components.voice.VoiceAvailabilityHost
 import com.kglabs28.yapnplay.appengine.core.auth.PlayGamesPlayer
 import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import kotlin.math.roundToInt
@@ -114,11 +115,13 @@ fun YapNPlayRoot(
                 // screens open only once the backend answers (no empty pages).
                 UpdateGate {
                     ConnectionGate {
-                        YapNPlayNavHost(
-                            modifier = Modifier.fillMaxSize(),
-                            deepLink = deepLink,
-                            onDeepLinkHandled = onDeepLinkHandled,
-                        )
+                        VoiceAvailabilityHost {
+                            YapNPlayNavHost(
+                                modifier = Modifier.fillMaxSize(),
+                                deepLink = deepLink,
+                                onDeepLinkHandled = onDeepLinkHandled,
+                            )
+                        }
                     }
                 }
             }

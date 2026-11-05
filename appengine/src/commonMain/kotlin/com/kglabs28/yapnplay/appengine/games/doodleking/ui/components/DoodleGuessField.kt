@@ -4,7 +4,9 @@ import androidx.compose.foundation.clickable
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppIcon
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.Icons
-import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import com.kglabs28.yapnplay.appengine.ui.components.common.ShrinkText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -105,20 +107,22 @@ fun DoodleGuessField(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
     ) {
-        BasicText(
+        // The same room as the keyboard icon on the other side, so the text sits in the true centre.
+        Spacer(Modifier.width(YapNPlayTheme.dimens.iconMedium))
+        val word = value.isNotEmpty() || given
+        ShrinkText(
             text = when {
-                value.isNotEmpty() || given -> shown
+                word -> shown
                 answer -> prompt
                 else -> DoodleStrings.dkGuessHint
             },
-            style = YapNPlayTheme.typography.label.copy(
+            style = (if (word) YapNPlayTheme.typography.doodleGuessWord else YapNPlayTheme.typography.doodleGuessPrompt).copy(
                 color = when {
-                    value.isNotEmpty() || given -> colors.TextPrimary
+                    word -> colors.TextPrimary
                     answer -> rim
                     else -> colors.RoomsPlaceholderDigits
                 },
             ),
-            maxLines = 1,
             modifier = Modifier.weight(1f),
         )
         AppIcon(imageVector = Icons.Rounded.Keyboard, tint = colors.IconMuted, size = YapNPlayTheme.dimens.iconMedium)

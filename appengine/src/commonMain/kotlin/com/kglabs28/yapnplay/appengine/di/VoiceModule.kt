@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.voice.domain.VoiceAvailability
 import com.kglabs28.yapnplay.appengine.features.voice.usecase.ObserveMutedTalkersUseCase
 import com.kglabs28.yapnplay.appengine.features.voice.data.MutedTalkReporter
 import com.kglabs28.yapnplay.appengine.features.voice.data.VoiceRepositoryImpl
@@ -23,7 +24,8 @@ import org.koin.dsl.module
 val voiceModule = module {
     single { VoiceTokenApi(get()) }
     // VoiceEngine (LiveKit on Android) comes from platformAppManagerModule.
-    single<VoiceClient> { VoiceClientImpl(get(), get(), get(), get(), get(APP_SCOPE)) }
+    single { VoiceAvailability(get(), get(), get(APP_SCOPE)) }
+    single<VoiceClient> { VoiceClientImpl(get(), get(), get(), get(), get(), get(APP_SCOPE)) }
     single<VoiceRepository> { VoiceRepositoryImpl(get()) }
     // Tells the lobby or table on screen when the user talks with the mic off (others see a grey glow).
     single(createdAtStart = true) { MutedTalkReporter(get(), get(), get(), get(APP_SCOPE)) }

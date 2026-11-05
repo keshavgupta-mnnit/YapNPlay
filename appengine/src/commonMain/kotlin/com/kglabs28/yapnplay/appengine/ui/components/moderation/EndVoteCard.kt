@@ -26,5 +26,6 @@ fun EndVoteCard(vote: EndVoteUi, onVote: (agree: Boolean) -> Unit, modifier: Mod
         countdown = vote.countdown,
         footer = listOfNotNull(vote.tally, vote.status),
         showActions = vote.canVote,
+        voters = vote.voters,
     )
 }

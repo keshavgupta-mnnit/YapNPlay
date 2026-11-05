@@ -14,6 +14,7 @@ object Strings {
     const val playHubFriendsTitle = "PLAY WITH "
     const val playHubFriendsAccent = "FRIENDS"
     fun playHubFriendsOnline(count: Int) = if (count == 1) "1 Friend Online" else "$count Friends Online"
+    fun playHubPlayersOnline(count: String) = "$count Players Online"
     const val playHubFriendsBody = "Quickly spin up a temporary room with your online crew"
     const val playHubFriendsButton = "Setup Temp Room"
     const val playHubNearbyTitle = "OFFLINE "

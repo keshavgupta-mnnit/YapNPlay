@@ -20,21 +20,25 @@ private fun AppPermission.manifestNames(): List<String> = when (this) {
     AppPermission.MICROPHONE -> listOf(Manifest.permission.RECORD_AUDIO)
     AppPermission.NOTIFICATIONS ->
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) listOf(Manifest.permission.POST_NOTIFICATIONS) else emptyList()
-    // Nearby Connections: Bluetooth (12+) and nearby Wi-Fi (13+); older phones need location for both.
+    // Nearby Connections: Bluetooth (12+) and nearby Wi-Fi (13+), and location on every version
+    // (many phones still refuse to find others without it).
     AppPermission.NEARBY -> when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> listOf(
             Manifest.permission.BLUETOOTH_ADVERTISE,
             Manifest.permission.BLUETOOTH_CONNECT,
             Manifest.permission.BLUETOOTH_SCAN,
             Manifest.permission.NEARBY_WIFI_DEVICES,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
         )
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> listOf(
             Manifest.permission.BLUETOOTH_ADVERTISE,
             Manifest.permission.BLUETOOTH_CONNECT,
             Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
         )
-        else -> listOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        else -> listOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
     }
 }
 

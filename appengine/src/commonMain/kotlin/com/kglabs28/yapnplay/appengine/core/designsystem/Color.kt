@@ -60,6 +60,8 @@ object YapNPlayColors {
     val PlayNearbyAccent = Color(0xFFFF9F5A)
     val PlayNearbyCta = Color(0xFFE5664B)
     val PlayNearbyCtaRim = Color(0xFFFFC3A8)
+    /** The Nearby checklist's ticks: a deeper green than the bright "live" green. */
+    val NearbyReadyGreen = Color(0xFF14915F)
     /** The XP level shield in the top bar: purple, lighter at the top. */
     val LevelShieldTop = Color(0xFF8848C0)
     val LevelShieldBottom = Color(0xFF5828B0)

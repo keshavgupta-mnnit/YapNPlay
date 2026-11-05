@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playhub
 
+import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyHostResult
+import com.kglabs28.yapnplay.appengine.features.nearby.presentation.NearbyCheck
+import com.kglabs28.yapnplay.appengine.features.nearby.presentation.NearbyReadyChecklist
 import com.kglabs28.yapnplay.appengine.core.ui.NearbyStrings
 import com.kglabs28.yapnplay.appengine.features.connection.usecase.ObserveBackendReachableUseCase
 import com.kglabs28.yapnplay.appengine.features.nearby.usecase.HostNearbyPartyUseCase
@@ -23,6 +26,7 @@ class PlayHubViewModel(
     private val createTempRoom: CreateTempPlayRoomUseCase,
     private val hostNearbyParty: HostNearbyPartyUseCase,
     private val observeReachable: ObserveBackendReachableUseCase,
+    private val checklist: NearbyReadyChecklist,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<PlayHubState, PlayHubIntent, PlayHubEffect>(PlayHubState(), dispatchers) {
 
@@ -31,11 +35,26 @@ class PlayHubViewModel(
             PlayHubIntent.Load -> load()
             PlayHubIntent.PlayWithRandoms -> if (state.value.online) emitEffect(PlayHubEffect.OpenRandoms)
             PlayHubIntent.PlayWithFriends -> if (state.value.online) startParty()
-            PlayHubIntent.ScanNearby -> if (!state.value.creatingParty) emitEffect(PlayHubEffect.RequestNearbyPermission)
-            is PlayHubIntent.NearbyPermission -> if (intent.granted) {
-                startNearbyParty()
-            } else {
-                setState { copy(notice = PlayHubNotice(NearbyStrings.permissionTitle, NearbyStrings.permissionBody)) }
+            is PlayHubIntent.ScanNearby -> if (!state.value.creatingParty) {
+                permitted = intent.permitted
+                startFailure = null
+                val ready = checklist.build(permitted)
+                if (ready.allReady) startNearbyParty() else setState { copy(ready = ready) }
+            }
+            is PlayHubIntent.NearbyPermission -> if (intent.granted) recheck(true) else emitEffect(PlayHubEffect.OpenAppSettings)
+            is PlayHubIntent.RecheckReady -> recheck(intent.permitted)
+            is PlayHubIntent.FixReady -> when (val check = intent.check) {
+                NearbyCheck.Permission -> emitEffect(PlayHubEffect.RequestNearbyPermission)
+                is NearbyCheck.Radio -> checklist.openSettings(check.radio)
+                NearbyCheck.Start -> {
+                    startFailure = null
+                    startNearbyParty()
+                }
+            }
+            PlayHubIntent.ContinueReady -> if (state.value.ready?.allReady == true) startNearbyParty()
+            PlayHubIntent.CloseReady -> {
+                startFailure = null
+                setState { copy(ready = null) }
             }
             PlayHubIntent.DismissNotice -> setState { copy(notice = null) }
         }
@@ -51,16 +70,38 @@ class PlayHubViewModel(
         loadFriends()
     }
 
-    /** Nearby: this phone hosts the party; its lobby opens and phones around can be added. */
+    /** The Nearby permission, as last known. */
+    private var permitted = false
+    /** Everything was on but Nearby wouldn't start: its reason ("" when none), shown as a row until tried again. */
+    private var startFailure: String? = null
+
+    /** The open checklist, checked again (after the permission prompt, or back from Settings). */
+    private fun recheck(permitted: Boolean) {
+        this.permitted = permitted
+        if (state.value.ready == null) return
+        setState { copy(ready = checklist.build(permitted, startFailure)) }
+    }
+
+    /**
+     * Nearby: only once the checklist is all ticked does this phone host, and
+     * its lobby opens only when the radios really started looking for phones.
+     * If they didn't, the checklist says so (a "Start Nearby" row to try again).
+     */
     private suspend fun startNearbyParty() {
         if (state.value.creatingParty) return
         setState { copy(creatingParty = true) }
-        val roomId = hostNearbyParty()
+        val result = hostNearbyParty()
         setState { copy(creatingParty = false) }
-        if (roomId != null) {
-            emitEffect(PlayHubEffect.OpenRoom(roomId))
-        } else {
-            setState { copy(notice = PlayHubNotice(NearbyStrings.problemRadioTitle, NearbyStrings.problemRadioBody)) }
+        when (result) {
+            is NearbyHostResult.Hosted -> {
+                startFailure = null
+                setState { copy(ready = null) }
+                emitEffect(PlayHubEffect.OpenRoom(result.roomId))
+            }
+            is NearbyHostResult.Failed -> {
+                startFailure = result.reason.orEmpty()
+                setState { copy(ready = checklist.build(permitted, startFailure)) }
+            }
         }
     }
 

@@ -231,6 +231,12 @@ These rules apply to **every line of code** in this project. No exceptions, no s
 
 ### 5.8 Text, colours, dimensions
 
+- **Glows: never `Modifier.shadow`.** An elevation shadow is painted under the
+  whole shape and shows through any see-through (glass) fill as a dark box.
+  Every glow goes through `Modifier.edgeGlow` (`core/designsystem/EdgeGlow.kt`),
+  which draws only outside the shape — `glassPanel`, `glassPill` and
+  `neonGlow` already use it.
+
 - **All user-visible text** in `core/ui/Strings.kt` (interface `Strings`,
   `EnStrings` default, `LocalStrings` composition local). Never hardcode a
   word where the user can see it. Hindi later = `HiStrings`, zero call-site

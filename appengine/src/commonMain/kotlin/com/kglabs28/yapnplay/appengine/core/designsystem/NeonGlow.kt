@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 
@@ -22,7 +21,7 @@ fun Modifier.neonGlow(
 ): Modifier {
     val dimens = YapNPlayTheme.dimens
     return this
-        .shadow(dimens.neonGlow, shape, ambientColor = color, spotColor = color)
+        .edgeGlow(color, shape, dimens.neonGlow)
         .clip(shape)
         .background(YapNPlayTheme.colors.Background)
         .background(color.copy(alpha = fillAlpha))

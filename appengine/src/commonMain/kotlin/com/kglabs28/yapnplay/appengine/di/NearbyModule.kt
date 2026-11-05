@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.nearby.usecase.GetNearbyRadiosUseCase
+import com.kglabs28.yapnplay.appengine.features.nearby.presentation.NearbyReadyChecklist
+import com.kglabs28.yapnplay.appengine.features.nearby.usecase.OpenNearbyRadioSettingsUseCase
 import com.kglabs28.yapnplay.appengine.core.network.OfflineMode
 import com.kglabs28.yapnplay.appengine.features.nearby.data.NearbyFrames
 import com.kglabs28.yapnplay.appengine.features.nearby.data.NearbyIdentity
@@ -74,6 +77,9 @@ val nearbyModule = module {
     factory { ObserveNearbyUseCase(get()) }
     factory { IsNearbySupportedUseCase(get()) }
     factory { HostNearbyPartyUseCase(get()) }
+    factory { GetNearbyRadiosUseCase(get()) }
+    factory { NearbyReadyChecklist(get(), get()) }
+    factory { OpenNearbyRadioSettingsUseCase(get()) }
     factory { InviteNearbyPlayerUseCase(get()) }
     factory { AcceptNearbyInviteUseCase(get()) }
     factory { DeclineNearbyInviteUseCase(get()) }

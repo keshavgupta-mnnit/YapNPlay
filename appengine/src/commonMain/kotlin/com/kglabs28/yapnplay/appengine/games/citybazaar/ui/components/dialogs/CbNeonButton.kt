@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.components.dialogs
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.edgeGlow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -32,7 +32,7 @@ fun CbNeonButton(text: String, color: Color, onClick: () -> Unit, modifier: Modi
         modifier = modifier
             .height(dimens.neonButtonHeight)
             .graphicsLayer { alpha = if (enabled) 1f else DISABLED_ALPHA }
-            .shadow(elevation = dimens.neonButtonGlow, shape = CircleShape, ambientColor = color, spotColor = color)
+            .edgeGlow(color, CircleShape, dimens.neonButtonGlow)
             .clip(CircleShape)
             .background(Brush.verticalGradient(listOf(color.copy(alpha = FILL_TOP), color.copy(alpha = FILL_BOTTOM))))
             .border(dimens.promptRim, Brush.verticalGradient(listOf(Color.White.copy(alpha = RIM_SHINE), color)), CircleShape)

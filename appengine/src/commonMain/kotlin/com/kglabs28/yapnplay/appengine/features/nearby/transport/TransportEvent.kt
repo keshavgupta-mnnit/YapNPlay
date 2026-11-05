@@ -10,4 +10,7 @@ sealed interface TransportEvent {
     data class ConnectFailed(val endpointId: String) : TransportEvent
     data class Disconnected(val endpointId: String) : TransportEvent
     data class Received(val endpointId: String, val bytes: ByteArray) : TransportEvent
+
+    /** Bluetooth, Wi-Fi or Location was switched on or off on this phone. */
+    data object RadiosChanged : TransportEvent
 }

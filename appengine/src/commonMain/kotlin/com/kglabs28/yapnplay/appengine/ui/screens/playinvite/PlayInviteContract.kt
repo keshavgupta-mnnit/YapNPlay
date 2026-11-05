@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playinvite
 
+import com.kglabs28.yapnplay.appengine.features.nearby.presentation.NearbyCheck
+import com.kglabs28.yapnplay.appengine.features.nearby.presentation.NearbyReadyUi
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
 import com.kglabs28.yapnplay.appengine.core.mvi.UiIntent
 import com.kglabs28.yapnplay.appengine.core.mvi.UiState
@@ -15,6 +17,8 @@ data class PlayInviteState(
     val answering: Boolean = false,
     /** A message card (invite gone, party ended); null when none. */
     val notice: PlayInviteNotice? = null,
+    /** "Get ready for Nearby" before joining a nearby party; null when closed. */
+    val ready: NearbyReadyUi? = null,
 ) : UiState
 
 /** The invite, ready to draw. */
@@ -24,7 +28,12 @@ data class PlayInviteNotice(val title: String, val body: String)
 
 sealed interface PlayInviteIntent : UiIntent {
     data object Load : PlayInviteIntent
-    data object Accept : PlayInviteIntent
+    /** JOIN ([permitted]: the Nearby permission is granted; a nearby invite needs everything ready first). */
+    data class Accept(val permitted: Boolean) : PlayInviteIntent
+    data class RecheckReady(val permitted: Boolean) : PlayInviteIntent
+    data class FixReady(val check: NearbyCheck) : PlayInviteIntent
+    data object ContinueReady : PlayInviteIntent
+    data object CloseReady : PlayInviteIntent
     data object Decline : PlayInviteIntent
     data object DismissNotice : PlayInviteIntent
     /** The app came to the front ([permitted]: Nearby permission granted) or went to the background. */
@@ -38,6 +47,8 @@ sealed interface PlayInviteEffect : UiEffect {
     data class OpenRoom(val roomId: String) : PlayInviteEffect
     /** The Nearby party this phone was in is gone: back to the dashboard. */
     data object PartyEnded : PlayInviteEffect
-    /** Offline with no Nearby permission: ask, so phones around can find and invite this one. */
+    /** Ask for the Nearby permission (offline, or a checklist row). */
     data object RequestNearbyPermission : PlayInviteEffect
+    /** The permission was refused for good: the app's settings, to allow it there. */
+    data object OpenAppSettings : PlayInviteEffect
 }

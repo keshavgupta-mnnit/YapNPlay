@@ -52,8 +52,6 @@ data class NearbyInvite(
 
 /** Why Nearby play stopped or could not start. */
 enum class NearbyProblem {
-    /** The radios could not start (Bluetooth / Wi-Fi off, or no permission). */
-    RADIO_FAILED,
     /** The host could not be reached, or the party is full. */
     JOIN_FAILED,
     /** The host ended the party or went out of range. */

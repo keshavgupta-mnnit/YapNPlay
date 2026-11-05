@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import com.kglabs28.yapnplay.appengine.ui.components.common.GlassIconButton
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.runtime.Composable
@@ -101,6 +101,15 @@ fun GameZoneScreen(
                     )
                 }
             }
+            // Back to the Quick Play hub: top left, in line with the carousel's left arrow.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .width(YapNPlayTheme.dimens.carouselArrowWidth),
+                contentAlignment = Alignment.Center,
+            ) {
+                GlassIconButton(imageVector = Icons.Rounded.ChevronLeft, contentDescription = Strings.playHubBack, onClick = onBack)
+            }
         }
 
         // Bottom row: online count at the start, QUICK PLAY in the middle, the view toggle at the end
@@ -109,14 +118,7 @@ fun GameZoneScreen(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
-            Row(
-                modifier = Modifier.align(Alignment.CenterStart),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Xs),
-            ) {
-                GlassIconButton(imageVector = Icons.Rounded.ChevronLeft, contentDescription = Strings.playHubBack, onClick = onBack)
-                OnlineCountPill(label = state.onlineLabel, modifier = Modifier.revealWhen(state.loaded))
-            }
+            OnlineCountPill(label = state.onlineLabel, modifier = Modifier.align(Alignment.CenterStart).revealWhen(state.loaded))
             ViewModeToggle(
                 isGrid = state.viewMode == GamePickerViewMode.GRID,
                 onToggle = { viewModel?.onIntent(GameZoneIntent.ToggleViewMode) },

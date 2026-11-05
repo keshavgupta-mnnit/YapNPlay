@@ -140,13 +140,13 @@ class PlayRoomLobbyViewModel(
                 send(it.option.toCommand(it.userId))
             }
             PlayRoomLobbyIntent.ShowRuleSheet -> showModal(LobbyModal.RuleSheet)
-            PlayRoomLobbyIntent.LeaveClicked -> showModal(LobbyModal.LeaveConfirm)
+            PlayRoomLobbyIntent.LeaveClicked -> showModal(leaveConfirm())
             PlayRoomLobbyIntent.ConfirmLeave -> leave()
             PlayRoomLobbyIntent.CancelCountdown -> send(LobbyCommand.CancelCountdown)
             PlayRoomLobbyIntent.DismissModal -> showModal(null)
             // A Quick Play party is only the people in it: going back leaves it, after asking (the last one out ends it).
             PlayRoomLobbyIntent.Back -> if (data?.room?.temporary == true) {
-                showModal(LobbyModal.LeaveConfirm)
+                showModal(leaveConfirm())
             } else {
                 send(LobbyCommand.ExitLobby)
                 emitEffect(PlayRoomLobbyEffect.Close)
@@ -223,6 +223,13 @@ class PlayRoomLobbyViewModel(
     }
 
     private fun nearby(): Boolean = roomId?.let(isNearbyRoom::invoke) == true
+
+    /** A party has no membership or code to come back with: it only asks to be sure. */
+    private fun leaveConfirm(): LobbyModal.LeaveConfirm = if (data?.room?.temporary == true) {
+        LobbyModal.LeaveConfirm(RoomStrings.lobbyLeavePartyTitle, RoomStrings.lobbyLeavePartyBody)
+    } else {
+        LobbyModal.LeaveConfirm(RoomStrings.lobbyLeaveTitle, RoomStrings.lobbyLeaveBody)
+    }
 
     /** Not saved yet: ask the room's name (the party's to start with). Saved: add the newcomers at once. */
     private suspend fun saveRoomClicked() {

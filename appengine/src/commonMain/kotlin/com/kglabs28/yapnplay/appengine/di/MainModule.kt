@@ -14,6 +14,6 @@ val mainModule = module {
     factory { AppSettingsController(get(), get()) }
     factory { MainViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { GameZoneViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-    factory { PlayHubViewModel(get(), get(), get(), get(), get()) }
+    factory { PlayHubViewModel(get(), get(), get(), get(), get(), get()) }
     factory { PlayRoomsViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

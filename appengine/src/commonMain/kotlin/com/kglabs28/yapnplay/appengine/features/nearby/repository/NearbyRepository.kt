@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.nearby.repository
 
+import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyHostResult
+import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyRadio
 import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyState
 import kotlinx.coroutines.flow.StateFlow
 
@@ -21,8 +23,16 @@ interface NearbyRepository {
     /** Stops being findable (the app went to the background). */
     fun stopBeingFindable()
 
-    /** Hosts a party here and starts looking for phones to invite: its room id, or null when the radios failed. */
-    suspend fun host(): String?
+    /** Each switch Nearby play needs on this phone, and whether it is on now. */
+    fun radios(): Map<NearbyRadio, Boolean>
+
+    fun openRadioSettings(radio: NearbyRadio)
+
+    /**
+     * Hosts a party here and starts looking for phones to invite: its room, or
+     * why Nearby could not start (nothing is left half open).
+     */
+    suspend fun host(): NearbyHostResult
 
     /** Host: invites the phone [endpointId] from the peers list. */
     suspend fun invite(endpointId: String)

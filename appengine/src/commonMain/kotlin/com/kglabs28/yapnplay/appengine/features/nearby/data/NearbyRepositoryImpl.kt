@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.features.nearby.data
 
+import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyHostResult
+import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyRadio
 import com.kglabs28.yapnplay.appengine.core.network.OfflineMode
 import com.kglabs28.yapnplay.appengine.core.ui.NearbyStrings
 import com.kglabs28.yapnplay.appengine.features.nearby.domain.NearbyInvite
@@ -73,8 +75,14 @@ class NearbyRepositoryImpl(
         scope.launch { transport.events.collect { onEvent(it) } }
     }
 
+    /**
+     * Findable only while every switch Nearby needs is already on: Nearby
+     * Connections would otherwise switch Bluetooth on by itself, without the
+     * user saying so.
+     */
     override suspend fun becomeFindable() {
         if (!transport.supported || findable || _state.value.role != NearbyRole.IDLE) return
+        if (transport.radios().values.any { !it }) return
         findable = transport.advertise(NearbyEndpointName.encode(identity.me()))
     }
 
@@ -84,8 +92,14 @@ class NearbyRepositoryImpl(
         transport.stopAdvertising()
     }
 
-    override suspend fun host(): String? {
+    override fun radios(): Map<NearbyRadio, Boolean> = transport.radios()
+
+    override fun openRadioSettings(radio: NearbyRadio) = transport.openRadioSettings(radio)
+
+    override suspend fun host(): NearbyHostResult {
         leave()
+        if (transport.radios().values.any { !it }) return NearbyHostResult.Failed(null)
+        val wasFindable = findable
         stopBeingFindable()
         val host = identity.me()
         me = host
@@ -102,6 +116,14 @@ class NearbyRepositoryImpl(
         )
         hosted.register(host)
         party = hosted
+        // Nothing opens until the radios really look for phones: a failed start leaves no lobby behind.
+        if (!transport.discover()) {
+            party = null
+            me = null
+            transport.stopAll()
+            if (wasFindable) becomeFindable()
+            return NearbyHostResult.Failed(transport.lastFailure)
+        }
         gateway.sender = { request -> gateway.receive(hosted.handle(host.userId, request)) }
         mode.set(true)
         gateway.linkUp()
@@ -109,8 +131,7 @@ class NearbyRepositoryImpl(
         peersJob = scope.launch {
             _state.map { it.peers }.distinctUntilChanged().collect { peers -> guestLinks.values.forEach { send(it, NearbyFrame.Peers(peers)) } }
         }
-        if (!transport.discover()) _state.update { it.copy(problem = NearbyProblem.RADIO_FAILED) }
-        return room.roomId
+        return NearbyHostResult.Hosted(room.roomId)
     }
 
     override suspend fun invite(endpointId: String) {
@@ -186,6 +207,8 @@ class NearbyRepositoryImpl(
             is TransportEvent.ConnectFailed -> if (party != null) setPeer(event.endpointId, PeerInvite.NONE)
             is TransportEvent.Disconnected -> onDisconnected(event.endpointId)
             is TransportEvent.Received -> frames.decode(event.bytes)?.let { onFrame(event.endpointId, it) }
+            // The user switched something off: stop being findable now, or Nearby would switch it back on.
+            TransportEvent.RadiosChanged -> if (findable && transport.radios().values.any { !it }) stopBeingFindable()
         }
     }
 

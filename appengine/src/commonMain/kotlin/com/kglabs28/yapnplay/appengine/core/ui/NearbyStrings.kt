@@ -31,8 +31,16 @@ object NearbyStrings {
     const val inviteFailed = "That invite is no longer open."
 
     // ── Problems ──
-    const val problemRadioTitle = "Couldn't start Nearby"
-    const val problemRadioBody = "Turn on Bluetooth and Wi-Fi (Location too on older phones), then try again."
+    const val readyTitle = "GET READY FOR "
+    const val readyTitleAccent = "NEARBY"
+    fun readyProgress(done: Int, total: Int) = if (done == total) "All set! Jump in" else "$done of $total ready · tap a cross to fix it"
+    const val checkStart = "Start Nearby"
+    const val checkStartRetry = "It didn't start. Tap to try again."
+    const val checkPermission = "Nearby devices permission"
+    const val checkBluetooth = "Bluetooth on"
+    const val checkWifi = "Wi-Fi on"
+    const val checkLocation = "Location on"
+    const val readyEnterLobby = "Enter Lobby"
     const val problemJoinTitle = "Couldn't join"
     const val problemJoinBody = "That party couldn't be reached or is full."
     const val problemHostLeftTitle = "Party ended"

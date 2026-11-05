@@ -147,7 +147,8 @@ sealed interface LobbyModal {
     data object RuleSheet : LobbyModal
     /** The admin's Waiting List; its entries come from the state, so it stays live. */
     data object WaitingList : LobbyModal
-    data object LeaveConfirm : LobbyModal
+    /** "Leave?" before going: a Game Room's membership question, or a party's plain one. */
+    data class LeaveConfirm(val title: String, val body: String) : LobbyModal
     /** Something the leader asked for didn't work (the message says what). */
     data class Failed(val message: String) : LobbyModal
     data class Countdown(val title: String, val canCancel: Boolean) : LobbyModal

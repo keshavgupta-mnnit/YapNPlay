@@ -1,5 +1,9 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playhub
 
+import kotlinx.coroutines.delay
+import com.kglabs28.yapnplay.appengine.core.common.AppConstants
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import com.kglabs28.yapnplay.appengine.ui.components.nearby.NearbyReadyDialog
 import androidx.compose.material.icons.rounded.CloudOff
 import com.kglabs28.yapnplay.appengine.core.ui.NearbyStrings
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
@@ -52,8 +56,14 @@ fun PlayHubScreen(
                 PlayHubEffect.OpenRandoms -> onOpenRandoms()
                 is PlayHubEffect.OpenRoom -> onOpenRoom(effect.roomId)
                 PlayHubEffect.RequestNearbyPermission -> nearbyPermission.request { send(PlayHubIntent.NearbyPermission(it)) }
+                PlayHubEffect.OpenAppSettings -> nearbyPermission.openSettings()
             }
         }
+    }
+    // Back from Settings (or the permission prompt): the open checklist checks again.
+    LifecycleResumeEffect(viewModel) {
+        send(PlayHubIntent.RecheckReady(nearbyPermission.isGranted()))
+        onPauseOrDispose { }
     }
 
     Row(
@@ -118,7 +128,7 @@ fun PlayHubScreen(
             buttonText = Strings.playHubNearbyButton,
             buttonColor = colors.PlayNearbyCta,
             buttonRim = colors.PlayNearbyCtaRim,
-            onClick = { send(PlayHubIntent.ScanNearby) },
+            onClick = { send(PlayHubIntent.ScanNearby(nearbyPermission.isGranted())) },
             enabled = !state.creatingParty,
             status = { PlayModeStatusPill(icon = Icons.Rounded.WifiOff, text = Strings.playHubNearbyStatus, tint = colors.PlayNearbyAccent) },
             art = { PlayHubArtwork(BuiltInImage.PLAY_HUB_NEARBY, it) },
@@ -132,6 +142,22 @@ fun PlayHubScreen(
             title = notice.title,
             subtitle = notice.body,
             onClose = { send(PlayHubIntent.DismissNotice) },
+        )
+    }
+    val ready = state.ready
+    // While it's open the checklist checks again every second: a switch flipped from the quick settings counts at once.
+    LaunchedEffect(ready != null) {
+        while (ready != null) {
+            delay(AppConstants.NEARBY_READY_RECHECK_MS)
+            send(PlayHubIntent.RecheckReady(nearbyPermission.isGranted()))
+        }
+    }
+    BlockingOverlay(visible = ready != null, onDismiss = { send(PlayHubIntent.CloseReady) }) {
+        if (ready != null) NearbyReadyDialog(
+            ready = ready,
+            onFix = { send(PlayHubIntent.FixReady(it)) },
+            onContinue = { send(PlayHubIntent.ContinueReady) },
+            onClose = { send(PlayHubIntent.CloseReady) },
         )
     }
 }

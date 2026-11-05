@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.common
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.edgeGlow
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -24,7 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -59,7 +59,7 @@ fun ConnectionCard(
     Column(
         modifier = modifier
             .width(dimens.connectionCardWidth)
-            .shadow(elevation = dimens.promptGlow, shape = shape, ambientColor = colors.Cyan, spotColor = colors.SocialZoneAccent)
+            .edgeGlow(colors.SocialZoneAccent, shape, dimens.promptGlow)
             .clip(shape)
             .background(AppBrushes.dialogGeneric)
             .border(dimens.promptRim, Brush.linearGradient(listOf(colors.Cyan, colors.SocialZoneAccent, colors.GameZoneAccent)), shape)

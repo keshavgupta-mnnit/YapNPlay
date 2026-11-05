@@ -12,5 +12,5 @@ val playInvitesModule = module {
     single<PlayInvitesRepository> { PlayInvitesRepositoryImpl(get(), get(), get(), get(APP_SCOPE)) }
     factory { ObservePlayInviteUseCase(get()) }
     factory { AnswerPlayInviteUseCase(get()) }
-    factory { PlayInviteViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    factory { PlayInviteViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
 }

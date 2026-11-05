@@ -92,6 +92,8 @@ object RoomStrings {
     const val lobbyLeaveRoom = "Leave Room"
     const val lobbyLeaveTitle = "Leave this room?"
     const val lobbyLeaveBody = "You will stop being a member. You can join again with the room code."
+    const val lobbyLeavePartyTitle = "Leave the lobby?"
+    const val lobbyLeavePartyBody = "Are you sure you want to leave? You'll need a new invite to come back."
     const val lobbyLeaveConfirm = "Leave"
     const val lobbyStay = "Stay"
     const val lobbyClose = "Close"

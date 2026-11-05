@@ -122,10 +122,13 @@ object AppConstants {
     const val PLAY_HUB_MAX_FACES = 4
 
     /** Quick Play hub card art: zoomed past the picture's clear margin on a phone. */
-    const val PLAY_HUB_ART_ZOOM = 1.45f
+    const val PLAY_HUB_ART_ZOOM = 1.23f
 
     /** The Nearby scan's list width as a share of the screen. */
     const val NEARBY_SCAN_WIDTH_FRACTION = 0.6f
+
+    /** How often the open "Get ready for Nearby" checklist checks again (a switch flipped from the quick settings). */
+    const val NEARBY_READY_RECHECK_MS = 1_000L
 
     /**
      * Rooms tab split. Columns are 60:40 (create/join left, lists right);

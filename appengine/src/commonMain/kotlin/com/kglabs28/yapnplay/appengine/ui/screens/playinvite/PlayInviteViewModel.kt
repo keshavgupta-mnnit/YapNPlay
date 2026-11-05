@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playinvite
 
+import com.kglabs28.yapnplay.appengine.features.nearby.presentation.NearbyCheck
+import com.kglabs28.yapnplay.appengine.features.nearby.presentation.NearbyReadyChecklist
 import com.kglabs28.yapnplay.appengine.features.connection.usecase.ObserveBackendReachableUseCase
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
 import com.kglabs28.yapnplay.appengine.core.common.DispatcherProvider
@@ -27,6 +29,7 @@ class PlayInviteViewModel(
     private val setFindable: SetNearbyFindableUseCase,
     private val clearProblem: ClearNearbyProblemUseCase,
     private val observeReachable: ObserveBackendReachableUseCase,
+    private val checklist: NearbyReadyChecklist,
     dispatchers: DispatcherProvider,
 ) : MviViewModel<PlayInviteState, PlayInviteIntent, PlayInviteEffect>(PlayInviteState(), dispatchers) {
 
@@ -43,7 +46,19 @@ class PlayInviteViewModel(
     override suspend fun handleIntent(intent: PlayInviteIntent) {
         when (intent) {
             PlayInviteIntent.Load -> load()
-            PlayInviteIntent.Accept -> answer(accept = true)
+            is PlayInviteIntent.Accept -> accept(intent.permitted)
+            is PlayInviteIntent.RecheckReady -> if (state.value.ready != null) setState { copy(ready = checklist.build(intent.permitted)) }
+            is PlayInviteIntent.FixReady -> when (val check = intent.check) {
+                NearbyCheck.Permission -> emitEffect(PlayInviteEffect.RequestNearbyPermission)
+                is NearbyCheck.Radio -> checklist.openSettings(check.radio)
+                // Only hosting adds this row; joining has nothing to start.
+                NearbyCheck.Start -> Unit
+            }
+            PlayInviteIntent.ContinueReady -> if (state.value.ready?.allReady == true) {
+                setState { copy(ready = null) }
+                answer(accept = true)
+            }
+            PlayInviteIntent.CloseReady -> setState { copy(ready = null) }
             PlayInviteIntent.Decline -> answer(accept = false)
             PlayInviteIntent.DismissNotice -> {
                 clearProblem()
@@ -57,6 +72,10 @@ class PlayInviteViewModel(
             is PlayInviteIntent.NearbyPermission -> {
                 permitted = intent.granted
                 setFindable(inFront && permitted)
+                // A checklist row asked: refused for good, so the app's settings; else tick it.
+                if (state.value.ready != null) {
+                    if (intent.granted) setState { copy(ready = checklist.build(true)) } else emitEffect(PlayInviteEffect.OpenAppSettings)
+                }
             }
         }
     }
@@ -97,6 +116,18 @@ class PlayInviteViewModel(
         }
     }
 
+    /** JOIN: a nearby party needs the permission and every switch ready first (the checklist); online joins at once. */
+    private suspend fun accept(permitted: Boolean) {
+        if (offer is PlayInviteOffer.Nearby) {
+            val ready = checklist.build(permitted)
+            if (!ready.allReady) {
+                setState { copy(ready = ready) }
+                return
+            }
+        }
+        answer(accept = true)
+    }
+
     private suspend fun answer(accept: Boolean) {
         val current = offer ?: return
         if (state.value.answering) return
@@ -121,7 +152,6 @@ class PlayInviteViewModel(
     )
 
     private fun NearbyProblem.toNotice(): PlayInviteNotice = when (this) {
-        NearbyProblem.RADIO_FAILED -> PlayInviteNotice(NearbyStrings.problemRadioTitle, NearbyStrings.problemRadioBody)
         NearbyProblem.JOIN_FAILED -> PlayInviteNotice(NearbyStrings.problemJoinTitle, NearbyStrings.problemJoinBody)
         NearbyProblem.HOST_LEFT -> PlayInviteNotice(NearbyStrings.problemHostLeftTitle, NearbyStrings.problemHostLeftBody)
         NearbyProblem.VERSION_MISMATCH -> PlayInviteNotice(NearbyStrings.problemVersionTitle, NearbyStrings.problemVersionBody)

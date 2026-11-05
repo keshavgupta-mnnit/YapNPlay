@@ -112,7 +112,7 @@ private fun UpdateBar(message: String, onUpdate: () -> Unit, onClose: () -> Unit
     val colors = YapNPlayTheme.colors
     Row(
         modifier = Modifier
-            .glassPill(glowColor = colors.Cyan, surface = colors.RoomsPanel, backdrop = colors.Background)
+            .glassPill(glowColor = colors.Cyan, surface = colors.RoomsPanel)
             .padding(start = Spacing.Md, end = Spacing.Xs, top = Spacing.Xs, bottom = Spacing.Xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),

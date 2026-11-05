@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.lobby
 
+import com.kglabs28.yapnplay.appengine.core.designsystem.edgeGlow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -51,7 +51,7 @@ fun LobbyVoiceToggle(
     Column(
         modifier = modifier
             .size(width = dimens.voiceToggleWidth, height = dimens.voiceToggleHeight)
-            .then(if (on) Modifier.shadow(dimens.neonGlow, shape, ambientColor = accent, spotColor = accent) else Modifier)
+            .then(if (on) Modifier.edgeGlow(accent, shape, dimens.neonGlow) else Modifier)
             .clip(shape)
             .background(
                 Brush.verticalGradient(

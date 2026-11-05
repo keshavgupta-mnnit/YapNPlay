@@ -332,6 +332,9 @@ class YapNPlayDimens {
     val playHubCtaHeight: Dp get() = 32.dp.scaled()
     /** A party's Add Friends list: scrolls past this height. */
     val lobbyInviteListMaxHeight: Dp get() = 220.dp.scaled()
+    /** The Nearby checklist: a row's least height, and its round tick / cross / ">" badges. */
+    val nearbyCheckRow: Dp get() = 32.dp.scaled()
+    val nearbyCheckBadge: Dp get() = 20.dp.scaled()
     val homeBannerButtonHeight: Dp get() = 30.dp.scaled()
     /** The home cards' corners on their leaning edges (rounder than their outer ones). */
     val homeCardInnerRadius: Dp get() = 30.dp.scaled()

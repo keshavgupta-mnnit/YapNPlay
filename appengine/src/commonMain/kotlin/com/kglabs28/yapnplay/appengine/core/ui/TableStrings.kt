@@ -112,6 +112,8 @@ object TableStrings {
     const val keepPlayingKeep = "KEEP PLAYING"
     const val keepPlayingEnd = "END GAME"
     const val keepPlayingWaiting = "Waiting for the others…"
+    /** A vote dialog's column of voters: "Keep playing · 2". */
+    fun votersHeader(choice: String, count: Int) = "$choice · $count"
     fun endVoteYouVoted(agree: Boolean) = if (agree) "You voted to end. Waiting for the others..." else "You voted to keep playing. Waiting for the others..."
     const val endVoteWatching = "The players are deciding whether to end the game..."
     fun endVoteRejected(yes: Int, voters: Int) = "The game goes on: only $yes of $voters voted to end"

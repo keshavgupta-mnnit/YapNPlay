@@ -5,7 +5,18 @@ import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 /** The keep-playing vote (every game's) as the user sees it. */
 object KeepPlayingUiMapper {
     /** [mySeat]: the user's seat (null: watching); [countdown]: the time left, already worded; [defaultRounds] when the vote doesn't say. */
-    fun of(voters: List<Int>, yes: List<Int>, no: List<Int>, extraRounds: Int?, extraMinutes: Int?, mySeat: Int?, countdown: String, defaultRounds: Int = 1): KeepPlayingUi {
+    fun of(
+        voters: List<Int>,
+        yes: List<Int>,
+        no: List<Int>,
+        extraRounds: Int?,
+        extraMinutes: Int?,
+        mySeat: Int?,
+        countdown: String,
+        defaultRounds: Int = 1,
+        /** A seat's player, for who voted what. */
+        who: (Int) -> VoterUi? = { null },
+    ): KeepPlayingUi {
         val eligible = mySeat != null && mySeat in voters
         val votedYes = mySeat != null && mySeat in yes
         val votedNo = mySeat != null && mySeat in no
@@ -19,6 +30,7 @@ object KeepPlayingUiMapper {
             },
             canVote = eligible && !votedYes && !votedNo,
             countdown = countdown,
+            voters = VoteVotersUi.of(yes, no, who),
         )
     }
 

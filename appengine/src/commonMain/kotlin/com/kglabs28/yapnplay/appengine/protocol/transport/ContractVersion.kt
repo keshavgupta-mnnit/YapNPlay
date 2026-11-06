@@ -4,6 +4,8 @@ package com.kglabs28.yapnplay.appengine.protocol.transport
  * The contract version. Any change bumps this, is written in
  * docs/backend-api-contract.md, and the golden files change with it.
  *
+ * 0.12.5 — web app: POST /auth/google (GoogleSignInBody -> GoogleSignedIn), POST /auth/ws-ticket
+ * (WsTicket) and /ws?ticket=&games= (browsers cannot set WebSocket headers).
  * 0.4.0 — matches on the server: MatchSnapshot gains gameId, title,
  * roomId, startedAt, spectators, seatOffer, events; SeatInfo gains
  * displayName, level, micOn, presence; TurnInfo.deadline nullable; Colour
@@ -44,4 +46,4 @@ package com.kglabs28.yapnplay.appengine.protocol.transport
  * channel, EmojiGift (MatchRelay) to the whole table, `GET
  * /coins/emoji-gifts` (EmojiGiftPrices).
  */
-const val CONTRACT_VERSION: String = "0.12.4"
+const val CONTRACT_VERSION: String = "0.12.5"

@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.ui.components.voice.voiceSwitch
+import com.kglabs28.yapnplay.appengine.ui.components.voice.voiceTap
+import com.kglabs28.yapnplay.appengine.ui.components.voice.LocalVoiceEnabled
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
@@ -28,12 +31,14 @@ fun TableSpectatorVoiceButtons(
     modifier: Modifier = Modifier,
 ) {
     val colors = YapNPlayTheme.colors
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
+    // No voice (no internet): both greyed out.
+    val voice = LocalVoiceEnabled.current
+    Row(modifier = modifier.voiceSwitch(voice), horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
         val micTint = if (micOn) colors.ReadyGreen else colors.Error
         GlassIconButton(
             imageVector = if (micOn) Icons.Rounded.Mic else Icons.Rounded.MicOff,
             contentDescription = RoomStrings.lobbyMic,
-            onClick = onToggleMic,
+            onClick = voiceTap(voice, onToggleMic),
             size = YapNPlayTheme.dimens.ludoSpectatorMic,
             tint = micTint,
             glowColor = micTint,
@@ -42,7 +47,7 @@ fun TableSpectatorVoiceButtons(
         GlassIconButton(
             imageVector = if (speakerOn) Icons.AutoMirrored.Rounded.VolumeUp else Icons.AutoMirrored.Rounded.VolumeOff,
             contentDescription = RoomStrings.lobbySpeaker,
-            onClick = onToggleSpeaker,
+            onClick = voiceTap(voice, onToggleSpeaker),
             size = YapNPlayTheme.dimens.ludoSpectatorMic,
             tint = speakerTint,
             glowColor = speakerTint,

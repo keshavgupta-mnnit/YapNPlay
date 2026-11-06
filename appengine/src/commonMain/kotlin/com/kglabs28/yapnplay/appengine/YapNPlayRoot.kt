@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine
 
+import com.kglabs28.yapnplay.appengine.ui.components.voice.VoiceAvailabilityHost
 import com.kglabs28.yapnplay.appengine.core.auth.PlayGamesPlayer
 import com.kglabs28.yapnplay.appengine.core.designsystem.AdaptiveScale
 import kotlin.math.roundToInt
@@ -36,6 +37,7 @@ import androidx.compose.foundation.layout.Box
 import com.kglabs28.yapnplay.appengine.core.designsystem.layoutTierFor
 import com.kglabs28.yapnplay.appengine.navigation.YapNPlayNavHost
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlayHost
+import com.kglabs28.yapnplay.appengine.ui.components.common.SignInGate
 import com.kglabs28.yapnplay.appengine.ui.components.common.ConnectionGate
 import com.kglabs28.yapnplay.appengine.ui.components.common.RequestStartupPermissions
 
@@ -70,6 +72,8 @@ fun YapNPlayRoot(
                 // The phone's keyboard (when chosen) takes room from the bottom instead of covering the screen.
                 .imePadding(),
         ) {
+            // The web: the login screen until this browser has an account (the app goes straight on).
+            SignInGate {
             // One host for blocking modals (e.g. the matching snackbar):
             // it frosts the whole app behind them and swallows input.
             // Play Games signs in first; the rest waits so nothing knocks its dialog away.
@@ -91,7 +95,8 @@ fun YapNPlayRoot(
                 }
                 signIn()
                 // Their Play Games name, to suggest on the first-launch welcome.
-                playGamesPlayer.remember(playGames.playerName())
+                // (None on the web: the Google first name, kept at sign-in, stays.)
+                playGames.playerName()?.let(playGamesPlayer::remember)
                 startupGate.open()
                 // Refused later (the account was restored on another phone): sign in again, one at a time.
                 observeSignInNeeded().collect { signIn() }
@@ -114,13 +119,16 @@ fun YapNPlayRoot(
                 // screens open only once the backend answers (no empty pages).
                 UpdateGate {
                     ConnectionGate {
-                        YapNPlayNavHost(
-                            modifier = Modifier.fillMaxSize(),
-                            deepLink = deepLink,
-                            onDeepLinkHandled = onDeepLinkHandled,
-                        )
+                        VoiceAvailabilityHost {
+                            YapNPlayNavHost(
+                                modifier = Modifier.fillMaxSize(),
+                                deepLink = deepLink,
+                                onDeepLinkHandled = onDeepLinkHandled,
+                            )
+                        }
                     }
                 }
+            }
             }
             }
             }

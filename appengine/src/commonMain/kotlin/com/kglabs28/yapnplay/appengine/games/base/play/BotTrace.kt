@@ -1,16 +1,19 @@
 package com.kglabs28.yapnplay.appengine.games.base.play
 
 import com.kglabs28.yapnplay.appengine.core.common.AppLog
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * The last [capacity] bot decisions of one match, for "why did the bot do
  * that" on the admin page; each is also logged at debug level. Cheap: a
  * small ring of short strings, nothing is saved.
  */
+@OptIn(ExperimentalAtomicApi::class)
 class BotTrace(private val capacity: Int = DEFAULT_CAPACITY) {
-    private val entries = ArrayDeque<BotTraceEntry>()
+    /** Swapped whole on each record (no lock: works on every platform, the browser included). */
+    private val entries = AtomicReference(emptyList<BotTraceEntry>())
 
-    @Synchronized
     fun record(decision: String, chosen: String, top: List<Pair<String, Evaluation>>, riskWeight: Double) {
         val entry = BotTraceEntry(
             decision = decision,
@@ -19,13 +22,14 @@ class BotTrace(private val capacity: Int = DEFAULT_CAPACITY) {
             options = top.map { (label, e) -> BotTraceOption(label, e.gain, e.cost, e.risk, e.note) },
         )
         AppLog.d(LOG_TAG, "Bot $decision: $chosen (${entry.options})")
-        entries.addLast(entry)
-        while (entries.size > capacity) entries.removeFirst()
+        while (true) {
+            val old = entries.load()
+            if (entries.compareAndSet(old, (old + entry).takeLast(capacity))) break
+        }
     }
 
     /** Newest first. */
-    @Synchronized
-    fun recent(): List<BotTraceEntry> = entries.reversed()
+    fun recent(): List<BotTraceEntry> = entries.load().reversed()
 
     private companion object {
         const val DEFAULT_CAPACITY = 50

@@ -30,9 +30,12 @@ decisions that win).
 ## Versioning
 
 `CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
-**0.12.4**. Patch: optional field / new message. Minor: new required
+**0.12.5**. Patch: optional field / new message. Minor: new required
 field, channel or game-interface member. Major: breaking change.
 Every bump is announced in `docs/decisions.md`.
+
+0.12.5 added: the web app — `POST /auth/google`, `POST /auth/ws-ticket` and
+`/ws?ticket=&games=` (see "Web app sign-in"), CORS for `WEB_APP_ORIGINS`.
 
 0.12.4 added: `SaveRoom(name?)` on the ROOM channel (leader of a temporary room;
 Ack): with a name, a new Game Room with every party member added at once (the
@@ -341,6 +344,33 @@ restored on a new phone or after a reinstall (as in Clash of Clans).
   each secret, so a restore issues a **new secret**: another phone still
   holding the old one gets 401 on its next call. On a 401 the app runs
   Play Games sign-in again; it never silently creates a new guest.
+
+## Web app sign-in (0.12.5)
+
+The web app (browsers, mainly iPhone users) never makes a guest: its only
+entry is Google sign-in, shown as a login screen until the browser holds an
+account.
+
+- **Sign in:** `POST /auth/google` `GoogleSignInBody(idToken)` (the ID token
+  from Google's sign-in page; no bearer). The server checks it with Google's
+  tokeninfo (issued by Google to the web client `GOOGLE_WEB_CLIENT_ID`) and
+  reads the stable subject id.
+  - subject already linked → that account, `restored = true`, with a **new
+    secret** (only hashes are kept): another browser on that account gets
+    401 and shows the login screen again.
+  - not linked → a new account linked to it, `restored = false` (the app
+    shows the welcome: name and avatar).
+- Reply `GoogleSignedIn(userId, secret, restored)`; the web saves it.
+- Errors: `BAD_REQUEST` 400 (blank token), `NOT_AUTHENTICATED` 401 (Google
+  did not vouch for it), `GOOGLE_SIGN_IN_UNAVAILABLE` 503 (server not configured).
+- Google accounts and Play Games players are separate links: an Android
+  account is not (yet) reachable from the web.
+- **WebSocket:** browsers can't set headers on a WebSocket, so the web asks
+  `POST /auth/ws-ticket` (bearer) for `WsTicket(ticket, expiresAt)` and opens
+  `/ws?ticket=<ticket>&games=<ids>`. A ticket works once, within 30 s; the
+  account's secret never goes in a URL.
+- **CORS:** only origins in `WEB_APP_ORIGINS` (comma-separated, e.g.
+  `https://keshavgupta-mnnit.github.io`) may call the API from a browser.
 
 ## Groups and invites (0.4.1)
 

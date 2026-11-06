@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.base.identity
 
+import kotlin.jvm.JvmInline
 import kotlinx.serialization.Serializable
 
 /**

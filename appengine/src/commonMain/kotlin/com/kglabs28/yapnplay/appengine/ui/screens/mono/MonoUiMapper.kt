@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.mono
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.VoteVotersUi
+import com.kglabs28.yapnplay.appengine.ui.components.seat.VoterUi
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatTable
 import androidx.compose.ui.graphics.Color
@@ -141,13 +143,14 @@ object MonoUiMapper {
     }
 
     /** The keep-playing vote as the prompt shows it; null when none is open. */
-    fun vote(vote: MonoContinueVote?, mySeat: Int?, now: Instant): MonoVoteUi? = vote?.let {
+    fun vote(vote: MonoContinueVote?, mySeat: Int?, now: Instant, who: (Int) -> VoterUi? = { null }): MonoVoteUi? = vote?.let {
         MonoVoteUi(
             secondsLeft = (it.endsAt - now).inWholeSeconds.coerceAtLeast(0),
             yes = it.yes.size,
             no = it.no.size,
             voters = it.voters.size,
             canVote = mySeat != null && mySeat in it.voters && mySeat !in it.yes && mySeat !in it.no,
+            who = VoteVotersUi.of(it.yes, it.no, who),
         )
     }
 

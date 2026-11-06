@@ -8,7 +8,7 @@ appcompat = "1.8.0"
 material = "1.14.0"
 
 # KMP + contracts
-kotlin = "2.2.21"
+kotlin = "2.3.10"
 kotlinxSerialization = "1.7.3"
 kotlinxCoroutines = "1.9.0"
 kotlinxDatetime = "0.7.1-0.6.x-compat"
@@ -64,6 +64,8 @@ coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.r
 # Lottie player (the animated emoji gifts). 2.0.2 is the newest built for Kotlin 2.2 / Compose 1.10.
 compottie = { module = "io.github.alexzhirkevich:compottie", version = "2.0.2" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version = "0.3" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }

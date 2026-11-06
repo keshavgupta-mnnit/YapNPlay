@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.nearby.host.games.doodleking
-
+
+import com.kglabs28.yapnplay.appengine.games.doodleking.data.remote.wire.DoodleDrawing
 import com.kglabs28.yapnplay.appengine.features.nearby.host.games.GameSession
 import com.kglabs28.yapnplay.appengine.features.nearby.host.games.GameSessionFactory
 import com.kglabs28.yapnplay.appengine.features.nearby.host.HostConstants
@@ -34,10 +35,12 @@ class DoodleKingSessionFactory(
         return session(state)
     }
 
-    override fun restore(saved: JsonObject): GameSession = session(json.decodeFromJsonElement(DoodleKingSaved.serializer(), saved).engine)
+    override fun restore(saved: JsonObject): GameSession =
+        json.decodeFromJsonElement(DoodleKingSaved.serializer(), saved).let { session(it.engine, it.drawing) }
 
     // The engine reads the test-bots setting; the session follows it.
-    private fun session(state: DoodleKingState) = DoodleKingSession(game, state, random, json, clock, testBots = { game.cpuFillAllowed }, extensionRounds = { settings[GameSettings.DK_EXTENSION_ROUNDS] })
+    private fun session(state: DoodleKingState, drawing: DoodleDrawing? = null) =
+        DoodleKingSession(game, state, random, json, clock, testBots = { game.cpuFillAllowed }, extensionRounds = { settings[GameSettings.DK_EXTENSION_ROUNDS] }, drawing = drawing)
 
     private fun mandatory() = DoodleKingMandatoryRules(
         rounds = settings[GameSettings.DK_ROUNDS],

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.royalludo.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.VoterUi
 import com.kglabs28.yapnplay.appengine.core.mvi.playTableUpdate
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverController
@@ -528,7 +529,7 @@ class RoyalLudoMatchViewModel(
                 // A vote or a seat decision is timed, so it comes before the user's own dialogs.
                 modal = vote?.let { LudoModerationUiMapper.vote(it, clock.now()) }
                     // The end-game vote pauses play until it is decided.
-                    ?: m.endVote?.let { LudoMatchModal.EndVote(EndVoteUiMapper.of(it, m.me?.seat, m.players.firstOrNull { p -> p.seat == it.proposerSeat }?.name.orEmpty(), LudoStrings.ludoEndRanking, clock.now())) }
+                    ?: m.endVote?.let { LudoMatchModal.EndVote(EndVoteUiMapper.of(it, m.me?.seat, m.players.firstOrNull { p -> p.seat == it.proposerSeat }?.name.orEmpty(), LudoStrings.ludoEndRanking, clock.now()) { seat -> m.players.firstOrNull { p -> p.seat == seat }?.let { p -> VoterUi(p.name, p.avatarId) } }) }
                     ?: seats.modal(LudoMatchUiMapper.seatTable(m), clock.now())?.let { LudoMatchModal.Seat(it) }
                     ?: userModal?.withCountdown(),
             )

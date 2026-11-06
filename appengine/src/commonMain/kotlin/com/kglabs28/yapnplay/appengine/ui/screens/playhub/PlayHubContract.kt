@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playhub
 
+import com.kglabs28.yapnplay.appengine.core.ui.Strings
 import com.kglabs28.yapnplay.appengine.features.nearby.presentation.NearbyCheck
 import com.kglabs28.yapnplay.appengine.features.nearby.presentation.NearbyReadyUi
 import com.kglabs28.yapnplay.appengine.core.mvi.UiEffect
@@ -12,6 +13,8 @@ import com.kglabs28.yapnplay.appengine.core.mvi.UiState
  * offline nearby. Everything is formatted here, ready to draw.
  */
 data class PlayHubState(
+    /** "1,204 Players Online" on Play with Randoms; "Players worldwide" until the count loads. */
+    val playersOnlineLabel: String = Strings.playHubRandomsStatus,
     /** "8 Friends Online"; empty until the friends list loads. */
     val friendsOnlineLabel: String = "",
     /** A few online friends' avatars for the pill. */

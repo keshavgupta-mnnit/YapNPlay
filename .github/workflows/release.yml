@@ -2,6 +2,8 @@
 # Hand-edits are detected: regeneration shows a diff and asks first.
 name: Release YapNPlay
 
+# Every v* tag ships both: the Play Store (alpha) build below and the web app (job `web`).
+
 on:
   push:
     tags:
@@ -85,3 +87,13 @@ jobs:
           mappingFile: ${{ steps.artifacts.outputs.mapping }}
           tracks: alpha
           status: completed
+
+  # The web app on the same tag (web-release.yml does the work; it also runs alone on web-v* tags).
+  web:
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/web-release.yml
+    # Hands it the repo's secrets (GOOGLE_WEB_CLIENT_ID may be one).
+    secrets: inherit

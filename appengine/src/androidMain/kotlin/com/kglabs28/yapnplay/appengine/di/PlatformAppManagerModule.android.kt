@@ -1,5 +1,14 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.core.auth.AccountEntry
+import com.kglabs28.yapnplay.appengine.core.auth.GoogleSignInLauncher
+import com.kglabs28.yapnplay.appengine.core.auth.NoGoogleSignIn
+import com.kglabs28.yapnplay.appengine.core.network.HeaderSocketAuthorizer
+import com.kglabs28.yapnplay.appengine.core.common.FullScreen
+import com.kglabs28.yapnplay.appengine.core.common.NoFullScreen
+import com.kglabs28.yapnplay.appengine.core.network.SocketAuthorizer
+import com.kglabs28.yapnplay.appengine.features.nearby.domain.HostFitness
+import com.kglabs28.yapnplay.appengine.features.nearby.AndroidHostFitness
 import com.kglabs28.yapnplay.appengine.core.common.AndroidKeyboardPreference
 import com.kglabs28.yapnplay.appengine.core.common.KeyboardPreference
 import com.kglabs28.yapnplay.appengine.core.network.AndroidDeviceIdentity
@@ -31,6 +40,11 @@ import org.koin.dsl.module
 
 /** Android platform services: local stores (SharedPreferences), game audio, the mic level, live voice and rewarded ads. */
 val platformAppManagerModule = module {
+    // A guest made on first launch (kept by Play Games); the WebSocket signs in with headers.
+    single { AccountEntry.GUEST }
+    single<GoogleSignInLauncher> { NoGoogleSignIn() }
+    single<SocketAuthorizer> { HeaderSocketAuthorizer() }
+    single<FullScreen> { NoFullScreen() }
     single<AppConfigStore> { AndroidConfigStore(androidContext()) }
     single<NotificationHistoryStore> { AndroidNotificationHistoryStore(androidContext()) }
     single<CredentialStore> { AndroidCredentialStore(androidContext()) }
@@ -42,6 +56,7 @@ val platformAppManagerModule = module {
     single<MicLevelMonitor> { AndroidMicLevelMonitor(androidContext()) }
     single<VoiceEngine> { LiveKitVoiceEngine(androidContext()) }
     single<NearbyTransport> { GoogleNearbyTransport(androidContext()) }
+    single<HostFitness> { AndroidHostFitness(androidContext()) }
     // Made at start, so it sees the first screen resume (it needs the visible Activity to play).
     single<RewardedAds>(createdAtStart = true) { AdMobRewardedAds(androidApplication(), get()) }
     // Started with the app, so the first ad pill (the connecting card's) has an ad as soon as possible.

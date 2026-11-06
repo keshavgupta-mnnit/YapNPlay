@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.voice.data.remote
 
+import com.kglabs28.yapnplay.appengine.features.voice.domain.VoiceAvailability
 import com.kglabs28.yapnplay.appengine.protocol.VoiceToken
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -58,6 +59,8 @@ class VoiceClientImpl(
     private val engine: VoiceEngine,
     private val tokens: VoiceTokenApi,
     private val json: Json,
+    /** Whether voice works now (not in no internet). */
+    private val availability: VoiceAvailability,
     scope: CoroutineScope,
 ) : VoiceClient {
 
@@ -78,7 +81,9 @@ class VoiceClientImpl(
     }
 
     private val micSwitch = MutableStateFlow(false)
-    override val micOn: StateFlow<Boolean> = micSwitch.asStateFlow()
+    /** The user's mic switch; off while voice isn't available. */
+    override val micOn: StateFlow<Boolean> =
+        combine(micSwitch, availability.available) { on, voice -> on && voice }.stateIn(scope, SharingStarted.Eagerly, false)
 
     override fun setMicOn(on: Boolean) {
         micSwitch.value = on
@@ -133,7 +138,7 @@ class VoiceClientImpl(
         // The open mic goes to the voice room when there is one, else only its level is read.
         // Closed, its level is still read (never sent) while the screen asks, to catch talking on mute.
         scope.launch {
-            combine(frontMic, engine.connected) { m, c -> Triple(m.open, m.listenMuted, c) }.collect { (o, listen, connected) ->
+            combine(frontMic, engine.connected, availability.available) { m, c, voice -> Triple(m.open && voice, m.listenMuted && voice, c) }.collect { (o, listen, connected) ->
                 if (o && connected) {
                     mic.stop()
                     engine.setMicEnabled(true)
@@ -145,6 +150,25 @@ class VoiceClientImpl(
         }
         scope.launch { follow() }
         scope.launch { prefetch() }
+        scope.launch { startNearbyQuiet() }
+    }
+
+    /** A Nearby party starts with the mic and speaker off; leaving it brings back what they were. */
+    private suspend fun startNearbyQuiet() {
+        var before: Pair<Boolean, Boolean>? = null
+        availability.nearby.collect { inParty ->
+            if (inParty) {
+                before = micSwitch.value to speaker.value
+                micSwitch.value = false
+                setSpeakerOn(false)
+            } else {
+                before?.let { (mic, speakerWasOn) ->
+                    micSwitch.value = mic
+                    setSpeakerOn(speakerWasOn)
+                }
+                before = null
+            }
+        }
     }
 
     override fun setVoiceWanted(target: VoiceTarget, wanted: Boolean, talkers: Set<String>) {
@@ -165,7 +189,7 @@ class VoiceClientImpl(
     /** Fetches the pass of each screen that may talk as it opens (cheap, our own backend; no voice minutes). */
     private suspend fun prefetch() {
         activeTarget.collectLatest { target ->
-            target ?: return@collectLatest
+            if (target == null || !availability.available.value) return@collectLatest
             try {
                 pass(target)
             } catch (e: CancellationException) {
@@ -186,6 +210,8 @@ class VoiceClientImpl(
         combine(open.map { it.lastOrNull()?.target }, wanted, micOpen, talkers, muted) { target, want, micIsOpen, heard, mutedIds ->
             target?.takeIf { it in want && (micIsOpen || (heard[it].orEmpty() - mutedIds).isNotEmpty()) }
         }
+            // No voice room without voice (no internet).
+            .combine(availability.available) { target, voice -> target.takeIf { voice } }
             .distinctUntilChanged().collectLatest { target ->
             if (target == null) {
                 // Stays a little after the last mic/speaker need ends: a screen handing over (lobby → match)

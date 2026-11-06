@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.nearby.host.games.doodleking
 
+import com.kglabs28.yapnplay.appengine.games.doodleking.data.remote.wire.DoodleDrawing
 import com.kglabs28.yapnplay.appengine.features.nearby.host.games.ExtensionOffer
 import com.kglabs28.yapnplay.appengine.games.doodleking.DoodleExtend
 import com.kglabs28.yapnplay.appengine.features.nearby.host.games.BotMode
@@ -50,9 +51,14 @@ class DoodleKingSession(
     private val testBots: () -> Boolean = { false },
     /** Rounds a "keep playing" vote adds (admin setting). */
     private val extensionRounds: () -> Int = { 1 },
+    /** The turn's drawing so far, when taken over from a host who left. */
+    drawing: DoodleDrawing? = null,
 ) : GameSession {
     private val mapper = DoodleKingWireMapper(json)
-    private val canvas = DoodleCanvas().apply { reset(state.drawingId) }
+    private val canvas = DoodleCanvas().apply {
+        reset(state.drawingId)
+        drawing?.takeIf { it.drawingId == state.drawingId }?.strokes?.forEach(::addWhole)
+    }
     private val bots = DoodleTestBots(random)
 
     override val currentSeat: Int get() = state.drawer
@@ -157,8 +163,8 @@ class DoodleKingSession(
 
     override fun wireEvents(events: List<GameEvent>): List<JsonObject> = mapper.events(events)
 
-    /** The drawing isn't saved: after a restart the turn's canvas starts empty. */
-    override fun save(): JsonObject = json.encodeToJsonElement(DoodleKingSaved.serializer(), DoodleKingSaved(state)).jsonObject
+    /** The game and the turn's drawing so far, so a phone taking over keeps the picture. */
+    override fun save(): JsonObject = json.encodeToJsonElement(DoodleKingSaved.serializer(), DoodleKingSaved(state, canvas.drawing())).jsonObject
 
     /** Real lines on the canvas: the drawer isn't "drawing nothing" any more. */
     private fun markInk() {
@@ -179,4 +185,4 @@ class DoodleKingSession(
 }
 
 @Serializable
-data class DoodleKingSaved(val engine: DoodleKingState)
+data class DoodleKingSaved(val engine: DoodleKingState, val drawing: DoodleDrawing? = null)

@@ -1,5 +1,8 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.ui.components.voice.voiceSwitch
+import com.kglabs28.yapnplay.appengine.ui.components.voice.voiceTap
+import com.kglabs28.yapnplay.appengine.ui.components.voice.LocalVoiceEnabled
 import com.kglabs28.yapnplay.appengine.core.ui.TableStrings
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.CompositingStrategy
@@ -70,14 +73,17 @@ fun ArenaSeatSwitches(
 ) {
     val colors = YapNPlayTheme.colors
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(gap, Alignment.CenterHorizontally)) {
+        // No voice (no internet): the mic greyed out.
+        val voice = LocalVoiceEnabled.current
         ArenaRoundSwitch(
             icon = if (micOn) Icons.Rounded.Mic else Icons.Rounded.MicOff,
             description = MonoStrings.monoMic,
             on = micOn,
             fill = colors.ArenaSwitchOn,
             rim = colors.ArenaSwitchOnRim,
-            onClick = onToggleMic,
+            onClick = voiceTap(voice, onToggleMic),
             size = size,
+            modifier = Modifier.voiceSwitch(voice),
         )
         if (showAutoplay) ArenaRoundSwitch(
             icon = Icons.Rounded.SportsEsports,

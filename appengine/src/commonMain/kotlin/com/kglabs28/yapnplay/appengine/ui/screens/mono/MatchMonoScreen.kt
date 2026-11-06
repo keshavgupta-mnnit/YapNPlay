@@ -214,7 +214,7 @@ fun MatchMonoContent(
         if (state.sheet == null) {
             state.vote?.let { v ->
                 BlockingOverlay(visible = true, onDismiss = null, showAd = true) {
-                    KeepPlayingVoteDialog(v.secondsLeft, v.yes, v.no, v.voters, v.canVote) { send(MatchMonoIntent.VoteContinue(it)) }
+                    KeepPlayingVoteDialog(v.secondsLeft, v.yes, v.no, v.voters, v.canVote, who = v.who) { send(MatchMonoIntent.VoteContinue(it)) }
                 }
             }
         }

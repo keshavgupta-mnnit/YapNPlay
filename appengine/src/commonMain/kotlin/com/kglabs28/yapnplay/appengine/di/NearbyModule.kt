@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.features.nearby.host.PartyClock
 import com.kglabs28.yapnplay.appengine.features.nearby.usecase.GetNearbyRadiosUseCase
 import com.kglabs28.yapnplay.appengine.features.nearby.presentation.NearbyReadyChecklist
 import com.kglabs28.yapnplay.appengine.features.nearby.usecase.OpenNearbyRadioSettingsUseCase
@@ -48,7 +49,8 @@ val nearbyModule = module {
     single { OfflineMode() }
     single { OfflineRealtimeGateway(get()) }
     single { HostEnvelopes(get()) }
-    single { val clock = get<AppClock>(); HostClock { clock.now().toEpochMilliseconds() } }
+    single { PartyClock(get<AppClock>()) }
+    single<HostClock> { get<PartyClock>() }
     single<Settings> { Settings.Defaults }
     single {
         val random = get<GameRandom>()
@@ -73,7 +75,7 @@ val nearbyModule = module {
     // One per app run: a phone with no account keeps the same stand-in id all along.
     single { NearbyIdentity(get(), get(), get()) }
     factory { GetMyPlayerIdUseCase(get()) }
-    single<NearbyRepository> { NearbyRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(APP_SCOPE)) }
+    single<NearbyRepository> { NearbyRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(APP_SCOPE)) }
     factory { ObserveNearbyUseCase(get()) }
     factory { IsNearbySupportedUseCase(get()) }
     factory { HostNearbyPartyUseCase(get()) }

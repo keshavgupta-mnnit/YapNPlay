@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.components.table
 
+import com.kglabs28.yapnplay.appengine.ui.components.voice.LocalVoiceEnabled
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,7 +36,8 @@ fun TableMuteButton(
     val colors = YapNPlayTheme.colors
     val dimens = YapNPlayTheme.dimens
     // Three looks: muted (red, tap to hear them again), speaking (lit, tap to mute), mic off (grey, nothing to do).
-    val enabled = muted || micOn
+    // No voice (no internet): nothing to mute.
+    val enabled = (muted || micOn) && LocalVoiceEnabled.current
     val fill = when {
         muted -> colors.Error
         micOn -> colors.Cyan.copy(alpha = LIVE_FILL_ALPHA)

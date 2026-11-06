@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.playroomlobby
 
+import com.kglabs28.yapnplay.appengine.features.nearby.domain.PeerInvite
 import com.kglabs28.yapnplay.appengine.core.ui.NearbyStrings
 import com.kglabs28.yapnplay.appengine.features.nearby.usecase.InviteNearbyPlayerUseCase
 import com.kglabs28.yapnplay.appengine.features.nearby.usecase.IsNearbyRoomUseCase
@@ -339,8 +340,15 @@ class PlayRoomLobbyViewModel(
         val members = state.value.members.map { it.userId }.toSet()
         if (nearby()) {
             setState { copy(sheet = LobbySheet.InvitePlayers(NearbyStrings.addTitleNearby, NearbyStrings.addEmptyNearby, loading = false)) }
+            invitedNow.clear()
             inviteJob = scope.launch {
                 observeNearby().collect { s ->
+                    // Someone added from here has joined: the popup's job is done, it closes.
+                    if (s.peers.any { it.endpointId in invitedNow && it.invite == PeerInvite.JOINED }) {
+                        invitedNow.clear()
+                        setState { copy(sheet = if (sheet is LobbySheet.InvitePlayers) null else sheet) }
+                        return@collect
+                    }
                     updateInvitePlayers { copy(rows = InviteRowsMapper.fromPeers(s.peers, state.value.members.map { it.userId }.toSet())) }
                 }
             }
@@ -357,6 +365,7 @@ class PlayRoomLobbyViewModel(
     private suspend fun invitePlayer(id: String) {
         val roomId = roomId ?: return
         if (nearby()) {
+            invitedNow += id
             inviteNearby(id)
             return
         }

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.profile.data
 
+import com.kglabs28.yapnplay.appengine.core.common.BackgroundIo
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.kglabs28.yapnplay.appengine.core.common.AppResult
@@ -11,7 +12,6 @@ import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequest
 import com.kglabs28.yapnplay.appengine.features.profile.domain.FriendRequestOutcome
 import com.kglabs28.yapnplay.appengine.features.profile.domain.UserProfile
 import com.kglabs28.yapnplay.appengine.features.profile.repository.ProfileRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 
@@ -35,7 +35,7 @@ class ProfileRepositoryImpl(
     }
 
     override suspend fun fetchProfileData(): AppResult<UserProfile> =
-        withContext(Dispatchers.IO) {
+        withContext(BackgroundIo) {
             when (val result = remote.fetchProfileData()) {
                 is AppResult.Success -> {
                     // The server grants the bonus once a day, on the first /me: keep it for Home.
@@ -50,12 +50,12 @@ class ProfileRepositoryImpl(
         }
 
     override suspend fun updateProfile(name: String?, avatarId: String?): AppResult<UserProfile> =
-        withContext(Dispatchers.IO) {
+        withContext(BackgroundIo) {
             remote.updateProfile(name, avatarId).also { if (it is AppResult.Success) local.saveProfile(it.data) }
         }
 
     override suspend fun getFriendList(): AppResult<List<Friend>> =
-        withContext(Dispatchers.IO) {
+        withContext(BackgroundIo) {
             when (val result = remote.fetchFriendList()) {
                 is AppResult.Success -> {
                     local.saveFriends(result.data)
@@ -69,30 +69,30 @@ class ProfileRepositoryImpl(
         }
 
     override suspend fun getFriendRequests(): AppResult<List<FriendRequest>> =
-        withContext(Dispatchers.IO) { remote.fetchFriendRequests() }
+        withContext(BackgroundIo) { remote.fetchFriendRequests() }
 
     override suspend fun sendFriendRequest(userCode: String): AppResult<FriendRequestOutcome> =
-        withContext(Dispatchers.IO) { remote.sendFriendRequest(userCode) }
+        withContext(BackgroundIo) { remote.sendFriendRequest(userCode) }
 
     override suspend fun sendFriendRequestToUser(userId: String): AppResult<FriendRequestOutcome> =
-        withContext(Dispatchers.IO) { remote.sendFriendRequestToUser(userId) }
+        withContext(BackgroundIo) { remote.sendFriendRequestToUser(userId) }
 
     override suspend fun respondToFriendRequest(requestId: String, accept: Boolean): AppResult<Unit> =
-        withContext(Dispatchers.IO) { remote.respondToFriendRequest(requestId, accept) }
+        withContext(BackgroundIo) { remote.respondToFriendRequest(requestId, accept) }
 
     override suspend fun removeFriend(userId: String): AppResult<Unit> =
-        withContext(Dispatchers.IO) {
+        withContext(BackgroundIo) {
             remote.removeFriend(userId).also { if (it is AppResult.Success) local.saveFriends(local.friends().filterNot { f -> f.userId == userId }) }
         }
 
     override suspend fun blockUser(userId: String): AppResult<Unit> =
-        withContext(Dispatchers.IO) {
+        withContext(BackgroundIo) {
             remote.blockUser(userId).also { if (it is AppResult.Success) local.saveFriends(local.friends().filterNot { f -> f.userId == userId }) }
         }
 
     override suspend fun getBlockedUsers(): AppResult<List<BlockedUser>> =
-        withContext(Dispatchers.IO) { remote.fetchBlockedUsers() }
+        withContext(BackgroundIo) { remote.fetchBlockedUsers() }
 
     override suspend fun unblockUser(userId: String): AppResult<Unit> =
-        withContext(Dispatchers.IO) { remote.unblockUser(userId) }
+        withContext(BackgroundIo) { remote.unblockUser(userId) }
 }

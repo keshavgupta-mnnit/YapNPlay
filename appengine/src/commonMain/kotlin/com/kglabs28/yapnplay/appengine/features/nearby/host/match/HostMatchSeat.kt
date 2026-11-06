@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.features.nearby.host.match
 
+import kotlinx.serialization.Serializable
 import com.kglabs28.yapnplay.appengine.protocol.Colour
 import com.kglabs28.yapnplay.appengine.protocol.SeatPresence
 
@@ -8,6 +9,7 @@ import com.kglabs28.yapnplay.appengine.protocol.SeatPresence
  * bot holds the seat (away, dropped), so it is theirs again when they come
  * back; [left] means the owner gave it up.
  */
+@Serializable
 data class HostMatchSeat(
     val seat: Int,
     val userId: String,
@@ -24,6 +26,8 @@ data class HostMatchSeat(
     val disconnectedAt: Long? = null,
     /** When the owner left (epoch millis): a leaver ranks last, the latest leaver first. */
     val leftAt: Long? = null,
+    /** Already out of the game (finished, knocked out) when they left: their seat keeps their name. */
+    val outBeforeLeaving: Boolean = false,
 ) {
     /** The host plays this seat right away instead of waiting for the turn timer. */
     val playedByHost: Boolean get() = cpu || left || autoplay || presence != SeatPresence.PLAYING

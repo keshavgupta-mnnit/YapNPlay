@@ -87,7 +87,7 @@ fun PlayHubScreen(
             status = {
                 PlayModeStatusPill(
                     icon = if (state.online) Icons.Rounded.Public else Icons.Rounded.CloudOff,
-                    text = if (state.online) Strings.playHubRandomsStatus else NearbyStrings.needsInternet,
+                    text = if (state.online) state.playersOnlineLabel else NearbyStrings.needsInternet,
                     tint = colors.PlayRandomsAccent,
                 )
             },

@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.doodleking.ui.mapper
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.VoterUi
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match.DoodleStatusUi
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match.DoodleCardMark
 import com.kglabs28.yapnplay.appengine.ui.components.seat.KeepPlayingUiMapper
@@ -160,12 +161,14 @@ object DoodleTableMapper {
     )
 
     fun endVote(match: DoodleMatch, now: Instant): EndVoteUi? = match.endVote?.let {
-        EndVoteUiMapper.of(it, match.me?.seat, match.player(it.proposerSeat)?.name.orEmpty(), DoodleStrings.dkEndRanking, now)
+        EndVoteUiMapper.of(it, match.me?.seat, match.player(it.proposerSeat)?.name.orEmpty(), DoodleStrings.dkEndRanking, now) { seat -> voter(match, seat) }
     }
 
     fun keepPlaying(match: DoodleMatch, now: Instant): KeepPlayingUi? = match.keepPlaying?.takeIf { match.phase == DoodlePhase.LIMIT }?.let {
-        KeepPlayingUiMapper.of(it.voters, it.yes, it.no, it.extraRounds, it.extraMinutes, match.me?.seat, TableStrings.seatCountdown(secondsLeft(it.endsAt, now)))
+        KeepPlayingUiMapper.of(it.voters, it.yes, it.no, it.extraRounds, it.extraMinutes, match.me?.seat, TableStrings.seatCountdown(secondsLeft(it.endsAt, now))) { seat -> voter(match, seat) }
     }
+
+    private fun voter(match: DoodleMatch, seat: Int): VoterUi? = match.player(seat)?.let { VoterUi(it.name, it.avatarId) }
 
     fun secondsLeft(endsAt: Instant, now: Instant): Long = ((endsAt - now).inWholeMilliseconds + MILLIS_PER_SECOND - 1).coerceAtLeast(0) / MILLIS_PER_SECOND
 

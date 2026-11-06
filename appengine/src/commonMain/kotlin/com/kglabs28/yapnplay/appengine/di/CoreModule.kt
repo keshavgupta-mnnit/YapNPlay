@@ -75,7 +75,8 @@ val coreModule = module {
             // lookup and Play Games (which sends the saved one itself, never makes a guest just to send).
             client.plugin(HttpSend).intercept { request ->
                 val path = request.url.buildString()
-                val signUp = path.endsWith(BackendPaths.GUEST) || path.endsWith(BackendPaths.PLAY_GAMES) || path.endsWith(BackendPaths.DEVICE_ACCOUNT)
+                val signUp = path.endsWith(BackendPaths.GUEST) || path.endsWith(BackendPaths.PLAY_GAMES) ||
+                    path.endsWith(BackendPaths.DEVICE_ACCOUNT) || path.endsWith(BackendPaths.GOOGLE)
                 if (!signUp && request.headers[HttpHeaders.Authorization] == null) {
                     request.header(
                         HttpHeaders.Authorization,
@@ -84,9 +85,8 @@ val coreModule = module {
                 }
                 execute(request).also { call ->
                     // The saved account was refused (restored on another phone): sign in with Play Games again.
-                    if (call.response.status == HttpStatusCode.Unauthorized && !path.endsWith(
-                            BackendPaths.PLAY_GAMES
-                        )
+                    if (call.response.status == HttpStatusCode.Unauthorized &&
+                        !path.endsWith(BackendPaths.PLAY_GAMES) && !path.endsWith(BackendPaths.GOOGLE)
                     ) {
                         get<BackendSession>().markRejected()
                     }
@@ -94,13 +94,13 @@ val coreModule = module {
             }
         }
     }
-    single { BackendSession(get(), get(), get(), get()) }
+    single { BackendSession(get(), get(), get(), get(), get()) }
     // The account the app authenticates with.
     single<SessionProvider> { get<BackendSession>() }
     // The socket: the real-time match connection to the backend.
     single<RealtimeGateway> {
         val config = get<AppManagerHelper>()
-        val backend = RealtimeConnection(get(), get(), get(), get(APP_SCOPE), baseUrl = { config.serverBaseUrl() }, games = { get<GameRegistry>().games.map { it.id.value } })
+        val backend = RealtimeConnection(get(), get(), get(), get(APP_SCOPE), get(), baseUrl = { config.serverBaseUrl() }, games = { get<GameRegistry>().games.map { it.id.value } })
         // During Nearby play every table talks to the hosting phone instead (see nearbyModule).
         SwitchingRealtimeGateway(backend, get<OfflineRealtimeGateway>(), get<OfflineMode>(), get(APP_SCOPE))
     }

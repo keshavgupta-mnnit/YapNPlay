@@ -156,10 +156,14 @@ fun AppKeyboard(
         }
         KeyRow {
             CharKey(if (numbers) Strings.keyboardLetters else Strings.keyboardNumbers, weight = WIDE_KEY) { numbers = !numbers }
-            CharKey(",", enabled = !full) { key(',') }
-            CharKey(Strings.keyboardSpace, enabled = !full && value.isNotEmpty() && !value.endsWith(' '), weight = SPACE_KEY) { key(' ') }
-            CharKey(".", enabled = !full) { key('.') }
-            IconKey(Icons.Rounded.Check, Strings.keyboardDone, colors.ReadyGreen, weight = DONE_KEY, label = Strings.keyboardDone, onClick = onDone)
+            // A word typed letter by letter into slots (a guess) has no spaces or punctuation: Done takes their room.
+            val wordSlots = request.slots != null
+            if (!wordSlots) {
+                CharKey(",", enabled = !full) { key(',') }
+                CharKey(Strings.keyboardSpace, enabled = !full && value.isNotEmpty() && !value.endsWith(' '), weight = SPACE_KEY) { key(' ') }
+                CharKey(".", enabled = !full) { key('.') }
+            }
+            IconKey(Icons.Rounded.Check, Strings.keyboardDone, colors.ReadyGreen, weight = if (wordSlots) DONE_KEY + SPACE_KEY else DONE_KEY, label = Strings.keyboardDone, onClick = onDone)
         }
     }
 }

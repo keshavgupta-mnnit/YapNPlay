@@ -68,6 +68,32 @@ class HostRoom(
         if (members[leaderId]?.online != true) leaderId = userId
     }
 
+    /** Everyone in the party, as players. */
+    fun players(): List<NearbyPlayer> = members.values.map { it.player() }
+
+    /**
+     * Who takes over the party when [leaving] goes, in order, among [reachable]: the phone best
+     * able to host first (battery, charger, memory), then the one in the lobby longest.
+     */
+    fun successionOrder(leaving: String, reachable: Set<String>): List<String> =
+        members.values.filter { it.online && it.userId != leaving && it.userId in reachable }
+            .sortedWith(compareByDescending<HostRoomMember> { it.fitness / FITNESS_STEP }.thenBy { it.onlineSince ?: Long.MAX_VALUE })
+            .map { it.userId }
+
+    fun fitnessOf(userId: String): Int = members[userId]?.fitness ?: 0
+
+    /** [userId]'s phone's host score now. */
+    fun setFitness(userId: String, score: Int) {
+        members[userId]?.let { members[userId] = it.copy(fitness = score) }
+    }
+
+    /** A party taken over from a host who left: the game and settings they had. */
+    fun restore(game: String?, rules: Map<String, Boolean>, fill: Boolean) {
+        selectedGame = game
+        houseRules = rules
+        botFill = fill
+    }
+
     /** Out of the lobby: gone from the party (a temporary room keeps nobody who left). */
     fun remove(userId: String) {
         val name = members[userId]?.displayName ?: return
@@ -84,7 +110,7 @@ class HostRoom(
         stopCountdown(CountdownStopReason.GAME_CHANGED, userId)
         selectedGame = gameId
         houseRules = game()?.houseRuleOptions?.associate { it.key to it.defaultEnabled }.orEmpty()
-        members.replaceAll { _, m -> m.copy(ready = false, readyAt = null, watching = false) }
+        members.entries.forEach { it.setValue(it.value.copy(ready = false, readyAt = null, watching = false)) }
     }
 
     fun setHouseRule(userId: String, key: String, enabled: Boolean) {
@@ -161,7 +187,7 @@ class HostRoom(
     /** A match just started: everyone's ready/watching resets. */
     fun matchStarted(matchId: String) {
         matchInProgress = matchId
-        members.replaceAll { _, m -> m.copy(ready = false, readyAt = null, watching = false) }
+        members.entries.forEach { it.setValue(it.value.copy(ready = false, readyAt = null, watching = false)) }
     }
 
     fun failedToStart() {
@@ -246,7 +272,9 @@ class HostRoom(
     )
 
     private companion object {
-        const val ROOM_ICON = "group"
+        /** Scores this close count as equal (a percent of battery shouldn't swap the next host back and forth). */
+        const val FITNESS_STEP = 10
+       const val ROOM_ICON = "group"
         const val NO_SUCH_GAME = "That game isn't here."
         const val NO_GAME = "Pick a game first."
         const val NO_SUCH_RULE = "This game has no such rule."

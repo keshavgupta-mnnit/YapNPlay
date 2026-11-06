@@ -44,6 +44,8 @@ class HostMatch(
     private val deliver: (userId: String, envelope: Envelope) -> Unit,
     /** The match is over (its result went out). */
     private val onFinished: (matchId: String) -> Unit,
+    /** Something changed (the next host's copy is due). */
+    private val onChanged: () -> Unit = {},
 ) {
     val matchId: String get() = state.matchId
     val gameId: String get() = state.gameId
@@ -72,6 +74,37 @@ class HostMatch(
 
     fun stop() {
         ticker.cancel()
+    }
+
+    /** The whole match, for the phone that would host it next. Null once it is over. */
+    suspend fun save(): HostMatchSave? = lock.withLock {
+        if (state.ended) return@withLock null
+        HostMatchSave(
+            matchId = state.matchId,
+            gameId = state.gameId,
+            roomId = state.roomId,
+            title = state.title,
+            startedAt = state.startedAt,
+            seats = state.seats.toList(),
+            spectators = state.spectators.mapValues { (_, who) -> listOf(who.first, who.second) },
+            version = state.version,
+            deadline = state.deadline,
+            pauseMs = state.pauseMs,
+            botWakeAt = state.botWakeAt,
+            turnOwner = state.turnOwner,
+            extensionVote = state.extensionVote?.let { HostVoteSave(it.voters, it.endsAt, it.yes.toSet(), it.no.toSet()) },
+            endVote = state.endVote?.let { HostVoteSave(it.voters, it.endsAt, it.yes.toSet(), it.no.toSet(), it.proposerSeat, it.startedAt) },
+            lastEndProposal = state.lastEndProposal.toMap(),
+            waitingFor = state.waitingFor.toSet(),
+            startHoldUntil = state.startHoldUntil,
+            session = state.session.save(),
+        )
+    }
+
+    /** Taken over from a host who left: the turn timers run again and everyone gets the table. */
+    suspend fun resume() = lock.withLock {
+        scheduleWake()
+        publish(emptyList())
     }
 
     // ---------------- requests ----------------
@@ -118,6 +151,8 @@ class HostMatch(
             state.viewers().filter { it != userId }.forEach { deliver(it, push) }
         }
         out.toSender?.let { deliver(userId, envelopes.push(Channel.MATCH, MessageType.MATCH_RELAY, JsonObject.serializer(), it)) }
+        // A stroke changes the game too: the next host's copy keeps the drawing.
+        onChanged()
     }
 
     suspend fun setAutoplay(userId: String, enabled: Boolean) = act {
@@ -143,7 +178,8 @@ class HostMatch(
     /** The player gives up their seat: the bot plays it to the end, and they rank last. */
     suspend fun leave(userId: String) = act {
         val seat = ownSeat(userId)
-        state.update(seat.seat) { copy(left = true, leftAt = clock.nowMillis(), presence = SeatPresence.BOT) }
+        val out = state.session.stillIn.let { it.isNotEmpty() && seat.seat !in it }
+        state.update(seat.seat) { copy(left = true, leftAt = clock.nowMillis(), presence = SeatPresence.BOT, outBeforeLeaving = out) }
         publish(emptyList())
         endIfNoHumans()
     }
@@ -354,6 +390,7 @@ class HostMatch(
             deliver(viewer, envelopes.push(Channel.MATCH, MessageType.MATCH_SNAPSHOT, MatchSnapshot.serializer(), snapshot))
         }
         if (session.isFinished && !state.ended) finish()
+        onChanged()
     }
 
     /** The result: places only (offline play earns no coins or XP); leavers rank last, the latest leaver first. */

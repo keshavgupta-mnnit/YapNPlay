@@ -66,8 +66,8 @@ fun CityBazaarModalContent(
         is CbModal.Buy -> CbBuyPrompt(modal = modal, onNo = actions.onDecline, onYes = actions.onBuy, modifier = modifier)
         is CbModal.Build -> CbBuildPrompt(modal = modal, onNo = actions.onSkipBuild, onYes = actions.onConfirmBuild, modifier = modifier)
         // The keep-playing and end votes in the same dialog as every table's.
-        is CbModal.ExtensionVote -> KeepPlayingDialog(KeepPlayingUi(modal.body, modal.tally, modal.status, modal.canVote, modal.countdown), onVote = actions.onVoteExtension, modifier = modifier)
-        is CbModal.EndVote -> EndVoteCard(EndVoteUi(modal.body, modal.tally, modal.status, modal.canVote, modal.countdown), onVote = actions.onVoteEnd, modifier = modifier)
+        is CbModal.ExtensionVote -> KeepPlayingDialog(modal.vote, onVote = actions.onVoteExtension, modifier = modifier)
+        is CbModal.EndVote -> EndVoteCard(modal.vote, onVote = actions.onVoteEnd, modifier = modifier)
         is CbModal.Seat -> SeatHandoverDialog(modal.modal, actions.onSeat, modifier)
         CbModal.ConfirmEnd -> EndGameConfirmDialog(onCancel = actions.onDismiss, onEnd = actions.onConfirmEnd, modifier = modifier)
         is CbModal.JailRoll -> CbDialogFrame(

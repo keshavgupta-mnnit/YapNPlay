@@ -9,6 +9,10 @@ import kotlinx.coroutines.CompletableDeferred
 import io.ktor.http.HttpHeaders
 import io.ktor.client.request.header
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.filterNotNull
+import com.kglabs28.yapnplay.appengine.core.auth.AccountEntry
+import com.kglabs28.yapnplay.appengine.protocol.GoogleSignInBody
+import com.kglabs28.yapnplay.appengine.protocol.GoogleSignedIn
 import kotlinx.coroutines.withTimeoutOrNull
 import com.kglabs28.yapnplay.appengine.core.common.StartupGate
 import com.kglabs28.yapnplay.appengine.protocol.CreateGuestBody
@@ -55,14 +59,21 @@ interface SessionProvider {
  * (its account, or a new one linked to it, needs none), and a guest is
  * sent with the phone's id so a reinstall gets it back.
  * Google Play Games links it (or brings back the account linked before).
+ * On the web ([AccountEntry.GOOGLE]) no guest is ever made: nothing reaches
+ * the backend until the player signs in with Google on the login screen.
  */
 class BackendSession(
     private val http: HttpClient,
     private val store: CredentialStore,
     private val device: DeviceIdentity,
     private val startup: StartupGate,
+    private val entry: AccountEntry,
 ) : SessionProvider {
     private val lock = Mutex()
+    private val account = MutableStateFlow(store.load())
+
+    /** The account saved on this device (null: none yet; on the web the login screen shows). */
+    val savedAccount: StateFlow<BackendCredentials?> = account.asStateFlow()
     private val rejected = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     private val offers = MutableStateFlow<DeviceAccountOffer?>(null)
@@ -91,12 +102,26 @@ class BackendSession(
     val signInNeeded: SharedFlow<Unit> = rejected
 
     fun markRejected() {
+        // The web has no guest to fall back on: back to the login screen.
+        if (entry == AccountEntry.GOOGLE) forget()
         rejected.tryEmit(Unit)
+    }
+
+    private fun keep(credentials: BackendCredentials) {
+        store.save(credentials)
+        account.value = credentials
+    }
+
+    private fun forget() {
+        store.clear()
+        account.value = null
     }
 
     /** The saved account, creating one first if this device has none. */
     override suspend fun credentials(): BackendCredentials {
         store.load()?.let { return it }
+        // The web: wait for the login screen's Google sign-in.
+        if (entry == AccountEntry.GOOGLE) return account.filterNotNull().first()
         // No account yet: Play Games goes first (it may bring one); a guest only if it brings none.
         withTimeoutOrNull(PLAY_GAMES_WAIT_MS) { startup.ready.first { it } }
         return store.load() ?: lock.withLock { store.load() ?: createGuest() }
@@ -140,7 +165,7 @@ class BackendSession(
         // Made just now (not this phone's earlier account handed back): welcome them.
         val brandNew = !restore && created.userId == picked.userId
         return BackendCredentials(created.userId, created.secret).also {
-            store.save(it)
+            keep(it)
             store.savePending(null)
             if (brandNew) flagWelcome()
         }
@@ -169,13 +194,27 @@ class BackendSession(
             AppLog.d(AppConstants.LOG_TAG_AUTH, "server: refused HTTP ${response.status.value} ${response.bodyAsText().take(ERROR_LOG_MAX)}")
         }
         val reply = response.body<PlayGamesSignedIn>()
-        store.save(BackendCredentials(reply.userId, reply.secret))
+        keep(BackendCredentials(reply.userId, reply.secret))
         // No account here yet and none brought back: the server made a new one for this player, so welcome them.
         if (before == null && !reply.restored) flagWelcome()
         // Only a switch from one saved account to another reloads the app; a first sign-in just goes on.
         val switched = before != null && reply.userId != before.userId
         AppLog.d(AppConstants.LOG_TAG_AUTH, "server: ${if (switched) "restored the linked account (app reloads)" else "signed in with Play Games"}")
         return switched
+    }
+
+    /**
+     * The web's sign-in: the Google account's YapNPlay account (made on its
+     * first sign-in, when the welcome — name and avatar — shows) is saved.
+     */
+    suspend fun signInWithGoogle(idToken: String) {
+        val reply = http.post(BackendPaths.GOOGLE) {
+            contentType(ContentType.Application.Json)
+            setBody(GoogleSignInBody(idToken))
+        }.body<GoogleSignedIn>()
+        keep(BackendCredentials(reply.userId, reply.secret))
+        if (!reply.restored) flagWelcome()
+        AppLog.d(AppConstants.LOG_TAG_AUTH, "server: signed in with Google (${if (reply.restored) "account brought back" else "new account"})")
     }
 
     /** This device's user id, once an account exists (null before the first call). */

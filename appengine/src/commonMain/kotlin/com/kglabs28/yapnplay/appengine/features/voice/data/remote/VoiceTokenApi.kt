@@ -12,8 +12,21 @@ import io.ktor.client.request.post
  * only). The backend decides which.
  */
 class VoiceTokenApi(private val client: HttpClient) {
-    suspend fun token(target: VoiceTarget): VoiceToken = when (target) {
-        is VoiceTarget.Room -> client.post(BackendPaths.roomVoiceToken(target.roomId)).body()
-        is VoiceTarget.Match -> client.post(BackendPaths.matchVoiceToken(target.matchId)).body()
+    suspend fun token(target: VoiceTarget): VoiceToken = when {
+        // A Nearby party lives on the host's phone, not the server: its own kind of pass.
+        target.id.startsWith(NEARBY_PREFIX) -> client.post(BackendPaths.nearbyVoiceToken(target.id)).body()
+        target is VoiceTarget.Room -> client.post(BackendPaths.roomVoiceToken(target.roomId)).body()
+        target is VoiceTarget.Match -> client.post(BackendPaths.matchVoiceToken(target.matchId)).body()
+        else -> error("Unknown voice target")
+    }
+
+    private val VoiceTarget.id: String get() = when (this) {
+        is VoiceTarget.Room -> roomId
+        is VoiceTarget.Match -> matchId
+    }
+
+    private companion object {
+        /** Nearby party rooms and tables ("nearby-room-…", "nearby-match-…"). */
+        const val NEARBY_PREFIX = "nearby-"
     }
 }

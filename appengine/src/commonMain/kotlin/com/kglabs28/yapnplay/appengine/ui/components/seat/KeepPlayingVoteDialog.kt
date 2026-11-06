@@ -18,6 +18,8 @@ fun KeepPlayingVoteDialog(
     voters: Int,
     canVote: Boolean,
     modifier: Modifier = Modifier,
+    /** Who voted to keep playing (yes) and to end (no). */
+    who: VoteVotersUi? = null,
     onVote: (keepPlaying: Boolean) -> Unit,
 ) {
     SeatPickerDialog(
@@ -34,5 +36,6 @@ fun KeepPlayingVoteDialog(
         countdown = TableStrings.seatCountdown(secondsLeft),
         footer = listOfNotNull(TableStrings.keepPlayingCount(yes, no, voters), TableStrings.keepPlayingWaiting.takeIf { !canVote }),
         showActions = canVote,
+        voters = who,
     )
 }

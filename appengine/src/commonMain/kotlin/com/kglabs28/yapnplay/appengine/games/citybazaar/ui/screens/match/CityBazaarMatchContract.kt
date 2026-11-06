@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.citybazaar.ui.screens.match
 
+import com.kglabs28.yapnplay.appengine.ui.components.seat.KeepPlayingUi
+import com.kglabs28.yapnplay.appengine.ui.components.moderation.EndVoteUi
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverAction
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.SeatHandoverModal
 import com.kglabs28.yapnplay.appengine.features.seathandover.presentation.LeaveDialogUi
@@ -296,9 +298,9 @@ sealed interface CbModal {
 
     data class Result(val rows: List<CbResultRowUi>) : CbModal
     /** Rounds are over: continue for more rounds or end. [canVote] only for players still in who haven't voted. */
-    data class ExtensionVote(val body: String, val tally: String, val status: String?, val canVote: Boolean, val countdown: String) : CbModal
+    data class ExtensionVote(val vote: KeepPlayingUi) : CbModal
     /** Someone asked to end the game: end or keep playing (play is paused). */
-    data class EndVote(val body: String, val tally: String, val status: String?, val canVote: Boolean, val countdown: String) : CbModal
+    data class EndVote(val vote: EndVoteUi) : CbModal
     /** The shared exit dialog. */
     data class LeaveConfirm(val dialog: LeaveDialogUi) : CbModal
     /** A seat dialog, the same in every game. */

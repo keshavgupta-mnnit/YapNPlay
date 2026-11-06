@@ -95,3 +95,5 @@ jobs:
       pages: write
       id-token: write
     uses: ./.github/workflows/web-release.yml
+    # Hands it the repo's secrets (GOOGLE_WEB_CLIENT_ID may be one).
+    secrets: inherit

@@ -7,8 +7,8 @@
 # One-time setup (repo Settings):
 #   - Pages > Build and deployment > Source: "GitHub Actions".
 #   - Environments > github-pages > Deployment branches and tags: add tag rules v* and web-v*.
-#   - Secrets and variables > Actions > Variables: GOOGLE_WEB_CLIENT_ID = the web
-#     OAuth client id (public; the backend's GOOGLE_WEB_CLIENT_ID is the same value).
+#   - Secrets and variables > Actions: GOOGLE_WEB_CLIENT_ID = the web OAuth client id,
+#     as a variable or a secret (public either way; the backend's GOOGLE_WEB_CLIENT_ID is the same value).
 name: Release YapNPlay Web
 
 on:
@@ -56,10 +56,11 @@ jobs:
 
       - name: Fill in the Google client id
         env:
-          GOOGLE_WEB_CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}
+          # A repository variable or a secret: either works (it's public anyway, it ends up in the page).
+          GOOGLE_WEB_CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID || secrets.GOOGLE_WEB_CLIENT_ID }}
         run: |
           if [ -z "$GOOGLE_WEB_CLIENT_ID" ]; then
-            echo "::error::Set the repository variable GOOGLE_WEB_CLIENT_ID (Settings > Secrets and variables > Actions > Variables)"
+            echo "::error::Set GOOGLE_WEB_CLIENT_ID in Settings > Secrets and variables > Actions (as a variable or a secret)"
             exit 1
           fi
           sed -i "s|__GOOGLE_WEB_CLIENT_ID__|$GOOGLE_WEB_CLIENT_ID|" webApp/build/dist/wasmJs/productionExecutable/index.html

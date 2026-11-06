@@ -17,4 +17,6 @@ enum class GameSound {
     EMOJI_TOSS,
     /** An emoji gift lands on the receiver's avatar. */
     EMOJI_POP,
+    /** A bomb goes off (Cyber Blast). */
+    BOMB_BLAST,
 }

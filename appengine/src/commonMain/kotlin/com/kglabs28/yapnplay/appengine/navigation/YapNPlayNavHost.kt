@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.navigation
 
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.screens.match.DoodleKingMatchScreen
+import com.kglabs28.yapnplay.appengine.games.cyberblast.ui.screens.match.CyberBlastMatchScreen
 import com.kglabs28.yapnplay.appengine.features.matchmaking.usecase.GetMatchRoomUseCase
 import org.koin.compose.koinInject
 import com.kglabs28.yapnplay.appengine.ui.screens.welcome.WelcomeViewModel
@@ -198,6 +199,14 @@ fun YapNPlayNavHost(
                 emojiGiftViewModel = entry.rememberScreenViewModel(),
             )
         }
+        composable<CyberBlastMatch> { entry ->
+            CyberBlastMatchScreen(
+                matchId = entry.toRoute<CyberBlastMatch>().matchId,
+                onClose = { navController.closeMatch(entry, matchRooms(entry.toRoute<CyberBlastMatch>().matchId)) },
+                viewModel = entry.rememberScreenViewModel(),
+                emojiGiftViewModel = entry.rememberScreenViewModel(),
+            )
+        }
         composable<DoodleKingMatch> { entry ->
             DoodleKingMatchScreen(
                 matchId = entry.toRoute<DoodleKingMatch>().matchId,
@@ -239,6 +248,7 @@ private val TABLE_OR_LOBBY = listOf(
     RoyalLudoMatch::class,
     CityBazaarMatch::class,
     DoodleKingMatch::class,
+    CyberBlastMatch::class,
     MonoMatchRoute::class,
     MonoChaosMatchRoute::class,
 )

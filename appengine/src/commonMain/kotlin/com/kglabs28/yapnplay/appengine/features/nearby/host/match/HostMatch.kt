@@ -61,6 +61,21 @@ class HostMatch(
             lock.withLock { runCatching { tick() } }
         }
     }
+    /** A real-time game's frames (Cyber Blast); none for turn games. A busy host skips a frame rather than queueing it. */
+    private val framer: Job? = state.session.frameMillis?.let { every ->
+        scope.launch {
+            while (isActive) {
+                delay(every)
+                if (lock.tryLock()) {
+                    try {
+                        runCatching { frame() }
+                    } finally {
+                        lock.unlock()
+                    }
+                }
+            }
+        }
+    }
 
     /** Opens the table: play waits for every human to open it (up to the start wait). */
     suspend fun open(humans: Set<String>) = lock.withLock {
@@ -74,6 +89,7 @@ class HostMatch(
 
     fun stop() {
         ticker.cancel()
+        framer?.cancel()
     }
 
     /** The whole match, for the phone that would host it next. Null once it is over. */
@@ -145,6 +161,8 @@ class HostMatch(
     suspend fun relay(userId: String, type: String, payload: JsonObject) = lock.withLock {
         val seat = state.seatOf(userId)?.seat
         if (seat == null && userId !in state.spectators) throw HostRefusal(ErrorCode.NOT_MEMBER, NOT_SEATED)
+        // Sending something means they are at the table (a Cyber Blast player steering again).
+        state.seatOf(userId)?.takeIf { it.presence == SeatPresence.AWAY }?.let { s -> state.update(s.seat) { copy(presence = SeatPresence.PLAYING) } }
         val out = state.session.relay(seat, type, payload) ?: throw HostRefusal(ErrorCode.ILLEGAL_MOVE, ILLEGAL_MOVE)
         out.toOthers?.let { message ->
             val push = envelopes.push(Channel.MATCH, MessageType.MATCH_RELAY, JsonObject.serializer(), message)
@@ -282,6 +300,17 @@ class HostMatch(
         scheduleWake()
     }
 
+    /** The board moves on and goes to the table as a light relay; a heart lost or the end makes a full update. It stands still while the match waits or votes. */
+    private fun frame() {
+        if (state.ended || state.onHold) return
+        val out = state.session.frame(clock.nowMillis(), state.hostSeats()) ?: return
+        out.broadcast?.let { message ->
+            val push = envelopes.push(Channel.MATCH, MessageType.MATCH_RELAY, JsonObject.serializer(), message)
+            state.viewers().forEach { deliver(it, push) }
+        }
+        if (out.events.isNotEmpty()) publish(out.events, outOfTurn = true)
+    }
+
     private fun tick() {
         if (state.ended) return
         val now = clock.nowMillis()
@@ -397,6 +426,7 @@ class HostMatch(
     private fun finish() {
         state.ended = true
         ticker.cancel()
+        framer?.cancel()
         val gameRanking = state.session.ranking
         val ranking = gameRanking.filterNot { state.seat(it).left } +
             gameRanking.filter { state.seat(it).left }.sortedByDescending { state.seat(it).leftAt ?: 0L }

@@ -43,7 +43,7 @@ class HostMatchChannel(private val envelopes: HostEnvelopes) {
                 match(matchOf, matchIdOf(request)).play(userId, request.type, request.payload)
                 envelopes.ack(request)
             }
-            MessageType.DOODLE_STROKE, MessageType.DOODLE_UNDO, MessageType.DOODLE_CLEAR, MessageType.DOODLE_SYNC -> {
+            MessageType.DOODLE_STROKE, MessageType.DOODLE_UNDO, MessageType.DOODLE_CLEAR, MessageType.DOODLE_SYNC, MessageType.CYBER_INPUT -> {
                 match(matchOf, matchIdOf(request)).relay(userId, request.type, request.payload)
                 envelopes.ack(request)
             }

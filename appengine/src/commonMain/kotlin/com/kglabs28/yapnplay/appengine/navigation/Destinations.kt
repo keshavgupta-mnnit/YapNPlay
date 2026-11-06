@@ -40,6 +40,9 @@ data class CityBazaarMatch(val matchId: String)
 @Serializable
 data class DoodleKingMatch(val matchId: String)
 
+@Serializable
+data class CyberBlastMatch(val matchId: String)
+
 /** A Standard MONO match. */
 @Serializable
 data class MonoMatchRoute(val matchId: String)

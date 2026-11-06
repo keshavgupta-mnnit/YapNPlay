@@ -22,5 +22,6 @@ object GameSoundFiles {
         GameSound.CAUGHT -> "caught_you.mp3"
         GameSound.EMOJI_TOSS -> "emoji_toss.wav"
         GameSound.EMOJI_POP -> "emoji_pop.wav"
+        GameSound.BOMB_BLAST -> "bomb_blast.wav"
     }
 }

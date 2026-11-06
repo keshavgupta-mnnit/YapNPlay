@@ -13,6 +13,8 @@ import com.kglabs28.yapnplay.appengine.features.nearby.host.HostClock
 import com.kglabs28.yapnplay.appengine.features.nearby.host.HostEnvelopes
 import com.kglabs28.yapnplay.appengine.features.nearby.host.games.citybazaar.CityBazaarSessionFactory
 import com.kglabs28.yapnplay.appengine.features.nearby.host.games.doodleking.DoodleKingSessionFactory
+import com.kglabs28.yapnplay.appengine.features.nearby.host.games.cyberblast.CyberBlastSessionFactory
+import com.kglabs28.yapnplay.appengine.games.cyberblast.CyberBlastEngine
 import com.kglabs28.yapnplay.appengine.features.nearby.host.games.mono.MonoChaosSessionFactory
 import com.kglabs28.yapnplay.appengine.features.nearby.host.games.mono.MonoSessionFactory
 import com.kglabs28.yapnplay.appengine.features.nearby.host.games.royalludo.RoyalLudoSessionFactory
@@ -64,6 +66,7 @@ val nearbyModule = module {
                 MonoSessionFactory(MonoEngine(), random, json, clock, settings),
                 MonoChaosSessionFactory(MonoChaosEngine(), random, json, clock, settings),
                 DoodleKingSessionFactory(DoodleKingEngine(), random, json, clock, settings),
+                CyberBlastSessionFactory(CyberBlastEngine(), random, json, settings),
             ),
             clock,
             settings,

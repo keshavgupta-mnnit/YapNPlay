@@ -489,6 +489,17 @@ class YapNPlayDimens {
     val doodleEnterWidth: Dp get() = 96.dp.scaled()
     /** Pass beside the drawer's tools: narrow, so every tool shows on a phone. */
     val doodlePassWidth: Dp get() = 64.dp.scaled()
+
+    // Cyber Blast.
+    /** Each side column: four players' cards over the D-pad (left) or the bomb button (right). */
+    val blastSideWidth: Dp get() = 168.dp.scaled()
+    val blastCardAvatar: Dp get() = 30.dp.scaled()
+    val blastHeart: Dp get() = 10.dp.scaled()
+    /** The round D-pad and the bomb button. */
+    val blastPadSize: Dp get() = 104.dp.scaled()
+    val blastBombButton: Dp get() = 88.dp.scaled()
+    val blastBoardRadius: Dp get() = 12.dp.scaled()
+    val blastBoardGlow: Dp get() = 10.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

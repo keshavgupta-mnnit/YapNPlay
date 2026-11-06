@@ -34,6 +34,12 @@ kotlin {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
+        // TEMPORARY (one-off screen render): src/jvmPreview.
+        val jvmCompilations = compilations
+        jvmCompilations.create("preview") {
+            associateWith(jvmCompilations.getByName("main"))
+            defaultSourceSet.dependencies { implementation(org.jetbrains.compose.ComposePlugin.DesktopDependencies.currentOs) }
+        }
     }
 
     // The web app (iPhone users and any browser): built by :webApp.
@@ -153,4 +159,13 @@ tasks.register("guidelineCheck", Test::class) {
     filter {
         include("com.kglabs28.yapnplay.appengine.guards.*")
     }
+}
+
+// TEMPORARY (one-off screen render).
+tasks.register<JavaExec>("renderScreens") {
+    val preview = kotlin.jvm().compilations.getByName("preview")
+    dependsOn(preview.compileTaskProvider, "jvmProcessResources")
+    classpath = files(preview.output.allOutputs, preview.runtimeDependencyFiles)
+    mainClass.set("com.kglabs28.yapnplay.appengine.preview.RenderCyberBlastKt")
+    args(layout.buildDirectory.dir("screens").get().asFile.absolutePath)
 }

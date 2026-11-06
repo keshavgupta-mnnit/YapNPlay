@@ -1,0 +1,85 @@
+package com.kglabs28.yapnplay.appengine.features.nearby.host.games.cyberblast
+
+import com.kglabs28.yapnplay.appengine.games.cyberblast.data.remote.wire.CyberBlastPublicState
+import com.kglabs28.yapnplay.appengine.games.cyberblast.data.remote.wire.CyberBlastWireEvent
+import com.kglabs28.yapnplay.appengine.games.cyberblast.data.remote.wire.CyberBombWire
+import com.kglabs28.yapnplay.appengine.games.cyberblast.data.remote.wire.CyberFlameWire
+import com.kglabs28.yapnplay.appengine.games.cyberblast.data.remote.wire.CyberFrame
+import com.kglabs28.yapnplay.appengine.games.cyberblast.data.remote.wire.CyberHitWire
+import com.kglabs28.yapnplay.appengine.games.cyberblast.data.remote.wire.CyberItemWire
+import com.kglabs28.yapnplay.appengine.games.cyberblast.data.remote.wire.CyberPlayerWire
+import com.kglabs28.yapnplay.appengine.games.base.play.GameEvent
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_COLS
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_ROWS
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BlastBoom
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BlastClosing
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BlastHit
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BlastOut
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BlastPhase
+import com.kglabs28.yapnplay.appengine.games.cyberblast.CyberBlastState
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+
+/** Cyber Blast's state and events → wire JSON (frames, the snapshot's public state, events). */
+class CyberBlastWireMapper(private val json: Json) {
+
+    /** One frame; the blockers and walls only when [withCrates] / [withWalls] (changed, or a snapshot). [events]: what happened since the last frame. */
+    fun frame(state: CyberBlastState, number: Long, events: List<GameEvent>, withCrates: Boolean, withWalls: Boolean): CyberFrame {
+        val now = state.time
+        val booms = events.filterIsInstance<BlastBoom>()
+        return CyberFrame(
+            frame = number,
+            time = now,
+            phase = state.phase.name,
+            countdownMs = if (state.phase == BlastPhase.COUNTDOWN) (state.mandatory.countdownMs - now).coerceAtLeast(0) else 0,
+            closingInMs = BlastClosing.startsIn(state),
+            players = state.players.map { p ->
+                CyberPlayerWire(
+                    seat = p.seat,
+                    x = p.x,
+                    y = p.y,
+                    facing = p.facing.name,
+                    moving = p.held != null && p.inPlay,
+                    lives = p.lives,
+                    score = p.score,
+                    radius = p.radius,
+                    boostMs = (p.boostUntil - now).coerceAtLeast(0),
+                    shieldMs = (p.shieldUntil - now).coerceAtLeast(0),
+                    out = !p.inPlay,
+                )
+            },
+            bombs = state.bombs.map { CyberBombWire(it.id, it.tile, it.owner, it.radius, (it.explodesAt - now).coerceAtLeast(0)) },
+            flames = state.flames.map { CyberFlameWire(it.tile, it.owner, it.shape.name, (it.endsAt - now).coerceAtLeast(0)) },
+            items = state.items.map { CyberItemWire(it.tile, it.kind.name, (it.expiresAt - now).coerceAtLeast(0)) },
+            crates = if (withCrates) state.crates.sorted() else null,
+            walls = if (withWalls) state.walls.sorted() else null,
+            hits = events.filterIsInstance<BlastHit>().map { it.wire() },
+            broken = booms.flatMap { it.crates },
+            booms = booms.flatMap { it.bombs },
+        )
+    }
+
+    fun publicState(state: CyberBlastState, frame: CyberFrame, frameMs: Long): JsonObject = json.encodeToJsonElement(
+        CyberBlastPublicState.serializer(),
+        CyberBlastPublicState(
+            cols = BLAST_COLS,
+            rows = BLAST_ROWS,
+            lives = state.mandatory.lives,
+            frameMs = frameMs,
+            fuseMs = state.mandatory.fuseMs,
+            boostMs = state.mandatory.boostMs,
+            frame = frame,
+        ),
+    ).jsonObject
+
+    fun events(events: List<GameEvent>): List<JsonObject> = events.mapNotNull { e ->
+        when (e) {
+            is BlastHit -> CyberBlastWireEvent.Hit(e.wire())
+            is BlastOut -> CyberBlastWireEvent.Out(e.seat)
+            else -> null
+        }?.let { json.encodeToJsonElement(CyberBlastWireEvent.serializer(), it).jsonObject }
+    }
+
+    private fun BlastHit.wire() = CyberHitWire(victim, by, livesLeft, victimPoints, byPoints, self, crushed)
+}

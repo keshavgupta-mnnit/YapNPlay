@@ -67,6 +67,11 @@ fun DoodleKingArtwork(modifier: Modifier = Modifier, contentDescription: String?
     AppArtwork(BuiltInImage.DOODLE_KING_ART, urls.doodleKingArt(), ContentScale.Crop, modifier, contentDescription)
 }
 
+@Composable
+fun CyberBlastArtwork(modifier: Modifier = Modifier, contentDescription: String? = null, urls: BackgroundsAppManagerHelper = koinInject()) {
+    AppArtwork(BuiltInImage.CYBER_BLAST_ART, urls.cyberBlastArt(), ContentScale.Crop, modifier, contentDescription)
+}
+
 /** The card-table room (a lit oval table in a cosy lounge), behind a card game's table. */
 @Composable
 fun GameTableArenaArtwork(modifier: Modifier = Modifier, contentDescription: String? = null) {

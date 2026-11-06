@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.ui.screens.history
 
 import com.kglabs28.yapnplay.appengine.core.ui.DoodleStrings
+import com.kglabs28.yapnplay.appengine.core.ui.CyberBlastStrings
 import com.kglabs28.yapnplay.appengine.games.doodleking.identity.DoodleKingConstants
 import androidx.compose.ui.graphics.Color
 import com.kglabs28.yapnplay.appengine.core.common.TextUtils
@@ -94,6 +95,7 @@ object MatchHistoryUiMapper {
         MonoConstants.ID -> MonoStrings.monoTitle
         MonoChaosConstants.ID -> MonoStrings.monoChaosTitle
         DoodleKingConstants.ID -> DoodleStrings.dkTitle
+        GameIds.CYBER_BLAST -> CyberBlastStrings.blastTitle
         else -> gameId
     }
 
@@ -101,6 +103,7 @@ object MatchHistoryUiMapper {
         GameIds.CITY_BAZAAR -> CityBazaarStrings.cbPlaceTitles
         GameIds.ROYAL_LUDO -> LudoStrings.ludoPlaceTitles
         DoodleKingConstants.ID -> DoodleStrings.dkPlaceTitles
+        GameIds.CYBER_BLAST -> CyberBlastStrings.blastPlaceTitles
         else -> MonoStrings.monoPlaceTitles
     }
 

@@ -30,9 +30,12 @@ decisions that win).
 ## Versioning
 
 `CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
-**0.12.5**. Patch: optional field / new message. Minor: new required
+**0.13.0**. Patch: optional field / new message. Minor: new required
 field, channel or game-interface member. Major: breaking change.
 Every bump is announced in `docs/decisions.md`.
+
+0.13.0 added: Cyber Blast (`cyber-blast`), the first real-time game — `CyberInput` on the
+MATCH channel and `CyberFrame` relays about every 50 ms (see "Cyber Blast match additions").
 
 0.12.5 added: the web app — `POST /auth/google`, `POST /auth/ws-ticket` and
 `/ws?ticket=&games=` (see "Web app sign-in"), CORS for `WEB_APP_ORIGINS`.
@@ -552,6 +555,33 @@ backend's `contract/mono/MonoWire.kt` (same names as the app's `wire` packages).
   - Then, in Chaos, knocked-out seats (latest knockout higher).
 - **Other events:** `DeckReshuffled(drawPileCount)` when the discard pile
   (minus its top card) becomes the new draw pile.
+
+## Cyber Blast match additions (0.13.0)
+
+A real-time game: everyone moves at once on a 15 × 11 board (pillars on every odd column of
+every odd row). Tiles are `row * 15 + col`; positions are thousandths of a tile (a tile's
+centre at +500); all times in frames are ms *left*.
+
+- **Client → server** `CyberInput { matchId, dir?: "UP"|"DOWN"|"LEFT"|"RIGHT", bomb: Boolean }`,
+  sent whenever the held direction changes (null = let go) or the bomb button is pressed. Acked;
+  nothing is forwarded. A bomb that can't go down (none left, one already there) is ignored.
+- **Server → table** `MatchRelay` payload `CyberFrame` (`"type": "CyberFrame"`) every
+  `frameMs` (admin `blast.frame_ms`, 50): `frame` (counts up; drop older ones), `time`, `phase`
+  (COUNTDOWN, PLAYING, FINISHED), `countdownMs`, `closingInMs?`, `players[]` (seat, x, y, facing,
+  moving, lives, score, radius, boostMs, shieldMs, out), `bombs[]` (id, tile, owner, radius, fuseMs),
+  `flames[]` (tile, owner, shape CENTRE|HORIZONTAL|VERTICAL, msLeft), `items[]` (tile, kind SPEED,
+  msLeft), `crates?` / `walls?` (full lists, null when unchanged), `hits[]` (`CyberHitWire`: victim,
+  by, livesLeft, victimPoints, byPoints, self, crushed), `broken[]`, `booms[]`.
+- **Snapshots** (`MatchSnapshot`) come only when something big happens (a heart lost, a player out,
+  start, end) and on request. `publicState` = `CyberBlastPublicState { cols, rows, lives, frameMs,
+  fuseMs, boostMs, frame }` (its frame always has `crates` and `walls`). Events: `CyberHit { hit }`,
+  `CyberOut { seat }`.
+- Rules (all admin settings, group "Cyber Blast"): 5 hearts; +100 for hitting another player (and
+  +1 blast reach), −25 for being hit, −15 for your own bomb, +10 per blocker; speed boots for 30 s;
+  after a hit you come back on a safe tile with a 2 s shield; the arena closes in after 3 min; the
+  last player with hearts wins, the rest rank by points. Seats the server plays (CPUs, away players)
+  are driven by the expected-value bot every frame. The board stands still during the start wait and
+  an end-game vote. Golden files: `CyberInput`, `CyberRelay`, `CyberBlastPublicState`, `CyberBlastEvents`.
 
 ## Presence and seat handover (every game)
 

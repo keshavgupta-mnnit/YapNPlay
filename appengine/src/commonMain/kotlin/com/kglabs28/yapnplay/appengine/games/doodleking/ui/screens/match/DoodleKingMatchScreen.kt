@@ -59,8 +59,8 @@ import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleFeed
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodlePickCard
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleRankPanel
 import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.DoodleRevealCard
-import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.doodleSeatTints
-import com.kglabs28.yapnplay.appengine.games.doodleking.ui.components.forSeat
+import com.kglabs28.yapnplay.appengine.ui.components.table.tableSeatTints
+import com.kglabs28.yapnplay.appengine.ui.components.table.forSeat
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockingOverlay
@@ -183,7 +183,7 @@ fun DoodleKingMatchScreen(
 @Composable
 private fun DoodleKingTable(state: DoodleKingMatchState, send: (DoodleKingMatchIntent) -> Unit, micGranted: () -> Boolean) {
     val dimens = YapNPlayTheme.dimens
-    val tints = doodleSeatTints()
+    val tints = tableSeatTints()
     val seatTint: (Int) -> Color = { tints.forSeat(it) }
     val keyboard = LocalAppKeyboard.current
     // The guess box's keyboard belongs to the table: it stays open while the table folds into its strip.

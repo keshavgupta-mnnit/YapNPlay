@@ -21,6 +21,7 @@ object GameArtKeys {
     const val MONO = "mono"
     const val MONO_CHAOS = "mono-chaos"
     const val DOODLE_KING = "doodle-king"
+    const val CYBER_BLAST = "cyber-blast"
 }
 
 /**
@@ -39,6 +40,7 @@ fun GameArt(
         GameArtKeys.MONO -> MonoArtwork(modifier = modifier.fillMaxSize())
         GameArtKeys.MONO_CHAOS -> MonoChaosArtwork(modifier = modifier.fillMaxSize())
         GameArtKeys.DOODLE_KING -> DoodleKingArtwork(modifier = modifier.fillMaxSize())
+        GameArtKeys.CYBER_BLAST -> CyberBlastArtwork(modifier = modifier.fillMaxSize())
         else -> GlyphArt(modifier)
     }
 }

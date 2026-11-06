@@ -1,6 +1,7 @@
 package com.kglabs28.yapnplay.appengine.navigation
 
 import com.kglabs28.yapnplay.appengine.games.doodleking.identity.DoodleKingConstants
+import com.kglabs28.yapnplay.appengine.games.base.identity.GameIds
 import androidx.navigation.NavController
 import com.kglabs28.yapnplay.appengine.games.citybazaar.utils.CITY_BAZAAR_ID
 import com.kglabs28.yapnplay.appengine.games.mono.identity.MonoConstants
@@ -11,6 +12,7 @@ fun NavController.openMatch(gameId: String, matchId: String) {
     when (gameId) {
         CITY_BAZAAR_ID -> navigate(CityBazaarMatch(matchId))
         DoodleKingConstants.ID -> navigate(DoodleKingMatch(matchId))
+        GameIds.CYBER_BLAST -> navigate(CyberBlastMatch(matchId))
         MonoConstants.ID -> navigate(MonoMatchRoute(matchId))
         MonoChaosConstants.ID -> navigate(MonoChaosMatchRoute(matchId))
         else -> navigate(RoyalLudoMatch(matchId))

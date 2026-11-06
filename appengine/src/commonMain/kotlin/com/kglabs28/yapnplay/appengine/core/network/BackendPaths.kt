@@ -6,6 +6,9 @@ object BackendPaths {
     const val GUEST = "/auth/guest"
     const val DEVICE_ACCOUNT = "/auth/device"
     const val PLAY_GAMES = "/auth/play-games"
+    /** 0.12.5: the web app's Google sign-in, and its one-time WebSocket ticket. */
+    const val GOOGLE = "/auth/google"
+    const val WS_TICKET = "/auth/ws-ticket"
     const val ME = "/me"
     const val MY_ROOMS = "/rooms/mine"
     const val ROOM_INVITES = "/rooms/invites"

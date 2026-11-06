@@ -449,3 +449,24 @@ start (`NOT_ENOUGH_READY`).
   stays on the server.
 - The guess box shows the whole word (hint letters in place, typed letters in
   the hidden ones) and sends the guess by itself when the last hidden letter is typed.
+
+## 2026-11-06 — Web app for iPhone users (contract 0.12.5)
+
+- No App Store account, so iPhone users play in the browser: the same app
+  (`appengine`) built for the web (`wasmJs`) by a thin `:webApp` shell,
+  published to GitHub Pages by `web-release.yml` on the same `v*` tags as the
+  Play Store release.
+- One address for everything: every page load checks for a saved account;
+  none → the Google login screen, otherwise the main screen. Screens never
+  change the address.
+- Web login is Google sign-in only (no guest). New Google account → new
+  YapNPlay account and the welcome (name, avatar).
+- Landscape-only: a browser can't lock rotation, so an upright phone sees a
+  "turn your phone" card over the (still running) app.
+- Voice works on the web (LiveKit browser SDK); iPhone sound starts on the first tap.
+- Upright phone: the rotate card also offers "Full screen" (Android browsers,
+  locks landscape) or, on iPhone, says to Add to Home Screen.
+- Game sounds and music work on the web (Web Audio, same files and volumes).
+- Not on the web yet: ads, Nearby/offline play, pushes.
+- The app moved to Kotlin 2.3.10 (its libraries already needed it; the web
+  compiler can't read newer libraries with an older compiler).

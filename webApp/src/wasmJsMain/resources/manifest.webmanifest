@@ -1,0 +1,14 @@
+{
+    "name": "YapNPlay",
+    "short_name": "YapNPlay",
+    "description": "Talk and play games with your friends.",
+    "start_url": "./",
+    "scope": "./",
+    "display": "fullscreen",
+    "orientation": "landscape",
+    "background_color": "#050917",
+    "theme_color": "#050917",
+    "icons": [
+        { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    ]
+}

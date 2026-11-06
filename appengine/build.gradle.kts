@@ -36,6 +36,23 @@ kotlin {
         }
     }
 
+    // The web app (iPhone users and any browser): built by :webApp.
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
+
+    // nonAndroidMain: what desktop and the web share (no Play Games, ads, Nearby or LiveKit).
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
+    applyDefaultHierarchyTemplate {
+        common {
+            group("nonAndroid") {
+                withJvm()
+                withWasmJs()
+            }
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.core)
@@ -58,7 +75,6 @@ kotlin {
             implementation(libs.coil.network.ktor3)
             // Animated emoji gifts (Google's Noto animated emoji, Lottie files in composeResources/files/emoji).
             implementation(libs.compottie)
-            implementation(libs.ktor.client.okhttp)
             // Local (no-backend) mode only: answers the app's HTTP calls in-process.
             implementation(libs.ktor.client.mock)
             implementation(libs.ktor.client.content.negotiation)
@@ -78,7 +94,16 @@ kotlin {
                 implementation(libs.compose.uitest.junit4)
             }
         }
+        jvmMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
+        wasmJsMain.dependencies {
+            // The browser's own fetch / WebSocket.
+            implementation(libs.ktor.client.js)
+            implementation(libs.kotlinx.browser)
+        }
         androidMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
             // Explicit versions (from BOM 34.0.0): Kotlin's deprecated
             // platform() cannot be used inside KMP source-set blocks.
             implementation(libs.koin.android)

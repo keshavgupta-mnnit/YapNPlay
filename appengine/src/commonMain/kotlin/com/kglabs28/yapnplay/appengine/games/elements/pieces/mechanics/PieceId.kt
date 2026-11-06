@@ -1,5 +1,6 @@
 package com.kglabs28.yapnplay.appengine.games.elements.pieces.mechanics
 
+import kotlin.jvm.JvmInline
 import kotlinx.serialization.Serializable
 
 /**

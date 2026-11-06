@@ -18,6 +18,9 @@ import com.kglabs28.yapnplay.appengine.features.profile.repository.ProfileReposi
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.BlockUserUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetFriendIdsUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.SignInWithPlayGamesUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.SignInWithGoogleUseCase
+import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveSignInRequiredUseCase
+import com.kglabs28.yapnplay.appengine.ui.screens.signin.SignInViewModel
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.ObserveSignInNeededUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.GetFriendsUseCase
 import com.kglabs28.yapnplay.appengine.features.profile.usecase.PlayerFriendUseCases
@@ -60,6 +63,9 @@ val profileModule = module {
     factory { GetFriendsUseCase(get()) }
     factory { GetFriendIdsUseCase(get()) }
     factory { SignInWithPlayGamesUseCase(get()) }
+    factory { SignInWithGoogleUseCase(get(), get(), get()) }
+    factory { ObserveSignInRequiredUseCase(get(), get()) }
+    factory { SignInViewModel(get(), get()) }
     factory { ObserveSignInNeededUseCase(get()) }
     factory { ObserveDeviceAccountOfferUseCase(get()) }
     factory { AnswerDeviceAccountOfferUseCase(get()) }

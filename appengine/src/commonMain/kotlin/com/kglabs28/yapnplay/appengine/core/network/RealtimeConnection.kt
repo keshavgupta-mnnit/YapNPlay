@@ -11,7 +11,6 @@ import com.kglabs28.yapnplay.appengine.protocol.transport.MessageType
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.header
-import io.ktor.http.HttpHeaders
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import kotlinx.coroutines.CompletableDeferred
@@ -51,6 +50,8 @@ class RealtimeConnection(
     private val session: SessionProvider,
     private val json: Json,
     private val scope: CoroutineScope,
+    /** Headers on the phone; a one-time ticket in the browser (which can't set WebSocket headers). */
+    private val authorizer: SocketAuthorizer,
     /** The backend address, read on every connect (AppManager can change it). */
     private val baseUrl: () -> String,
     /** The games this app has, sent on connect: the server starts no game someone's app can't show. */
@@ -129,9 +130,10 @@ class RealtimeConnection(
         while (scope.isActive) {
             try {
                 val token = session.credentials().bearerToken
+                val access = authorizer.access(token, games().joinToString(","))
                 http.webSocket(urlString = BackendPaths.webSocketUrl(baseUrl()), request = {
-                    header(HttpHeaders.Authorization, BEARER + token)
-                    header(APP_GAMES_HEADER, games().joinToString(","))
+                    access.headers.forEach { (name, value) -> header(name, value) }
+                    access.query.forEach { (name, value) -> url.parameters.append(name, value) }
                 }) {
                     attempt = 0
                     live = this
@@ -174,9 +176,6 @@ class RealtimeConnection(
     }
 
     private companion object {
-        const val BEARER = "Bearer "
-        /** The header listing this app's games (the server knows it). */
-        const val APP_GAMES_HEADER = "X-YapNPlay-Games"
         const val INCOMING_BUFFER = 256
         const val REPLY_TIMEOUT_MS = 15_000L
         const val BACKOFF_START_MS = 1_000L

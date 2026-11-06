@@ -110,7 +110,7 @@ class HostRoom(
         stopCountdown(CountdownStopReason.GAME_CHANGED, userId)
         selectedGame = gameId
         houseRules = game()?.houseRuleOptions?.associate { it.key to it.defaultEnabled }.orEmpty()
-        members.replaceAll { _, m -> m.copy(ready = false, readyAt = null, watching = false) }
+        members.entries.forEach { it.setValue(it.value.copy(ready = false, readyAt = null, watching = false)) }
     }
 
     fun setHouseRule(userId: String, key: String, enabled: Boolean) {
@@ -187,7 +187,7 @@ class HostRoom(
     /** A match just started: everyone's ready/watching resets. */
     fun matchStarted(matchId: String) {
         matchInProgress = matchId
-        members.replaceAll { _, m -> m.copy(ready = false, readyAt = null, watching = false) }
+        members.entries.forEach { it.setValue(it.value.copy(ready = false, readyAt = null, watching = false)) }
     }
 
     fun failedToStart() {

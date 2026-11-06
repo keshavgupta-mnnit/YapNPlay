@@ -1,5 +1,12 @@
 package com.kglabs28.yapnplay.appengine.di
 
+import com.kglabs28.yapnplay.appengine.core.auth.AccountEntry
+import com.kglabs28.yapnplay.appengine.core.auth.GoogleSignInLauncher
+import com.kglabs28.yapnplay.appengine.core.auth.NoGoogleSignIn
+import com.kglabs28.yapnplay.appengine.core.network.HeaderSocketAuthorizer
+import com.kglabs28.yapnplay.appengine.core.common.FullScreen
+import com.kglabs28.yapnplay.appengine.core.common.NoFullScreen
+import com.kglabs28.yapnplay.appengine.core.network.SocketAuthorizer
 import com.kglabs28.yapnplay.appengine.features.nearby.domain.HostFitness
 import com.kglabs28.yapnplay.appengine.core.common.InMemoryKeyboardPreference
 import com.kglabs28.yapnplay.appengine.core.common.KeyboardPreference
@@ -29,6 +36,11 @@ import org.koin.dsl.module
 
 /** JVM local stores (in memory): appmanager config, notification history. */
 val platformAppManagerModule = module {
+    // A guest made on first launch (kept by Play Games); the WebSocket signs in with headers.
+    single { AccountEntry.GUEST }
+    single<GoogleSignInLauncher> { NoGoogleSignIn() }
+    single<SocketAuthorizer> { HeaderSocketAuthorizer() }
+    single<FullScreen> { NoFullScreen() }
     single<AppConfigStore> { JvmConfigStore() }
     single<NotificationHistoryStore> { InMemoryNotificationHistoryStore() }
     single<CredentialStore> { InMemoryCredentialStore() }

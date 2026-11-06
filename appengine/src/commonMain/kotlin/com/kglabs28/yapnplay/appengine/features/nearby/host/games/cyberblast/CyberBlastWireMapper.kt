@@ -9,8 +9,6 @@ import com.kglabs28.yapnplay.appengine.games.cyberblast.data.remote.wire.CyberHi
 import com.kglabs28.yapnplay.appengine.games.cyberblast.data.remote.wire.CyberItemWire
 import com.kglabs28.yapnplay.appengine.games.cyberblast.data.remote.wire.CyberPlayerWire
 import com.kglabs28.yapnplay.appengine.games.base.play.GameEvent
-import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_COLS
-import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_ROWS
 import com.kglabs28.yapnplay.appengine.games.cyberblast.BlastBoom
 import com.kglabs28.yapnplay.appengine.games.cyberblast.BlastClosing
 import com.kglabs28.yapnplay.appengine.games.cyberblast.BlastHit
@@ -47,6 +45,8 @@ class CyberBlastWireMapper(private val json: Json) {
                     boostMs = (p.boostUntil - now).coerceAtLeast(0),
                     shieldMs = (p.shieldUntil - now).coerceAtLeast(0),
                     out = !p.inPlay,
+                    kills = p.hits,
+                    streak = p.streak,
                 )
             },
             bombs = state.bombs.map { CyberBombWire(it.id, it.tile, it.owner, it.radius, (it.explodesAt - now).coerceAtLeast(0)) },
@@ -63,12 +63,13 @@ class CyberBlastWireMapper(private val json: Json) {
     fun publicState(state: CyberBlastState, frame: CyberFrame, frameMs: Long): JsonObject = json.encodeToJsonElement(
         CyberBlastPublicState.serializer(),
         CyberBlastPublicState(
-            cols = BLAST_COLS,
-            rows = BLAST_ROWS,
+            cols = state.cols,
+            rows = state.rows,
             lives = state.mandatory.lives,
             frameMs = frameMs,
             fuseMs = state.mandatory.fuseMs,
             boostMs = state.mandatory.boostMs,
+            miniMap = state.blastRules.house.miniMap,
             frame = frame,
         ),
     ).jsonObject

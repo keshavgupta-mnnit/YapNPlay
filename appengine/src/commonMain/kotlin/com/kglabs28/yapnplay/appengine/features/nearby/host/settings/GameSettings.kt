@@ -231,11 +231,11 @@ object GameSettings {
     // ── Cyber Blast ───────────────────────────────────────────────────────
     val BLAST_FRAME_MS = IntSetting("blast.frame_ms", SettingGroup.CYBER_BLAST, "Board updates sent every (ms; lower is smoother but more data)", 50, 30, 200)
     val BLAST_LIVES = IntSetting("blast.lives", SettingGroup.CYBER_BLAST, "Hearts per player", 5, 1, 10)
-    val BLAST_START_RADIUS = IntSetting("blast.start_radius", SettingGroup.CYBER_BLAST, "Blast reach at the start (tiles)", 2, 1, 6)
+    val BLAST_START_RADIUS = IntSetting("blast.start_radius", SettingGroup.CYBER_BLAST, "Blast reach at the start, and after losing a heart (tiles)", 1, 1, 6)
     val BLAST_MAX_RADIUS = IntSetting("blast.max_radius", SettingGroup.CYBER_BLAST, "Longest blast reach (tiles)", 7, 1, 14)
-    val BLAST_RADIUS_PER_HIT = IntSetting("blast.radius_per_hit", SettingGroup.CYBER_BLAST, "Reach added for each player you hit (tiles)", 1, 0, 3)
-    val BLAST_BOMBS = IntSetting("blast.bombs", SettingGroup.CYBER_BLAST, "Bombs one player may have down at once", 2, 1, 5)
-    val BLAST_FUSE_MS = IntSetting("blast.fuse_ms", SettingGroup.CYBER_BLAST, "Bomb fuse (ms)", 2_500, 1_000, 6_000)
+    val BLAST_RADIUS_PER_HIT = IntSetting("blast.radius_per_hit", SettingGroup.CYBER_BLAST, "Reach added for each player hit in a row (tiles)", 1, 0, 3)
+    val BLAST_BOMBS = IntSetting("blast.bombs", SettingGroup.CYBER_BLAST, "Bombs one player may have down at once (0: no limit)", 0, 0, 20)
+    val BLAST_FUSE_MS = IntSetting("blast.fuse_ms", SettingGroup.CYBER_BLAST, "Bomb fuse (ms)", 3_000, 1_000, 6_000)
     val BLAST_FLAME_MS = IntSetting("blast.flame_ms", SettingGroup.CYBER_BLAST, "Fire stays on the board (ms)", 500, 200, 2_000)
     val BLAST_SPEED = IntSetting("blast.speed", SettingGroup.CYBER_BLAST, "Walking speed (thousandths of a tile a second)", 3_200, 1_000, 8_000)
     val BLAST_BOOST_SPEED = IntSetting("blast.boost_speed", SettingGroup.CYBER_BLAST, "Speed with the boots (thousandths of a tile a second)", 4_800, 1_000, 10_000)
@@ -246,6 +246,10 @@ object GameSettings {
     val BLAST_SELF_PENALTY = IntSetting("blast.self_penalty", SettingGroup.CYBER_BLAST, "Points lost to your own bomb", 15, 0, 1_000)
     val BLAST_CRATE_POINTS = IntSetting("blast.crate_points", SettingGroup.CYBER_BLAST, "Points for each blocker broken", 10, 0, 500)
     val BLAST_CRATE_DENSITY_PCT = IntSetting("blast.crate_density_pct", SettingGroup.CYBER_BLAST, "Free tiles that start with a blocker (%)", 60, 0, 90)
+    val BLAST_DENSITY_FEW_PCT = IntSetting("blast.density_few_pct", SettingGroup.CYBER_BLAST, "Room option Fewer Blockers: free tiles with a blocker (%)", 35, 0, 90)
+    val BLAST_DENSITY_MANY_PCT = IntSetting("blast.density_many_pct", SettingGroup.CYBER_BLAST, "Room option More Blockers: free tiles with a blocker (%)", 80, 0, 90)
+    val BLAST_DENSITY_PER_PLAYER_PCT = IntSetting("blast.density_per_player_pct", SettingGroup.CYBER_BLAST, "Blockers: % fewer for each player over 4 (more for each under)", 4, 0, 20)
+    val BLAST_BIG_CLOSE_AFTER_SECONDS = IntSetting("blast.big_close_after_seconds", SettingGroup.CYBER_BLAST, "Big Arena: closing in starts after (seconds; 0 never)", 300, 0, 1_800)
     val BLAST_ITEM_EVERY_SECONDS = IntSetting("blast.item_every_seconds", SettingGroup.CYBER_BLAST, "Speed boots show up every (seconds, at least)", 12, 3, 120)
     val BLAST_ITEM_JITTER_SECONDS = IntSetting("blast.item_jitter_seconds", SettingGroup.CYBER_BLAST, "…plus up to (seconds, at random)", 8, 0, 120)
     val BLAST_ITEM_LIFE_SECONDS = IntSetting("blast.item_life_seconds", SettingGroup.CYBER_BLAST, "Speed boots lie on the board for (seconds)", 12, 3, 120)
@@ -286,7 +290,7 @@ object GameSettings {
         DK_ALL_GUESSED_BONUS, DK_PASS_PENALTY, DK_HINT_START_PCT, DK_EXTENSION_ROUNDS, DK_TEST_BOTS,
         BLAST_FRAME_MS, BLAST_LIVES, BLAST_START_RADIUS, BLAST_MAX_RADIUS, BLAST_RADIUS_PER_HIT, BLAST_BOMBS, BLAST_FUSE_MS, BLAST_FLAME_MS,
         BLAST_SPEED, BLAST_BOOST_SPEED, BLAST_BOOST_SECONDS, BLAST_SHIELD_MS, BLAST_HIT_POINTS, BLAST_HIT_PENALTY, BLAST_SELF_PENALTY,
-        BLAST_CRATE_POINTS, BLAST_CRATE_DENSITY_PCT, BLAST_ITEM_EVERY_SECONDS, BLAST_ITEM_JITTER_SECONDS, BLAST_ITEM_LIFE_SECONDS, BLAST_MAX_ITEMS,
+        BLAST_CRATE_POINTS, BLAST_CRATE_DENSITY_PCT, BLAST_DENSITY_FEW_PCT, BLAST_DENSITY_MANY_PCT, BLAST_DENSITY_PER_PLAYER_PCT, BLAST_BIG_CLOSE_AFTER_SECONDS, BLAST_ITEM_EVERY_SECONDS, BLAST_ITEM_JITTER_SECONDS, BLAST_ITEM_LIFE_SECONDS, BLAST_MAX_ITEMS,
         BLAST_COUNTDOWN_SECONDS, BLAST_CLOSE_AFTER_SECONDS, BLAST_CLOSE_STEP_MS,
         BLAST_BOT_REACT_MS, BLAST_BOT_REACT_JITTER_MS, BLAST_BOT_BOMB_GAP_MS, BLAST_BOT_BOMB_GAP_JITTER_MS, BLAST_BOT_LIFE_VALUE, BLAST_BOT_STEP_COST,
         BLAST_BOT_HIT_CHANCE_PCT, BLAST_BOT_CORNER_BONUS_PCT, BLAST_BOT_BOOST_VALUE, BLAST_BOT_HUNT_VALUE, BLAST_BOT_THREAT_PCT, BLAST_BOT_PLANNED_BOMB_PCT,

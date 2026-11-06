@@ -13,13 +13,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CyberBlastMandatoryRules(
     val lives: Int = 5,
-    val startRadius: Int = 2,
+    val startRadius: Int = 1,
     val maxRadius: Int = 7,
-    /** Tiles a player's blast grows by for each player they hit. */
+    /** Tiles a player's blast grows by for each player they hit in a row (back to [startRadius] when they lose a heart). */
     val radiusPerHit: Int = 1,
-    /** Bombs one player may have on the board at once. */
-    val bombs: Int = 2,
-    val fuseMs: Long = 2_500,
+    /** Bombs one player may have on the board at once; 0: no limit. */
+    val bombs: Int = 0,
+    val fuseMs: Long = 3_000,
     val flameMs: Long = 500,
     val speed: Int = 3_200,
     val boostSpeed: Int = 4_800,
@@ -42,16 +42,24 @@ data class CyberBlastMandatoryRules(
     /** The arena starts closing in after this long (0: never), one tile every [closeStepMs]. */
     val closeAfterMs: Long = 180_000,
     val closeStepMs: Long = 600,
+    /** The board's size (a Big Arena is about twice as big each way). */
+    val cols: Int = BLAST_COLS,
+    val rows: Int = BLAST_ROWS,
 ) : MandatoryRules
 
-/** Cyber Blast has no room toggles. */
+/** A room's toggles (Quick Play: all off). Blocker density and the board's size go into the mandatory rules when the match starts. */
 @Serializable
-data object CyberBlastHouseRules : HouseRules
+data class CyberBlastHouseRules(
+    val bigArena: Boolean = false,
+    val miniMap: Boolean = false,
+    val fewerBlockers: Boolean = false,
+    val moreBlockers: Boolean = false,
+) : HouseRules
 
 @Serializable
 data class CyberBlastRules(
     override val mandatory: CyberBlastMandatoryRules = CyberBlastMandatoryRules(),
+    override val house: CyberBlastHouseRules = CyberBlastHouseRules(),
 ) : GameRules {
-    override val house: HouseRules get() = CyberBlastHouseRules
     override fun isAllowed(mode: PlayMode): Boolean = true
 }

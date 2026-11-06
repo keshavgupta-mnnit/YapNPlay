@@ -38,7 +38,7 @@ class BlastGoalDecision(
     private val others = state.alive.filter { it.seat != me.seat }
 
     /** Where it can walk safely: never onto a tile while fire is (or will be) there. */
-    val walk: BlastPathTree = BlastPaths.from(me.tile, MAX_STEPS) { tile, steps -> BlastGrid.isOpen(state, tile) && clear(danger[tile], steps) }
+    val walk: BlastPathTree = BlastPaths.from(state, me.tile, MAX_STEPS) { tile, steps -> BlastGrid.isOpen(state, tile) && clear(danger[tile], steps) }
 
     /** How many players have each tile in their bomb's line right now. */
     private val inLine: Map<Int, Int> = others.flatMap { o -> BlastGrid.reach(state, o.tile, o.radius).fire.map { it.first } }.groupingBy { it }.eachCount()
@@ -78,7 +78,8 @@ class BlastGoalDecision(
         if (value <= 0.0) return Evaluation.never("nothing to hit")
         // Running out of its own blast: the tighter, the likelier a slip.
         val tight = (escape * stepMs).toDouble() / rules.fuseMs
-        return Evaluation(gain = value, cost = settings.stepCost, risk = settings.lifeValue * tight * tight * SLIP, note = "escape $escape steps")
+        // A sure thing now beats the same chance later: a bomb dropped now counts a little more.
+        return Evaluation(gain = value * NOW_BONUS, risk = settings.lifeValue * tight * tight * SLIP, note = "escape $escape steps")
     }
 
     /**
@@ -97,7 +98,7 @@ class BlastGoalDecision(
 
     /** A player in the fire's way gets caught more often the fewer tiles they have to run to. */
     private fun catchChance(other: BlastPlayer, fire: Set<Int>): Double {
-        val room = BlastPaths.from(other.tile, ROOM_STEPS) { t, _ -> BlastGrid.isOpen(state, t) }.tiles.count { it !in fire }
+        val room = BlastPaths.from(state, other.tile, ROOM_STEPS) { t, _ -> BlastGrid.isOpen(state, t) }.tiles.count { it !in fire }
         val boxed = 1.0 - room.coerceAtMost(ROOM_FULL).toDouble() / ROOM_FULL
         return (settings.hitChancePct + settings.cornerBonusPct * boxed) / PERCENT
     }
@@ -107,7 +108,7 @@ class BlastGoalDecision(
         val bomb = BlastBomb(id = 0, tile = tile, owner = me.seat, radius = me.radius, explodesAt = at + rules.fuseMs)
         val withBomb = BlastDanger.of(state, bomb)
         val head = ((at - now) / stepMs).toInt()
-        val run = BlastPaths.from(tile, MAX_STEPS) { t, steps -> BlastGrid.isOpen(state, t) && clear(withBomb[t], head + steps) }
+        val run = BlastPaths.from(state, tile, MAX_STEPS) { t, steps -> BlastGrid.isOpen(state, t) && clear(withBomb[t], head + steps) }
         val out = run.tiles.filter { withBomb[it] == null }.minOfOrNull { run.steps.getValue(it) } ?: return null
         return out.takeIf { it * stepMs + MARGIN_MS < rules.fuseMs }
     }
@@ -132,5 +133,6 @@ class BlastGoalDecision(
         const val LATER_FIRE = 0.5
         const val USED_BOOTS = 0.3
         const val SLIP = 0.1
+        const val NOW_BONUS = 1.5
     }
 }

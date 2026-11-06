@@ -33,7 +33,7 @@ object BlastPowerUps {
     private fun place(state: CyberBlastState, random: GameRandom): CyberBlastState? {
         val danger = BlastDanger.of(state)
         val standing = state.alive.map { it.tile }.toSet()
-        val free = (0 until BlastGrid.TILES).filter {
+        val free = BlastGrid.tiles(state).filter {
             BlastGrid.isOpen(state, it) && it !in danger && it !in standing && state.items.none { item -> item.tile == it }
         }
         if (free.isEmpty()) return null

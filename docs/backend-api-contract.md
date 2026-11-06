@@ -30,9 +30,14 @@ decisions that win).
 ## Versioning
 
 `CONTRACT_VERSION` (`protocol/transport/ContractVersion.kt`), currently
-**0.13.0**. Patch: optional field / new message. Minor: new required
+**0.13.2**. Patch: optional field / new message. Minor: new required
 field, channel or game-interface member. Major: breaking change.
 Every bump is announced in `docs/decisions.md`.
+
+0.13.2 added: `CyberPlayerWire.kills` / `streak`; Cyber Blast defaults: no bomb limit, 3 s fuse, reach 1 + kills in a row (back to 1 on a lost heart).
+
+0.13.1 added: Cyber Blast room toggles `big_arena` (29 × 21 board, each player's screen follows them), `mini_map`,
+`fewer_blockers`, `more_blockers` (both on = usual); `CyberBlastPublicState.miniMap`; tiles are now `row * 64 + col` on any board.
 
 0.13.0 added: Cyber Blast (`cyber-blast`), the first real-time game — `CyberInput` on the
 MATCH channel and `CyberFrame` relays about every 50 ms (see "Cyber Blast match additions").
@@ -558,8 +563,8 @@ backend's `contract/mono/MonoWire.kt` (same names as the app's `wire` packages).
 
 ## Cyber Blast match additions (0.13.0)
 
-A real-time game: everyone moves at once on a 15 × 11 board (pillars on every odd column of
-every odd row). Tiles are `row * 15 + col`; positions are thousandths of a tile (a tile's
+A real-time game: everyone moves at once on a 15 × 11 board (Big Arena 29 × 21) (pillars on every odd column of
+every odd row). Tiles are `row * 64 + col` (0.13.1, any board size; `cols` / `rows` in the public state); positions are thousandths of a tile (a tile's
 centre at +500); all times in frames are ms *left*.
 
 - **Client → server** `CyberInput { matchId, dir?: "UP"|"DOWN"|"LEFT"|"RIGHT", bomb: Boolean }`,

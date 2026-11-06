@@ -10,14 +10,18 @@ import com.kglabs28.yapnplay.appengine.games.base.play.GameRandom
  */
 object BlastClosing {
 
-    /** Tiles in the order they close: the outer ring clockwise from the top left, then the next ring in. */
-    val order: List<Int> = buildList {
+    private val orders = mutableMapOf<Pair<Int, Int>, List<Int>>()
+
+    /** Tiles in the order they close on a [cols] × [rows] board: the outer ring clockwise from the top left, then the next ring in. */
+    fun order(cols: Int, rows: Int): List<Int> = orders.getOrPut(cols to rows) { spiral(cols, rows) }
+
+    private fun spiral(cols: Int, rows: Int): List<Int> = buildList {
         var left = 0
         var top = 0
-        var right = BLAST_COLS - 1
-        var bottom = BLAST_ROWS - 1
-        val coreCol = BLAST_COLS / 2
-        val coreRow = BLAST_ROWS / 2
+        var right = cols - 1
+        var bottom = rows - 1
+        val coreCol = cols / 2
+        val coreRow = rows / 2
         val inCore = { tile: Int ->
             kotlin.math.abs(BlastGrid.col(tile) - coreCol) <= BLAST_CORE_HALF_COLS && kotlin.math.abs(BlastGrid.row(tile) - coreRow) <= BLAST_CORE_HALF_ROWS
         }
@@ -38,10 +42,10 @@ object BlastClosing {
 
     fun update(state: CyberBlastState, random: GameRandom): Pair<CyberBlastState, List<BlastEvent>> {
         val rules = state.mandatory
-        if (rules.closeAfterMs <= 0 || state.time < rules.closeAfterMs || state.closed >= order.size) return state to emptyList()
+        if (rules.closeAfterMs <= 0 || state.time < rules.closeAfterMs || state.closed >= order(state.cols, state.rows).size) return state to emptyList()
         if (state.nextCloseAt == 0L) return state.copy(nextCloseAt = state.time) to emptyList()
         if (state.time < state.nextCloseAt) return state to emptyList()
-        val tile = order[state.closed]
+        val tile = order(state.cols, state.rows)[state.closed]
         var s = state.copy(
             closed = state.closed + 1,
             nextCloseAt = state.time + rules.closeStepMs,

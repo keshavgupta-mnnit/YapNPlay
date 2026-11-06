@@ -4,7 +4,7 @@ import com.kglabs28.yapnplay.appengine.games.base.play.GameRandom
 
 /**
  * Players caught in fire (or under a closing wall) lose a heart. Points:
- * the bomb's owner +100 and 1 tile more reach; the one hit −25, or −15 for
+ * the bomb's owner +100 and 1 tile more reach for each hit in a row (a lost heart starts it again at 1); the one hit −25, or −15 for
  * their own bomb; a wall costs a heart but no points. With hearts left they
  * come back on a safe tile, shielded a moment; with none they're out.
  */
@@ -34,11 +34,13 @@ object BlastHits {
         val byPoints = if (crushed || self) 0 else rules.hitPoints
         var s = state.copy(players = state.players.map { p ->
             when {
-                p.seat == victim -> p.copy(lives = p.lives - 1, score = p.score + victimPoints, held = null, boostUntil = 0L)
+                // Losing a heart ends the streak: back to the starting reach.
+                p.seat == victim -> p.copy(lives = p.lives - 1, score = p.score + victimPoints, held = null, boostUntil = 0L, streak = 0, radius = rules.startRadius)
                 p.seat == by && byPoints > 0 -> p.copy(
                     score = p.score + byPoints,
                     hits = p.hits + 1,
-                    radius = (p.radius + rules.radiusPerHit).coerceAtMost(rules.maxRadius),
+                    streak = p.streak + 1,
+                    radius = (rules.startRadius + (p.streak + 1) * rules.radiusPerHit).coerceAtMost(rules.maxRadius),
                 )
                 else -> p
             }

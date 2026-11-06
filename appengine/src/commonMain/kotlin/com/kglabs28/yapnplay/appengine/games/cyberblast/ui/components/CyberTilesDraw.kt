@@ -4,6 +4,10 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 
@@ -37,37 +41,67 @@ fun DrawScope.drawFloor(grid: CyberGrid, cols: Int, rows: Int, p: CyberBoardPale
     for (r in 1 until rows) drawLine(p.floorLine, Offset(grid.left, grid.y(r.toFloat())), Offset(grid.x(cols.toFloat()), grid.y(r.toFloat())), t * LINE_WIDTH)
 }
 
-/** A metal pillar: a raised block, its side darker, a shine along its top. */
+/** A metal pillar: a dark block on a base, a raised cap with a recessed screen in it, light catching its top edges. */
 fun DrawScope.drawPillar(grid: CyberGrid, col: Int, row: Int, p: CyberBoardPalette) {
     val t = grid.tile
-    val x = grid.x(col.toFloat()) + t * INSET
-    val y = grid.y(row.toFloat()) + t * INSET
-    val w = t * (1 - 2 * INSET)
-    val radius = CornerRadius(t * BLOCK_ROUND)
-    drawRoundRect(p.pillarSide, Offset(x, y + t * RAISE), Size(w, w - t * RAISE), radius)
-    drawRoundRect(p.pillarTop, Offset(x, y), Size(w, w - t * RAISE * 2), radius)
-    drawLine(p.pillarShine, Offset(x + t * SHINE_INSET, y + t * SHINE_INSET), Offset(x + w - t * SHINE_INSET, y + t * SHINE_INSET), t * SHINE_WIDTH)
-    // Bolts in the corners.
-    val bolt = t * BOLT
-    listOf(Offset(x + bolt * 2, y + bolt * 2), Offset(x + w - bolt * 2, y + bolt * 2)).forEach { drawCircle(p.pillarSide, bolt, it) }
+    val x = grid.x(col.toFloat())
+    val y = grid.y(row.toFloat())
+    fun box(l: Float, top: Float, w: Float, h: Float, colour: Color, round: Float) =
+        drawRoundRect(colour, Offset(x + t * l, y + t * top), Size(t * w, t * h), CornerRadius(t * round))
+    // Shadow on the floor, then the body and its darker base.
+    box(0.1f, 0.2f, 0.84f, 0.78f, p.floorLine, 0.12f)
+    box(0.12f, 0.12f, 0.76f, 0.8f, p.pillarSide, 0.12f)
+    box(0.14f, 0.72f, 0.72f, 0.16f, p.pillarBase, 0.06f)
+    // The cap: lighter, with its shine along the top.
+    box(0.16f, 0.1f, 0.68f, 0.58f, p.pillarTop, 0.12f)
+    drawLine(p.pillarShine, Offset(x + t * 0.22f, y + t * 0.13f), Offset(x + t * 0.78f, y + t * 0.13f), t * 0.03f)
+    // The recessed screen in the cap.
+    box(0.26f, 0.22f, 0.48f, 0.34f, p.pillarSide, 0.07f)
+    drawLine(p.pillarShine.copy(alpha = SCREEN_SHINE), Offset(x + t * 0.3f, y + t * 0.53f), Offset(x + t * 0.7f, y + t * 0.53f), t * 0.02f)
+    drawRoundRect(p.pillarEdge, Offset(x + t * 0.12f, y + t * 0.1f), Size(t * 0.76f, t * 0.82f), CornerRadius(t * 0.12f), style = Stroke(t * 0.025f))
 }
 
-/** A breakable glass blocker: see-through fill, neon edge, a chevron mark. */
+/**
+ * A breakable glass blocker drawn as a cube seen from a little above: a lit
+ * top face in perspective with a small screen and its diagonal shine, a darker
+ * front face with a chevron, neon edges (cyan, or purple on some tiles) and a
+ * shadow on the floor.
+ */
 fun DrawScope.drawCrate(grid: CyberGrid, col: Int, row: Int, p: CyberBoardPalette) {
     val t = grid.tile
-    val x = grid.x(col.toFloat()) + t * INSET
-    val y = grid.y(row.toFloat()) + t * INSET
-    val w = t * (1 - 2 * INSET)
-    val radius = CornerRadius(t * BLOCK_ROUND)
-    drawRoundRect(p.crateFill, Offset(x, y), Size(w, w), radius)
-    drawRoundRect(p.crateEdge, Offset(x, y), Size(w, w), radius, style = Stroke(t * EDGE_WIDTH))
-    val mark = Path().apply {
-        moveTo(x + w * MARK_SIDE, y + w * MARK_TOP)
-        lineTo(x + w / 2, y + w * MARK_BOTTOM)
-        lineTo(x + w * (1 - MARK_SIDE), y + w * MARK_TOP)
+    val x = grid.x(col.toFloat())
+    val y = grid.y(row.toFloat())
+    fun at(px: Float, py: Float) = Offset(x + t * px, y + t * py)
+    fun shape(pts: List<Offset>) = Path().apply {
+        moveTo(pts[0].x, pts[0].y)
+        pts.drop(1).forEach { lineTo(it.x, it.y) }
+        close()
     }
-    drawPath(mark, p.crateMark, style = Stroke(t * MARK_WIDTH))
-    drawLine(p.crateEdge.copy(alpha = GLINT_ALPHA), Offset(x + w * GLINT_FROM, y + w * GLINT_TO), Offset(x + w * GLINT_TO, y + w * GLINT_FROM), t * LINE_WIDTH * 2)
+    val neon = if ((col * 3 + row) % PURPLE_EVERY == 0) p.crateMark else p.crateEdge
+    val top = shape(listOf(at(0.2f, 0.06f), at(0.8f, 0.06f), at(0.92f, 0.36f), at(0.08f, 0.36f)))
+    val front = shape(listOf(at(0.08f, 0.36f), at(0.92f, 0.36f), at(0.92f, 0.92f), at(0.08f, 0.92f)))
+    // Shadow, then a soft neon glow round the cube.
+    drawOval(Color.Black.copy(alpha = 0.35f), at(0.06f, 0.82f), Size(t * 0.9f, t * 0.16f))
+    drawPath(shape(listOf(at(0.17f, 0.02f), at(0.83f, 0.02f), at(0.96f, 0.36f), at(0.96f, 0.96f), at(0.04f, 0.96f), at(0.04f, 0.36f))), neon.copy(alpha = CRATE_GLOW))
+    // Glass faces: the top catches the light, the front is deeper.
+    drawPath(front, Brush.verticalGradient(listOf(p.crateFill, p.crateScreen), y + t * 0.36f, y + t * 0.92f))
+    drawPath(top, Brush.verticalGradient(listOf(lerp(p.crateFill, neon, TOP_TINT), p.crateFill), y + t * 0.06f, y + t * 0.36f))
+    // The screen on the top face and its shine.
+    val screen = shape(listOf(at(0.3f, 0.12f), at(0.7f, 0.12f), at(0.76f, 0.3f), at(0.24f, 0.3f)))
+    drawPath(screen, p.crateScreen)
+    drawPath(screen, neon.copy(alpha = SCREEN_EDGE), style = Stroke(t * 0.02f))
+    drawLine(neon, at(0.38f, 0.26f), at(0.6f, 0.16f), t * 0.045f, StrokeCap.Round)
+    // The chevron on the front.
+    val chevron = Path().apply {
+        moveTo(x + t * 0.32f, y + t * 0.56f)
+        lineTo(x + t * 0.5f, y + t * 0.72f)
+        lineTo(x + t * 0.68f, y + t * 0.56f)
+    }
+    drawPath(chevron, neon, style = Stroke(t * 0.055f, cap = StrokeCap.Round))
+    // Neon edges, and a glint down the front's left edge.
+    drawPath(top, neon, style = Stroke(t * 0.04f))
+    drawPath(front, neon, style = Stroke(t * 0.045f))
+    drawLine(Color.White.copy(alpha = GLINT_ALPHA), at(0.14f, 0.42f), at(0.14f, 0.7f), t * 0.025f, StrokeCap.Round)
 }
 
 /** A tile the closing arena filled: a dark slab with a warning edge. */
@@ -110,7 +144,13 @@ private const val MARK_BOTTOM = 0.62f
 private const val MARK_WIDTH = 0.06f
 private const val GLINT_FROM = 0.14f
 private const val GLINT_TO = 0.34f
-private const val GLINT_ALPHA = 0.6f
+private const val GLINT_ALPHA = 0.45f
+private const val TOP_TINT = 0.3f
 private const val WALL_EDGE_ALPHA = 0.7f
 private const val SHATTER_SPREAD = 0.45f
 private const val SHARD = 0.22f
+private const val SCREEN_SHINE = 0.5f
+private const val CRATE_GLOW = 0.25f
+private const val SCREEN_EDGE = 0.6f
+/** Every this many tiles (by a mix of column and row) a blocker glows purple instead of cyan. */
+private const val PURPLE_EVERY = 4

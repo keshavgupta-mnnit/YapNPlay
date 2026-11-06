@@ -19,4 +19,10 @@ enum class GameSound {
     EMOJI_POP,
     /** A bomb goes off (Cyber Blast). */
     BOMB_BLAST,
+    /** A footstep while the user's own Cyber Blast character walks. */
+    BLAST_STEP,
+    /** The user lost a heart (Cyber Blast). */
+    BLAST_DIE,
+    /** The user hit another player (Cyber Blast). */
+    BLAST_KILL,
 }

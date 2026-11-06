@@ -84,6 +84,8 @@ class CyberBlastMatchViewModel(
     private var shownPhase: BlastPhase? = null
     /** "GO!" shows until then ([CyberBoardFeed.nowMs]'s clock). */
     private var goUntil = 0L
+    /** When the last footstep played ([CyberBoardFeed.nowMs]'s clock). */
+    private var lastStepAt = 0L
     /** The direction the user is pushing, as last sent. */
     private var held: BlastDir? = null
     /** Controls go out one at a time, in the order pressed. */
@@ -168,7 +170,7 @@ class CyberBlastMatchViewModel(
                     observeMatch(id).collect { update ->
                         playTableUpdate(update, "CyberBlastMatch.update", { u ->
                             match = u.match
-                            feed.setUp(u.match.cols, u.match.rows, u.match.frameMs)
+                            feed.setUp(u.match.cols, u.match.rows, u.match.frameMs, u.match.miniMap, u.match.me?.seat)
                             feed.apply(u.frame, whole = feed.current == null || u.frame.number >= (feed.current?.number ?: 0))
                             onFrame(u.frame)
                             syncMic()
@@ -213,7 +215,7 @@ class CyberBlastMatchViewModel(
         val m = match ?: return
         // One blast sound a frame, however many bombs went off together (a chain sounds like one big boom).
         if (frame.booms.isNotEmpty()) audio.play(GameSound.BOMB_BLAST)
-        if (frame.hits.isNotEmpty()) audio.play(GameSound.CAPTURE)
+        playSounds(m, frame)
         if (shownPhase == BlastPhase.COUNTDOWN && frame.phase == BlastPhase.PLAYING) goUntil = feed.nowMs() + GO_MS
         val phaseChanged = shownPhase != frame.phase
         shownPhase = frame.phase
@@ -228,6 +230,26 @@ class CyberBlastMatchViewModel(
         if (key != shownCards || phaseChanged) {
             shownCards = key
             render()
+        }
+    }
+
+    /**
+     * The user's own sounds first: a "wah-wah" when they lose a heart, a zap-chime when they hit
+     * someone; anyone else's hit gets the usual hit sound. Footsteps while their character walks.
+     */
+    private fun playSounds(m: CyberMatch, frame: CyberFrameData) {
+        val mine = m.me?.seat
+        when {
+            frame.hits.any { it.victim == mine } -> audio.play(GameSound.BLAST_DIE)
+            frame.hits.any { it.by == mine && !it.self && it.byPoints > 0 } -> audio.play(GameSound.BLAST_KILL)
+            frame.hits.isNotEmpty() -> audio.play(GameSound.CAPTURE)
+        }
+        val body = mine?.let { frame.body(it) } ?: return
+        val now = feed.nowMs()
+        val gap = if (body.boostMs > 0) BOOSTED_STEP_MS else STEP_MS
+        if (body.moving && !body.out && frame.phase == BlastPhase.PLAYING && now - lastStepAt >= gap) {
+            lastStepAt = now
+            audio.play(GameSound.BLAST_STEP)
         }
     }
 
@@ -285,7 +307,6 @@ class CyberBlastMatchViewModel(
         )
         val inputs = CyberVoiceInputs(speaking + listOfNotNull(m.viewerUserId.takeIf { mySpeech == MySpeech.SPEAKING }), mutedForMe, mutedTalkers + listOfNotNull(m.viewerUserId.takeIf { mySpeech == MySpeech.SPEAKING_MUTED }))
         val cards = CyberTableMapper.cards(m, feed.current, inputs)
-        val half = (cards.size + 1) / 2
         setState {
             copy(
                 loaded = true,
@@ -296,9 +317,11 @@ class CyberBlastMatchViewModel(
                 spectatorCount = m.spectators.size.takeIf { it > 0 }?.toString().orEmpty(),
                 elapsed = CyberTableMapper.elapsed(now - m.startedAt),
                 feed = this@CyberBlastMatchViewModel.feed,
-                leftCards = cards.take(half),
-                rightCards = cards.drop(half),
+                leftCards = cards.filter { it.isMe },
+                rightCards = cards.filterNot { it.isMe },
                 banner = CyberTableMapper.banner(m, feed.current, goUntil, feed.nowMs()),
+                mySeat = me?.seat ?: 0,
+                miniMap = m.miniMap,
                 canPlay = canPlay(),
                 micOn = myMic,
                 speakerOn = speakerOn,
@@ -323,5 +346,8 @@ class CyberBlastMatchViewModel(
         const val TICK_MS = 250L
         /** "GO!" stays up this long after the countdown (ms). */
         const val GO_MS = 900L
+        /** A footstep this often while walking (ms), quicker with the speed boots. */
+        const val STEP_MS = 270L
+        const val BOOSTED_STEP_MS = 190L
     }
 }

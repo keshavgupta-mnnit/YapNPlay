@@ -2,6 +2,12 @@ package com.kglabs28.yapnplay.appengine.games.cyberblast.ui.screens.match
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.remember
+import com.kglabs28.yapnplay.appengine.games.cyberblast.utils.CyberCardFit
+import com.kglabs28.yapnplay.appengine.ui.components.table.monoScaled
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -26,6 +32,8 @@ import com.kglabs28.yapnplay.appengine.games.cyberblast.ui.components.CyberBanne
 import com.kglabs28.yapnplay.appengine.games.cyberblast.ui.components.CyberBoardCanvas
 import com.kglabs28.yapnplay.appengine.games.cyberblast.ui.components.CyberBombButton
 import com.kglabs28.yapnplay.appengine.games.cyberblast.ui.components.CyberDirectionPad
+import com.kglabs28.yapnplay.appengine.games.cyberblast.ui.components.CyberMiniMap
+import androidx.compose.foundation.layout.size
 import com.kglabs28.yapnplay.appengine.games.cyberblast.ui.components.CyberPlayerCard
 import com.kglabs28.yapnplay.appengine.ui.components.common.AppPermission
 import com.kglabs28.yapnplay.appengine.ui.components.common.BlockBackPress
@@ -128,6 +136,7 @@ fun CyberBlastMatchScreen(
 @Composable
 private fun CyberBlastTable(state: CyberBlastMatchState, send: (CyberBlastMatchIntent) -> Unit, micGranted: () -> Boolean) {
     val tints = tableSeatTints()
+    val camera = remember { CyberCameraState() }
     val tint: (Int) -> Color = { tints.forSeat(it) }
     Column(
         modifier = Modifier
@@ -147,8 +156,24 @@ private fun CyberBlastTable(state: CyberBlastMatchState, send: (CyberBlastMatchI
             onExit = { send(CyberBlastMatchIntent.ExitClicked) },
             onToggleHearSpectator = { send(CyberBlastMatchIntent.ToggleHearSpectator(it)) },
         )
-        Row(modifier = Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
-            SideColumn(cards = state.leftCards, state = state, send = send, tint = tint, micGranted = micGranted) {
+        BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
+        val dimens = YapNPlayTheme.dimens
+        // The other cards share the height left above the bomb button, and set the right column's width.
+        val cardsRoom = maxHeight - dimens.blastBombColumnHeight - Spacing.Xs
+        val scale = CyberCardFit.scale(cardsRoom, state.rightCards.size, dimens.blastCardHeight, Spacing.Xxs)
+        val rightWidth = maxOf(dimens.blastSideWidth * scale, dimens.blastBombColumnWidth)
+        Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
+            // Left: the user's card, the Mini-map under it, the pad at the bottom (a spectator: their voice buttons).
+            Column(
+                modifier = Modifier.width(YapNPlayTheme.dimens.blastSideWidth).fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                state.leftCards.forEach { card -> SeatCard(card, state, send, tint, micGranted, Modifier.fillMaxWidth()) }
+                if (state.miniMap) {
+                    CyberMiniMap(feed = state.feed, seatColours = tints, modifier = Modifier.fillMaxWidth().height(YapNPlayTheme.dimens.blastMiniMapHeight))
+                }
+                Spacer(modifier = Modifier.weight(1f))
                 if (state.spectating) {
                     TableSpectatorVoiceButtons(
                         micOn = state.micOn,
@@ -157,50 +182,56 @@ private fun CyberBlastTable(state: CyberBlastMatchState, send: (CyberBlastMatchI
                         onToggleSpeaker = { send(CyberBlastMatchIntent.ToggleSpeaker) },
                     )
                 } else {
-                    CyberDirectionPad(onDir = { send(CyberBlastMatchIntent.Steer(it)) }, enabled = state.canPlay)
+                    CyberDirectionPad(
+                        onDir = {
+                            // Moving brings the camera back to the user's character.
+                            if (it != null) camera.follow()
+                            send(CyberBlastMatchIntent.Steer(it))
+                        },
+                        enabled = state.canPlay,
+                    )
                 }
             }
+            // Middle: the arena, as big as the space between the panels allows.
             Box(modifier = Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
-                CyberBoardCanvas(feed = state.feed, seatColours = tints, modifier = Modifier.fillMaxSize())
+                CyberBoardCanvas(feed = state.feed, camera = camera, seatColours = tints, modifier = Modifier.fillMaxSize())
                 if (state.banner.isNotEmpty()) CyberBanner(text = state.banner)
             }
-            SideColumn(cards = state.rightCards, state = state, send = send, tint = tint, micGranted = micGranted) {
-                if (!state.spectating) CyberBombButton(onDrop = { send(CyberBlastMatchIntent.DropBomb) }, enabled = state.canPlay)
+            // Right: everyone else's cards, shrunk to fit above the bomb button; the column is only as wide as they are, against the right edge.
+            Column(
+                modifier = Modifier.width(rightWidth).fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
+                horizontalAlignment = Alignment.End,
+            ) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.Xxs), horizontalAlignment = Alignment.End) {
+                    state.rightCards.forEach { card -> SeatCard(card, state, send, tint, micGranted, Modifier.width(dimens.blastSideWidth).monoScaled(scale)) }
+                }
+                if (!state.spectating) CyberBombButton(onDrop = { send(CyberBlastMatchIntent.DropBomb) }, colour = tint(state.mySeat), seatColours = tints, enabled = state.canPlay)
             }
+        }
         }
     }
 }
 
-/** One side: its players' cards from the top, the control ([bottom]) at the bottom. */
+/** One player's card at this table. */
 @Composable
-private fun SideColumn(
-    cards: List<CyberCardUi>,
+private fun SeatCard(
+    card: CyberCardUi,
     state: CyberBlastMatchState,
     send: (CyberBlastMatchIntent) -> Unit,
     tint: (Int) -> Color,
     micGranted: () -> Boolean,
-    bottom: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = Modifier.width(YapNPlayTheme.dimens.blastSideWidth).fillMaxHeight(),
-        verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Column(modifier = Modifier.weight(1f).fillMaxWidth().verticalScrollWithBar(), verticalArrangement = Arrangement.spacedBy(Spacing.Xxs)) {
-            cards.forEach { card ->
-                CyberPlayerCard(
-                    card = card,
-                    tint = tint(card.seat),
-                    onToggleHear = { send(CyberBlastMatchIntent.ToggleHear(card.seat)) },
-                    onLongPress = { send(CyberBlastMatchIntent.PlayerLongPressed(card.seat)) },
-                    micOn = state.micOn,
-                    onToggleMic = if (card.isMe) ({ send(CyberBlastMatchIntent.ToggleMic(micGranted())) }) else null,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
-        bottom()
-    }
+    CyberPlayerCard(
+        card = card,
+        tint = tint(card.seat),
+        onToggleHear = { send(CyberBlastMatchIntent.ToggleHear(card.seat)) },
+        onLongPress = { send(CyberBlastMatchIntent.PlayerLongPressed(card.seat)) },
+        micOn = state.micOn,
+        onToggleMic = if (card.isMe) ({ send(CyberBlastMatchIntent.ToggleMic(micGranted())) }) else null,
+        modifier = modifier,
+    )
 }
 
 @Composable

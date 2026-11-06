@@ -8,6 +8,16 @@ import com.kglabs28.yapnplay.appengine.features.nearby.host.settings.IntSetting
 import com.kglabs28.yapnplay.appengine.features.nearby.host.settings.Settings
 import com.kglabs28.yapnplay.appengine.games.base.play.GameRandom
 import com.kglabs28.yapnplay.appengine.games.cyberblast.CyberBlastEngine
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_BIG_ARENA_KEY
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_BIG_COLS
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_BIG_ROWS
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_COLS
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_FEWER_BLOCKERS_KEY
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_MINI_MAP_KEY
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_MORE_BLOCKERS_KEY
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_ROWS
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_STANDARD_PLAYERS
+import com.kglabs28.yapnplay.appengine.games.cyberblast.CyberBlastHouseRules
 import com.kglabs28.yapnplay.appengine.games.cyberblast.CyberBlastMandatoryRules
 import com.kglabs28.yapnplay.appengine.games.cyberblast.CyberBlastRules
 import com.kglabs28.yapnplay.appengine.games.cyberblast.CyberBlastState
@@ -15,7 +25,7 @@ import com.kglabs28.yapnplay.appengine.games.cyberblast.bot.BlastBotSettings
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
-/** Starts Cyber Blast sessions: every rule and the bots' weights from the admin settings (no room toggles). */
+/** Starts Cyber Blast sessions: every rule and the bots' weights from the admin settings, the board and its blockers from the room's toggles. */
 class CyberBlastSessionFactory(
     override val game: CyberBlastEngine,
     private val random: GameRandom,
@@ -23,15 +33,34 @@ class CyberBlastSessionFactory(
     private val settings: Settings = Settings.Defaults,
 ) : GameSessionFactory {
 
-    override fun start(seatCount: Int, houseRules: Map<String, Boolean>?): GameSession =
-        session(game.start(CyberBlastRules(mandatory()), seatCount, random) as CyberBlastState)
+    /** A room's toggles pick the board and how packed it is; Quick Play ([houseRules] null) has them all off. */
+    override fun start(seatCount: Int, houseRules: Map<String, Boolean>?): GameSession {
+        val house = CyberBlastHouseRules(
+            bigArena = houseRules?.get(BLAST_BIG_ARENA_KEY) == true,
+            miniMap = houseRules?.get(BLAST_MINI_MAP_KEY) == true,
+            fewerBlockers = houseRules?.get(BLAST_FEWER_BLOCKERS_KEY) == true,
+            moreBlockers = houseRules?.get(BLAST_MORE_BLOCKERS_KEY) == true,
+        )
+        return session(game.start(CyberBlastRules(mandatory(house, seatCount), house), seatCount, random) as CyberBlastState)
+    }
+
+    /** The room's amount of blockers (both toggles on cancel out), a few less for each player over 4 and more for each under. */
+    private fun density(house: CyberBlastHouseRules, seatCount: Int): Int {
+        val base = when {
+            house.fewerBlockers && !house.moreBlockers -> settings[GameSettings.BLAST_DENSITY_FEW_PCT]
+            house.moreBlockers && !house.fewerBlockers -> settings[GameSettings.BLAST_DENSITY_MANY_PCT]
+            else -> settings[GameSettings.BLAST_CRATE_DENSITY_PCT]
+        }
+        val shift = (seatCount - BLAST_STANDARD_PLAYERS) * settings[GameSettings.BLAST_DENSITY_PER_PLAYER_PCT]
+        return (base * (PERCENT - shift) / PERCENT).coerceIn(0, MAX_DENSITY_PCT)
+    }
 
     override fun restore(saved: JsonObject): GameSession = session(json.decodeFromJsonElement(CyberBlastSaved.serializer(), saved).engine)
 
     private fun session(state: CyberBlastState) =
         CyberBlastSession(game, state, random, json, settings[GameSettings.BLAST_FRAME_MS].toLong(), ::botSettings)
 
-    private fun mandatory() = CyberBlastMandatoryRules(
+    private fun mandatory(house: CyberBlastHouseRules, seatCount: Int) = CyberBlastMandatoryRules(
         lives = settings[GameSettings.BLAST_LIVES],
         startRadius = settings[GameSettings.BLAST_START_RADIUS],
         maxRadius = maxOf(settings[GameSettings.BLAST_MAX_RADIUS], settings[GameSettings.BLAST_START_RADIUS]),
@@ -47,13 +76,15 @@ class CyberBlastSessionFactory(
         hitPenalty = settings[GameSettings.BLAST_HIT_PENALTY],
         selfPenalty = settings[GameSettings.BLAST_SELF_PENALTY],
         cratePoints = settings[GameSettings.BLAST_CRATE_POINTS],
-        crateDensityPct = settings[GameSettings.BLAST_CRATE_DENSITY_PCT],
+        crateDensityPct = density(house, seatCount),
         itemEveryMs = seconds(GameSettings.BLAST_ITEM_EVERY_SECONDS),
         itemJitterMs = seconds(GameSettings.BLAST_ITEM_JITTER_SECONDS),
         itemLifeMs = seconds(GameSettings.BLAST_ITEM_LIFE_SECONDS),
         maxItems = settings[GameSettings.BLAST_MAX_ITEMS],
         countdownMs = seconds(GameSettings.BLAST_COUNTDOWN_SECONDS),
-        closeAfterMs = seconds(GameSettings.BLAST_CLOSE_AFTER_SECONDS),
+        closeAfterMs = seconds(if (house.bigArena) GameSettings.BLAST_BIG_CLOSE_AFTER_SECONDS else GameSettings.BLAST_CLOSE_AFTER_SECONDS),
+        cols = if (house.bigArena) BLAST_BIG_COLS else BLAST_COLS,
+        rows = if (house.bigArena) BLAST_BIG_ROWS else BLAST_ROWS,
         closeStepMs = ms(GameSettings.BLAST_CLOSE_STEP_MS),
     )
 
@@ -78,4 +109,9 @@ class CyberBlastSessionFactory(
     private fun ms(setting: IntSetting): Long = settings[setting].toLong()
 
     private fun seconds(setting: IntSetting): Long = settings[setting] * HostConstants.MILLIS_PER_SECOND
+
+    private companion object {
+        const val PERCENT = 100
+        const val MAX_DENSITY_PCT = 90
+    }
 }

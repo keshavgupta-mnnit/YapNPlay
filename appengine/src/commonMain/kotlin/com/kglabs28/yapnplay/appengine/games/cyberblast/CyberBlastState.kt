@@ -14,7 +14,7 @@ enum class BlastPhase { COUNTDOWN, PLAYING, FINISHED }
  * The whole Cyber Blast board. [time] is the match's own clock (ms since
  * the countdown began): it only runs while the match plays, so a pause
  * (an end-game vote, a restart) never makes bombs go off early. Tiles are
- * `y * BLAST_COLS + x`; pillars are fixed by [BlastGrid], [walls] are the
+ * `row * BlastGrid.STRIDE + col`; pillars are fixed by [BlastGrid], [walls] are the
  * tiles the closing arena has filled.
  */
 @Serializable
@@ -22,6 +22,9 @@ data class CyberBlastState(
     override val gameId: GameId,
     val blastRules: CyberBlastRules,
     val seatCount: Int,
+    /** The board's size in tiles (a Big Arena is bigger). */
+    val cols: Int = BLAST_COLS,
+    val rows: Int = BLAST_ROWS,
     val players: List<BlastPlayer>,
     val crates: Set<Int>,
     val walls: Set<Int> = emptySet(),
@@ -74,6 +77,8 @@ data class BlastPlayer(
     val score: Int = 0,
     val boostUntil: Long = 0L,
     val shieldUntil: Long = 0L,
+    /** Players hit in a row since this one last lost a heart: their blast reaches 1 tile more for each. */
+    val streak: Int = 0,
     val hits: Int = 0,
     val removed: Boolean = false,
 ) {

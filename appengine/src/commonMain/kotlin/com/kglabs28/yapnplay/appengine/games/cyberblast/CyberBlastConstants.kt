@@ -1,5 +1,7 @@
 package com.kglabs28.yapnplay.appengine.games.cyberblast
 
+import com.kglabs28.yapnplay.appengine.games.base.rules.HouseRuleOption
+
 const val CYBER_BLAST_ID = "cyber-blast"
 const val CYBER_BLAST_DISPLAY_NAME = "Cyber Blast"
 val CYBER_BLAST_TAGLINES = listOf("Drop", "Blast", "Survive")
@@ -12,12 +14,13 @@ const val CYBER_BLAST_SEARCH_SECONDS = 20L
 
 val CYBER_BLAST_FIXED_RULES = listOf(
     "Rooms 2–8 players, random tables 4",
-    "Drop bombs to break blockers and blast the others; metal pillars never break",
+    "Drop as many bombs as you like (they go off after 3 s) to break blockers and blast the others; pillars never break",
     "Every hit costs a heart (5 each); you come back somewhere safe",
-    "Hit someone: +100 and your blast reaches 1 tile further",
+    "Hit players in a row: +100 each and 1 tile more reach (lose a heart: back to 1)",
     "Hit by someone: −25 · your own bomb: −15 · each blocker: +10",
     "Grab the speed boots for 30 s of extra speed",
     "Last player with hearts left wins; later the arena closes in",
+    "Room options: Big Arena, Mini-map, Fewer or More Blockers (more players: a few less)",
 )
 
 /** The board: 15 × 11 tiles, metal pillars on every odd column of every odd row. */
@@ -44,3 +47,23 @@ const val BLAST_CORE_HALF_ROWS = 1
 
 /** Fewer players with hearts left than this: the match is over. */
 const val BLAST_MIN_ALIVE = 2
+
+/** A Big Arena: about twice the board each way; each player's screen follows them. */
+const val BLAST_BIG_COLS = 29
+const val BLAST_BIG_ROWS = 21
+
+/** Room toggles (`RoomInfo.houseRules` keys). */
+const val BLAST_BIG_ARENA_KEY = "big_arena"
+const val BLAST_MINI_MAP_KEY = "mini_map"
+const val BLAST_FEWER_BLOCKERS_KEY = "fewer_blockers"
+const val BLAST_MORE_BLOCKERS_KEY = "more_blockers"
+
+val CYBER_BLAST_HOUSE_RULES = listOf(
+    HouseRuleOption(BLAST_BIG_ARENA_KEY, "Big Arena", "A board twice as big: your screen follows you, so you have to hunt the others down", false),
+    HouseRuleOption(BLAST_MINI_MAP_KEY, "Mini-map", "A small map in the corner shows the whole arena and where everyone is", false),
+    HouseRuleOption(BLAST_FEWER_BLOCKERS_KEY, "Fewer Blockers", "A more open arena (with More Blockers on too: the usual amount)", false),
+    HouseRuleOption(BLAST_MORE_BLOCKERS_KEY, "More Blockers", "A packed arena to blast your way through (with Fewer Blockers on too: the usual amount)", false),
+)
+
+/** The usual blocker density is for this many players; each player more (or fewer) shifts it (admin setting). */
+const val BLAST_STANDARD_PLAYERS = 4

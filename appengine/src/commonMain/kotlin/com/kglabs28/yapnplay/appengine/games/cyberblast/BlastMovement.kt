@@ -22,7 +22,7 @@ object BlastMovement {
             if (left <= 0) return@repeat
             val tile = BlastGrid.tileAt(x, y)
             val off = if (dir.horizontal) y - BlastGrid.centreY(tile) else x - BlastGrid.centreX(tile)
-            val ahead = BlastGrid.next(tile, dir)
+            val ahead = BlastGrid.next(state, tile, dir)
             val aheadOpen = ahead != null && BlastGrid.canEnter(state, ahead, tile)
             if (off != 0) {
                 val toward = when {
@@ -60,8 +60,8 @@ object BlastMovement {
             side > 0 -> BlastDir.RIGHT
             else -> BlastDir.LEFT
         }
-        val beside = BlastGrid.next(tile, sideDir) ?: return false
-        val besideAhead = BlastGrid.next(beside, dir) ?: return false
+        val beside = BlastGrid.next(state, tile, sideDir) ?: return false
+        val besideAhead = BlastGrid.next(state, beside, dir) ?: return false
         return BlastGrid.canEnter(state, beside, tile) && BlastGrid.canEnter(state, besideAhead, beside)
     }
 

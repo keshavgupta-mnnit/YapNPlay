@@ -23,5 +23,8 @@ object GameSoundFiles {
         GameSound.EMOJI_TOSS -> "emoji_toss.wav"
         GameSound.EMOJI_POP -> "emoji_pop.wav"
         GameSound.BOMB_BLAST -> "bomb_blast.wav"
+        GameSound.BLAST_STEP -> "blast_step.wav"
+        GameSound.BLAST_DIE -> "blast_die.wav"
+        GameSound.BLAST_KILL -> "blast_kill.wav"
     }
 }

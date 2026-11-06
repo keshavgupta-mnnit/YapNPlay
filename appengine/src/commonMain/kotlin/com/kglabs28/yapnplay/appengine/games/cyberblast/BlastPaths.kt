@@ -19,14 +19,14 @@ class BlastPathTree(val start: Int, val steps: Map<Int, Int>, private val parent
     /** Which way to walk first to get to [tile]. */
     fun firstDir(tile: Int): BlastDir? {
         val first = path(tile).firstOrNull() ?: return null
-        return BlastDir.entries.firstOrNull { BlastGrid.next(start, it) == first }
+        return BlastGrid.dirBetween(start, first)
     }
 }
 
 /** Shortest walks on the board (breadth first). */
 object BlastPaths {
     /** Tiles reachable from [start] in at most [maxSteps], walking only where [canStep] (the step's tile and how many steps it took). */
-    fun from(start: Int, maxSteps: Int, canStep: (tile: Int, steps: Int) -> Boolean): BlastPathTree {
+    fun from(state: CyberBlastState, start: Int, maxSteps: Int, canStep: (tile: Int, steps: Int) -> Boolean): BlastPathTree {
         val steps = mutableMapOf(start to 0)
         val parent = mutableMapOf<Int, Int>()
         val queue = ArrayDeque(listOf(start))
@@ -34,7 +34,7 @@ object BlastPaths {
             val at = queue.removeFirst()
             val next = steps.getValue(at) + 1
             if (next > maxSteps) continue
-            for (n in BlastGrid.neighbours(at)) {
+            for (n in BlastGrid.neighbours(state, at)) {
                 if (n in steps || !canStep(n, next)) continue
                 steps[n] = next
                 parent[n] = at

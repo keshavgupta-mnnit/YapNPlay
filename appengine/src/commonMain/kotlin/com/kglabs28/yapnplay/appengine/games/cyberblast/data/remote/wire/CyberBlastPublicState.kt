@@ -15,5 +15,7 @@ data class CyberBlastPublicState(
     val frameMs: Long,
     val fuseMs: Long,
     val boostMs: Long,
+    /** 0.13.1: the room's Mini-map toggle (the app shows the whole arena small in a corner). */
+    val miniMap: Boolean = false,
     val frame: CyberFrame,
 )

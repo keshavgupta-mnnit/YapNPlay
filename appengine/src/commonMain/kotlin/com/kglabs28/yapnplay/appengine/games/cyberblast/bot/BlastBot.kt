@@ -36,7 +36,7 @@ class BlastBot(
             val me = state.player(seat)?.takeIf { it.inPlay } ?: return@forEach
             var mind = minds[seat] ?: BlastMind(nextBombAt = state.time + jitter(tuning.bombGapMs, tuning.bombGapJitterMs))
             if (state.time >= mind.nextLookAt) {
-                val ready = state.time >= mind.nextBombAt && state.bombsOf(seat) < state.mandatory.bombs
+                val ready = state.time >= mind.nextBombAt && (state.mandatory.bombs == 0 || state.bombsOf(seat) < state.mandatory.bombs)
                 val decision = BlastGoalDecision(state, me, tuning, ready)
                 val goal = decision.choose(trace)
                 mind = when {
@@ -72,7 +72,7 @@ class BlastBot(
         while (rest.isNotEmpty() && rest.first() == me.tile && (rest.size > 1 || pastCentre(me))) rest = rest.drop(1)
         val next = rest.firstOrNull() ?: return null to emptyList()
         if (next == me.tile) return me.held to rest
-        val dir = BlastDir.entries.firstOrNull { BlastGrid.next(me.tile, it) == next } ?: return null to emptyList()
+        val dir = BlastGrid.dirBetween(me.tile, next) ?: return null to emptyList()
         return dir to rest
     }
 

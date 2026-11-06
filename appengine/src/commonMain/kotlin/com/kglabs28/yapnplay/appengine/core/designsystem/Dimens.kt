@@ -494,12 +494,20 @@ class YapNPlayDimens {
     /** Each side column: four players' cards over the D-pad (left) or the bomb button (right). */
     val blastSideWidth: Dp get() = 168.dp.scaled()
     val blastCardAvatar: Dp get() = 30.dp.scaled()
-    val blastHeart: Dp get() = 10.dp.scaled()
+    val blastHeart: Dp get() = 12.dp.scaled()
     /** The round D-pad and the bomb button. */
     val blastPadSize: Dp get() = 104.dp.scaled()
-    val blastBombButton: Dp get() = 88.dp.scaled()
+    val blastBombButton: Dp get() = 60.dp.scaled()
     val blastBoardRadius: Dp get() = 12.dp.scaled()
     val blastBoardGlow: Dp get() = 10.dp.scaled()
+    /** The Mini-map in the board's top right corner. */
+    val blastMiniMapWidth: Dp get() = 96.dp.scaled()
+    val blastMiniMapHeight: Dp get() = 72.dp.scaled()
+    /** A Cyber Blast card's full height at its own size (the right column shrinks cards to fit). */
+    val blastCardHeight: Dp get() = 70.dp.scaled()
+    /** The bomb button with its label under it, and the least width the right column needs for it. */
+    val blastBombColumnHeight: Dp get() = 82.dp.scaled()
+    val blastBombColumnWidth: Dp get() = 84.dp.scaled()
 }
 
 val LocalDimens = compositionLocalOf { YapNPlayDimens() }

@@ -46,4 +46,4 @@ package com.kglabs28.yapnplay.appengine.protocol.transport
  * channel, EmojiGift (MatchRelay) to the whole table, `GET
  * /coins/emoji-gifts` (EmojiGiftPrices).
  */
-const val CONTRACT_VERSION: String = "0.13.0"
+const val CONTRACT_VERSION: String = "0.13.2"

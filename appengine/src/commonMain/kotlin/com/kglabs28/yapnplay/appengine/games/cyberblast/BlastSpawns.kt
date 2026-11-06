@@ -10,9 +10,9 @@ import com.kglabs28.yapnplay.appengine.games.base.play.GameRandom
  */
 object BlastSpawns {
 
-    /** Spread-out starting tiles for [seatCount] players on the empty board. */
-    fun startTiles(seatCount: Int, random: GameRandom): List<Int> {
-        val floor = (0 until BlastGrid.TILES).filterNot(BlastGrid::isPillar)
+    /** Spread-out starting tiles for [seatCount] players on an empty [cols] × [rows] board. */
+    fun startTiles(cols: Int, rows: Int, seatCount: Int, random: GameRandom): List<Int> {
+        val floor = BlastGrid.tiles(cols, rows).filterNot(BlastGrid::isPillar)
         val chosen = mutableListOf(floor[random.nextInt(floor.size)])
         while (chosen.size < seatCount) {
             val scored = floor.filter { it !in chosen }.map { tile -> tile to chosen.minOf { BlastGrid.distance(it, tile) } }
@@ -28,12 +28,12 @@ object BlastSpawns {
         val danger = BlastDanger.of(state)
         val radius = state.player(seat)?.radius ?: state.mandatory.startRadius
         val others = state.alive.filter { it.seat != seat }.map { it.tile }
-        val open = (0 until BlastGrid.TILES).filter { BlastGrid.isOpen(state, it) && it !in danger && it !in others }
+        val open = BlastGrid.tiles(state).filter { BlastGrid.isOpen(state, it) && it !in danger && it !in others }
         val good = open.filter { hasEscape(state, it, radius, danger) }
         val pool = good.ifEmpty { open }
         if (pool.isEmpty()) {
             // Nothing open at all (the arena nearly closed): any floor tile, carved free.
-            val floor = (0 until BlastGrid.TILES).filter { !BlastGrid.isWall(state, it) }
+            val floor = BlastGrid.tiles(state).filter { !BlastGrid.isWall(state, it) }
             val tile = floor[random.nextInt(floor.size)]
             return openEscape(state.copy(crates = state.crates - tile), tile, radius) to tile
         }
@@ -46,7 +46,7 @@ object BlastSpawns {
      * [radius] blast from [tile], all without fire coming.
      */
     fun hasEscape(state: CyberBlastState, tile: Int, radius: Int, danger: Map<Int, DangerWindow>): Boolean {
-        val walk = BlastPaths.from(tile, BLAST_ESCAPE_DEPTH) { t, _ -> BlastGrid.isOpen(state, t) && t !in danger }
+        val walk = BlastPaths.from(state, tile, BLAST_ESCAPE_DEPTH) { t, _ -> BlastGrid.isOpen(state, t) && t !in danger }
         if (walk.tiles.size < BLAST_MIN_ROOM) return false
         val fire = BlastGrid.reach(state, tile, radius).fire.map { it.first }.toSet()
         return walk.tiles.any { it !in fire }
@@ -59,10 +59,10 @@ object BlastSpawns {
      */
     fun openEscape(state: CyberBlastState, tile: Int, radius: Int): CyberBlastState {
         val fire = BlastGrid.reach(state.copy(crates = emptySet()), tile, radius).fire.map { it.first }.toSet()
-        val walk = BlastPaths.from(tile, BlastGrid.TILES) { t, _ -> !BlastGrid.isWall(state, t) && state.bombAt(t) == null }
+        val walk = BlastPaths.from(state, tile, Int.MAX_VALUE) { t, _ -> !BlastGrid.isWall(state, t) && state.bombAt(t) == null }
         val exit = walk.tiles.filter { it !in fire }.minByOrNull { walk.steps.getValue(it) } ?: return state
         // Its neighbours too, so there's room to stand, not just a corridor.
-        val cleared = walk.path(exit).toSet() + tile + BlastGrid.neighbours(exit).filter { !BlastGrid.isWall(state, it) }.take(1)
+        val cleared = walk.path(exit).toSet() + tile + BlastGrid.neighbours(state, exit).filter { !BlastGrid.isWall(state, it) }.take(1)
         return state.copy(crates = state.crates - cleared)
     }
 

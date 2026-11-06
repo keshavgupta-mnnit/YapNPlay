@@ -67,6 +67,9 @@ data class CyberPlayerWire(
     val shieldMs: Long = 0,
     /** No hearts left, or left the match. */
     val out: Boolean = false,
+    /** 0.13.2: players they have hit in all, and in a row since they last lost a heart. */
+    val kills: Int = 0,
+    val streak: Int = 0,
 )
 
 @Serializable

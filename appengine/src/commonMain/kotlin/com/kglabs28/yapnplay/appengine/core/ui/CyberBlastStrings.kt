@@ -28,6 +28,9 @@ object CyberBlastStrings {
     const val blastDropBombLabel = "Drop bomb"
     const val blastPadLabel = "Move"
     const val blastBootsTag = "+30s"
+    /** A blast's reach on the card: "1x" at the start, one more for each hit in a row. */
+    fun blastReach(tiles: Int) = "${tiles}x"
+    const val blastKillsLabel = "Players hit"
     fun blastPoints(points: Int) = if (points > 0) "+$points" else "$points"
     fun blastScore(score: Int) = "$score pts"
     const val blastOutTag = "Out"

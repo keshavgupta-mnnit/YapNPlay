@@ -50,6 +50,8 @@ object CyberTableMapper {
             micOn = s.micOn,
             lives = body?.lives ?: match.lives,
             maxLives = match.lives,
+            reach = CyberBlastStrings.blastReach(body?.radius ?: 1),
+            kills = (body?.kills ?: 0).toString(),
             score = CyberBlastStrings.blastScore(body?.score ?: 0),
             tag = when {
                 s.removed -> CyberBlastStrings.blastLeftTag
@@ -61,8 +63,8 @@ object CyberTableMapper {
         )
     }
 
-    /** What changes a card (hearts, points, out): the table re-renders only when this does. */
-    fun cardKey(frame: CyberFrameData): List<Long> = frame.bodies.flatMap { listOf(it.lives.toLong(), it.score.toLong(), if (it.out) 1L else 0L) }
+    /** What changes a card (hearts, points, reach, kills, out): the table re-renders only when this does. */
+    fun cardKey(frame: CyberFrameData): List<Long> = frame.bodies.flatMap { listOf(it.lives.toLong(), it.score.toLong(), it.radius.toLong(), it.kills.toLong(), if (it.out) 1L else 0L) }
 
     /** Over the board: the countdown, "GO!", the closing warning, or the user being out. */
     fun banner(match: CyberMatch, frame: CyberFrameData?, goUntil: Long, now: Long): String {

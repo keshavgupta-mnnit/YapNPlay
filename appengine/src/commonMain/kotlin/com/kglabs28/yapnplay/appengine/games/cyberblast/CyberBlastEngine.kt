@@ -16,7 +16,6 @@ import com.kglabs28.yapnplay.appengine.games.base.play.GameView
 import com.kglabs28.yapnplay.appengine.games.base.play.TypedRejection
 import com.kglabs28.yapnplay.appengine.games.base.rules.GameRules
 import com.kglabs28.yapnplay.appengine.games.base.rules.GameShowcase
-import com.kglabs28.yapnplay.appengine.games.base.rules.HouseRuleOption
 import com.kglabs28.yapnplay.appengine.games.base.rules.MatchmakingConfig
 import com.kglabs28.yapnplay.appengine.games.base.rules.TimingConfig
 import com.kglabs28.yapnplay.appengine.games.base.rules.TurnPolicy
@@ -35,7 +34,7 @@ class CyberBlastEngine : Game {
     override val timing = TimingConfig(turnSeconds = TURN_SECONDS)
     override val matchmaking = MatchmakingConfig(seats = CYBER_BLAST_QUICK_PLAY_SEATS, searchSeconds = CYBER_BLAST_SEARCH_SECONDS)
     override val showcase = GameShowcase(taglines = CYBER_BLAST_TAGLINES, artKey = CYBER_BLAST_ID)
-    override val houseRuleOptions = emptyList<HouseRuleOption>()
+    override val houseRuleOptions = CYBER_BLAST_HOUSE_RULES
     override val fixedRules = CYBER_BLAST_FIXED_RULES
     override val minPlayers = CYBER_BLAST_MIN_PLAYERS
     override val maxPlayers = CYBER_BLAST_MAX_PLAYERS
@@ -53,13 +52,13 @@ class CyberBlastEngine : Game {
         require(seatCount in 1..CYBER_BLAST_MAX_PLAYERS) { "Cyber Blast needs 1-8 seats" }
         val blastRules = rules as? CyberBlastRules ?: CyberBlastRules()
         val m = blastRules.mandatory
-        val spawns = BlastSpawns.startTiles(seatCount, random)
-        val floor = (0 until BlastGrid.TILES).filter { !BlastGrid.isPillar(it) && it !in spawns }
+        val spawns = BlastSpawns.startTiles(m.cols, m.rows, seatCount, random)
+        val floor = BlastGrid.tiles(m.cols, m.rows).filter { !BlastGrid.isPillar(it) && it !in spawns }
         val crates = floor.filter { random.nextInt(PERCENT) < m.crateDensityPct }.toSet()
         val players = spawns.mapIndexed { i, tile ->
             BlastPlayer(seat = i + 1, x = BlastGrid.centreX(tile), y = BlastGrid.centreY(tile), lives = m.lives, radius = m.startRadius)
         }
-        var state = CyberBlastState(gameId = id, blastRules = blastRules, seatCount = seatCount, players = players, crates = crates)
+        var state = CyberBlastState(gameId = id, blastRules = blastRules, seatCount = seatCount, players = players, crates = crates, cols = m.cols, rows = m.rows)
         // Everyone can get away from their first bomb: a way out of their own reach is opened.
         spawns.forEach { tile -> if (!BlastSpawns.hasEscape(state, tile, m.startRadius, emptyMap())) state = BlastSpawns.openEscape(state, tile, m.startRadius) }
         return state
@@ -80,11 +79,11 @@ class CyberBlastEngine : Game {
         }
     }
 
-    /** A bomb where [seat] stands: only while playing, with a bomb left and nothing already on that tile. */
+    /** A bomb where [seat] stands: only while playing, on a tile with no bomb yet, and (when the match has a limit) with a bomb left. */
     private fun dropBomb(s: CyberBlastState, seat: Int): ApplyResult {
         val p = s.player(seat)?.takeIf { it.inPlay } ?: return reject("ILLEGAL_ACTION", "Not on the board")
         val tile = p.tile
-        if (s.phase != BlastPhase.PLAYING || s.bombsOf(seat) >= s.mandatory.bombs || !BlastGrid.isOpen(s, tile)) {
+        if (s.phase != BlastPhase.PLAYING || (s.mandatory.bombs > 0 && s.bombsOf(seat) >= s.mandatory.bombs) || !BlastGrid.isOpen(s, tile)) {
             return reject("ILLEGAL_ACTION", "Can't drop a bomb now")
         }
         val bomb = BlastBomb(s.nextBombId, tile, seat, p.radius, s.time + s.mandatory.fuseMs)

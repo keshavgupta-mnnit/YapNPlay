@@ -41,6 +41,9 @@ data class CyberBody(
     val boostMs: Long,
     val shieldMs: Long,
     val out: Boolean,
+    /** Players they hit in all, and in a row since they last lost a heart. */
+    val kills: Int = 0,
+    val streak: Int = 0,
 )
 
 data class CyberBombData(val id: Int, val tile: Int, val owner: Int, val radius: Int, val fuseMs: Long)

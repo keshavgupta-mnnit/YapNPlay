@@ -60,6 +60,7 @@ class CyberBlastSnapshotMapper(private val json: Json) {
             rows = state.rows,
             lives = state.lives,
             frameMs = state.frameMs,
+            miniMap = state.miniMap,
             startedAt = toLocal(snapshot.startedAt),
             viewerUserId = myUserId,
             seatOffer = snapshot.seatOffer?.toDomain(toLocal),
@@ -83,7 +84,7 @@ class CyberBlastSnapshotMapper(private val json: Json) {
         countdownMs = f.countdownMs,
         closingInMs = f.closingInMs,
         bodies = f.players.map {
-            CyberBody(it.seat, it.x, it.y, BlastDir.of(it.facing) ?: BlastDir.DOWN, it.moving, it.lives, it.score, it.radius, it.boostMs, it.shieldMs, it.out)
+            CyberBody(it.seat, it.x, it.y, BlastDir.of(it.facing) ?: BlastDir.DOWN, it.moving, it.lives, it.score, it.radius, it.boostMs, it.shieldMs, it.out, it.kills, it.streak)
         },
         bombs = f.bombs.map { CyberBombData(it.id, it.tile, it.owner, it.radius, it.fuseMs) },
         flames = f.flames.map { CyberFlameData(it.tile, it.owner, FlameShape.entries.firstOrNull { s -> s.name == it.shape } ?: FlameShape.CENTRE, it.msLeft) },

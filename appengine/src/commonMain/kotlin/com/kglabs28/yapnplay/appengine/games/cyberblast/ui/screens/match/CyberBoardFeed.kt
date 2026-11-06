@@ -46,10 +46,19 @@ class CyberBoardFeed {
 
     fun nowMs(): Long = clock.elapsedNow().inWholeMilliseconds
 
-    fun setUp(cols: Int, rows: Int, frameMs: Long) {
+    /** The room's Mini-map toggle is on. */
+    var miniMap: Boolean = false
+        private set
+    /** The user's seat (null: watching): their character glows, and a Big Arena's screen follows it. */
+    var mySeat: Int? = null
+        private set
+
+    fun setUp(cols: Int, rows: Int, frameMs: Long, miniMap: Boolean, mySeat: Int?) {
         this.cols = cols
         this.rows = rows
         this.frameMs = frameMs.coerceAtLeast(1)
+        this.miniMap = miniMap
+        this.mySeat = mySeat
     }
 
     /** A new frame; one older than the one shown is dropped. [whole]: a snapshot's, always taken. */

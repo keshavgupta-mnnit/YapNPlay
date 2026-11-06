@@ -20,6 +20,8 @@ data class CyberMatch(
     val lives: Int,
     /** How often frames come (ms). */
     val frameMs: Long,
+    /** The room's Mini-map toggle. */
+    val miniMap: Boolean = false,
     val startedAt: Instant,
     val viewerUserId: String,
     val seatOffer: SeatOffer? = null,

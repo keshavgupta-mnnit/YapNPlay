@@ -2,6 +2,9 @@ package com.kglabs28.yapnplay.appengine.ui.components.table
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import com.kglabs28.yapnplay.appengine.core.ui.LudoStrings
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -55,6 +58,8 @@ fun TablePlayerCard(
     pillEnd: (@Composable RowScope.() -> Unit)? = null,
     /** The user's own buttons beside the seat ([ArenaSeatSwitches] sizes itself to the card). */
     sideControls: (@Composable RowScope.() -> Unit)? = null,
+    /** Under the name pill, where [badge] goes (Cyber Blast's hearts); shown instead of the badge. */
+    underPill: (@Composable () -> Unit)? = null,
 ) {
     val dimens = YapNPlayTheme.dimens
     val avatar = tableCardAvatar(avatarSize)
@@ -115,7 +120,14 @@ fun TablePlayerCard(
                 },
             )
             // The tag (when one shows) right under the header.
-            ArenaSeatTagSlot(text = badge, tint = badgeTint, avatar = avatar)
+            if (underPill != null) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(dimens.seatTagSlot).padding(start = avatar + Spacing.Xs),
+                    contentAlignment = Alignment.CenterStart,
+                ) { underPill() }
+            } else {
+                ArenaSeatTagSlot(text = badge, tint = badgeTint, avatar = avatar)
+            }
         }
     }
 }

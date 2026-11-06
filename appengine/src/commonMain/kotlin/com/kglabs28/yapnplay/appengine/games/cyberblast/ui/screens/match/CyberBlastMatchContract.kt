@@ -22,11 +22,15 @@ data class CyberBlastMatchState(
     val elapsed: String = "",
     /** The same object all match long: the board canvas redraws itself from it. */
     val feed: CyberBoardFeed = CyberBoardFeed(),
-    /** Left column (the user's own card first) and right column, seat order otherwise. */
+    /** Left: the user's own card (none while watching); right: everyone else's, in seat order. */
     val leftCards: List<CyberCardUi> = emptyList(),
     val rightCards: List<CyberCardUi> = emptyList(),
     /** Over the board: "3", "2", "1", "GO!" or a warning; empty: nothing. */
     val banner: String = "",
+    /** The user's seat (0: watching): their colour on the bomb button. */
+    val mySeat: Int = 0,
+    /** The room's Mini-map is on: the whole arena small in the board's corner. */
+    val miniMap: Boolean = false,
     /** The user may steer and bomb (seated, hearts left, the match on). */
     val canPlay: Boolean = false,
     val micOn: Boolean = false,
@@ -53,6 +57,10 @@ data class CyberCardUi(
     override val micOn: Boolean,
     val lives: Int,
     val maxLives: Int,
+    /** How far their blast reaches now ("3x"), at the pill's end. */
+    val reach: String,
+    /** Players they have hit ("4"), by their hearts. */
+    val kills: String,
     /** "120 pts". */
     val score: String,
     /** Out, Away or Left; null: none. */

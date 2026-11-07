@@ -36,7 +36,7 @@ class CyberBlastMatchClient(
 
     suspend fun send(matchId: String, command: CyberCommand) {
         when (command) {
-            is CyberCommand.Input -> match.request(MessageType.CYBER_INPUT, CyberInput.serializer(), CyberInput(matchId, command.dir?.name, command.bomb))
+            is CyberCommand.Input -> match.request(MessageType.CYBER_INPUT, CyberInput.serializer(), CyberInput(matchId, command.dir?.name, command.bomb, command.tile))
             is CyberCommand.SetMic -> match.setMic(matchId, command.on)
             is CyberCommand.Leave -> match.leave(matchId, giveToUserId = command.giveToUserId)
             CyberCommand.ProposeEnd -> match.proposeEnd(matchId)

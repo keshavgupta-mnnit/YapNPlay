@@ -46,7 +46,7 @@ fun CyberDirectionPad(onDir: (BlastDir?) -> Unit, modifier: Modifier = Modifier,
                     val down = awaitFirstDown(requireUnconsumed = false)
                     val centre = Offset(this.size.width / 2f, this.size.height / 2f)
                     fun update(at: Offset) {
-                        val next = if (active) CyberPadMath.dirOf(at - centre, this.size.width * DEAD_ZONE) else null
+                        val next = if (active) CyberPadMath.dirOf(at - centre, this.size.width * DEAD_ZONE, pushed) else null
                         if (next != pushed) {
                             pushed = next
                             send(next)

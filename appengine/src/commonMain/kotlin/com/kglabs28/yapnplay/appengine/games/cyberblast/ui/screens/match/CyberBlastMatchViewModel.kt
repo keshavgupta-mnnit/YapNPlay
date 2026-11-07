@@ -34,6 +34,7 @@ import com.kglabs28.yapnplay.appengine.games.cyberblast.ui.mapper.CyberTableMapp
 import com.kglabs28.yapnplay.appengine.games.cyberblast.ui.mapper.CyberVoiceInputs
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardResult
 import com.kglabs28.yapnplay.appengine.ui.components.leaderboard.LeaderboardUi
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -104,7 +105,7 @@ class CyberBlastMatchViewModel(
                 render()
             }
             is CyberBlastMatchIntent.Steer -> steer(intent.dir)
-            CyberBlastMatchIntent.DropBomb -> if (canPlay()) inputs.trySend(CyberCommand.Input(held, bomb = true))
+            CyberBlastMatchIntent.DropBomb -> if (canPlay()) inputs.trySend(CyberCommand.Input(held, bomb = true, tile = feed.own.tile()))
             is CyberBlastMatchIntent.ToggleMic -> when {
                 micSwitch -> setMicOn(false)
                 intent.permissionGranted -> setMicOn(true)
@@ -170,7 +171,7 @@ class CyberBlastMatchViewModel(
                     observeMatch(id).collect { update ->
                         playTableUpdate(update, "CyberBlastMatch.update", { u ->
                             match = u.match
-                            feed.setUp(u.match.cols, u.match.rows, u.match.frameMs, u.match.miniMap, u.match.me?.seat)
+                            feed.setUp(u.match.cols, u.match.rows, u.match.frameMs, u.match.miniMap, u.match.me?.seat, u.match.speed, u.match.boostSpeed)
                             feed.apply(u.frame, whole = feed.current == null || u.frame.number >= (feed.current?.number ?: 0))
                             onFrame(u.frame)
                             syncMic()
@@ -191,8 +192,8 @@ class CyberBlastMatchViewModel(
                     onFrame(frame)
                 }
             },
-            // The user's controls, in order.
-            scope.launch { for (input in inputs) sendCommand(id, input) },
+            // The user's controls go out at once, in order, none waiting for the one before to be answered.
+            scope.launch { for (input in inputs) launch(start = CoroutineStart.UNDISPATCHED) { sendCommand(id, input) } },
             scope.launch { observeMatchCoins().collect { seatResults = it; leaderboard = leaderboard?.let { b -> LeaderboardResult.withResult(b, it) }; render() } },
             scope.launch { observeSpeaking(id).collect { speaking = it; render() } },
             scope.launch { voice.observeMutedTalkers(id).collect { mutedTalkers = it; render() } },
@@ -264,6 +265,7 @@ class CyberBlastMatchViewModel(
         val next = dir.takeIf { canPlay() }
         if (next == held) return
         held = next
+        feed.own.held = next
         inputs.trySend(CyberCommand.Input(next, bomb = false))
     }
 

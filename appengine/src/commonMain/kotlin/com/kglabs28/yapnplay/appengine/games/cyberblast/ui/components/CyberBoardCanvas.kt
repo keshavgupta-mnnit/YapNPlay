@@ -75,9 +75,11 @@ fun CyberBoardCanvas(feed: CyberBoardFeed, camera: CyberCameraState, seatColours
         val since = feed.sinceFrame(now)
         val frame = feed.current
         val me = feed.mySeat?.let { seat -> frame?.body(seat)?.takeIf { !it.out } }
+        // The user's own character moves on this phone at once; everyone else glides between frames.
+        val myAt = me?.let { feed.ownPosition(it, now) }
         val view = CyberCamera.view(cols, rows, size.width, size.height)
         // Where the user scrolled to, else on their character (a spectator: the middle).
-        val window = CyberCamera.window(cols, rows, view, camera.panned.value ?: me?.let { feed.position(it, now) })
+        val window = CyberCamera.window(cols, rows, view, camera.panned.value ?: myAt)
         val tile = view.tile
         camera.window = window
         camera.tilePx = tile
@@ -114,7 +116,7 @@ fun CyberBoardCanvas(feed: CyberBoardFeed, camera: CyberCameraState, seatColours
                 val tip = CyberFlameTips.side(f.tile, f.shape, burning)
                 drawFire(grid, f.tile, BlastGrid.col(f.tile), BlastGrid.row(f.tile), f.shape, tip, left, now, palette.seat(f.owner), palette)
             }
-            frame.bodies.filter { !it.out }.map { it to feed.position(it, now) }.sortedBy { it.second.second }.forEach { (body, at) ->
+            frame.bodies.filter { !it.out }.map { it to (if (it.seat == me?.seat && myAt != null) myAt else feed.position(it, now)) }.sortedBy { it.second.second }.forEach { (body, at) ->
                 val colour = palette.seat(body.seat)
                 if (body.seat == me?.seat) drawYouGlow(grid, at.first, at.second, now, colour, palette)
                 val look = CyberRunnerLook(suit = colour, facing = body.facing, moving = body.moving, shielded = body.shieldMs > since, boosted = body.boostMs > since)

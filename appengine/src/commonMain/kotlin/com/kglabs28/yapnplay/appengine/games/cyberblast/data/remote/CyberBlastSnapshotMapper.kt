@@ -61,6 +61,8 @@ class CyberBlastSnapshotMapper(private val json: Json) {
             lives = state.lives,
             frameMs = state.frameMs,
             miniMap = state.miniMap,
+            speed = state.speed,
+            boostSpeed = state.boostSpeed,
             startedAt = toLocal(snapshot.startedAt),
             viewerUserId = myUserId,
             seatOffer = snapshot.seatOffer?.toDomain(toLocal),

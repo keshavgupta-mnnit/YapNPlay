@@ -22,6 +22,9 @@ data class CyberMatch(
     val frameMs: Long,
     /** The room's Mini-map toggle. */
     val miniMap: Boolean = false,
+    /** Walking speed and with the boots (thousandths of a tile a second). */
+    val speed: Int = 4_000,
+    val boostSpeed: Int = 5_600,
     val startedAt: Instant,
     val viewerUserId: String,
     val seatOffer: SeatOffer? = null,

@@ -94,6 +94,8 @@ fun CyberBlastMatchScreen(
         EmojiGiftLayer(matchId = matchId, viewModel = emojiGiftViewModel) {
             CyberBlastTable(state = state, send = send, micGranted = { micPermission.isGranted() })
         }
+        // The countdown, "GO!" and "You're out" in the middle of the whole screen.
+        if (state.banner.isNotEmpty()) Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CyberBanner(text = state.banner) }
         val modal = state.modal
         val needsAnswer = modal is CyberModal.EndVote || modal is CyberModal.Seat
         BlockingOverlay(visible = modal != null, onDismiss = if (needsAnswer) null else ({ send(CyberBlastMatchIntent.DismissModal) })) {
@@ -195,7 +197,6 @@ private fun CyberBlastTable(state: CyberBlastMatchState, send: (CyberBlastMatchI
             // Middle: the arena, as big as the space between the panels allows.
             Box(modifier = Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
                 CyberBoardCanvas(feed = state.feed, camera = camera, seatColours = tints, modifier = Modifier.fillMaxSize())
-                if (state.banner.isNotEmpty()) CyberBanner(text = state.banner)
             }
             // Right: everyone else's cards, shrunk to fit above the bomb button; the column is only as wide as they are, against the right edge.
             Column(

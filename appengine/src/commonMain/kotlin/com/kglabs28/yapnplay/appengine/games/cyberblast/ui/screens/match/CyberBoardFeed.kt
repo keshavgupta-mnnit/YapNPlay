@@ -3,6 +3,7 @@ package com.kglabs28.yapnplay.appengine.games.cyberblast.ui.screens.match
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableIntStateOf
 import com.kglabs28.yapnplay.appengine.games.cyberblast.BLAST_TILE
+import com.kglabs28.yapnplay.appengine.games.cyberblast.BlastPhase
 import com.kglabs28.yapnplay.appengine.games.cyberblast.domain.CyberBody
 import com.kglabs28.yapnplay.appengine.games.cyberblast.domain.CyberFrameData
 import kotlin.math.abs
@@ -53,7 +54,12 @@ class CyberBoardFeed {
     var mySeat: Int? = null
         private set
 
-    fun setUp(cols: Int, rows: Int, frameMs: Long, miniMap: Boolean, mySeat: Int?) {
+    /** The user's own character, moved on this phone at once (see [CyberOwnMotion]). */
+    val own = CyberOwnMotion()
+
+    fun setUp(cols: Int, rows: Int, frameMs: Long, miniMap: Boolean, mySeat: Int?, speed: Int, boostSpeed: Int) {
+        own.speed = speed
+        own.boostSpeed = boostSpeed
         this.cols = cols
         this.rows = rows
         this.frameMs = frameMs.coerceAtLeast(1)
@@ -79,6 +85,7 @@ class CyberBoardFeed {
         while (pops.isNotEmpty() && now - pops.first().atMs > EFFECT_MS) pops.removeFirst()
         previous = if (whole) frame else shown
         current = frame
+        own.updateBoard(cols, rows, crates, walls, frame.bombs)
         currentAt = now
         version.intValue++
     }
@@ -92,6 +99,12 @@ class CyberBoardFeed {
         val t = progress(now)
         if (before == null || abs(before.x - body.x) + abs(before.y - body.y) > SNAP_DISTANCE) return tiles(body.x) to tiles(body.y)
         return tiles(before.x + ((body.x - before.x) * t).toInt()) to tiles(before.y + ((body.y - before.y) * t).toInt())
+    }
+
+    /** Where the user's own [body] is drawn now (tiles): moved on this phone, eased towards the server. */
+    fun ownPosition(body: CyberBody, now: Long): Pair<Float, Float> {
+        val (x, y) = own.position(body, now, playing = current?.phase == BlastPhase.PLAYING)
+        return tiles(x) to tiles(y)
     }
 
     /** Time gone since [current] came in (to run fuses and fire down). */
